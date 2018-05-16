@@ -1,6 +1,7 @@
 #ifndef _rx_cc_macro_
 #define _rx_cc_macro_
 
+
     //define known compiler type
     #define RX_CC_UNKNOWN                   0               //Unknown compiler
     #define RX_CC_TC                        1               //Borland Turbo C
@@ -358,17 +359,33 @@
         #define RX_CPU_LEBE                 "BE"
     #endif
 
+	#define RX_CC_CAT(A,B)					A##B
     #define RX_CC_STR(M)                    #M
     #define RX_CC_N2S(N)                    RX_CC_STR(N)
 
     //define cpu and compiler desc string. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
-    #define RX_CC_DESC ("CPU:"RX_CPU_ARCH"("RX_CPU_LEBE")/"RX_CC_NAME"("RX_CC_N2S(RX_CC_VER_MAJOR)"."RX_CC_N2S(RX_CC_VER_MINOR)"."RX_CC_N2S(RX_CC_VER_PATCH)"."RX_CC_N2S(RX_CC_VER_BUILD)")/"RX_CC_N2S(RX_CC_BIT)"Bit")
+    #define RX_CC_DESC ("CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/" RX_CC_NAME "(" RX_CC_N2S(RX_CC_VER_MAJOR) "." RX_CC_N2S(RX_CC_VER_MINOR) "." RX_CC_N2S(RX_CC_VER_PATCH) "." RX_CC_N2S(RX_CC_VER_BUILD) ")/" RX_CC_N2S(RX_CC_BIT) "Bit")
+
+#if RX_CC == RX_CC_VC
+	#include <stdio.h>
+	//visual studio, eg : "CPU:X64(LE)/Microsoft Visual Studio(19.0.1900.1)/64Bit"
+	inline const char* rx_cc_desc()
+	{
+		static char desc[128];
+		snprintf(desc,sizeof(desc),"CPU:%s(%s)/%s(%d.%d.%d.%d)/%dBit", RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
+		return desc;
+	}
+#else
+    inline const char* rx_cc_desc() {return RX_CC_DESC;}
+#endif
 
     #if !RX_CC_TESTED
     #endif
 
     //check char* string is empty
     #define is_empty(str)                   (str==NULL||str[0]==0)
+
+    #include <stdint.h>
 
 #endif
 
