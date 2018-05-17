@@ -1,8 +1,18 @@
 #ifndef _rx_cc_macro_
 #define _rx_cc_macro_
 
+    //-----------------------------------------------------
+    //是否禁用内联前缀
+    #ifndef RX_BAN_INLINE
+        #define RX_BAN_INLINE               0
+    #endif
 
-    //define known compiler type
+    #if RX_BAN_INLINE
+        #define RX_INLINE
+    #endif
+
+    //-----------------------------------------------------
+    //定义常用编译器类型
     #define RX_CC_UNKNOWN                   0               //Unknown compiler
     #define RX_CC_TC                        1               //Borland Turbo C
     #define RX_CC_BCC                       2               //Borland C++
@@ -20,19 +30,12 @@
     #define RX_CC_ICC                       14              //Intel ICC/ICPC Compiler
     #define RX_CC_KEIL                      15              //Keil (uVision)
 
-    #ifndef RX_BAN_INLINE
-        #define RX_BAN_INLINE               0
-    #endif
-
-    #if RX_BAN_INLINE
-        #define RX_INLINE
-    #endif
-
+    //-----------------------------------------------------
+    //进行编译器类型的自动侦测
     #ifndef RX_CC
         #define RX_CC                       RX_CC_UNKNOWN
     #endif
 
-    //auto detect compiler type
     #if RX_CC == RX_CC_UNKNOWN
         #undef RX_CC
         #if defined(__MINGW32__)
@@ -71,7 +74,8 @@
         #endif
     #endif
 
-    //auto detect compiler name and version
+    //-----------------------------------------------------
+    //自动侦测编译器的版本信息
     #undef RX_CC_NAME
     #undef RX_CC_TESTED
     #undef RX_CC_VER_MAJOR
@@ -250,7 +254,11 @@
         #define RX_CC_VER_BUILD             0
     #endif
 
-    //define CPU type
+    #if !RX_CC_TESTED
+    #endif
+
+    //-----------------------------------------------------
+    //定义常用CPU的类型
     #ifndef RX_CPU
         #define RX_CPU                      RX_CPU_UNKNOWN
     #endif
@@ -263,7 +271,7 @@
     #define RX_CPU_POWERPC64                0x21    //PowerPC
     #define RX_CPU_SPARC                    0x22    //Sparc
 
-    //auto detect CPU type
+    //自动侦测当前编译器使用的后端CPU类型(类型标识/架构名称/运算位长)
     #if RX_CPU == RX_CPU_UNKNOWN
         #undef RX_CPU
         #if defined(__ia64) || defined(__itanium__) || defined(_M_IA64)
@@ -298,6 +306,17 @@
         #endif
     #endif
 
+    #ifndef RX_CC_BIT
+        #define RX_CC_BIT                   0
+    #endif
+
+    //-----------------------------------------------------
+    //根据网络字节序在寄存器的值定义大小端类型 : 0x00 0x01 0x02 0x03
+    #define RX_CPU_ENDIAN_UNKNOWN           0               //Unknown
+    #define RX_CPU_ENDIAN_LITTLE            0x03020100      //LE
+    #define RX_CPU_ENDIAN_BIG               0x00010203      //BE
+
+    //进行CPU大小端的侦测
     #if RX_CPU == RX_CPU_X86
         #undef RX_CPU_NO_ALIGNMENT_FAULTS
         #define RX_CPU_NO_ALIGNMENT_FAULTS  1
@@ -312,18 +331,9 @@
         #define RX_CPU_NO_ALIGNMENT_FAULTS  0
     #endif
 
-    #ifndef RX_CC_BIT
-        #define RX_CC_BIT                   0
-    #endif
-
     #ifndef RX_CPU_ENDIAN
         #define RX_CPU_ENDIAN               RX_CPU_ENDIAN_UNKNOWN
     #endif
-
-    //byte order is : 0x00 0x01 0x02 0x03
-    #define RX_CPU_ENDIAN_UNKNOWN           0               //Unknown
-    #define RX_CPU_ENDIAN_LITTLE            0x03020100      //Little endian
-    #define RX_CPU_ENDIAN_BIG               0x00010203      //Big endian
 
     #if RX_CPU_ENDIAN == RX_CPU_ENDIAN_UNKNOWN
         #undef RX_CPU_ENDIAN
@@ -359,12 +369,70 @@
         #define RX_CPU_LEBE                 "BE"
     #endif
 
+    //-----------------------------------------------------
+    //定义常用os类型
+    #define RX_OS_LINUX                     1
+    #define RX_OS_WIN32                     2
+    #define RX_OS_WIN64                     3
+    #define RX_OS_FREEBSD                   6
+    #define RX_OS_NETBSD                    7
+    #define RX_OS_MACOS                     8
+
+    //进行OS的自动侦测
+    #undef  RX_OS
+    #if defined(__POSIX__)
+        #define RX_OS_POSIX                 5
+    #endif
+
+    #if defined(_CONSOLE)||defined(__CONSOLE__)
+        #define RX_IS_CONSOLE               1
+    #endif
+
+    #if defined(__FreeBSD__)
+        #define RX_OS                       RX_OS_FREEBSD
+        #define RX_OS_NAME                  "freebsd"
+    #endif
+
+    #if defined(__NetBSD__)
+        #define RX_OS                       RX_OS_NETBSD
+        #define RX_OS_NAME                  "netbsd"
+    #endif
+
+    #if defined(_WIN32)
+        #define RX_OS                       RX_OS_WIN32
+        #define RX_OS_NAME                  "win32"
+    #endif
+
+    #if defined(_WIN64)||defined(__w64)
+        #undef  RX_OS
+        #define RX_OS                       RX_OS_WIN64
+        #undef  RX_OS_NAME
+        #define RX_OS_NAME                  "win64"
+    #endif
+
+    #if defined(RX_OS_WIN32)||defined(RX_OS_WIN64)
+        #define RX_OS_WIN                   4
+    #endif
+
+    #if defined(__linux__)
+        #define RX_OS                       RX_OS_LINUX
+        #define RX_OS_NAME                  "linux"
+    #endif
+
+    #if defined(__MACOSX__)
+        #define RX_OS                       RX_OS_MACOS
+        #define RX_OS_NAME                  "mac"
+    #endif
+
+    //-----------------------------------------------------
+    //常用宏定义
 	#define RX_CC_CAT(A,B)					A##B
     #define RX_CC_STR(M)                    #M
     #define RX_CC_N2S(N)                    RX_CC_STR(N)
+    #define is_empty(str)                   (str==NULL||str[0]==0)
 
-    //define cpu and compiler desc string. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
-    #define RX_CC_DESC ("CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/" RX_CC_NAME "(" RX_CC_N2S(RX_CC_VER_MAJOR) "." RX_CC_N2S(RX_CC_VER_MINOR) "." RX_CC_N2S(RX_CC_VER_PATCH) "." RX_CC_N2S(RX_CC_VER_BUILD) ")/" RX_CC_N2S(RX_CC_BIT) "Bit")
+    //自动拼装编译器和CPU信息描述. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
+    #define RX_CC_DESC ("OS:" RX_OS_NAME "/CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/CC:" RX_CC_NAME "(" RX_CC_N2S(RX_CC_VER_MAJOR) "." RX_CC_N2S(RX_CC_VER_MINOR) "." RX_CC_N2S(RX_CC_VER_PATCH) "." RX_CC_N2S(RX_CC_VER_BUILD) ")/WL:" RX_CC_N2S(RX_CC_BIT) "Bit")
 
 #if RX_CC == RX_CC_VC
 	#include <stdio.h>
@@ -372,18 +440,26 @@
 	inline const char* rx_cc_desc()
 	{
 		static char desc[128];
-		snprintf(desc,sizeof(desc),"CPU:%s(%s)/%s(%d.%d.%d.%d)/%dBit", RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
+		snprintf(desc,sizeof(desc),"OS:%s/CPU:%s(%s)/CC:%s(%d.%d.%d.%d)/WL:%dBit",RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
 		return desc;
 	}
 #else
     inline const char* rx_cc_desc() {return RX_CC_DESC;}
 #endif
 
-    #if !RX_CC_TESTED
+    //-----------------------------------------------------
+    //根据上面的各类分析,引入各个平台的开发基础头文件
+    #if RX_OS_WIN
+        #define WIN32_LEAN_AND_MEAN
+        #include <windows.h>
     #endif
 
-    //check char* string is empty
-    #define is_empty(str)                   (str==NULL||str[0]==0)
+    #if defined(_DEBUG)||defined(DEBUG)
+        #define RX_CC_DEBUG                 1
+        #define RX_CC_LIBTAG "d"
+    #else
+        #define RX_CC_LIBTAG "r"
+    #endif
 
     #include <stdint.h>
 
