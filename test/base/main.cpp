@@ -12,6 +12,8 @@ using namespace std;
 template<class T>
 void test_atomic_base()
 {
+    rx_st_assert(sizeof(T)==4||sizeof(T)==8,"sizeof()==4|8");
+
     T val = 0;
     rx_atomic_store(&val, (T)1);
     rx_assert(rx_atomic_load(&val) == 1);

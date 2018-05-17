@@ -426,7 +426,8 @@
 
     //-----------------------------------------------------
     //常用宏定义
-	#define RX_CC_CAT(A,B)					A##B
+    #define _RX_CONCAT_(A,B)                A##B
+    #define RX_CONCAT(A,B)                  _RX_CONCAT_(A,B)
     #define RX_CC_STR(M)                    #M
     #define RX_CC_N2S(N)                    RX_CC_STR(N)
     #define is_empty(str)                   (str==NULL||str[0]==0)
@@ -446,6 +447,11 @@
 #else
     inline const char* rx_cc_desc() {return RX_CC_DESC;}
 #endif
+
+    //-----------------------------------------------------
+    //静态断言的实现
+    namespace rx_imp{template <bool> struct sa_test;template <> struct sa_test<true> {};}
+    #define rx_st_assert(cond, error_msg) {rx_imp::sa_test<(cond)>();}
 
     //-----------------------------------------------------
     //根据上面的各类分析,引入各个平台的开发基础头文件
