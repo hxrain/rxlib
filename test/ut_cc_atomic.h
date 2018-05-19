@@ -1,8 +1,8 @@
 #ifndef _UT_CC_ATOMIC_H_
 #define _UT_CC_ATOMIC_H_
 
-#include "../../rx_tdd.h"
-#include "../../rx_assert.h"
+#include "../rx_tdd.h"
+#include "../rx_assert.h"
 
 
 

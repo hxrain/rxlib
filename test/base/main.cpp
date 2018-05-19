@@ -1,8 +1,7 @@
+
 #include "../ut_atomic.h"
 #include "../../rx_atomic.h"
-
 #include "../ut_cc_atomic.h"
-
 #include "../../rx_tdd.h"
 #include "../../rx_assert.h"
 #include "../../rx_cc_atomic.h"

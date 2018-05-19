@@ -16,11 +16,11 @@ void test_atomic_base(rx_tdd_base &tdd)
     tdd.assert(atomic.load() == 2);
     tdd.assert(atomic.sub((T)1) == 2);
     tdd.assert(atomic.load() == 1);
-    tdd.assert(atomic.or((T)3) == 1);
+    tdd.assert(atomic.or_op((T)3) == 1);
     tdd.assert(atomic.load() == 3);
-    tdd.assert(atomic.and((T)1) == 3);
+    tdd.assert(atomic.and_op((T)1) == 3);
     tdd.assert(atomic.load() == 1);
-    tdd.assert(atomic.xor((T)1) == 1);
+    tdd.assert(atomic.xor_op((T)1) == 1);
     tdd.assert(atomic.load() == 0);
     tdd.assert(atomic.swap((T)100) == 0);
     tdd.assert(atomic.load() == 100);
