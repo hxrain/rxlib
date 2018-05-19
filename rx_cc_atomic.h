@@ -56,8 +56,8 @@
     {
         return _InterlockedCompareExchange((volatile long *)ptr, desired, expected)==expected;
     }
-
     //64bit-----------------------------------------------------
+	#if RX_CC_BIT==64
 	template<>  void		rx_atomic_store(int64_t *ptr, const int64_t v)  { _InterlockedExchange64((volatile long long *)ptr, v); }
 	template<>  int64_t		rx_atomic_load(const int64_t *ptr)              { const int64_t v = *ptr; mem_barrier(); return v; }
 	template<>  int64_t		rx_atomic_swap(int64_t *ptr, const int64_t v)   { return _InterlockedExchange64((volatile long long *)ptr, v); }
@@ -80,6 +80,7 @@
     {
         return _InterlockedCompareExchange64((volatile long long*)ptr, desired, expected) == expected;
     }
+	#endif
     //-----------------------------------------------------
 
 #elif (RX_CC==RX_CC_GCC||RX_CC==RX_CC_CLANG||RX_CC==RX_CC_CYGWIN||RX_CC==RX_CC_MINGW32||RX_CC==RX_CC_MINGW64)

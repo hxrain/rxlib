@@ -76,7 +76,9 @@ namespace rx
     //-----------------------------------------------------
     //最终使用的原子变量
     typedef atomic<int32_t>     atomic_int;
+#if RX_CC_BIT==64
     typedef atomic<int64_t>     atomic_long;
+#endif
 }
 
 #endif

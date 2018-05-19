@@ -40,8 +40,8 @@
         if (R) return;
         char Buf[1024];
         const char* Tip=IsAlert?"debug":"assert";
-        if (Msg==NULL||Msg[0]==0) snprintf(Buf,sizeof(Buf),"file <%s>\r\nline <%d>\r\n%s!\r\n",File,LineNo,Tip);
-        else snprintf(Buf,sizeof(Buf),"file <%s>\r\nline <%d>\r\n%s!\r\ninfo <%s>",File,LineNo,Tip,Msg);
+        if (Msg==NULL||Msg[0]==0) _snprintf(Buf,sizeof(Buf),"file <%s>\r\nline <%d>\r\n%s!\r\n",File,LineNo,Tip);
+        else _snprintf(Buf,sizeof(Buf),"file <%s>\r\nline <%d>\r\n%s!\r\ninfo <%s>",File,LineNo,Tip,Msg);
     #ifdef WIN32
         MessageBoxA(NULL,Buf,Tip,MB_OK);
         R=R;

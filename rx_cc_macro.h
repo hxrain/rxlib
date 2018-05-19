@@ -441,7 +441,7 @@
 	inline const char* rx_cc_desc()
 	{
 		static char desc[128];
-		snprintf(desc,sizeof(desc),"OS:%s/CPU:%s(%s)/CC:%s(%d.%d.%d.%d)/WL:%dBit",RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
+		_snprintf(desc,sizeof(desc),"OS:%s/CPU:%s(%s)/CC:%s(%d.%d.%d.%d)/WL:%dBit",RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
 		return desc;
 	}
 #else
