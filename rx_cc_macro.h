@@ -410,7 +410,7 @@
         #define RX_OS_NAME                  "win64"
     #endif
 
-    #if defined(RX_OS_WIN32)||defined(RX_OS_WIN64)
+    #if (RX_OS==RX_OS_WIN32)||(RX_OS==RX_OS_WIN64)
         #define RX_OS_WIN                   4
     #endif
 

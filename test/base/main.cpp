@@ -12,6 +12,10 @@
 
 using namespace std;
 
+rx_tdd(temp)
+{
+    assert(0);
+}
 
 int main()
 {

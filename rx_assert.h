@@ -28,9 +28,11 @@
         va_end(ap);
 
         #ifdef RX_IS_CONSOLE
-            printf(Txt);printf("\r\n");
-        #else
+            printf("%s\r\n",Txt);
+        #elif RX_OS_WIN
             MessageBoxA(NULL,Txt,"Message",MB_OK);
+		#else
+			printf("%s\r\n",Txt);
         #endif
     }
 
