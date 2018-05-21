@@ -432,19 +432,23 @@
     #define RX_CC_N2S(N)                    RX_CC_STR(N)
     #define is_empty(str)                   (str==NULL||str[0]==0)
 
-    //自动拼装编译器和CPU信息描述. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
-    #define RX_CC_DESC ("OS:" RX_OS_NAME "/CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/CC:" RX_CC_NAME "(" RX_CC_N2S(RX_CC_VER_MAJOR) "." RX_CC_N2S(RX_CC_VER_MINOR) "." RX_CC_N2S(RX_CC_VER_PATCH) "." RX_CC_N2S(RX_CC_VER_BUILD) ")/WL:" RX_CC_N2S(RX_CC_BIT) "Bit")
-
 #if RX_CC == RX_CC_VC
 	#include <stdio.h>
+    #if (RX_CC_VER_MAJOR<19)
+        #define snprintf _snprintf
+    #endif
+
 	//visual studio, eg : "CPU:X64(LE)/Microsoft Visual Studio(19.0.1900.1)/64Bit"
 	inline const char* rx_cc_desc()
 	{
 		static char desc[128];
-		_snprintf(desc,sizeof(desc),"OS:%s/CPU:%s(%s)/CC:%s(%d.%d.%d.%d)/WL:%dBit",RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
+		snprintf(desc,sizeof(desc),"OS:%s/CPU:%s(%s)/CC:%s(%d.%d.%d.%d)/WL:%dBit",RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
 		return desc;
 	}
 #else
+    //自动拼装编译器和CPU信息描述. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
+    #define RX_CC_DESC ("OS:" RX_OS_NAME "/CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/CC:" RX_CC_NAME "(" RX_CC_N2S(RX_CC_VER_MAJOR) "." RX_CC_N2S(RX_CC_VER_MINOR) "." RX_CC_N2S(RX_CC_VER_PATCH) "." RX_CC_N2S(RX_CC_VER_BUILD) ")/WL:" RX_CC_N2S(RX_CC_BIT) "Bit")
+
     inline const char* rx_cc_desc() {return RX_CC_DESC;}
 #endif
 

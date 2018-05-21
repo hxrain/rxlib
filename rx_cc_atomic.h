@@ -58,6 +58,8 @@
     }
     //64bit-----------------------------------------------------
 	#if RX_CC_BIT==64
+	#define RX_ATOMIC64     1
+
 	template<>  void		rx_atomic_store(int64_t *ptr, const int64_t v)  { _InterlockedExchange64((volatile long long *)ptr, v); }
 	template<>  int64_t		rx_atomic_load(const int64_t *ptr)              { const int64_t v = *ptr; mem_barrier(); return v; }
 	template<>  int64_t		rx_atomic_swap(int64_t *ptr, const int64_t v)   { return _InterlockedExchange64((volatile long long *)ptr, v); }
@@ -106,6 +108,7 @@
     }
 
     //64bit-----------------------------------------------------
+    #define RX_ATOMIC64     1
     template<>  void		rx_atomic_store (int64_t *ptr, const int64_t v)   { __atomic_store_8(ptr,v,__ATOMIC_SEQ_CST); }
     template<>  int64_t		rx_atomic_load  (const int64_t *ptr)              { return __atomic_load_8(ptr,__ATOMIC_SEQ_CST); }
     template<>  int64_t		rx_atomic_swap  (int64_t *ptr, const int64_t v)   { return __atomic_exchange_8(ptr, v,__ATOMIC_SEQ_CST); }

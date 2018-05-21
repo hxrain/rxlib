@@ -51,7 +51,7 @@ void test_cc_atomic_base(rx_tdd_base &tdd)
 rx_tdd(rx_cc_atomic)
 {
     test_cc_atomic_base<int32_t>(*this);
-#if RX_CC_BIT==64
+#if RX_ATOMIC64
     test_cc_atomic_base<int64_t>(*this);
 #endif
 }
