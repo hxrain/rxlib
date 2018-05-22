@@ -12,12 +12,11 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-Wall" />
 					<Add option="-m64" />
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add option="-s" />
 					<Add option="-m64" />
 				</Linker>
 			</Target>
