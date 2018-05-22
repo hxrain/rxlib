@@ -77,6 +77,8 @@ class rx_tdd_base
     const char* m_file_name;
     int         m_line_no;
     rx_tdd_base *m_next;
+    int         m_wait_key;
+
     void m_bind(rx_tdd_stat &root)
     {
         if (root.head==0)
@@ -99,6 +101,7 @@ public:
         m_tdd_name=tdd_name;
         m_file_name=_file_name;
         m_line_no=_line_no;
+        m_wait_key=false;
         m_bind(_rx_tdd_stat());
     }
     //-----------------------------------------------------
@@ -115,11 +118,8 @@ public:
     }
     //-----------------------------------------------------
     //内部断言，用于记录失败次数
-    //void assert(bool v){assert(v,m_line_no,NULL);}
-    void assert(bool v,int _line_no)
-    {
-		assert(v,_line_no,NULL);
-    }
+    void assert(bool v){assert(v,m_line_no,NULL);}
+    void assert(bool v,int _line_no){assert(v,_line_no,NULL);}
     void assert(bool v,int _line_no,const char* msg,...)
     {
         rx_tdd_stat &s=_rx_tdd_stat();
@@ -138,9 +138,16 @@ public:
 			s.out("\r\n");
 		}
 
+		if (m_wait_key)
+		{
+            s.out("press enter key to continue...\r\n");
+            getchar();
+        }
+
     }
 protected:
     friend void rx_tdd_run();
+    void enable_error_wait(bool v=true){m_wait_key=v;}
     //-----------------------------------------------------
     //子类用于执行具体的测试动作
     virtual void on_exec()=0;

@@ -46,6 +46,8 @@ inline void test_localtime_loop(rx_tdd_base &rt)
 
 rx_tdd(localtime_base)
 {
+    enable_error_wait();
+
     uint64_t dt = rx_make_utc(2018,5,22,10,45,15);
     struct tm tp;
 
