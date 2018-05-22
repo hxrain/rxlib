@@ -115,13 +115,29 @@ public:
     }
     //-----------------------------------------------------
     //内部断言，用于记录失败次数
-    void tdd_assert(bool v,int _line_no)
+    //void assert(bool v){assert(v,m_line_no,NULL);}
+    void assert(bool v,int _line_no)
+    {
+		assert(v,_line_no,NULL);
+    }
+    void assert(bool v,int _line_no,const char* msg,...)
     {
         rx_tdd_stat &s=_rx_tdd_stat();
         ++s._assert;
         if (v) return;
-        _rx_tdd_stat().out("RX TDD <%s> at <%s : %d> => assert fail!\r\n",m_tdd_name,m_file_name,_line_no);
-        ++_rx_tdd_stat()._failed;
+        ++s._failed;
+
+		s.out("RX TDD <%s> at <%s : %d> => assert fail!\r\n",m_tdd_name,m_file_name,_line_no);
+		if (!is_empty(msg))
+		{
+			s.out("    ");
+			va_list v;
+			va_start(v,msg);
+			s.out_fun(msg,v);
+			va_end(v);
+			s.out("\r\n");
+		}
+
     }
 protected:
     friend void rx_tdd_run();
@@ -130,6 +146,7 @@ protected:
     virtual void on_exec()=0;
 };
 
+//---------------------------------------------------------
 //运行TDD用例,输出统计结果
 inline void rx_tdd_run()
 {
@@ -159,9 +176,7 @@ inline void rx_tdd_run()
               s._total,s._perform,s._assert,s._failed);
 }
 
-//---------------------------------------------------------
-//语法糖，用于简化TDD断言的使用
-#define assert(v) tdd_assert((v),__LINE__)
+#define tdd_assert(v) assert(v,__LINE__)
 
 //定义rx_tdd宏,用于便捷的建立一个指定名字的测试用例
 #define rx_tdd(name) class __RX_TDD_CLS__##name:public rx_tdd_base \

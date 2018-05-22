@@ -4,6 +4,13 @@
     #include "rx_cc_macro.h"
     #include <stdio.h>
     #include <time.h>
+/*
+	本单元进行UTC时间和ISO时间的相互转换处理.
+		rx_make_utc()										//根据ISO时间分量生成UTC时间
+		rx_leap_year()										//判断给的的年份是否为闰年
+		rx_localtime()										//将UTC时间转换为ISO时间分量,可指定目标时区.
+		rx_iso_time()										//将UTC时间或时间分量转换为ISO格式的时间串
+*/
 
     //---------------------------------------------------------------
     //将ISO年月日时分秒转,换成1970-1-1 00:00:00距离现在的总秒数UTC,时区(默认东八区北京时间)
@@ -25,7 +32,7 @@
 
     //---------------------------------------------------------------
     //是否为闰年
-    inline bool rx_leap_year(uint32_t year) { return (year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0); }
+    inline bool rx_leap_year(uint32_t year) { return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0); }
     //将bool值转换为0/1值
     inline uint32_t rx_bool_num(bool b) { return (b ? 1 : 0); }
 
@@ -110,22 +117,6 @@
         struct tm tp;
         rx_localtime(utc_time,tp, zone_offset_sec);
         rx_iso_time(tp,str);
-    }
-    //---------------------------------------------------------------
-    //利用系统时间函数(本地时间),获取本地的时区(秒值)
-    //注意:此方法多线程使用时须注意
-    inline int32_t rx_time_zone()
-    {
-        time_t dt = 0;
-        struct tm dp;
-    #if RX_CC==RX_CC_VC
-        localtime_s(&dp, &dt);                              //win上据说是安全的
-    #elif RX_OS==RX_OS_LINUX
-        localtime_r(&dt, &dp);                              //linux上据说有多线程锁定性能的问题
-    #else
-        dp = *localtime((time_t*)&dt);                      //多线程不安全的标准函数
-    #endif
-        return (int32_t)rx_make_utc(dp, 0);
     }
 
 #endif

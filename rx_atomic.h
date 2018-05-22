@@ -2,6 +2,12 @@
 #define _RX_BASE_CORE_ATOMIC_H_
 
 #include "rx_cc_atomic.h"
+/*
+	本单元基于原子操作API进行原子变量的对象化封装.
+	class atomic_flag;										//原子标记
+	class atomic_int;										//32位整数原子量
+	class atomic_long;										//64位整数原子量(VC只有在x64模式下有效)
+*/
 
 namespace rx
 {
