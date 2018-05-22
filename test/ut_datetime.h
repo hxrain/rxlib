@@ -11,17 +11,17 @@ inline void test_localtime(uint64_t dt, struct tm &tp, rx_tdd_base &rt)
     rx_localtime(dt, tp);
     rx_iso_time(tp,t1);
 
-    struct tm *dp = localtime((time_t*)&dt);
-    rx_iso_time(tp,t2);
+    struct tm dp = *localtime((time_t*)&dt);
+    rx_iso_time(dp,t2);
 
-    rt.assert(tp.tm_year == dp->tm_year,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
-    rt.assert(tp.tm_mon  == dp->tm_mon,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
-    rt.assert(tp.tm_mday == dp->tm_mday,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
-    rt.assert(tp.tm_hour == dp->tm_hour,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
-    rt.assert(tp.tm_min  == dp->tm_min,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
-    rt.assert(tp.tm_sec  == dp->tm_sec,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
-    rt.assert(tp.tm_wday == dp->tm_wday,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
-    rt.assert(tp.tm_yday == dp->tm_yday,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
+    rt.assert(tp.tm_year == dp.tm_year,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
+    rt.assert(tp.tm_mon  == dp.tm_mon,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
+    rt.assert(tp.tm_mday == dp.tm_mday,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
+    rt.assert(tp.tm_hour == dp.tm_hour,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
+    rt.assert(tp.tm_min  == dp.tm_min,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
+    rt.assert(tp.tm_sec  == dp.tm_sec,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
+    rt.assert(tp.tm_wday == dp.tm_wday,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
+    rt.assert(tp.tm_yday == dp.tm_yday,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
 
     rt.assert(rx_make_utc(tp) == dt,__LINE__,"%llu -> %s -> %s",dt,t1,t2);
 }
