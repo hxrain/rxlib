@@ -153,8 +153,8 @@ inline void rx_tdd_run()
 
         s.out(
               "RX TDD RESULT:\r\n"
-              "       OBJECT total <%4d> : perform <%4d>\r\n"
-              "       ASSERT total <%4d> : failed  <%4d>\r\n"
+              "       OBJECT total <%4u> : perform <%4u>\r\n"
+              "       ASSERT total <%4u> : failed  <%4u>\r\n"
               "RX TDD COMPLETE============================\r\n",
               s._total,s._perform,s._assert,s._failed);
 }
