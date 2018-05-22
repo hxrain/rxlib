@@ -177,6 +177,7 @@ inline void rx_tdd_run()
 }
 
 #define tdd_assert(v) assert(v,__LINE__)
+#define msg_assert(v,msg,...) assert(v,__LINE__,msg,##__VA_ARGS__)
 
 //定义rx_tdd宏,用于便捷的建立一个指定名字的测试用例
 #define rx_tdd(name) class __RX_TDD_CLS__##name:public rx_tdd_base \
