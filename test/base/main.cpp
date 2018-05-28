@@ -1,3 +1,4 @@
+#include "../../rx_mem.h"
 
 #include "../ut_ct_obj.h"
 #include "../../rx_ct_util.h"
