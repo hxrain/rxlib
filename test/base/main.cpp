@@ -1,6 +1,8 @@
 
-
-#include "../ut_datetime.h"
+#include "../ut_ct_obj.h"
+#include "../../rx_ct_util.h"
+#include "../../rx_ct_traits.h"
+//#include "../ut_datetime.h"
 #include "../../rx_datetime.h"
 #include "../ut_atomic.h"
 #include "../../rx_atomic.h"
@@ -14,11 +16,6 @@
 #include <iostream>
 
 using namespace std;
-
-rx_tdd(temp)
-{
-    //assert(0);
-}
 
 int main()
 {

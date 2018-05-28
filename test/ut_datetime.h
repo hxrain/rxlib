@@ -55,7 +55,7 @@ rx_tdd(localtime_base)
 
     test_localtime(94579200, tp, *this);
     test_localtime(157651200, tp, *this);
-    test_localtime(3422361600, tp, *this);
+    test_localtime(3422361600ul, tp, *this);
 
     tdd_assert(!rx_leap_year(2018));
 
