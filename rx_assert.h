@@ -3,6 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include <stdio.h>
+#include <stdarg.h>
     //---------------------------------------------------------
     //默认,在调试版下开启断言
     #ifndef RX_USE_ASSERT

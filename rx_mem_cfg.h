@@ -2,7 +2,7 @@
 #define _RX_MEM_H_
 
 #include <memory.h>
-
+#include <stdlib.h>
 #include "rx_cc_macro.h"
 #include "rx_ct_util.h"
 

@@ -3,6 +3,7 @@
 
     #include "rx_cc_macro.h"
 	#include "rx_datetime.h"
+	#include <time.h>
 /*
 	本单元进行系统时间相关函数的封装处理.
 		rx_time_zone()										获取系统当前时区(秒)
@@ -21,7 +22,7 @@
     #elif RX_OS==RX_OS_LINUX
         localtime_r(&dt, &dp);                              //linux上据说有多线程锁定性能的问题
     #else
-        dp = *localtime((time_t*)&dt);                      //多线程不安全的标准函数
+        dp = *localtime((time_t*)&dt);                    //多线程不安全的标准函数
     #endif
         return (int32_t)rx_make_utc(dp, 0);
     }
@@ -29,5 +30,30 @@
     //---------------------------------------------------------------
 	//获取当前系统的时间,UTC格式.
 	inline uint64_t rx_time(){return time(NULL);}
+    //---------------------------------------------------------------
+    //
+    inline uint64_t rx_tick_us()
+    {
+        #if RX_OS==RX_OS_LINUX
+            struct timespec tp;
+            clock_gettime(CLOCK_MONOTONIC_RAW,&tp);
+            return (tp.tv_sec*1000*1000+tp.tv_nsec/1000);
+        #elif RX_OS==RX_OS_WIN
+            LARGE_INTEGER t;
+            static uint64_t m_timer_freq=0;
+            if (!m_timer_freq)
+            {
+                if (QueryPerformanceFrequency( &t ))
+                    m_timer_freq = t.QuadPart;
+            }
+
+            if (!QueryPerformanceCounter( &t )||!m_timer_freq)
+                return -1;
+            return uint64_t((double( t.QuadPart ) / m_timer_freq)*1000*1000);
+        #else
+            rx_st_assert(false,"unsupport os.");
+            return -1;
+        #endif
+    }
 
 #endif
