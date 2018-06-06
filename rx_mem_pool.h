@@ -103,7 +103,7 @@ namespace rx
 
             m_block_size=BlockSize;                         //记录块尺寸
             //记算条中的块数量
-            m_per_stripe_blocks=max(CT::MaxStripeSize/m_block_size,(uint32_t)1);
+            m_per_stripe_blocks=Max(CT::MaxStripeSize/m_block_size,(uint32_t)1);
             //计算真实的条尺寸:实际的块需要的尺寸*每条中的块数+额外的条接点头需要的尺寸
             m_stripe_size=m_block_size*m_per_stripe_blocks+sizeof(mp_stripe_t*);
             return true;
