@@ -1,3 +1,4 @@
+#include "../ut_ts.h"
 
 #include "../ut_mem_pool.h"
 #include "../../rx_mem_pool.h"
@@ -20,18 +21,13 @@
 #include <stdio.h>
 #include <iostream>
 
-#define TSN(n,msg_a) int _tmp_##n(msg_a)
-
 using namespace std;
 
 int main()
 {
     cout << "Hello world!\n" << rx_cc_desc() << endl << endl;
-    TSN(n,1);
-    TSN(m, 1);
+
     rx_tdd_run();
-    _tmp_n = 2;
-    _tmp_m = 2;
 
 	getchar();
     return 0;

@@ -57,7 +57,7 @@ inline void test_tick_us2(rx_tdd_base &rt)
 {
     uint64_t bt=rx_tick_us();
     uint32_t dt=uint32_t(rx_tick_us()-bt);
-    rt.msg_assert(dt<=1,"rx_tick_us() use time:<%7u> us",dt);
+    rt.msg_assert(dt<=100,"rx_tick_us() use time:<%7u> us",dt);
 }
 
 
