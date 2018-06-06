@@ -13,7 +13,7 @@ namespace rx
     //-----------------------------------------------------
     //定长内存池基类:CT内存池配置类型
     template<class CT=rx_mem_pool_cfg_t>
-    class mempool_fixed_t
+    class mempool_fixed_t:public rx_mem_pool_i
     {
     protected:
         //-------------------------------------------------
@@ -129,7 +129,7 @@ namespace rx
         }
 		//-------------------------------------------------
 		//分配固定尺寸的内存块
-		void* alloc(uint32_t unset=0)
+		void* do_alloc(uint32_t unset=0)
 		{
 			rx_assert(unset==0||unset==m_block_size);
             return m_alloc_block();
@@ -139,10 +139,9 @@ namespace rx
 		DT* alloc(uint32_t unset=sizeof(DT)){return static_cast<DT*>(alloc(unset));}
 		//-------------------------------------------------
 		//归还内存
-		void free(void* p,uint32_t unset=0)
+		void do_free(void* p)
 		{
 			rx_assert(p!=NULL);
-			rx_assert(unset==0||unset==m_block_size);
             rx_assert(!is_full());
             m_free_blocks.push((mp_block_t*)p);
 		}

@@ -1,4 +1,3 @@
-#include "../ut_ts.h"
 
 #include "../ut_mem_pool.h"
 #include "../../rx_mem_pool.h"
@@ -27,7 +26,7 @@ int main()
 {
     cout << "Hello world!\n" << rx_cc_desc() << endl << endl;
 
-    rx_tdd_run();
+    rx_tdd_run(rtl_2);
 
 	getchar();
     return 0;

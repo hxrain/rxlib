@@ -96,7 +96,13 @@ rx_tdd(localtime_base)
     for(int i=0;i<1000;++i)
         test_tick_us(*this);
 
-    //test_localtime_loop(*this);
+}
+
+rx_tdd_rtl(localtime_loop,rtl_3)
+{
+#if defined(RX_OS_WIN)
+    test_localtime_loop(*this);
+#endif
 }
 
 #endif
