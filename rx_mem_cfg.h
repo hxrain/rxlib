@@ -132,7 +132,7 @@ namespace rx
         {
             Count=((HNodeCookie*)P)->Cookie&~AllocType_ObjectArray;
             MemSize=((HNodeCookie*)P)->MemSize;
-            return ((HNodeCookie*)P)->Cookie&AllocType_ObjectArray;
+            return !!(((HNodeCookie*)P)->Cookie&AllocType_ObjectArray);
         }
     }rx_alloc_cookie_t;
 

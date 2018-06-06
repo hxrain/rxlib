@@ -49,14 +49,14 @@ inline void test_tick_us(rx_tdd_base &rt)
     uint64_t bt=rx_tick_us();
     char tmp[1024*128];
     memset(tmp,0,sizeof(tmp));
-    uint32_t dt=rx_tick_us()-bt;
+    uint32_t dt=uint32_t(rx_tick_us()-bt);
     rt.msg_assert(dt<500,"memset 1k byte use time:<%7u> us",dt);
 }
 
 inline void test_tick_us2(rx_tdd_base &rt)
 {
     uint64_t bt=rx_tick_us();
-    uint32_t dt=rx_tick_us()-bt;
+    uint32_t dt=uint32_t(rx_tick_us()-bt);
     rt.msg_assert(dt<=1,"rx_tick_us() use time:<%7u> us",dt);
 }
 

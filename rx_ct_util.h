@@ -85,10 +85,6 @@ namespace rx
     //自定义实现最大值最小值比较功能
     //=====================================================
     template <class T>
-    inline const T& min(const T& ValueA, const T& ValueB) { return ValueB < ValueA ? ValueB : ValueA; }
-    template <class T>
-    inline const T& max(const T& ValueA, const T& ValueB) {  return  ValueA < ValueB ? ValueB : ValueA; }
-    template <class T>
     inline const T& Min(const T& ValueA, const T& ValueB) { return ValueB < ValueA ? ValueB : ValueA; }
     template <class T>
     inline const T& Max(const T& ValueA, const T& ValueB) {  return  ValueA < ValueB ? ValueB : ValueA; }
