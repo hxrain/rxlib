@@ -1,4 +1,7 @@
 
+#include "../ut_bits_op.h"
+#include "../../rx_bits_op.h"
+
 #include "../ut_mem_pool.h"
 #include "../../rx_mem_pool.h"
 #include "../../rx_raw_stack.h"

@@ -11,7 +11,13 @@ inline void test_localtime(uint64_t dt, struct tm &tp, rx_tdd_base &rt)
     rx_localtime(dt, tp);
     rx_iso_time(tp,t1);
 
-    struct tm dp = *localtime((time_t*)&dt);
+    struct tm *p = localtime((time_t*)&dt);
+    if (p==NULL)
+    {
+        //rx_alert("localtime fail.");
+        return;
+    }
+    struct tm dp =*p;
     rx_iso_time(dp,t2);
 
     rt.msg_assert(tp.tm_year == dp.tm_year,"%llu -> %s -> %s",dt,t1,t2);
