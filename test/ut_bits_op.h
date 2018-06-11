@@ -77,6 +77,40 @@ rx_tdd(bits_op_base)
     tdd_assert( rx_has_byte((uint64_t)0x1100334455667788,0x33));
     tdd_assert( rx_has_byte((uint64_t)0x1122004455667788,0x00));
 
+    ve=rx_ffs((uint64_t)0);
+    tdd_assert(ve==0);
+    ve=rx_ffs((uint64_t)0x8000000000000000);
+    tdd_assert(ve==64);
+    ve=rx_ffs((uint32_t)0);
+    tdd_assert(ve==0);
+    ve=rx_ffs((uint32_t)0x80000000);
+    tdd_assert(ve==32);
+    ve=rx_ffs((uint32_t)0x70000000);
+    tdd_assert(ve==29);
+    ve=rx_ffs((uint32_t)0x20000000);
+    tdd_assert(ve==30);
+
+    ve=rx_fls((uint32_t)0x80000000);
+    tdd_assert(ve==32);
+    ve=rx_fls((uint32_t)0x70000000);
+    tdd_assert(ve==31);
+    ve=rx_fls((uint32_t)0x20000000);
+    tdd_assert(ve==30);
+    ve=rx_fls((uint32_t)1);
+    tdd_assert(ve==1);
+    ve=rx_fls((uint32_t)0);
+    tdd_assert(ve==0);
+
+    ve=rx_fls((uint32_t)0x30000000);
+    tdd_assert(ve==30);
+    ve=rx_ffs((uint32_t)0x30000000);
+    tdd_assert(ve==29);
+
+    ve=rx_fls((uint64_t)0x3000000000000000);
+    tdd_assert(ve==30+32);
+    ve=rx_ffs((uint64_t)0x3000000000000000);
+    tdd_assert(ve==29+32);
+
 }
 
 #endif

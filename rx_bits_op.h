@@ -66,6 +66,22 @@
     //计算x中尾随0(低位)的数量
     inline uint8_t rx_ctz       (uint32_t x){return x?__builtin_ctz(x):32;}
     inline uint8_t rx_ctz       (uint64_t x){return x?__builtin_ctzll(x):64;}
+
+    //-----------------------------------------------------
+    //计算x中尾随1(低位)的位置,返回值(0-没有置位;1~n为比特序号)
+    inline uint8_t rx_ffs       (uint32_t x){return x?__builtin_ffs(x):0;}
+    inline uint8_t rx_ffs       (uint64_t x){return x?__builtin_ffsll(x):0;}
+
+    //-----------------------------------------------------
+    //计算x中前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
+    inline uint8_t rx_fls(uint32_t x)
+    {
+        return x ? 32 - __builtin_clz(x) : 0;
+    }
+    inline uint8_t rx_fls(uint64_t x)
+    {
+        return x ? 64 - __builtin_clzll(x) : 0;
+    }
 #else
     //-----------------------------------------------------
     //计算x中被置位的数量
@@ -113,6 +129,42 @@
     //计算x中尾随0(低位)的数量
     template<class T>
     inline unsigned rx_ctz(T x){return rx_popcnt((x & -x) - 1);}
+
+    //-----------------------------------------------------
+    //计算x中前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
+    inline uint8_t rx_fls(uint32_t x)
+    {
+        int bit = 32;
+
+        if (!x) bit -= 1;
+        if (!(x & 0xffff0000)) { x <<= 16; bit -= 16; }
+        if (!(x & 0xff000000)) { x <<= 8; bit -= 8; }
+        if (!(x & 0xf0000000)) { x <<= 4; bit -= 4; }
+        if (!(x & 0xc0000000)) { x <<= 2; bit -= 2; }
+        if (!(x & 0x80000000)) { x <<= 1; bit -= 1; }
+
+        return bit;
+    }
+
+    inline uint8_t rx_fls(uint64_t x)
+    {
+        uint32_t high = (int)(x >> 32);
+        if (high)
+            return 32 + rx_fls(high);
+        else
+            return rx_fls((uint32_t)x & 0xffffffff);
+    }
+
+    //-----------------------------------------------------
+    //计算x中前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
+    inline uint8_t rx_ffs(uint32_t x)
+    {
+        return rx_fls(x & (~x + 1));
+    }
+    inline uint8_t rx_ffs(uint64_t x)
+    {
+        return rx_fls(x & (~x + 1));
+    }
 #endif
 
     //-----------------------------------------------------
