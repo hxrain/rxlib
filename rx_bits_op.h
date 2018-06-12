@@ -127,8 +127,17 @@
     }
     //-----------------------------------------------------
     //计算x中尾随0(低位)的数量
-    template<class T>
-    inline unsigned rx_ctz(T x){return rx_popcnt((x & -x) - 1);}
+#if RX_CC==RX_CC_VC
+    #pragma warning (disable:4146)
+#endif
+    template<class T> inline unsigned rx_ctz(T x) { return rx_popcnt((x & -x) - 1); }
+#if RX_CC==RX_CC_VC
+    #pragma warning (default:4146)
+#endif
+    template<> inline unsigned rx_ctz(int32_t  x) { return rx_ctz(uint32_t(x)); }
+    template<> inline unsigned rx_ctz(int64_t  x) { return rx_ctz(uint64_t(x)); }
+    template<> inline unsigned rx_ctz(int16_t  x) { return rx_ctz(uint16_t(x)); }
+    template<> inline unsigned rx_ctz(int8_t  x) { return rx_ctz(uint8_t(x)); }
 
     //-----------------------------------------------------
     //计算x中前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
@@ -180,7 +189,7 @@
         T b_1 = rx_byte_flip<T,1>();
         T b_0x80 = rx_byte_flip<T,0x80>();
 
-        return (x - b_1) & ~x & b_0x80;
+        return !!((x - b_1) & ~x & b_0x80);
     }
 
     //-----------------------------------------------------
