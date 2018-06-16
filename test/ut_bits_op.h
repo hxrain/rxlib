@@ -40,19 +40,19 @@ rx_tdd(bits_op_base)
 
     ve=rx_ctz((uint64_t)0x7000000000000000);
     tdd_assert(ve==60);
-    ve=rx_ctz(0x70000000);
+    ve=rx_ctz((uint32_t)0x70000000);
     tdd_assert(ve==28);
     ve=rx_ctz((uint64_t)0);
     tdd_assert(ve==64);
-    ve = rx_ctz((int64_t)0);
+    ve = rx_ctz((uint64_t)0);
     tdd_assert(ve == 64);
-    ve = rx_ctz((int32_t)0);
+    ve = rx_ctz((uint32_t)0);
     tdd_assert(ve == 32);
-    ve=rx_ctz(1);
+    ve=rx_ctz((uint32_t)1);
     tdd_assert(ve==0);
-    ve=rx_ctz(0);
+    ve=rx_ctz((uint32_t)0);
     tdd_assert(ve==32);
-    ve=rx_ctz(1);
+    ve=rx_ctz((uint32_t)1);
     tdd_assert(ve==0);
 
     tdd_assert(!rx_is_pow2(0));
