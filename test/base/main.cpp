@@ -1,3 +1,5 @@
+#include "../../rx_hash_data.h"
+#include "../../rx_hash_int.h"
 
 #include "../ut_bits_op.h"
 #include "../../rx_bits_op.h"
