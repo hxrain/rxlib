@@ -5,9 +5,9 @@
 #include "../../rx_bits_op.h"
 
 #include "../ut_mem_pool.h"
-#include "../../rx_mem_pool.h"
+#include "../../rx_mempool_fx1.h"
 #include "../../rx_raw_stack.h"
-#include "../../rx_mem_cfg.h"
+#include "../../rx_mempool.h"
 
 #include "../ut_ct_obj.h"
 #include "../../rx_ct_util.h"

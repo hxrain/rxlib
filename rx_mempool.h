@@ -15,8 +15,8 @@ namespace rx
     {
     public:
         virtual void *do_alloc(uint32_t size)=0;
-        virtual void *do_realloc(void* ptr,uint32_t size){return NULL;}
-        virtual void do_free(void* ptr)=0;
+        virtual void *do_realloc(void* ptr,uint32_t newsize){return NULL;}
+        virtual void do_free(void* ptr, uint32_t size=0)=0;
     protected:
         virtual ~rx_mem_pool_i(){}
     };
@@ -28,7 +28,7 @@ namespace rx
     public:
         virtual void *do_alloc(uint32_t size){return malloc(size);}
         virtual void *do_realloc(void* ptr,uint32_t size){return realloc(ptr,size);}
-        virtual void do_free(void* ptr){free(ptr);}
+        virtual void do_free(void* ptr, uint32_t size = 0){free(ptr);}
     };
 
 

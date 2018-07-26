@@ -3,7 +3,7 @@
 
 
 #include "rx_cc_macro.h"
-#include "rx_mem_cfg.h"
+#include "rx_mempool.h"
 #include "rx_raw_stack.h"
 #include "rx_assert.h"
 
@@ -129,9 +129,9 @@ namespace rx
         }
 		//-------------------------------------------------
 		//分配固定尺寸的内存块
-		void* do_alloc(uint32_t unset=0)
+		void* do_alloc(uint32_t unused =0)
 		{
-			rx_assert(unset==0||unset==m_block_size);
+			rx_assert(unused ==0|| unused ==m_block_size);
             return m_alloc_block();
 		}
 		//-------------------------------------------------
@@ -139,10 +139,11 @@ namespace rx
 		DT* alloc(uint32_t unset=sizeof(DT)){return static_cast<DT*>(alloc(unset));}
 		//-------------------------------------------------
 		//归还内存
-		void do_free(void* p)
+		void do_free(void* p, uint32_t unused = 0)
 		{
 			rx_assert(p!=NULL);
             rx_assert(!is_full());
+            rx_assert(unused == 0 || unused == m_block_size);
             m_free_blocks.push((mp_block_t*)p);
 		}
     };

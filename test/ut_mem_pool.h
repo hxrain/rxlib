@@ -1,7 +1,7 @@
 #ifndef _UT_MEM_POOL_H_
 #define _UT_MEM_POOL_H_
 
-#include "../rx_mem_pool.h"
+#include "../rx_mempool_fx1.h"
 #include "../rx_tdd.h"
 
 template<class T>
