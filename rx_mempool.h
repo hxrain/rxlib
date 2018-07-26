@@ -31,6 +31,15 @@ namespace rx
         virtual void do_free(void* ptr, uint32_t size = 0){free(ptr);}
     };
 
+    //------------------------------------------------------
+    //基于C标准库的内存池
+    class rx_mem_pool_std 
+    {
+    public:
+        static void *do_alloc(uint32_t size) { return malloc(size); }
+        static void *do_realloc(void* ptr, uint32_t size) { return realloc(ptr, size); }
+        static void do_free(void* ptr, uint32_t size = 0) { free(ptr); }
+    };
 
     //======================================================
     //便捷配置参数:大块缓存,默认可以缓存64K的内存块
@@ -72,17 +81,17 @@ namespace rx
     //默认配置
     //内存池最小对齐尺寸和最小分配节点尺寸
     #ifndef RX_MEMCFG_MinAlign
-        #define RX_MEMCFG_MinAlign 32
+        #define RX_MEMCFG_MinAlign 64
     #endif
 
     //内存池最大分配节点尺寸
     #ifndef RX_MEMCFG_MaxNode
-        #define RX_MEMCFG_MaxNode (1024*8)
+        #define RX_MEMCFG_MaxNode (1024*16)
     #endif
 
     //内存池中每个内存条的最大尺寸
     #ifndef RX_MEMCFG_MaxStripe
-        #define RX_MEMCFG_MaxStripe (RX_MEMCFG_MaxNode*2)
+        #define RX_MEMCFG_MaxStripe (RX_MEMCFG_MaxNode*8)
     #endif
 
     //======================================================
@@ -92,10 +101,11 @@ namespace rx
         //可配置(每个值都必须为2的整数次幂):最小节点与增量尺寸;最大节点尺寸;每个内存条的最大尺寸
         //这些参数的配置决定了物理内存占用率和缓存池利用率.
         //条尺寸大一些时适合等长度内存块密集分配,但在随机长度块分配时会降低内存利用率.
-        enum{MinAlignSize=RX_MEMCFG_MinAlign,MaxNodeSize=RX_MEMCFG_MaxNode,MaxStripeSize=RX_MEMCFG_MaxStripe};
-
-        //固定内存池的最大数量
-        enum{PoolCount=MaxNodeSize/MinAlignSize};
+        enum {
+            MinAlignSize = RX_MEMCFG_MinAlign,
+            MaxNodeSize = RX_MEMCFG_MaxNode,
+            MaxStripeSize = RX_MEMCFG_MaxStripe
+        };
 
         //计算索引偏移使用,右移位数
         enum{ArrayIndexShiftBit=log2<MinAlignSize>::result};
