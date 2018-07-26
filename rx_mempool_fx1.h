@@ -81,6 +81,7 @@ namespace rx
 		mempool_fixed_t &operator =(const mempool_fixed_t&);
 		mempool_fixed_t(const mempool_fixed_t&);
 	public:
+		typedef CT mem_cfg_t;
 		//-------------------------------------------------
 		mempool_fixed_t():m_block_size(0),m_per_stripe_blocks(0){}
         //-------------------------------------------------
@@ -129,14 +130,12 @@ namespace rx
         }
 		//-------------------------------------------------
 		//分配固定尺寸的内存块
-		void* do_alloc(uint32_t unused =0)
+		void* do_alloc(uint32_t &blocksize,uint32_t unused=0)
 		{
 			rx_assert(unused ==0|| unused ==m_block_size);
+			blocksize=m_block_size;
             return m_alloc_block();
 		}
-		//-------------------------------------------------
-		template<class DT>
-		DT* alloc(uint32_t unset=sizeof(DT)){return static_cast<DT*>(alloc(unset));}
 		//-------------------------------------------------
 		//归还内存
 		void do_free(void* p, uint32_t unused = 0)

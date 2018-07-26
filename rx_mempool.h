@@ -6,7 +6,6 @@
 #include "rx_cc_macro.h"
 #include "rx_ct_util.h"
 
-
 namespace rx
 {
     //------------------------------------------------------
@@ -14,9 +13,9 @@ namespace rx
     class rx_mem_pool_i
     {
     public:
-        virtual void *do_alloc(uint32_t size)=0;
-        virtual void *do_realloc(void* ptr,uint32_t newsize){return NULL;}
-        virtual void do_free(void* ptr, uint32_t size=0)=0;
+        virtual void *do_alloc(uint32_t &blocksize,uint32_t size)=0;
+        virtual void *do_realloc(uint32_t &blocksize,void* ptr,uint32_t newsize){return NULL;}
+        virtual void do_free(void* ptr, uint32_t blocksize=0)=0;
     protected:
         virtual ~rx_mem_pool_i(){}
     };
@@ -26,8 +25,8 @@ namespace rx
     class rx_mem_pool_c:public rx_mem_pool_i
     {
     public:
-        virtual void *do_alloc(uint32_t size){return malloc(size);}
-        virtual void *do_realloc(void* ptr,uint32_t size){return realloc(ptr,size);}
+        virtual void *do_alloc(uint32_t &blocksize,uint32_t size){blocksize=size;return malloc(size);}
+        virtual void *do_realloc(uint32_t &blocksize,void* ptr,uint32_t size){blocksize=size;return realloc(ptr,size);}
         virtual void do_free(void* ptr, uint32_t size = 0){free(ptr);}
     };
 
@@ -107,11 +106,10 @@ namespace rx
             MaxStripeSize = RX_MEMCFG_MaxStripe
         };
 
-        //计算索引偏移使用,右移位数
-        enum{ArrayIndexShiftBit=log2<MinAlignSize>::result};
-
+        //校验最小对齐尺寸合法性,确定MinAlignSize是2的整数次幂
+        enum{MinSizeShiftBit=log2<MinAlignSize>::result};
         //校验最大节点尺寸合法性,确定MaxNodeSize是2的整数次幂
-        enum{MaxNodeSizeShiftBitCheck=log2<MaxNodeSize>::result};
+        enum{MaxNodeSizeShiftBit=log2<MaxNodeSize>::result};
     }
     rx_mem_pool_cfg_t;
 

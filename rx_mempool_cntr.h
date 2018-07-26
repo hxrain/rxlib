@@ -3,46 +3,43 @@
 
 #include "rx_cc_macro.h"
 #include "rx_mempool.h"
-
+#include "rx_ct_util.h"
+#include "rx_assert.h"
+#include <math.h>
 namespace rx
 {
     //---------------------------------------------------------
-    //内存池容器,可以放置多个固定尺寸内存池,形成动态尺寸的分配能力
-	template<class pool_t,class CT= rx_mem_pool_cfg_t>
+    //内存池容器,可以线性递增放置多个固定尺寸内存池,形成动态尺寸的分配能力
+	template<class pool_t,class cfg_t= rx_mem_pool_cfg_t>
 	class rx_mempool_cntr_lin:public rx_mem_pool_i
 	{
-    protected:
-        //-----------------------------------------------------
-        virtual uint32_t on_array_idx(uint32_t Size)
-        {
-            return ((Size + (CT::MinAlignSize - 1)) >> CT::ArrayIndexShiftBit) - 1;
-        }
-        virtual uint32_t on_array_count(uint32_t Size)
-        {
-
-        }
     private:
-		pool_t     *m_pool_array;                       //固定尺寸内存块数组指针
+		pool_t     *m_pool_array;							//固定尺寸内存块数组指针
+		enum{FM_PoolCount=cfg_t::MaxNodeSize/cfg_t::MinAlignSize};//定长内存池线性递增所需数组尺寸
+        //-----------------------------------------------------
+		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
+        static uint32_t on_array_idx(uint32_t Size,uint32_t &blocksize)
+        {
+			blocksize=size_align_to(Size,cfg_t::MinAlignSize);
+            return ((Size + (cfg_t::MinAlignSize - 1)) >> cfg_t::MinSizeShiftBit) - 1;
+        }
 		//-----------------------------------------------------
 		//初始化内存池:固定池中每块包含的节点数量,清空池定时时间
 		bool m_init()
 		{
 			if (m_pool_array)
 			{
-				HAlert("该内存池已经初始化过了!");
+				rx_alert("该内存池已经初始化过了!");
 				return false;
 			}
-			if(CT::MinAlignSize<8||CT::MinAlignSize%4||CT::MaxNodeSize%4||CT::MaxNodeSize%CT::MinAlignSize)
+			if(cfg_t::MinAlignSize<8||cfg_t::MinAlignSize%4||cfg_t::MaxNodeSize%4||cfg_t::MaxNodeSize%cfg_t::MinAlignSize)
 			{
-				HAlert("使用错误的参数进行初始化!");
+				rx_alert("使用错误的参数进行初始化!");
 				return false;
 			}
-			m_pool_array=new pool_t[CT::PoolCount];
-			for(uint32_t i=0;i<CT::PoolCount;i++)
-			{
-				uint32_t AlignSize=CT::MinAlignSize*(i+1);
-				m_pool_array[i].Init(AlignSize);
-			}
+			m_pool_array=new pool_t[FM_PoolCount];
+			for(uint32_t i=1;i<=FM_PoolCount;i++)
+				m_pool_array[i-1].init(cfg_t::MinAlignSize*i);
 
 			return true;
 		}
@@ -50,6 +47,8 @@ namespace rx
 		bool m_uninit()
 		{
 			if (!m_pool_array) return false;
+			for(uint32_t i=0;i<FM_PoolCount;i++)
+				m_pool_array[i].uninit();
 			delete [] m_pool_array;
 			m_pool_array=NULL;
 			return true;
@@ -59,22 +58,22 @@ namespace rx
 		rx_mempool_cntr_lin &operator =(const rx_mempool_cntr_lin &);
 		rx_mempool_cntr_lin(const rx_mempool_cntr_lin&);
 	public:
+		typedef cfg_t mem_cfg_t;
 		//-----------------------------------------------------
 		rx_mempool_cntr_lin():m_pool_array(NULL){m_init();}
         virtual ~rx_mempool_cntr_lin() { m_uninit(); }
 		//-----------------------------------------------------
         //分配尺寸为Size的内存块
-		void* do_alloc(uint32_t Size)
+		void* do_alloc(uint32_t &blocksize,uint32_t Size)
 		{
-			if (Size<=CT::MaxNodeSize)
+			if (Size<=cfg_t::MaxNodeSize)
 			{//从内部固定池里面分配
-				rx_assert(on_array_idx(Size)<CT::PoolCount);
-				//由于使用了动态数组偏移,所以此过程比静态数组偏移要慢一倍左右
-				//导致非固定池比固定池的效率要慢一倍左右
-				return m_pool_array[on_array_idx(Size)].do_alloc(Size);
+				rx_assert(on_array_idx(Size,blocksize)<FM_PoolCount);
+				return m_pool_array[on_array_idx(Size,blocksize)].do_alloc(blocksize,blocksize);
 			}
 			else
 			{//使用物理池进行分配
+				blocksize=Size;
 				return rx_mem_pool_std::do_alloc(Size);
 			}
 		}
@@ -82,12 +81,11 @@ namespace rx
         //释放尺寸为Size的内存块
 		void do_free(void* P,uint32_t Size)
 		{
-			if (Size<=CT::MaxNodeSize)
+			if (Size<=cfg_t::MaxNodeSize)
 			{//归还到内部固定池里面
-				rx_assert(on_array_idx(Size)<CT::PoolCount);
-				//由于使用了动态数组偏移,所以此过程比静态数组偏移要慢一倍左右
-				//导致非固定池比固定池的效率要慢一倍左右
-				m_pool_array[on_array_idx(Size)].do_free(P,Size);
+				uint32_t blocksize;
+				rx_assert(on_array_idx(Size,blocksize)<FM_PoolCount);
+				m_pool_array[on_array_idx(Size,blocksize)].do_free(P,blocksize);
 			}
 			else
 			{//归还到物理池
@@ -96,5 +94,91 @@ namespace rx
 		}
 	};
 
+
+    //---------------------------------------------------------
+    //内存池容器,可以指数递增放置多个固定尺寸内存池,形成动态尺寸的分配能力
+	template<class pool_t,class cfg_t= rx_mem_pool_cfg_t>
+	class rx_mempool_cntr_pow2:public rx_mem_pool_i
+	{
+    private:
+		pool_t     *m_pool_array;							//固定尺寸内存块数组指针
+		enum{FM_PoolCount=cfg_t::MaxNodeSizeShiftBit-cfg_t::MinSizeShiftBit+1};//定长内存池线性递增所需数组尺寸
+        //-----------------------------------------------------
+		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
+        static uint32_t on_array_idx(uint32_t Size,uint32_t &blocksize)
+        {
+			blocksize=size_align_to(Size,cfg_t::MinAlignSize);
+            return ((uint32_t)log(blocksize) - cfg_t::MinSizeShiftBit);
+        }
+		//-----------------------------------------------------
+		//初始化内存池:固定池中每块包含的节点数量,清空池定时时间
+		bool m_init()
+		{
+			if (m_pool_array)
+			{
+				rx_alert("该内存池已经初始化过了!");
+				return false;
+			}
+			if(cfg_t::MinAlignSize<8||cfg_t::MinAlignSize%4||cfg_t::MaxNodeSize%4||cfg_t::MaxNodeSize%cfg_t::MinAlignSize)
+			{
+				rx_alert("使用错误的参数进行初始化!");
+				return false;
+			}
+			m_pool_array=new pool_t[FM_PoolCount];
+			for(uint32_t i=0;i<FM_PoolCount;i++)
+				m_pool_array[i].init(cfg_t::MinAlignSize<<i);
+
+			return true;
+		}
+		//-----------------------------------------------------
+		bool m_uninit()
+		{
+			if (!m_pool_array) return false;
+			for(uint32_t i=0;i<FM_PoolCount;i++)
+				m_pool_array[i].uninit();
+			delete [] m_pool_array;
+			m_pool_array=NULL;
+			return true;
+		}
+
+		//-----------------------------------------------------
+		rx_mempool_cntr_pow2 &operator =(const rx_mempool_cntr_pow2 &);
+		rx_mempool_cntr_pow2(const rx_mempool_cntr_pow2&);
+	public:
+		typedef cfg_t mem_cfg_t;
+		//-----------------------------------------------------
+		rx_mempool_cntr_pow2():m_pool_array(NULL){m_init();}
+        virtual ~rx_mempool_cntr_pow2() { m_uninit(); }
+		//-----------------------------------------------------
+        //分配尺寸为Size的内存块
+		void* do_alloc(uint32_t &blocksize,uint32_t Size)
+		{
+			if (Size<=cfg_t::MaxNodeSize)
+			{//从内部固定池里面分配
+				rx_assert(on_array_idx(Size,blocksize)<FM_PoolCount);
+				return m_pool_array[on_array_idx(Size,blocksize)].do_alloc(blocksize,blocksize);
+			}
+			else
+			{//使用物理池进行分配
+				blocksize=Size;
+				return rx_mem_pool_std::do_alloc(Size);
+			}
+		}
+		//-----------------------------------------------------
+        //释放尺寸为Size的内存块
+		void do_free(void* P,uint32_t Size)
+		{
+			if (Size<=cfg_t::MaxNodeSize)
+			{//归还到内部固定池里面
+				uint32_t blocksize;
+				rx_assert(on_array_idx(Size,blocksize)<FM_PoolCount);
+				m_pool_array[on_array_idx(Size,blocksize)].do_free(P,blocksize);
+			}
+			else
+			{//归还到物理池
+				rx_mem_pool_std::do_free(P,Size);
+			}
+		}
+	};
 }
 #endif

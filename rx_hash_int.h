@@ -7,7 +7,7 @@
     //integer hash function
     //-----------------------------------------------------
     // Tomas Wang
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_tomas32(DT key)
     {
         key = ~key + (key << 15); // key = (key << 15) - key - 1;
@@ -20,7 +20,7 @@
     }
     //-----------------------------------------------------
     // 64 bit Mix Functions
-    template<class DT=uint64_t>
+    template<class DT>
     inline DT hash_tomas64(DT key)
     {
         key = (~key) + (key << 21); // key = (key << 21) - key - 1;
@@ -48,7 +48,7 @@
     //-----------------------------------------------------
     // Bob Jenkins' 32 bit integer hash function
     // 这六个数是随机数， 通过设置合理的6个数，你可以找到对应的perfect hash.
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_bobj(DT a)
     {
         a = (a+0x7ed55d16) + (a<<12);
@@ -63,7 +63,7 @@
     //-----------------------------------------------------
     //32位整数的Murmur哈希码算法; from code.google.com/p/smhasher/wiki/MurmurHash3
     //对于自然数效果较好
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_murmur3(DT h)
     {
         h ^= h >> 16;
@@ -76,64 +76,64 @@
 
     //-----------------------------------------------------
     //黄金分隔哈希算法,对于自然数效果较好
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_a(DT addr)
     {
         return addr * 21911;
     }
     //黄金分隔哈希算法,对于内存地址效果较好(四字节对齐)
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_a2(DT addr)
     {
         return (addr>>2) * 21911;
     }
     //黄金分隔哈希算法,对于内存地址效果较好(八字节对齐)
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_a3(DT addr)
     {
         return (addr>>3) * 21911;
     }
     //-----------------------------------------------------
     //黄金分隔哈希算法,对于自然数效果较好
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_b(DT addr)
     {
         return addr * 1403641;
     }
     //黄金分隔哈希算法,对于内存地址效果较好(四字节对齐)
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_b2(DT addr)
     {
         return (addr>>2) * 1403641;
     }
     //黄金分隔哈希算法,对于内存地址效果较好(八字节对齐)
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_b3(DT addr)
     {
         return (addr>>3) * 1403641;
     }
     //-----------------------------------------------------
     //黄金分隔哈希算法,对于自然数效果较好
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_c(DT addr)
     {
         return addr * 11229331;
     }
     //黄金分隔哈希算法,对于内存地址效果较好(四字节对齐)
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_c2(DT addr)
     {
         return (addr>>2) * 11229331;
     }
     //黄金分隔哈希算法,对于内存地址效果较好(八字节对齐)
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_gold_c3(DT addr)
     {
         return (addr>>3) * 11229331;
     }
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_mosquito32(DT x)
     {
         x  = ~x;
@@ -144,7 +144,7 @@
     }
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    template<class DT=uint32_t>
+    template<class DT>
     inline DT hash_skeeto32(DT x)
     {
         x  = ~x;
