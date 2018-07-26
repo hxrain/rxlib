@@ -141,15 +141,15 @@ namespace rx
     };
     //将一个数字向上以AlignTo为边界进行对齐
     inline uint32_t size_align_to(uint32_t Size,uint32_t AlignTo){return (Size + AlignTo - 1) & ~(AlignTo - 1);}
-
-    //根据数据类型计算其尺寸并将其向上以4字节边界对齐
-    #define type_align4(T) ((sizeof(T) + 3) & ~3)
-    //根据数据类型计算其尺寸并将其向上以8字节边界对齐
-    #define type_align8(T) ((sizeof(T) + 7) & ~7)
     //将一个数字向上以4为边界对齐
     #define size_align4(S) ((S+3)& ~3)
     //将一个数字向上以8为边界对齐
     #define size_align8(S) ((S+7)& ~7)
+
+    //根据数据类型计算其尺寸并将其向上以4字节边界对齐
+    #define type_align4(T) size_align4(sizeof(T))
+    //根据数据类型计算其尺寸并将其向上以8字节边界对齐
+    #define type_align8(T) size_align8(sizeof(T))
 
     //取一个结构体T的成员F的相对于结构体的偏移量
     #define struct_offset(T,F) (uint32_t)(&((T*)0)->F)
