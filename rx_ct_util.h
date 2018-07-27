@@ -159,6 +159,13 @@ namespace rx
     //语法糖,禁止对象拷贝的快捷宏定义
     #define dont_copy(CN) const CN& operator=(const CN&)
 
+    //浮点数向上对齐获取整数
+    inline uint32_t round_up(const double &num)
+    {
+        uint32_t rc = (uint32_t)num;
+        return (num - rc > 0.00000001) ? rc + 1 : rc;
+    }
+
 }
 
 #endif

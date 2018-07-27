@@ -10,19 +10,19 @@ namespace rx
 {
     //------------------------------------------------------
     //内存池抽象接口
-    class rx_mem_pool_i
+    class mempool_i
     {
     public:
         virtual void *do_alloc(uint32_t &blocksize,uint32_t size)=0;
         virtual void *do_realloc(uint32_t &blocksize,void* ptr,uint32_t newsize){return NULL;}
         virtual void do_free(void* ptr, uint32_t blocksize=0)=0;
     protected:
-        virtual ~rx_mem_pool_i(){}
+        virtual ~mempool_i(){}
     };
 
     //------------------------------------------------------
     //基于C标准库的内存池
-    class rx_mem_pool_c:public rx_mem_pool_i
+    class mempool_c:public mempool_i
     {
     public:
         virtual void *do_alloc(uint32_t &blocksize,uint32_t size){blocksize=size;return malloc(size);}
@@ -32,7 +32,7 @@ namespace rx
 
     //------------------------------------------------------
     //基于C标准库的内存池
-    class rx_mem_pool_std 
+    class mempool_std 
     {
     public:
         static void *do_alloc(uint32_t size) { return malloc(size); }
@@ -95,7 +95,7 @@ namespace rx
 
     //======================================================
     //默认内存池的配置参数
-    typedef struct rx_mem_pool_cfg_t
+    typedef struct mempool_cfg_t
     {
         //可配置(每个值都必须为2的整数次幂):最小节点与增量尺寸;最大节点尺寸;每个内存条的最大尺寸
         //这些参数的配置决定了物理内存占用率和缓存池利用率.
@@ -110,12 +110,22 @@ namespace rx
         enum{MinSizeShiftBit=log2<MinAlignSize>::result};
         //校验最大节点尺寸合法性,确定MaxNodeSize是2的整数次幂
         enum{MaxNodeSizeShiftBit=log2<MaxNodeSize>::result};
-    }
-    rx_mem_pool_cfg_t;
+    }mempool_cfg_t;
+
+    //------------------------------------------------------
+    //用于记录内存池工作情况
+    typedef struct mempool_stat_t
+    {
+        uint32_t alloced;                                   //缓存已分配
+        uint32_t real_size;                                 //缓存刚需量
+        uint32_t can_reuse;                                 //缓存待复用
+        uint32_t nc_alloced;                                //非缓存分配
+        uint32_t cache_using()const { return alloced - can_reuse; }//缓存使用量
+    }mempool_stat_t;
 
 	//======================================================
 	//标准内存分配器的存根
-    typedef struct rx_alloc_cookie_t
+    typedef struct alloc_cookie_t
     {
         //内存分配存根
         typedef struct HNodeCookie
@@ -142,19 +152,7 @@ namespace rx
             MemSize=((HNodeCookie*)P)->MemSize;
             return !!(((HNodeCookie*)P)->Cookie&AllocType_ObjectArray);
         }
-    }rx_alloc_cookie_t;
-
-    //------------------------------------------------------
-    //用于记录内存分配器工作情况
-    typedef struct rx_mem_stat_t
-    {
-        uint32_t CacheAlloced;                                //可缓存已分配
-        uint32_t RealNeedSize;                                //可缓存刚需量
-        uint32_t InCacheSize;                                 //已缓存待复用
-        uint32_t ExternAlloced;                               //非缓存已分配
-        uint32_t CacheUsing()const{return CacheAlloced-InCacheSize;}//可缓存正使用
-    }rx_mem_stat_t;
-
+    }alloc_cookie_t;
 }
 
 

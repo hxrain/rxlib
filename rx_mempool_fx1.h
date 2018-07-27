@@ -1,5 +1,5 @@
-#ifndef _H_RX_MEM_POOL_H_
-#define _H_RX_MEM_POOL_H_
+#ifndef _H_rx_mempool_H_
+#define _H_rx_mempool_H_
 
 
 #include "rx_cc_macro.h"
@@ -12,8 +12,8 @@ namespace rx
 {
     //-----------------------------------------------------
     //定长内存池基类:CT内存池配置类型
-    template<class CT=rx_mem_pool_cfg_t>
-    class mempool_fixed_t:public rx_mem_pool_i
+    template<class CT=mempool_cfg_t>
+    class mempool_fixed_t:public mempool_i
     {
     protected:
         //-------------------------------------------------
@@ -41,7 +41,7 @@ namespace rx
         bool m_alloc_stripe()
         {
             rx_assert(m_block_size&&m_per_stripe_blocks);
-            mp_stripe_t* new_stripe=(mp_stripe_t*)::malloc(m_stripe_size);//利用传入的物理内存池,分配一个内存条
+            mp_stripe_t* new_stripe=(mp_stripe_t*)mempool_std::do_alloc(m_stripe_size);//利用传入的物理内存池,分配一个内存条
 
             if (new_stripe==NULL){rx_alert("out of memroy!");return false;}
 
@@ -72,7 +72,7 @@ namespace rx
             while(m_used_stripes.size())
             {
                 mp_stripe_t *Stripe=m_used_stripes.pop();
-                ::free(Stripe);
+                mempool_std::do_free(Stripe);
             }
             return true;
         }

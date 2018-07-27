@@ -10,8 +10,8 @@ namespace rx
 {
     //---------------------------------------------------------
     //内存池容器,可以线性递增放置多个固定尺寸内存池,形成动态尺寸的分配能力
-	template<class pool_t,class cfg_t= rx_mem_pool_cfg_t>
-	class rx_mempool_cntr_lin:public rx_mem_pool_i
+	template<class pool_t,class cfg_t= mempool_cfg_t>
+	class mempool_cntr_lin:public mempool_i
 	{
     private:
 		pool_t     *m_pool_array;							//固定尺寸内存块数组指针
@@ -55,26 +55,27 @@ namespace rx
 		}
 
 		//-----------------------------------------------------
-		rx_mempool_cntr_lin &operator =(const rx_mempool_cntr_lin &);
-		rx_mempool_cntr_lin(const rx_mempool_cntr_lin&);
+		mempool_cntr_lin &operator =(const mempool_cntr_lin &);
+		mempool_cntr_lin(const mempool_cntr_lin&);
 	public:
 		typedef cfg_t mem_cfg_t;
 		//-----------------------------------------------------
-		rx_mempool_cntr_lin():m_pool_array(NULL){m_init();}
-        virtual ~rx_mempool_cntr_lin() { m_uninit(); }
+		mempool_cntr_lin():m_pool_array(NULL){m_init();}
+        virtual ~mempool_cntr_lin() { m_uninit(); }
 		//-----------------------------------------------------
         //分配尺寸为Size的内存块
 		void* do_alloc(uint32_t &blocksize,uint32_t Size)
 		{
 			if (Size<=cfg_t::MaxNodeSize)
 			{//从内部固定池里面分配
-				rx_assert(on_array_idx(Size,blocksize)<FM_PoolCount);
-				return m_pool_array[on_array_idx(Size,blocksize)].do_alloc(blocksize,blocksize);
+                uint32_t idx = on_array_idx(Size, blocksize);
+                rx_assert(idx<FM_PoolCount);
+                return m_pool_array[idx].do_alloc(blocksize, blocksize);
 			}
 			else
 			{//使用物理池进行分配
 				blocksize=Size;
-				return rx_mem_pool_std::do_alloc(Size);
+				return mempool_std::do_alloc(Size);
 			}
 		}
 		//-----------------------------------------------------
@@ -89,7 +90,7 @@ namespace rx
 			}
 			else
 			{//归还到物理池
-				rx_mem_pool_std::do_free(P,Size);
+				mempool_std::do_free(P,Size);
 			}
 		}
 	};
@@ -97,8 +98,8 @@ namespace rx
 
     //---------------------------------------------------------
     //内存池容器,可以指数递增放置多个固定尺寸内存池,形成动态尺寸的分配能力
-	template<class pool_t,class cfg_t= rx_mem_pool_cfg_t>
-	class rx_mempool_cntr_pow2:public rx_mem_pool_i
+	template<class pool_t,class cfg_t= mempool_cfg_t>
+	class mempool_cntr_pow2:public mempool_i
 	{
     private:
 		pool_t     *m_pool_array;							//固定尺寸内存块数组指针
@@ -107,8 +108,17 @@ namespace rx
 		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
         static uint32_t on_array_idx(uint32_t Size,uint32_t &blocksize)
         {
-			blocksize=size_align_to(Size,cfg_t::MinAlignSize);
-            return ((uint32_t)log(blocksize) - cfg_t::MinSizeShiftBit);
+            if (Size <= cfg_t::MinAlignSize)
+            {
+                blocksize = cfg_t::MinAlignSize;
+                return 0;
+            }
+            else
+            {
+                uint32_t offset = round_up(::log2(Size));
+                blocksize = 1 << offset;
+                return (offset -cfg_t::MinSizeShiftBit);
+            }
         }
 		//-----------------------------------------------------
 		//初始化内存池:固定池中每块包含的节点数量,清空池定时时间
@@ -142,26 +152,27 @@ namespace rx
 		}
 
 		//-----------------------------------------------------
-		rx_mempool_cntr_pow2 &operator =(const rx_mempool_cntr_pow2 &);
-		rx_mempool_cntr_pow2(const rx_mempool_cntr_pow2&);
+		mempool_cntr_pow2 &operator =(const mempool_cntr_pow2 &);
+		mempool_cntr_pow2(const mempool_cntr_pow2&);
 	public:
 		typedef cfg_t mem_cfg_t;
 		//-----------------------------------------------------
-		rx_mempool_cntr_pow2():m_pool_array(NULL){m_init();}
-        virtual ~rx_mempool_cntr_pow2() { m_uninit(); }
+		mempool_cntr_pow2():m_pool_array(NULL){m_init();}
+        virtual ~mempool_cntr_pow2() { m_uninit(); }
 		//-----------------------------------------------------
         //分配尺寸为Size的内存块
 		void* do_alloc(uint32_t &blocksize,uint32_t Size)
 		{
 			if (Size<=cfg_t::MaxNodeSize)
 			{//从内部固定池里面分配
-				rx_assert(on_array_idx(Size,blocksize)<FM_PoolCount);
-				return m_pool_array[on_array_idx(Size,blocksize)].do_alloc(blocksize,blocksize);
+                uint32_t idx = on_array_idx(Size, blocksize);
+				rx_assert(idx<FM_PoolCount);
+				return m_pool_array[idx].do_alloc(blocksize,blocksize);
 			}
 			else
 			{//使用物理池进行分配
 				blocksize=Size;
-				return rx_mem_pool_std::do_alloc(Size);
+				return mempool_std::do_alloc(Size);
 			}
 		}
 		//-----------------------------------------------------
@@ -176,7 +187,7 @@ namespace rx
 			}
 			else
 			{//归还到物理池
-				rx_mem_pool_std::do_free(P,Size);
+				mempool_std::do_free(P,Size);
 			}
 		}
 	};
