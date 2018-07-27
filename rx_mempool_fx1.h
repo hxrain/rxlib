@@ -41,7 +41,8 @@ namespace rx
         bool m_alloc_stripe()
         {
             rx_assert(m_block_size&&m_per_stripe_blocks);
-            mp_stripe_t* new_stripe=(mp_stripe_t*)mempool_std::do_alloc(m_stripe_size);//利用传入的物理内存池,分配一个内存条
+            uint32_t unset=0;
+            mp_stripe_t* new_stripe=(mp_stripe_t*)base_alloc(unset,m_stripe_size);//利用传入的物理内存池,分配一个内存条
 
             if (new_stripe==NULL){rx_alert("out of memroy!");return false;}
 
@@ -72,7 +73,7 @@ namespace rx
             while(m_used_stripes.size())
             {
                 mp_stripe_t *Stripe=m_used_stripes.pop();
-                mempool_std::do_free(Stripe);
+                base_free(Stripe);
             }
             return true;
         }
@@ -82,17 +83,17 @@ namespace rx
 		mempool_fixed_t(const mempool_fixed_t&);
 	public:
 		typedef CT mem_cfg_t;
-		//-------------------------------------------------
-		mempool_fixed_t():m_block_size(0),m_per_stripe_blocks(0){}
         //-------------------------------------------------
         //构造函数:内存块尺寸
-        mempool_fixed_t(uint32_t BlockSize):m_block_size(0),m_per_stripe_blocks(0)
+        mempool_fixed_t(uint32_t BlockSize=0):m_block_size(0),m_per_stripe_blocks(0)
         {
-            init(BlockSize);
+            if (BlockSize)
+                do_init(BlockSize);
         }
+        ~mempool_fixed_t(){do_uninit();}
         //-------------------------------------------------
         //对内存池进行初始化:内存块尺寸
-        bool init(uint32_t BlockSize)
+        virtual bool do_init(uint32_t BlockSize)
         {
             if (m_block_size||m_per_stripe_blocks)
             {
@@ -111,12 +112,13 @@ namespace rx
         }
         //-------------------------------------------------
         //解除初始化
-        bool uninit(bool Force=false)
+        virtual void do_uninit(bool Force=false)
         {
-            bool Ret=m_clear(Force);
+            if (!m_block_size)
+                return;
+            m_clear(Force);
             m_block_size=0;
             m_per_stripe_blocks=0;
-            return Ret;
         }
         //-------------------------------------------------
         //判断,该内存池是否是满的(所有的块节点都在内部)
@@ -130,7 +132,7 @@ namespace rx
         }
 		//-------------------------------------------------
 		//分配固定尺寸的内存块
-		void* do_alloc(uint32_t &blocksize,uint32_t unused=0)
+		virtual void* do_alloc(uint32_t &blocksize,uint32_t unused=0)
 		{
 			rx_assert(unused ==0|| unused ==m_block_size);
 			blocksize=m_block_size;
@@ -138,7 +140,7 @@ namespace rx
 		}
 		//-------------------------------------------------
 		//归还内存
-		void do_free(void* p, uint32_t unused = 0)
+		virtual void do_free(void* p, uint32_t unused = 0)
 		{
 			rx_assert(p!=NULL);
             rx_assert(!is_full());

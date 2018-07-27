@@ -28,7 +28,7 @@ void test_mem_pool_base(rx_tdd_base &rt)
     mempool.do_free(p2);
     rt.assert(mempool.using_blocks()==0);
     rt.assert(mempool.is_full());
-    rt.assert(mempool.uninit());
+    mempool.do_uninit();
 }
 
 
