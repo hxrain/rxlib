@@ -37,13 +37,13 @@
     #define bits_put8(b,i,v)    (((b)&=~(0xff<<(i))),(b|=(((v)&0xff)<<(i))))
 
     //-----------------------------------------------------
-    //计算字节翻转 0x0101..01 * x
+    //静态计算字节翻转 0x0101..01 * x
     template<class T,uint8_t x>
     T rx_byte_flip()
     {
         return ((~T(0))/0xff) * x;
     }
-    //计算字节翻转 0x0101..01 * x
+    //动态计算字节翻转 0x0101..01 * x
     template<class T>
     T rx_byte_flip(uint8_t x)
     {
@@ -53,27 +53,27 @@
 
 #if ( RX_CC==RX_CC_GCC||RX_CC==RX_CC_MINGW32||RX_CC==RX_CC_MINGW64)
     //-----------------------------------------------------
-    //计算x中被置位的数量
+    //计算被置位的数量
     inline uint8_t rx_popcnt    (uint32_t x){return __builtin_popcount(x);}
     inline uint8_t rx_popcnt    (uint64_t x){return __builtin_popcountll(x);}
 
     //-----------------------------------------------------
-    //计算x中前导0(高位)的数量
+    //计算前导0(高位)的数量
     inline uint8_t rx_clz       (uint32_t x){return x?__builtin_clz(x):32;}
     inline uint8_t rx_clz       (uint64_t x){return x?__builtin_clzll(x):64;}
 
     //-----------------------------------------------------
-    //计算x中尾随0(低位)的数量
+    //计算尾随0(低位)的数量
     inline uint8_t rx_ctz       (uint32_t x){return x?__builtin_ctz(x):32;}
     inline uint8_t rx_ctz       (uint64_t x){return x?__builtin_ctzll(x):64;}
 
     //-----------------------------------------------------
-    //计算x中尾随1(低位)的位置,返回值(0-没有置位;1~n为比特序号)
+    //计算尾随1(低位)的位置,返回值(0-没有置位;1~n为比特序号)
     inline uint8_t rx_ffs       (uint32_t x){return x?__builtin_ffs(x):0;}
     inline uint8_t rx_ffs       (uint64_t x){return x?__builtin_ffsll(x):0;}
 
     //-----------------------------------------------------
-    //计算x中前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
+    //计算前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
     inline uint8_t rx_fls(uint32_t x)
     {
         return x ? 32 - __builtin_clz(x) : 0;
@@ -84,7 +84,7 @@
     }
 #else
     //-----------------------------------------------------
-    //计算x中被置位的数量
+    //计算被置位的数量
     template<class T>
     unsigned rx_popcnt(T x)
     {
@@ -104,7 +104,7 @@
         return (x * b_0x01) >> (sizeof(T)-1)*8;
     }
     //-----------------------------------------------------
-    //计算x中前导0的数量
+    //计算前导0的数量
     inline uint8_t rx_clz(uint32_t x)
     {
         x |= (x >> 1);
@@ -126,7 +126,7 @@
         return(64 - rx_popcnt(x));
     }
     //-----------------------------------------------------
-    //计算x中尾随0(低位)的数量
+    //计算尾随0(低位)的数量
 #if RX_CC==RX_CC_VC
     #pragma warning (disable:4146)
 #endif
@@ -140,7 +140,7 @@
     template<> inline unsigned rx_ctz(int8_t  x) { return rx_ctz(uint8_t(x)); }
 
     //-----------------------------------------------------
-    //计算x中前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
+    //计算前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
     inline uint8_t rx_fls(uint32_t x)
     {
         int bit = 32;
@@ -165,7 +165,7 @@
     }
 
     //-----------------------------------------------------
-    //计算x中前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
+    //计算前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
     inline uint8_t rx_ffs(uint32_t x)
     {
         return rx_fls(x & (~x + 1));
@@ -182,7 +182,7 @@
     inline bool rx_is_pow2(T x){return x && !(x & (x - 1));}
 
     //-----------------------------------------------------
-    //判断x中是否有一个字节为0
+    //判断是否有一个字节为0
     template<class T>
     inline bool rx_has_zero(T x)
     {
@@ -193,7 +193,7 @@
     }
 
     //-----------------------------------------------------
-    //判断x中是否有一个字节为a
+    //判断是否有一个字节为a
     template<class T>
     inline bool rx_has_byte(T x, uint8_t a)
     {

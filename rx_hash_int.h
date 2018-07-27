@@ -35,10 +35,13 @@
     inline uint32_t rx_tiny_fibonacci(uint32_t idx)
     {
         static const uint32_t seqs[] = {
-            1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 
-            121393, 196418, 317811, 514229, 832040, 1346269,2178309, 3524578, 5702887, 9227465, 14930352, 24157817, 39088169, 63245986, 
+            1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025,
+            121393, 196418, 317811, 514229, 832040, 1346269,2178309, 3524578, 5702887, 9227465, 14930352, 24157817, 39088169, 63245986,
             102334155, 165580141, 267914296, 433494437, 701408733, 1134903170, 1836311903
         };
+        if (idx >= sizeof(seqs) / sizeof(uint32_t))
+            return 0;
+        return seqs[idx];
     }
 
     //-----------------------------------------------------
@@ -189,8 +192,9 @@
         case IHT_mosquito:  return "IntHash::mosquito";
         case IHT_skeeto32a: return "IntHash::skeeto32a";
         case IHT_skeeto32b: return "IntHash::skeeto32b";
+
+        default:            return "Hash::Unknown";
         }
-        return "Hash::Unknown";
     }
 
     //-----------------------------------------------------
@@ -206,8 +210,10 @@
         case IHT_mosquito:  return rx_hash_mosquito32(Key);
         case IHT_skeeto32a: return rx_hash_skeeto32a(Key);
         case IHT_skeeto32b: return rx_hash_skeeto32b(Key);
+
+        default:            return rx_hash_skeeto32b(Key);
         }
-        return rx_hash_skeeto32b(Key);
+
     }
 
 #endif

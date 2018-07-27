@@ -216,7 +216,7 @@
     template<class CT>
     inline uint32_t rx_hash_dek(const CT* Str)
     {
-        uint32_t Len=HSU::strlen(Str);
+        uint32_t Len=strlen(Str);
         uint32_t hash = Len;
         for(uint32_t i = 0; i < Len; i++)
             hash = ((hash << 5) ^ (hash >> 27)) ^ Str[i];
@@ -275,10 +275,10 @@
         while(len >= 4)
         {
             uint32_t k = *(uint32_t *)data;
-            k *= m; 
-            k ^= k >> 24; 
-            k *= m; 
-            h *= m; 
+            k *= m;
+            k ^= k >> 24;
+            k *= m;
+            h *= m;
             h ^= k;
             data += 4;
             len -= 4;
@@ -298,7 +298,7 @@
         h ^= h >> 15;
         return h;
     }
-    
+
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
     inline uint32_t rx_hash_mosquito(const uint8_t *buf, uint32_t len, uint32_t seed=0)
@@ -307,7 +307,7 @@
         for (uint32_t i = 0; i < len; i++) {
             hash += buf[i];
             hash ^= hash >> 16;
-            hash *= UINT32_C(0xb03a22b3);
+            hash *= uint32_t(0xb03a22b3);
             hash ^= hash >> 10;
         }
         return hash;
@@ -316,10 +316,10 @@
     inline uint32_t rx_hash_mosquito(const CT *buf, uint32_t seed=0)
     {
         uint32_t hash = seed;
-        for (;*buf; i++) {
+        for (;*buf; ++buf) {
             hash += *buf;
             hash ^= hash >> 16;
-            hash *= UINT32_C(0xb03a22b3);
+            hash *= uint32_t(0xb03a22b3);
             hash ^= hash >> 10;
         }
         return hash;
@@ -363,8 +363,9 @@
             case DHT_FNV:    return "DataHash::FNV";
             case DHT_MURMUR: return "DataHash::murmur";
             case DHT_MOSQUITO:return "DataHash::mosquito";
+
+            default:         return "Hash::Unknown";
         }
-        return "Hash::Unknown";
     }
 
     //-----------------------------------------------------
@@ -386,8 +387,9 @@
             case DHT_FNV:    return rx_hash_fnv(Data,Len);
             case DHT_MURMUR: return rx_hash_murmur(Data,Len);
             case DHT_MOSQUITO:return rx_hash_mosquito(Data, Len);
+
+            default:         return rx_hash_mosquito(Data,Len);
         }
-        return rx_hash_mosquito(Data,Len);
     }
 
 #endif
