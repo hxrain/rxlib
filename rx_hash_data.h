@@ -7,11 +7,11 @@
     //data hash function
     //-----------------------------------------------------
     // RS Hash Function
-    inline uint32_t rx_hash_rs(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_rs(const uint8_t* Data,uint32_t Len, uint32_t seed = 0)
     {
-        uint32_t b = 378551 ;
+        const uint32_t b = 378551 ;
         uint32_t a = 63689 ;
-        uint32_t hash = 0 ;
+        uint32_t hash = seed ;
         for(uint32_t i=0;i<Len;i++)
         {
             hash = hash * a + Data[i];
@@ -20,11 +20,11 @@
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_rs(const CT* str)
+    inline uint32_t rx_hash_rs(const CT* str, uint32_t seed = 0)
     {
-        uint32_t b = 378551 ;
+        const uint32_t b = 378551 ;
         uint32_t a = 63689 ;
-        uint32_t hash = 0 ;
+        uint32_t hash = seed ;
         while (*str)
         {
             hash = hash * a + (*str ++ );
@@ -35,17 +35,17 @@
 
     //-----------------------------------------------------
     // JS Hash Function
-    inline uint32_t rx_hash_js(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_js(const uint8_t* Data,uint32_t Len, uint32_t seed = 1315423911)
     {
-        uint32_t hash = 1315423911 ;
+        uint32_t hash = seed ;
         for(uint32_t i=0;i<Len;i++)
             hash ^= ((hash << 5 ) + Data[i] + (hash >> 2 ));
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_js(const CT* str)
+    inline uint32_t rx_hash_js(const CT* str, uint32_t seed = 1315423911)
     {
-        uint32_t hash = 1315423911 ;
+        uint32_t hash = seed ;
         while (*str)
             hash ^= ((hash << 5 ) + (*str ++ ) + (hash >> 2 ));
         return hash;
@@ -53,13 +53,13 @@
 
     //-----------------------------------------------------
     // P. J. Weinberger Hash Function
-    inline uint32_t rx_hash_pjw(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_pjw(const uint8_t* Data,uint32_t Len, uint32_t seed = 0)
     {
-        uint32_t BitsInUnignedInt = (uint32_t )( sizeof (uint32_t)*8 );
-        uint32_t ThreeQuarters = (uint32_t )((BitsInUnignedInt*3 ) / 4 );
-        uint32_t OneEighth = (uint32_t )(BitsInUnignedInt / 8 );
-        uint32_t HighBits = (uint32_t )( 0xFFFFFFFF ) << (BitsInUnignedInt - OneEighth);
-        uint32_t hash = 0 ;
+        const uint32_t BitsInUnignedInt = (uint32_t)(sizeof(uint32_t) * 8);
+        const uint32_t ThreeQuarters = (uint32_t)((BitsInUnignedInt * 3) / 4);
+        const uint32_t OneEighth = (uint32_t)(BitsInUnignedInt / 8);
+        const uint32_t HighBits = (uint32_t)(0xFFFFFFFF) << (BitsInUnignedInt - OneEighth);
+        uint32_t hash = seed ;
         uint32_t test = 0 ;
         for(uint32_t i=0;i<Len;i++)
         {
@@ -70,13 +70,13 @@
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_pjw(const CT* str)
+    inline uint32_t rx_hash_pjw(const CT* str, uint32_t seed = 0)
     {
-        uint32_t BitsInUnignedInt = (uint32_t )( sizeof (uint32_t)*8 );
-        uint32_t ThreeQuarters = (uint32_t )((BitsInUnignedInt*3 ) / 4 );
-        uint32_t OneEighth = (uint32_t )(BitsInUnignedInt / 8 );
-        uint32_t HighBits = (uint32_t )( 0xFFFFFFFF ) << (BitsInUnignedInt - OneEighth);
-        uint32_t hash = 0 ;
+        const uint32_t BitsInUnignedInt = (uint32_t )( sizeof (uint32_t)*8 );
+        const uint32_t ThreeQuarters = (uint32_t )((BitsInUnignedInt*3 ) / 4 );
+        const uint32_t OneEighth = (uint32_t )(BitsInUnignedInt / 8 );
+        const uint32_t HighBits = (uint32_t )( 0xFFFFFFFF ) << (BitsInUnignedInt - OneEighth);
+        uint32_t hash = seed ;
         uint32_t test;
         while (*str)
         {
@@ -89,9 +89,9 @@
 
     //-----------------------------------------------------
     // ELF Hash Function
-    inline uint32_t rx_hash_elf(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_elf(const uint8_t* Data,uint32_t Len, uint32_t seed = 0)
     {
-        uint32_t hash = 0 ;
+        uint32_t hash = seed ;
         uint32_t x = 0 ;
         for(uint32_t i=0;i<Len;i++)
         {
@@ -105,9 +105,9 @@
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_elf(const CT* str)
+    inline uint32_t rx_hash_elf(const CT* str,uint32_t seed=0)
     {
-        uint32_t hash = 0 ;
+        uint32_t hash = seed ;
         uint32_t x;
         while (*str)
         {
@@ -123,19 +123,17 @@
 
     //-----------------------------------------------------
     // BKDR Hash Function
-    inline uint32_t rx_hash_bkdr(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_bkdr(const uint8_t* Data,uint32_t Len, uint32_t seed = 131)
     {
-        uint32_t seed = 131 ; // 31 131 1313 13131 131313 etc..
-        uint32_t hash = 0 ;
+        uint32_t hash = seed;// 31 131 1313 13131 131313 etc..
         for(uint32_t i=0;i<Len;i++)
             hash = hash*seed + Data[i];
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_bkdr(const CT* str)
+    inline uint32_t rx_hash_bkdr(const CT* str, uint32_t seed = 131)
     {
-        uint32_t seed = 131 ; // 31 131 1313 13131 131313 etc..
-        uint32_t hash = 0 ;
+        uint32_t hash = seed ;// 31 131 1313 13131 131313 etc..
         while (*str)
             hash = hash*seed + (*str ++ );
         return hash;
@@ -143,17 +141,17 @@
 
     //-----------------------------------------------------
     // SDBM Hash Function
-    inline uint32_t rx_hash_sdbm(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_sdbm(const uint8_t* Data,uint32_t Len, uint32_t seed = 0)
     {
-        uint32_t hash = 0 ;
+        uint32_t hash = seed;
         for(uint32_t i=0;i<Len;i++)
             hash = Data[i] + (hash << 6 ) + (hash << 16 ) - hash;
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_sdbm(const CT* str)
+    inline uint32_t rx_hash_sdbm(const CT* str, uint32_t seed = 0)
     {
-        uint32_t hash = 0 ;
+        uint32_t hash = seed;
         while (*str)
         {
             hash = (*str ++ ) + (hash << 6 ) + (hash << 16 ) - hash;
@@ -163,17 +161,17 @@
 
     //-----------------------------------------------------
     // DJB Hash Function
-    inline uint32_t rx_hash_djb(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_djb(const uint8_t* Data,uint32_t Len, uint32_t seed = 5381)
     {
-        uint32_t hash = 5381 ;
+        uint32_t hash = seed ;
         for(uint32_t i=0;i<Len;i++)
             hash += (hash << 5 ) + Data[i];
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_djb(const CT* str)
+    inline uint32_t rx_hash_djb(const CT* str, uint32_t seed = 5381)
     {
-        uint32_t hash = 5381 ;
+        uint32_t hash = seed ;
         while (*str)
             hash += (hash << 5 ) + (*str ++ );
         return hash;
@@ -181,9 +179,9 @@
 
     //-----------------------------------------------------
     // AP Hash Function
-    inline uint32_t rx_hash_ap(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_ap(const uint8_t* Data,uint32_t Len, uint32_t seed = 0)
     {
-        uint32_t hash = 0 ;
+        uint32_t hash = seed ;
         for(uint32_t i=0;i<Len;i++)
         {
             if ((i & 1 ) == 0 )
@@ -194,9 +192,9 @@
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_ap(const CT* str)
+    inline uint32_t rx_hash_ap(const CT* str, uint32_t seed = 0)
     {
-        uint32_t hash = 0 ;
+        uint32_t hash = seed ;
         for (uint32_t i = 0 ;*str; i ++ )
         {
             if ((i & 1 ) == 0 )
@@ -226,27 +224,27 @@
     }
     //-----------------------------------------------------
     //BP Hash*
-    inline uint32_t rx_hash_bp(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_bp(const uint8_t* Data,uint32_t Len, uint32_t seed = 0)
     {
-        uint32_t hash=0;
+        uint32_t hash=seed;
         for(uint32_t i = 0;i < Len; i++)
             hash = (hash << 7) ^ Data[i];
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_bp(const CT* Str)
+    inline uint32_t rx_hash_bp(const CT* Str, uint32_t seed = 0)
     {
-        uint32_t hash=0;
+        uint32_t hash=seed;
         while(*Str)
             hash = (hash << 7) ^ (*Str++);
         return hash;
     }
     //-----------------------------------------------------
     //FNV Hash
-    inline uint32_t rx_hash_fnv(const uint8_t* Data,uint32_t Len)
+    inline uint32_t rx_hash_fnv(const uint8_t* Data,uint32_t Len, uint32_t seed = 0)
     {
         uint32_t fnv_prime = 0x811C9DC5;
-        uint32_t hash = 0;
+        uint32_t hash = seed;
         for(uint32_t i = 0; i < Len; i++)
         {
             hash *= fnv_prime;
@@ -255,10 +253,10 @@
         return hash;
     }
     template<class CT>
-    inline uint32_t rx_hash_fnv(const CT* Str)
+    inline uint32_t rx_hash_fnv(const CT* Str, uint32_t seed = 0)
     {
         uint32_t fnv_prime = 0x811C9DC5;
-        uint32_t hash = 0;
+        uint32_t hash = seed;
         while(*Str)
         {
             hash *= fnv_prime;
@@ -302,6 +300,31 @@
     }
     
     //-----------------------------------------------------
+    //https://github.com/skeeto/hash-prospector
+    inline uint32_t rx_hash_mosquito(const uint8_t *buf, uint32_t len, uint32_t seed=0)
+    {
+        uint32_t hash = seed;
+        for (uint32_t i = 0; i < len; i++) {
+            hash += buf[i];
+            hash ^= hash >> 16;
+            hash *= UINT32_C(0xb03a22b3);
+            hash ^= hash >> 10;
+        }
+        return hash;
+    }
+    template<class CT>
+    inline uint32_t rx_hash_mosquito(const CT *buf, uint32_t seed=0)
+    {
+        uint32_t hash = seed;
+        for (;*buf; i++) {
+            hash += *buf;
+            hash ^= hash >> 16;
+            hash *= UINT32_C(0xb03a22b3);
+            hash ^= hash >> 10;
+        }
+        return hash;
+    }
+    //-----------------------------------------------------
     //可用的数据哈希函数类型
     typedef enum rx_data_hash_type
     {
@@ -317,6 +340,7 @@
         DHT_BP,
         DHT_FNV,
         DHT_MURMUR,
+        DHT_MOSQUITO,
         DHT_Count,                                       //当作类型的数量
     }rx_data_hash_type;
 
@@ -326,18 +350,19 @@
     {
         switch(Type)
         {
-            case DHT_RS:     return "Hash::RS";
-            case DHT_JS:     return "Hash::JS";
-            case DHT_PJW:    return "Hash::PJW";
-            case DHT_ELF:    return "Hash::ELF";
-            case DHT_BKDR:   return "Hash::BKDR";
-            case DHT_SDBM:   return "Hash::SDBM";
-            case DHT_DJB:    return "Hash::DJB";
-            case DHT_AP:     return "Hash::AP";
-            case DHT_DEK:    return "Hash::DEK";
-            case DHT_BP:     return "Hash::BP";
-            case DHT_FNV:    return "Hash::FNV";
-            case DHT_MURMUR: return "Hash::MURMUR";
+            case DHT_RS:     return "DataHash::RS";
+            case DHT_JS:     return "DataHash::JS";
+            case DHT_PJW:    return "DataHash::PJW";
+            case DHT_ELF:    return "DataHash::ELF";
+            case DHT_BKDR:   return "DataHash::BKDR";
+            case DHT_SDBM:   return "DataHash::SDBM";
+            case DHT_DJB:    return "DataHash::DJB";
+            case DHT_AP:     return "DataHash::AP";
+            case DHT_DEK:    return "DataHash::DEK";
+            case DHT_BP:     return "DataHash::BP";
+            case DHT_FNV:    return "DataHash::FNV";
+            case DHT_MURMUR: return "DataHash::murmur";
+            case DHT_MOSQUITO:return "DataHash::mosquito";
         }
         return "Hash::Unknown";
     }
@@ -360,8 +385,9 @@
             case DHT_BP:     return rx_hash_bp(Data,Len);
             case DHT_FNV:    return rx_hash_fnv(Data,Len);
             case DHT_MURMUR: return rx_hash_murmur(Data,Len);
+            case DHT_MOSQUITO:return rx_hash_mosquito(Data, Len);
         }
-        return rx_hash_rs(Data,Len);
+        return rx_hash_mosquito(Data,Len);
     }
 
 #endif
