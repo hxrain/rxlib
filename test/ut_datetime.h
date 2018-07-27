@@ -1,7 +1,7 @@
 #ifndef _RX_UT_localtime_H_
 #define _RX_UT_localtime_H_
 
-#include "../rx_os_datetime.h"
+#include "../rx_datetime_os.h"
 #include "../rx_datetime.h"
 #include "../rx_tdd.h"
 
