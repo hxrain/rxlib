@@ -42,7 +42,7 @@ namespace rx
 				rx_alert("该内存池已经初始化过了!");
 				return false;
 			}
-			if(cfg_t::MinAlignSize<8||cfg_t::MinAlignSize%4||cfg_t::MaxNodeSize%4||cfg_t::MaxNodeSize%cfg_t::MinAlignSize)
+			if(cfg_t::MinNodeSize<8||cfg_t::MinNodeSize%4||cfg_t::MaxNodeSize%4||cfg_t::MaxNodeSize%cfg_t::MinNodeSize)
 			{
 				rx_alert("使用错误的参数进行初始化!");
 				return false;
@@ -95,13 +95,13 @@ namespace rx
 	class mempool_cntr_lin:public mempool_cntr_base<pool_t,cfg_t>
 	{
     protected:
-		enum{FM_PoolCount=cfg_t::MaxNodeSize/cfg_t::MinAlignSize};//定长内存池线性递增所需数组尺寸
+		enum{FM_PoolCount=cfg_t::MaxNodeSize/cfg_t::MinNodeSize};//定长内存池线性递增所需数组尺寸
         //-----------------------------------------------------
 		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
         virtual uint32_t on_array_idx(uint32_t Size,uint32_t &blocksize)
         {
-			blocksize=size_align_to(Size,cfg_t::MinAlignSize);
-            uint32_t idx=((Size + (cfg_t::MinAlignSize - 1)) >> cfg_t::MinSizeShiftBit) - 1;
+			blocksize=size_align_to(Size,cfg_t::MinNodeSize);
+            uint32_t idx=((Size + (cfg_t::MinNodeSize - 1)) >> cfg_t::MinNodeShiftBit) - 1;
             rx_assert(idx<FM_PoolCount);
             return idx;
         }
@@ -110,7 +110,7 @@ namespace rx
         {
 			m_pool_array=new pool_t[FM_PoolCount];
 			for(uint32_t i=1;i<=FM_PoolCount;i++)
-				if (!m_pool_array[i-1].do_init(cfg_t::MinAlignSize*i))
+				if (!m_pool_array[i-1].do_init(cfg_t::MinNodeSize*i))
                     return false;
             return true;
         }
@@ -137,21 +137,21 @@ namespace rx
 	class mempool_cntr_pow2:public mempool_cntr_base<pool_t,cfg_t>
 	{
     private:
-		enum{FM_PoolCount=cfg_t::MaxNodeSizeShiftBit-cfg_t::MinSizeShiftBit+1};//定长内存池线性递增所需数组尺寸
+		enum{FM_PoolCount=cfg_t::MaxNodeShiftBit-cfg_t::MinNodeShiftBit+1};//定长内存池线性递增所需数组尺寸
         //-----------------------------------------------------
 		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
         virtual uint32_t on_array_idx(uint32_t Size,uint32_t &blocksize)
         {
-            if (Size <= cfg_t::MinAlignSize)
+            if (Size <= cfg_t::MinNodeSize)
             {
-                blocksize = cfg_t::MinAlignSize;
+                blocksize = cfg_t::MinNodeSize;
                 return 0;
             }
             else
             {
                 uint32_t offset = round_up(::log2(Size));
                 blocksize = 1 << offset;
-                uint32_t idx=(offset -cfg_t::MinSizeShiftBit);
+                uint32_t idx=(offset -cfg_t::MinNodeShiftBit);
                 rx_assert(idx<FM_PoolCount);
                 return idx;
             }
@@ -161,7 +161,7 @@ namespace rx
         {
 			m_pool_array=new pool_t[FM_PoolCount];
 			for(uint32_t i=0;i<FM_PoolCount;i++)
-        		if (!m_pool_array[i].do_init(cfg_t::MinAlignSize<<i))
+        		if (!m_pool_array[i].do_init(cfg_t::MinNodeSize<<i))
                     return false;  
             return true;
         }

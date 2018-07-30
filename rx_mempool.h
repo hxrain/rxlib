@@ -20,15 +20,21 @@ namespace rx
         virtual ~mempool(){}
     };
 
+    //------------------------------------------------------
+    //用于记录内存池工作情况
+    typedef struct alloc_stat_t
+    {
+        uint32_t c_alloced;                                 //缓存已分配
+        uint32_t c_realsize;                                //缓存刚需量
+    }alloc_stat_t;
+
 	//------------------------------------------------------
     //用于记录内存池工作情况
     typedef struct mempool_stat_t
     {
-        uint32_t alloced;                                   //缓存已分配
-        uint32_t real_size;                                 //缓存刚需量
-        uint32_t can_reuse;                                 //缓存待复用
+        uint32_t pool_size;                                 //内存池总量
+        uint32_t pool_free;                                 //内存池余量
         uint32_t nc_alloced;                                //非缓存分配
-        uint32_t cache_using()const { return alloced - can_reuse; }//缓存使用量
     }mempool_stat_t;
 
     //------------------------------------------------------
@@ -91,9 +97,9 @@ namespace rx
     //======================================================
     //便捷配置参数:大块缓存,默认可以缓存64K的内存块
     #ifdef RX_MEMCFG_BIG_BLOCK
-        //内存池最小对齐尺寸和最小分配节点尺寸
-        #ifndef RX_MEMCFG_MinAlign
-        #define RX_MEMCFG_MinAlign 128
+        //内存池最小分配节点尺寸
+        #ifndef RX_MEMCFG_MinNode
+        #define RX_MEMCFG_MinNode 128
         #endif
 
         //内存池最大分配节点尺寸
@@ -102,16 +108,16 @@ namespace rx
         #endif
 
         //内存池中每个内存条的最大尺寸
-        #ifndef RX_MEMCFG_MaxStripe
-        #define RX_MEMCFG_MaxStripe (RX_MEMCFG_MaxNode*4)
+        #ifndef RX_MEMCFG_StripeAlign
+        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*4)
         #endif
     #endif
 
     //便捷配置参数:小块缓存,默认可以缓存4K的内存块
     #ifdef RX_MEMCFG_SMALL_BLOCK
         //内存池最小对齐尺寸和最小分配节点尺寸
-        #ifndef RX_MEMCFG_MinAlign
-        #define RX_MEMCFG_MinAlign 32
+        #ifndef RX_MEMCFG_MinNode
+        #define RX_MEMCFG_MinNode 32
         #endif
 
         //内存池最大分配节点尺寸
@@ -120,15 +126,15 @@ namespace rx
         #endif
 
         //内存池中每个内存条的最大尺寸
-        #ifndef RX_MEMCFG_MaxStripe
-        #define RX_MEMCFG_MaxStripe (RX_MEMCFG_MaxNode*2)
+        #ifndef RX_MEMCFG_StripeAlign
+        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*2)
         #endif
     #endif
 
     //默认配置
     //内存池最小对齐尺寸和最小分配节点尺寸
-    #ifndef RX_MEMCFG_MinAlign
-        #define RX_MEMCFG_MinAlign 64
+    #ifndef RX_MEMCFG_MinNode
+        #define RX_MEMCFG_MinNode 64
     #endif
 
     //内存池最大分配节点尺寸
@@ -137,8 +143,8 @@ namespace rx
     #endif
 
     //内存池中每个内存条的最大尺寸
-    #ifndef RX_MEMCFG_MaxStripe
-        #define RX_MEMCFG_MaxStripe (RX_MEMCFG_MaxNode*8)
+    #ifndef RX_MEMCFG_StripeAlign
+        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*8)
     #endif
 
     //======================================================
@@ -146,15 +152,15 @@ namespace rx
     typedef struct mempool_cfg_t
     {
         enum {
-            MinAlignSize = RX_MEMCFG_MinAlign,              //最小节点或对齐尺寸
+            MinNodeSize = RX_MEMCFG_MinNode,                //可缓存的最小节点尺寸
             MaxNodeSize = RX_MEMCFG_MaxNode,                //可缓存的最大节点尺寸
-            MaxStripeSize = RX_MEMCFG_MaxStripe             //每个内存条的最大尺寸
+            StripeAlignSize = RX_MEMCFG_StripeAlign         //每个内存条的最大或对齐尺寸
         };
 
-        //校验最小对齐尺寸合法性,确定MinAlignSize是2的整数次幂
-        enum{MinSizeShiftBit=log2<MinAlignSize>::result};
+        //校验最小对齐尺寸合法性,确定MinNodeSize是2的整数次幂
+        enum{MinNodeShiftBit=log2<MinNodeSize>::result};
         //校验最大节点尺寸合法性,确定MaxNodeSize是2的整数次幂
-        enum{MaxNodeSizeShiftBit=log2<MaxNodeSize>::result};
+        enum{MaxNodeShiftBit=log2<MaxNodeSize>::result};
     }mempool_cfg_t;
 
 	//======================================================
