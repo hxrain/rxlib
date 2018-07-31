@@ -124,7 +124,7 @@
 
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    //进行过雪崩系数验证的哈希函数,效果很好.
+    //进行过雪崩系数验证的哈希函数(Avalanche score = 1.67)
     template<class DT>
     inline DT rx_hash_mosquito32(DT x)
     {
@@ -136,7 +136,7 @@
     }
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    //进行过雪崩系数验证的哈希函数,效果很好.
+    //进行过雪崩系数验证的哈希函数(Avalanche score = 1.51)
     template<class DT>
     inline DT rx_hash_skeeto32a(DT x)
     {
@@ -151,7 +151,7 @@
     }
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    //进行过雪崩系数验证的哈希函数,效果很好.
+    //进行过雪崩系数验证的哈希函数(Avalanche score = 1.1875)
     template<class DT>
     inline DT rx_hash_skeeto32b(DT x)
     {
@@ -164,7 +164,19 @@
         x ^= x >> 2;
         return x;
     }
-
+    //-----------------------------------------------------
+    //https://github.com/skeeto/hash-prospector
+    //进行过雪崩系数验证的哈希函数(Avalanche score = 1.03)
+    template<class DT>
+    inline DT rx_hash_skeeto32c(DT x)
+    {
+        x ^= x >> 15;
+        x *= uint32_t(0x2c1b3c6d);
+        x ^= x >> 12;
+        x *= uint32_t(0x297a2d39);
+        x ^= x >> 15;
+        return x;
+    }
     //-----------------------------------------------------
     //可用的整数哈希函数类型
     typedef enum rx_int_hash_type
@@ -176,7 +188,9 @@
         IHT_mosquito,
         IHT_skeeto32a,
         IHT_skeeto32b,
-        IHT_Count,                                       //当作类型的数量
+        IHT_skeeto32c,
+
+        IHT_Count                                        //当作类型的数量
     }rx_int_hash_type;
 
     //-----------------------------------------------------
@@ -192,6 +206,7 @@
         case IHT_mosquito:  return "IntHash::mosquito";
         case IHT_skeeto32a: return "IntHash::skeeto32a";
         case IHT_skeeto32b: return "IntHash::skeeto32b";
+        case IHT_skeeto32c: return "IntHash::skeeto32c";
 
         default:            return "Hash::Unknown";
         }
@@ -210,8 +225,9 @@
         case IHT_mosquito:  return rx_hash_mosquito32(Key);
         case IHT_skeeto32a: return rx_hash_skeeto32a(Key);
         case IHT_skeeto32b: return rx_hash_skeeto32b(Key);
+        case IHT_skeeto32c: return rx_hash_skeeto32c(Key);
 
-        default:            return rx_hash_skeeto32b(Key);
+        default:            return rx_hash_skeeto32c(Key);
         }
 
     }
