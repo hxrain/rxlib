@@ -32,11 +32,10 @@
 
 using namespace std;
 
-
-
 int main()
 {
     cout << "Hello world!\n" << rx_cc_desc() << endl << endl;
+    rx_static_assert(1);
 
     rx_tdd_run(rtl_2);
 
