@@ -85,7 +85,7 @@ typedef enum rx_tdd_level
     rtl_2       = 2,
     rtl_3       = 3,
 
-    rtl_all     = (uint8_t)0xFF,
+    rtl_all     = (unsigned char)0xFF,
 }rx_tdd_level;
 
 #ifndef RX_RUN_RTL
@@ -100,8 +100,8 @@ class rx_tdd_base
     const char* m_file_name;
     int         m_line_no;
     rx_tdd_base *m_next;
-    uint8_t     m_wait_key;
-    uint8_t     m_level;
+    unsigned char m_wait_key;
+    unsigned char m_level;
 
     void m_bind(rx_tdd_stat &root)
     {
@@ -160,7 +160,7 @@ public:
         ++s._failed;
 
 		s.out("RX TDD <%s> at <%s : %d> => assert fail!\r\n",m_tdd_name,m_file_name,_line_no);
-		if (!is_empty(msg))
+		if (msg&&msg[0])
 		{
 			s.out("    ");
 			va_list v;

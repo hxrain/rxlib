@@ -4,6 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_mempool.h"
 #include "rx_ct_util.h"
+#include "rx_bits_op.h"
 #include "rx_assert.h"
 #include <math.h>
 #include <new>
@@ -151,8 +152,15 @@ namespace rx
             }
             else
             {
-                uint32_t offset = round_up(::log2(Size));
-                blocksize = 1 << offset;
+                rx_static_assert((!!0)==0);
+                rx_static_assert((!!3) == 1);                   //要求逻辑取反后的值为0或1
+
+                uint32_t offset = rx_fls(Size)-1;               //快速查找Size的高比特位置,可以当作是log2(Size)
+                blocksize = 1 << offset;                        //先计算一下Size对应的pow2(offset)整数
+                uint32_t bit_adj = (uint32_t)!!(blocksize^Size);//异或后的值进行逻辑化处理,就是为了判断是否Size大于pow2(offset)
+                blocksize <<= bit_adj;                          //进行最终的尺寸校正
+                offset += bit_adj;                              //进行最终的偏移校正
+
                 uint32_t idx=(offset -cfg_t::MinNodeShiftBit);
                 rx_assert(idx<FM_PoolCount);
                 return idx;

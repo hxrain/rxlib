@@ -2,7 +2,7 @@
 #define _RX_UT_CC_MACRO_H_
 
 #include "../rx_tdd.h"
-
+#include "../rx_cc_macro.h"
 
 
 
@@ -20,8 +20,18 @@ void rx_test_CT_LINE(rx_tdd_base &rt)
     rt.assert(RX_CT_SYM_EX(int_, 19) == 19);
 }
 
+void rx_test_CT_BASE(rx_tdd_base &rt)
+{
+    rt.assert((!0)==1);
+    rt.assert((!!0)==0);
+
+    rt.assert((!2)==0);
+    rt.assert((!!2)==1);
+}
+
 rx_tdd(test_CC_MACRO_base)
 {
     rx_test_CT_LINE(*this);
+    rx_test_CT_BASE(*this);
 }
 #endif // _RX_UT_CC_MACRO_H_
