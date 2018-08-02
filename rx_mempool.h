@@ -39,7 +39,7 @@ namespace rx
 
     //------------------------------------------------------
     //基于C标准库的内存池
-    class mempool_std 
+    class mempool_std
     {
     public:
         static void *do_alloc(uint32_t size) { return malloc(size); }
@@ -89,7 +89,7 @@ namespace rx
 
 	public:
         void bind(mempool& mp){m_base=&mp;}
-		virtual bool do_init(uint32_t size){return true;}
+		virtual bool do_init(uint32_t size=0){return true;}
 		virtual void do_uninit(bool force=false){}
 		const mempool_stat_t& stat() const {return m_stat;}
     };

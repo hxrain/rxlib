@@ -427,10 +427,13 @@
     //-----------------------------------------------------
     //常用宏定义
     #define _RX_CONCAT_(A,B)                A##B
-    #define RX_CONCAT(A,B)                  _RX_CONCAT_(A,B)
-    #define RX_CC_STR(M)                    #M
-    #define RX_CC_N2S(N)                    RX_CC_STR(N)
-    #define is_empty(str)                   (str==NULL||str[0]==0)
+    #define RX_CONCAT(A,B)                  _RX_CONCAT_(A,B)            //宏拼接
+    #define RX_CT_LINE                      RX_CONCAT(LINE_,__LINE__)   //行号拼接得符号
+    #define RX_CT_LINE_EX(n)                RX_CONCAT(LINE_,n)          //行号拼接得符号
+    #define RX_CC_STR(M)                    #M                          //宏转字符串
+    #define RX_CC_N2S(N)                    RX_CC_STR(N)                //宏数字转字符串
+
+    #define is_empty(str)                   (str==NULL||str[0]==0)      //判断字符串是否为空(空指针或首字节为0)
 
 #if RX_CC == RX_CC_VC
 	#include <stdio.h>

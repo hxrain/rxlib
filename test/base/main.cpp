@@ -23,12 +23,16 @@
 #include "../../rx_tdd.h"
 #include "../../rx_assert.h"
 #include "../../rx_cc_atomic.h"
+
+#include "../ut_cc_macro.h"
 #include "../../rx_cc_macro.h"
 
 #include <stdio.h>
 #include <iostream>
 
 using namespace std;
+
+
 
 int main()
 {

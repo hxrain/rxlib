@@ -6,6 +6,7 @@
 #include "rx_ct_util.h"
 #include "rx_assert.h"
 #include <math.h>
+#include <new>
 
 //---------------------------------------------------------
 #if RX_CC==RX_CC_VC && RX_CC_VER_MAJOR<=16
@@ -35,7 +36,7 @@ namespace rx
         mempool_cntr_base():m_pool_array(NULL){}
 		//-----------------------------------------------------
 		//初始化内存池:固定池中每块包含的节点数量,清空池定时时间
-		virtual bool do_init()
+		virtual bool do_init(uint32_t size=0)
 		{
 			if (m_pool_array)
 			{
@@ -50,12 +51,11 @@ namespace rx
 			return on_init();
 		}
 		//-----------------------------------------------------
-		virtual bool do_uninit()
+		virtual void do_uninit(bool force=false)
 		{
-			if (!m_pool_array) return false;
+			if (!m_pool_array) return;
             on_uninit();
             m_pool_array=NULL;
-			return true;
 		}
 
 		//-----------------------------------------------------
@@ -94,7 +94,8 @@ namespace rx
 	template<class pool_t,class cfg_t= mempool_cfg_t>
 	class mempool_cntr_lin:public mempool_cntr_base<pool_t,cfg_t>
 	{
-    protected:
+    private:
+        typedef mempool_cntr_base<pool_t,cfg_t> parent_t;
 		enum{FM_PoolCount=cfg_t::MaxNodeSize/cfg_t::MinNodeSize};//定长内存池线性递增所需数组尺寸
         //-----------------------------------------------------
 		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
@@ -108,9 +109,9 @@ namespace rx
 		//-----------------------------------------------------
         virtual bool on_init()
         {
-			m_pool_array=new pool_t[FM_PoolCount];
+			parent_t::m_pool_array=new pool_t[FM_PoolCount];
 			for(uint32_t i=1;i<=FM_PoolCount;i++)
-				if (!m_pool_array[i-1].do_init(cfg_t::MinNodeSize*i))
+				if (!parent_t::m_pool_array[i-1].do_init(cfg_t::MinNodeSize*i))
                     return false;
             return true;
         }
@@ -118,16 +119,16 @@ namespace rx
         virtual void on_uninit()
         {
 			for(uint32_t i=0;i<FM_PoolCount;i++)
-				m_pool_array[i].do_uninit();
-			delete [] m_pool_array;
+				parent_t::m_pool_array[i].do_uninit();
+			delete [] parent_t::m_pool_array;
         }
 		//-----------------------------------------------------
 		mempool_cntr_lin &operator =(const mempool_cntr_lin &);
 		mempool_cntr_lin(const mempool_cntr_lin&);
 	public:
 		//-----------------------------------------------------
-        mempool_cntr_lin(bool init=true){if (init) do_init();}
-        virtual ~mempool_cntr_lin() { do_uninit(); }
+        mempool_cntr_lin(bool init=true){if (init) parent_t::do_init();}
+        virtual ~mempool_cntr_lin() { parent_t::do_uninit(); }
 	};
 
 
@@ -137,6 +138,7 @@ namespace rx
 	class mempool_cntr_pow2:public mempool_cntr_base<pool_t,cfg_t>
 	{
     private:
+        typedef mempool_cntr_base<pool_t,cfg_t> parent_t;
 		enum{FM_PoolCount=cfg_t::MaxNodeShiftBit-cfg_t::MinNodeShiftBit+1};//定长内存池线性递增所需数组尺寸
         //-----------------------------------------------------
 		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
@@ -159,18 +161,18 @@ namespace rx
 		//-----------------------------------------------------
         virtual bool on_init()
         {
-			m_pool_array=new pool_t[FM_PoolCount];
+			parent_t::m_pool_array=new pool_t[FM_PoolCount];
 			for(uint32_t i=0;i<FM_PoolCount;i++)
-        		if (!m_pool_array[i].do_init(cfg_t::MinNodeSize<<i))
-                    return false;  
+        		if (!parent_t::m_pool_array[i].do_init(cfg_t::MinNodeSize<<i))
+                    return false;
             return true;
         }
 		//-----------------------------------------------------
         virtual void on_uninit()
         {
 			for(uint32_t i=0;i<FM_PoolCount;i++)
-				m_pool_array[i].do_uninit();
-			delete [] m_pool_array;
+				parent_t::m_pool_array[i].do_uninit();
+			delete [] parent_t::m_pool_array;
         }
 
 		//-----------------------------------------------------
@@ -179,8 +181,8 @@ namespace rx
 	public:
 		typedef cfg_t mem_cfg_t;
 		//-----------------------------------------------------
-		mempool_cntr_pow2(bool init=true){if (init) do_init();}
-        virtual ~mempool_cntr_pow2() { do_uninit(); }
+		mempool_cntr_pow2(bool init=true){if (init) parent_t::do_init();}
+        virtual ~mempool_cntr_pow2() { parent_t::do_uninit(); }
 	};
 }
 #endif
