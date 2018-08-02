@@ -7,7 +7,7 @@
 
 
 
-//函数的行号不要改变,否则测试不能通过.
+//函数的行号与内部代码行位置不要改变,否则测试不能通过.
 void rx_test_CT_LINE(rx_tdd_base &rt)
 {
     int RX_CT_LINE = __LINE__;
@@ -15,6 +15,9 @@ void rx_test_CT_LINE(rx_tdd_base &rt)
     rt.assert(RX_CT_LINE_EX(13)!=RX_CT_LINE_EX(14));
     rt.assert(RX_CT_LINE_EX(13)==13);
     rt.assert(RX_CT_LINE_EX(14)==14);
+
+    int RX_CT_SYM(int_) = __LINE__;
+    rt.assert(RX_CT_SYM_EX(int_, 19) == 19);
 }
 
 rx_tdd(test_CC_MACRO_base)
