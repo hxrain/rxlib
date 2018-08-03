@@ -1,3 +1,5 @@
+#include "../ut_hash_tlmap.h"
+#include "../../rx_hash_tlmap.h"
 
 #include "../ut_mem_pool_cntr.h"
 #include "../../rx_mempool_cntr.h"
