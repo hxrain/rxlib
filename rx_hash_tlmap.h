@@ -33,10 +33,10 @@ inline void rx_hash_tlmap(uint32_t size, uint32_t& fl, uint32_t& sl)
 
     两级映射的标准算法:
     * FL = log2(size)   对结果取整后FL=fls(size)
-    * SL = (size - 2^FL) * (2^SLI / 2^FL)
+    * SL = (size - pow2(FL)) * (pow2(SLI) / pow2(FL))
 
     SL的变换计算(引入subsize为size在当前一级索引对应的剩余尺寸):
-    *	subsize = (size - 2^FL)
+    *	subsize = (size - pow2(FL))
     *           = (size ^ (1U << FL))
     *
     *	SL  = (subsize) * (SLI_MAX / 2^FL)
@@ -56,5 +56,41 @@ inline void rx_hash_tlmap(uint32_t size, uint32_t& fl, uint32_t& sl)
     //计算次级索引
     sl = (size ^ (1UL << fl)) >> (fl - cfg_t::SLI_SHIFT);
 }
+//---------------------------------------------------------
+//根据给定的size,计算两级索引中对应的索引位置,同时进行尺寸的向上对齐调整
+//返回值:向上对齐后的尺寸
+template<class cfg_t>
+inline uint32_t rx_hash_tlmap_ex(uint32_t size, uint32_t& fl, uint32_t& sl)
+{
+    //输入尺寸进行低值限定
+    size = rx::Max(size, (uint32_t)cfg_t::MIN_ALIGN);
 
+    //首级索引进行高值限定
+    fl = rx_fls(size) - 1;
+    fl = rx::Min(fl, (uint32_t)cfg_t::FLI_MAX);
+
+    //计算次级索引
+    uint32_t upsize=(1UL << fl);
+    uint32_t subsize=size ^ upsize;
+    uint32_t offset=fl - cfg_t::SLI_SHIFT;
+    sl = subsize >> offset;
+
+    //进行尺寸的向上对齐调整
+    subsize&&(rx_ffs(subsize)-1<offset)?sl+=1:0;
+    sl==cfg_t::SLI_MAX?sl=0,fl+=1:0;
+    upsize=(1UL << fl);
+    uint32_t sl_blk_size=(upsize>>cfg_t::SLI_SHIFT);
+    upsize+=sl_blk_size*sl;
+    return upsize;
+}
+//---------------------------------------------------------
+//根据给定的size,计算两级索引合并后的索引位置,同时进行尺寸的向上对齐调整
+//返回值:合并后的索引.
+template<class cfg_t>
+inline uint32_t rx_hash_tlmap_ex(uint32_t size, uint32_t& upsize)
+{
+    uint32_t fl,sl;
+    upsize=rx_hash_tlmap_ex<cfg_t>(size,fl,sl);
+    return (fl-cfg_t::FLI_OFFSET)*cfg_t::SLI_MAX+sl;
+}
 #endif

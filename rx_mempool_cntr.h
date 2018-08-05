@@ -220,21 +220,8 @@ namespace rx
 		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
         virtual uint32_t on_array_idx(uint32_t Size,uint32_t &blocksize)
         {
-            uint32_t fl,sl;
-            rx_hash_tlmap<tlmap_cfg_t>(Size,fl,sl);         //根据给的的Size进行映射,得到两级索引的位置
-
-            //计算最终的输出尺寸大小
-            blocksize=(1<<fl);
-            uint32_t sl_blk_size=(blocksize>>tlmap_cfg_t::SLI_SHIFT);
-            blocksize+=sl_blk_size*sl;
-            if (blocksize<Size)
-            {
-                blocksize+=sl_blk_size;
-                ++sl;
-            }
-
-            //计算最终的内存池数组索引
-            return (fl-tlmap_cfg_t::FLI_OFFSET)*tlmap_cfg_t::SLI_MAX+sl;
+            //根据给的的Size进行映射,得到两级索引的位置(已经向上调整了)
+            return rx_hash_tlmap_ex<tlmap_cfg_t>(Size,blocksize);         
         }
 		//-----------------------------------------------------
         virtual bool on_init()

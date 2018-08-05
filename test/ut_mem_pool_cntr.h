@@ -63,6 +63,20 @@ void test_mem_pool_cntr_tlmap(rx_tdd_base &rt)
 
     mempool.do_free(p1, bsize1);
     mempool.do_free(p2, bsize2);
+
+    p1 = mempool.do_alloc(bsize1, 127);
+    rt.assert(bsize1 == T::mem_cfg_t::MinNodeSize<<1);
+    p2 = mempool.do_alloc(bsize2, 143);
+    rt.assert(bsize2 == 144);
+    mempool.do_free(p1, bsize1);
+    mempool.do_free(p2, bsize2);
+
+    p1 = mempool.do_alloc(bsize1, 144);
+    rt.assert(bsize1 == 144);
+    p2 = mempool.do_alloc(bsize2, 145);
+    rt.assert(bsize2 == 160);
+    mempool.do_free(p1, bsize1);
+    mempool.do_free(p2, bsize2);
 }
 //---------------------------------------------------------
 typedef struct test_mp_cfg_t
