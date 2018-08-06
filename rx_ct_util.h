@@ -201,6 +201,10 @@ namespace rx
         return (num - rc > 0.00000001) ? rc + 1 : rc;
     }
 
+#if RX_CC==RX_CC_VC && RX_CC_VER_MAJOR<=16
+    #include <math.h>
+    inline double log2(double v) { return log(v) / 0.693147180559945309417; }
+#endif
 }
 
 #endif
