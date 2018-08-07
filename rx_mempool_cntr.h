@@ -108,7 +108,7 @@ namespace rx
 		//-----------------------------------------------------
         virtual bool on_init()
         {
-            parent_t::m_pool_array = (pool_t*)base_alloc(m_pool_array_size,sizeof(pool_t)*FM_PoolCount);
+            parent_t::m_pool_array = (pool_t*)parent_t::base_alloc(m_pool_array_size,sizeof(pool_t)*FM_PoolCount);
             if (!parent_t::m_pool_array) return false;
             ct::AC(parent_t::m_pool_array, FM_PoolCount);
 
@@ -123,7 +123,7 @@ namespace rx
 			for(uint32_t i=0;i<FM_PoolCount;i++)
 				parent_t::m_pool_array[i].do_uninit();
             ct::AD(parent_t::m_pool_array, FM_PoolCount);
-            base_free(parent_t::m_pool_array, m_pool_array_size);
+            parent_t::base_free(parent_t::m_pool_array, m_pool_array_size);
         }
 		//-----------------------------------------------------
 		mempool_cntr_lin &operator =(const mempool_cntr_lin &);
@@ -173,10 +173,10 @@ namespace rx
 		//-----------------------------------------------------
         virtual bool on_init()
         {
-            parent_t::m_pool_array = (pool_t*)base_alloc(m_pool_array_size, sizeof(pool_t)*FM_PoolCount);
+            parent_t::m_pool_array = (pool_t*)parent_t::base_alloc(m_pool_array_size, sizeof(pool_t)*FM_PoolCount);
             if (!parent_t::m_pool_array) return false;
             ct::AC(parent_t::m_pool_array, FM_PoolCount);
-            
+
             for(uint32_t i=0;i<FM_PoolCount;i++)
         		if (!parent_t::m_pool_array[i].do_init(cfg_t::MinNodeSize<<i))
                     return false;
@@ -189,7 +189,7 @@ namespace rx
 				parent_t::m_pool_array[i].do_uninit();
 
             ct::AD(parent_t::m_pool_array, FM_PoolCount);
-            base_free(parent_t::m_pool_array, m_pool_array_size);
+            parent_t::base_free(parent_t::m_pool_array, m_pool_array_size);
         }
 		//-----------------------------------------------------
 		mempool_cntr_pow2 &operator =(const mempool_cntr_pow2 &);
@@ -205,7 +205,7 @@ namespace rx
     //---------------------------------------------------------
     //内存池容器,两级bit映射
     //---------------------------------------------------------
-    template<class pool_t,class cfg_t= mempool_cfg_t,uint32_t SLI_COUNT=8,bool MIN_ALIGN=true>
+    template<class pool_t,class cfg_t= mempool_cfg_t,uint32_t SLI_COUNT=8,bool USE_MIN_ALIGN=true>
 	class mempool_cntr_tlmap:public mempool_cntr_base<pool_t,cfg_t>
 	{
         uint32_t m_pool_array_size;
@@ -230,7 +230,7 @@ namespace rx
         virtual uint32_t on_array_idx(uint32_t Size,uint32_t &blocksize)
         {
             //根据给的的Size进行映射,得到两级索引的位置(已经向上调整了)
-            if (MIN_ALIGN)
+            if (USE_MIN_ALIGN)
                 return rx_hash_tlmap_ex2<tlmap_cfg_t>(Size,blocksize);
             else
                 return rx_hash_tlmap_ex<tlmap_cfg_t>(Size, blocksize);
@@ -238,7 +238,7 @@ namespace rx
 		//-----------------------------------------------------
         virtual bool on_init()
         {
-            parent_t::m_pool_array = (pool_t*)base_alloc(m_pool_array_size, sizeof(pool_t)*FM_PoolCount);
+            parent_t::m_pool_array = (pool_t*)parent_t::base_alloc(m_pool_array_size, sizeof(pool_t)*FM_PoolCount);
             if (!parent_t::m_pool_array) return false;
             ct::AC(parent_t::m_pool_array, FM_PoolCount);
 
@@ -263,7 +263,7 @@ namespace rx
 				parent_t::m_pool_array[i].do_uninit();
 
             ct::AD(parent_t::m_pool_array, FM_PoolCount);
-            base_free(parent_t::m_pool_array, m_pool_array_size);
+            parent_t::base_free(parent_t::m_pool_array, m_pool_array_size);
         }
 		//-----------------------------------------------------
 		mempool_cntr_tlmap &operator =(const mempool_cntr_tlmap &);

@@ -469,8 +469,12 @@
     //-----------------------------------------------------
     //根据上面的各类分析,引入各个平台的开发基础头文件
     #if RX_OS_WIN
+    #ifndef _WIN32_WINNT
+        #define _WIN32_WINNT 0x0600
+    #endif
         #define WIN32_LEAN_AND_MEAN
         #include <windows.h>
+        #include <synchapi.h>
     #endif
 
     #if defined(_DEBUG)||defined(DEBUG)

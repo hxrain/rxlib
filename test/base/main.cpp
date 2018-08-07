@@ -1,3 +1,5 @@
+#include "../../rx_os_lock.h"
+
 #include "../ut_hash_tlmap.h"
 #include "../../rx_hash_tlmap.h"
 
