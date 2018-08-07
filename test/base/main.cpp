@@ -1,3 +1,6 @@
+#include "../../rx_os_sem.h"
+
+#include "../ut_os_lock.h"
 #include "../../rx_os_lock.h"
 
 #include "../ut_hash_tlmap.h"

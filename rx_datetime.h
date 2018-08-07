@@ -4,17 +4,58 @@
     #include "rx_cc_macro.h"
     #include <stdio.h>
     #include <time.h>
+#if defined(RX_OS_WIN)
+    #include <winsock.h>
+#endif
 /*
 	本单元进行UTC时间和ISO时间的相互转换处理.
 		rx_make_utc()										//根据ISO时间分量生成UTC时间
 		rx_leap_year()										//判断给的的年份是否为闰年
 		rx_localtime()										//将UTC时间转换为ISO时间分量,可指定目标时区.
 		rx_iso_time()										//将UTC时间或时间分量转换为ISO格式的时间串
+        rx_add_ms()                                         //进行时间结构体的毫秒值调整
+        rx_time_ms()                                        //根据时间结构体计算毫秒数
 	注意:由于UTC/Local时间的转换过程中,使用了立即参数进行的时区调整,而没有访问系统的时区与冬夏令时,
 	    所以还需要设计另外的时区与冬夏令时校准函数,根据配置的简单规则校准zone_offset_sec参数.
 */
 
-    //---------------------------------------------------------------
+    //-----------------------------------------------------
+    //对时间结构体进行毫秒调整
+    inline void rx_add_ms(struct timespec &ts, int32_t ms)
+    {
+        //将毫秒间隔变为秒和纳秒
+        ts.tv_sec += ms / 1000;
+        ts.tv_nsec += (ms % 1000) * 1000 * 1000;
+
+        //处理纳秒溢出,累计到秒分量上
+        const uint32_t NSECTOSEC = 1000000000;
+        ts.tv_sec += ts.tv_nsec / NSECTOSEC;
+        ts.tv_nsec = ts.tv_nsec%NSECTOSEC;
+    }
+    inline void rx_add_ms(struct timeval &ts, int32_t ms)
+    {
+        //将毫秒间隔变为秒和u秒
+        ts.tv_sec += ms / 1000;
+        ts.tv_usec += (ms % 1000) * 1000;
+
+        //处理u秒溢出,累计到秒分量上
+        const uint32_t USECTOSEC = 1000000;
+        ts.tv_sec += ts.tv_usec / USECTOSEC;
+        ts.tv_usec = ts.tv_usec%USECTOSEC;
+    }
+
+    //-----------------------------------------------------
+    //将秒和纳秒变为毫秒
+    inline uint64_t rx_time_ms(struct timeval &time)
+    {
+        return time.tv_sec * 1000 + time.tv_usec / 1000;
+    }
+    //将秒和纳秒变为毫秒
+    inline uint64_t rx_time_ms(struct timespec &time)
+    {
+        return time.tv_sec * 1000 + time.tv_nsec / (1000 * 1000);
+    }
+    //-----------------------------------------------------
     //将ISO年月日时分秒转,换成1970-1-1 00:00:00距离现在的总秒数UTC,时区(默认东八区北京时间)
     inline uint64_t rx_make_utc(uint32_t year, uint32_t mon, uint32_t day, uint32_t hour, uint32_t min, uint32_t sec,int32_t zone_offset_sec = 8*60*60)
     {
@@ -32,13 +73,13 @@
     }
     inline uint64_t rx_make_utc(const struct tm &dt,int32_t zone_offset_sec=8*60*60) { return rx_make_utc(dt.tm_year+1900,dt.tm_mon+1,dt.tm_mday,dt.tm_hour,dt.tm_min,dt.tm_sec,zone_offset_sec); }
 
-    //---------------------------------------------------------------
+    //-----------------------------------------------------
     //是否为闰年
     inline bool rx_leap_year(uint32_t year) { return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0); }
     //将bool值转换为0/1值
     inline uint32_t rx_bool_num(bool b) { return (b ? 1 : 0); }
 
-    //---------------------------------------------------------------
+    //-----------------------------------------------------
     //将utc秒转换为年月日结构.utc时间秒,localtime结构,时区(默认东八区北京时间)
     inline void rx_localtime(uint64_t utc_time, struct tm &tp, int32_t zone_offset_sec = 8*60*60)
     {
@@ -107,7 +148,7 @@
         #undef DIV
         #undef LEAPS_THRU_END_OF
     }
-    //---------------------------------------------------------------
+    //-----------------------------------------------------
     //将日期时间结构格式化为字符串
     inline void rx_iso_time(const struct tm& tp, char str[20])
     {
