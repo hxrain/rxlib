@@ -158,9 +158,9 @@ namespace rx
         };
 
         //校验最小对齐尺寸合法性,确定MinNodeSize是2的整数次幂
-        enum{MinNodeShiftBit=log2<MinNodeSize>::result};
+        enum{MinNodeShiftBit=LOG2<MinNodeSize>::result};
         //校验最大节点尺寸合法性,确定MaxNodeSize是2的整数次幂
-        enum{MaxNodeShiftBit=log2<MaxNodeSize>::result};
+        enum{MaxNodeShiftBit=LOG2<MaxNodeSize>::result};
     }mempool_cfg_t;
 
 	//======================================================

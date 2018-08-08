@@ -82,8 +82,10 @@ namespace rx
     //-----------------------------------------------------
     //最终使用的原子变量
     typedef atomic<int32_t>     atomic_int;
+    typedef atomic<uint32_t>    atomic_uint;
 #if RX_ATOMIC64
     typedef atomic<int64_t>     atomic_long;
+    typedef atomic<uint64_t>    atomic_ulong;
 #endif
 }
 

@@ -1,5 +1,7 @@
 #ifndef _H_RX_CT_TEMPLATE_UTIL_H_
 #define _H_RX_CT_TEMPLATE_UTIL_H_
+
+#include <math.h>
 #include "rx_ct_traits.h"
 #include <new>
 
@@ -95,75 +97,77 @@ namespace rx
 
     //=====================================================
     //静态函数,计算Log2(num),其中num必须是2的整数次幂
-    template<uint32_t num> class log2 {};
-    template<>class log2<0x00000001> { public:enum { result = 0  }; };
-    template<>class log2<0x00000002> { public:enum { result = 1  }; };
-    template<>class log2<0x00000004> { public:enum { result = 2  }; };
-    template<>class log2<0x00000008> { public:enum { result = 3  }; };
-    template<>class log2<0x00000010> { public:enum { result = 4  }; };
-    template<>class log2<0x00000020> { public:enum { result = 5  }; };
-    template<>class log2<0x00000040> { public:enum { result = 6  }; };
-    template<>class log2<0x00000080> { public:enum { result = 7  }; };
-    template<>class log2<0x00000100> { public:enum { result = 8  }; };
-    template<>class log2<0x00000200> { public:enum { result = 9  }; };
-    template<>class log2<0x00000400> { public:enum { result = 10 }; };
-    template<>class log2<0x00000800> { public:enum { result = 11 }; };
-    template<>class log2<0x00001000> { public:enum { result = 12 }; };
-    template<>class log2<0x00002000> { public:enum { result = 13 }; };
-    template<>class log2<0x00004000> { public:enum { result = 14 }; };
-    template<>class log2<0x00008000> { public:enum { result = 15 }; };
-    template<>class log2<0x00010000> { public:enum { result = 16 }; };
-    template<>class log2<0x00020000> { public:enum { result = 17 }; };
-    template<>class log2<0x00040000> { public:enum { result = 18 }; };
-    template<>class log2<0x00080000> { public:enum { result = 19 }; };
-    template<>class log2<0x00100000> { public:enum { result = 20 }; };
-    template<>class log2<0x00200000> { public:enum { result = 21 }; };
-    template<>class log2<0x00400000> { public:enum { result = 22 }; };
-    template<>class log2<0x00800000> { public:enum { result = 23 }; };
-    template<>class log2<0x01000000> { public:enum { result = 24 }; };
-    template<>class log2<0x02000000> { public:enum { result = 25 }; };
-    template<>class log2<0x04000000> { public:enum { result = 26 }; };
-    template<>class log2<0x08000000> { public:enum { result = 27 }; };
-    template<>class log2<0x10000000> { public:enum { result = 28 }; };
-    template<>class log2<0x20000000> { public:enum { result = 29 }; };
-    template<>class log2<0x40000000> { public:enum { result = 30 }; };
-    template<>class log2<0x80000000> { public:enum { result = 31 }; };
+    template<uint32_t num> class LOG2 {};
+    template<>class LOG2<0x00000001> { public:enum { result = 0  }; };
+    template<>class LOG2<0x00000002> { public:enum { result = 1  }; };
+    template<>class LOG2<0x00000004> { public:enum { result = 2  }; };
+    template<>class LOG2<0x00000008> { public:enum { result = 3  }; };
+    template<>class LOG2<0x00000010> { public:enum { result = 4  }; };
+    template<>class LOG2<0x00000020> { public:enum { result = 5  }; };
+    template<>class LOG2<0x00000040> { public:enum { result = 6  }; };
+    template<>class LOG2<0x00000080> { public:enum { result = 7  }; };
+    template<>class LOG2<0x00000100> { public:enum { result = 8  }; };
+    template<>class LOG2<0x00000200> { public:enum { result = 9  }; };
+    template<>class LOG2<0x00000400> { public:enum { result = 10 }; };
+    template<>class LOG2<0x00000800> { public:enum { result = 11 }; };
+    template<>class LOG2<0x00001000> { public:enum { result = 12 }; };
+    template<>class LOG2<0x00002000> { public:enum { result = 13 }; };
+    template<>class LOG2<0x00004000> { public:enum { result = 14 }; };
+    template<>class LOG2<0x00008000> { public:enum { result = 15 }; };
+    template<>class LOG2<0x00010000> { public:enum { result = 16 }; };
+    template<>class LOG2<0x00020000> { public:enum { result = 17 }; };
+    template<>class LOG2<0x00040000> { public:enum { result = 18 }; };
+    template<>class LOG2<0x00080000> { public:enum { result = 19 }; };
+    template<>class LOG2<0x00100000> { public:enum { result = 20 }; };
+    template<>class LOG2<0x00200000> { public:enum { result = 21 }; };
+    template<>class LOG2<0x00400000> { public:enum { result = 22 }; };
+    template<>class LOG2<0x00800000> { public:enum { result = 23 }; };
+    template<>class LOG2<0x01000000> { public:enum { result = 24 }; };
+    template<>class LOG2<0x02000000> { public:enum { result = 25 }; };
+    template<>class LOG2<0x04000000> { public:enum { result = 26 }; };
+    template<>class LOG2<0x08000000> { public:enum { result = 27 }; };
+    template<>class LOG2<0x10000000> { public:enum { result = 28 }; };
+    template<>class LOG2<0x20000000> { public:enum { result = 29 }; };
+    template<>class LOG2<0x40000000> { public:enum { result = 30 }; };
+    template<>class LOG2<0x80000000> { public:enum { result = 31 }; };
+
+    inline double rx_log2(double v) { return log(v) / 0.693147180559945309417; }
 
     //=====================================================
-    //静态函数,计算pow2(num),其中num必须是2的整数次幂
-    template<uint32_t num> class pow2 {};
-    template<>class pow2<0>  { public:enum { result = 0x00000001 }; };
-    template<>class pow2<1>  { public:enum { result = 0x00000002 }; };
-    template<>class pow2<2>  { public:enum { result = 0x00000004 }; };
-    template<>class pow2<3>  { public:enum { result = 0x00000008 }; };
-    template<>class pow2<4>  { public:enum { result = 0x00000010 }; };
-    template<>class pow2<5>  { public:enum { result = 0x00000020 }; };
-    template<>class pow2<6>  { public:enum { result = 0x00000040 }; };
-    template<>class pow2<7>  { public:enum { result = 0x00000080 }; };
-    template<>class pow2<8>  { public:enum { result = 0x00000100 }; };
-    template<>class pow2<9>  { public:enum { result = 0x00000200 }; };
-    template<>class pow2<10> { public:enum { result = 0x00000400 }; };
-    template<>class pow2<11> { public:enum { result = 0x00000800 }; };
-    template<>class pow2<12> { public:enum { result = 0x00001000 }; };
-    template<>class pow2<13> { public:enum { result = 0x00002000 }; };
-    template<>class pow2<14> { public:enum { result = 0x00004000 }; };
-    template<>class pow2<15> { public:enum { result = 0x00008000 }; };
-    template<>class pow2<16> { public:enum { result = 0x00010000 }; };
-    template<>class pow2<17> { public:enum { result = 0x00020000 }; };
-    template<>class pow2<18> { public:enum { result = 0x00040000 }; };
-    template<>class pow2<19> { public:enum { result = 0x00080000 }; };
-    template<>class pow2<20> { public:enum { result = 0x00100000 }; };
-    template<>class pow2<21> { public:enum { result = 0x00200000 }; };
-    template<>class pow2<22> { public:enum { result = 0x00400000 }; };
-    template<>class pow2<23> { public:enum { result = 0x00800000 }; };
-    template<>class pow2<24> { public:enum { result = 0x01000000 }; };
-    template<>class pow2<25> { public:enum { result = 0x02000000 }; };
-    template<>class pow2<26> { public:enum { result = 0x04000000 }; };
-    template<>class pow2<27> { public:enum { result = 0x08000000 }; };
-    template<>class pow2<28> { public:enum { result = 0x10000000 }; };
-    template<>class pow2<29> { public:enum { result = 0x20000000 }; };
-    template<>class pow2<30> { public:enum { result = 0x40000000 }; };
-    template<>class pow2<31> { public:enum { result = 0x80000000 }; };
+    //静态函数,计算POW2(num),其中num必须是2的整数次幂
+    template<uint32_t num> class POW2 {};
+    template<>class POW2<0>  { public:enum { result = 0x00000001 }; };
+    template<>class POW2<1>  { public:enum { result = 0x00000002 }; };
+    template<>class POW2<2>  { public:enum { result = 0x00000004 }; };
+    template<>class POW2<3>  { public:enum { result = 0x00000008 }; };
+    template<>class POW2<4>  { public:enum { result = 0x00000010 }; };
+    template<>class POW2<5>  { public:enum { result = 0x00000020 }; };
+    template<>class POW2<6>  { public:enum { result = 0x00000040 }; };
+    template<>class POW2<7>  { public:enum { result = 0x00000080 }; };
+    template<>class POW2<8>  { public:enum { result = 0x00000100 }; };
+    template<>class POW2<9>  { public:enum { result = 0x00000200 }; };
+    template<>class POW2<10> { public:enum { result = 0x00000400 }; };
+    template<>class POW2<11> { public:enum { result = 0x00000800 }; };
+    template<>class POW2<12> { public:enum { result = 0x00001000 }; };
+    template<>class POW2<13> { public:enum { result = 0x00002000 }; };
+    template<>class POW2<14> { public:enum { result = 0x00004000 }; };
+    template<>class POW2<15> { public:enum { result = 0x00008000 }; };
+    template<>class POW2<16> { public:enum { result = 0x00010000 }; };
+    template<>class POW2<17> { public:enum { result = 0x00020000 }; };
+    template<>class POW2<18> { public:enum { result = 0x00040000 }; };
+    template<>class POW2<19> { public:enum { result = 0x00080000 }; };
+    template<>class POW2<20> { public:enum { result = 0x00100000 }; };
+    template<>class POW2<21> { public:enum { result = 0x00200000 }; };
+    template<>class POW2<22> { public:enum { result = 0x00400000 }; };
+    template<>class POW2<23> { public:enum { result = 0x00800000 }; };
+    template<>class POW2<24> { public:enum { result = 0x01000000 }; };
+    template<>class POW2<25> { public:enum { result = 0x02000000 }; };
+    template<>class POW2<26> { public:enum { result = 0x04000000 }; };
+    template<>class POW2<27> { public:enum { result = 0x08000000 }; };
+    template<>class POW2<28> { public:enum { result = 0x10000000 }; };
+    template<>class POW2<29> { public:enum { result = 0x20000000 }; };
+    template<>class POW2<30> { public:enum { result = 0x40000000 }; };
+    template<>class POW2<31> { public:enum { result = 0x80000000 }; };
 
     //=====================================================
     //尺寸向上对齐处理
@@ -200,11 +204,6 @@ namespace rx
         uint32_t rc = (uint32_t)num;
         return (num - rc > 0.00000001) ? rc + 1 : rc;
     }
-
-#if RX_CC==RX_CC_VC && RX_CC_VER_MAJOR<=16
-    #include <math.h>
-    inline double log2(double v) { return log(v) / 0.693147180559945309417; }
-#endif
 }
 
 #endif

@@ -12,8 +12,8 @@ namespace tn_tmp
             FLI_MAX = 31,                               //一级索引最大数量
             SLI_MAX = 8,                                //二级索引最大数量
 
-            SLI_SHIFT = rx::log2<SLI_MAX>::result,      //二级索引的比特数量
-            FLI_OFFSET = rx::log2<MIN_ALIGN>::result,   //一级索引的偏移量
+            SLI_SHIFT = rx::LOG2<SLI_MAX>::result,      //二级索引的比特数量
+            FLI_OFFSET = rx::LOG2<MIN_ALIGN>::result,   //一级索引的偏移量
         };
     }tlmap_cfg_t;
 }

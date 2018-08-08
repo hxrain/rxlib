@@ -126,9 +126,9 @@ typedef struct test_mp_cfg_t
     };
 
     //校验最小对齐尺寸合法性,确定MinNodeSize是2的整数次幂
-    enum { MinNodeShiftBit = rx::log2<MinNodeSize>::result };
+    enum { MinNodeShiftBit = rx::LOG2<MinNodeSize>::result };
     //校验最大节点尺寸合法性,确定MaxNodeSize是2的整数次幂
-    enum { MaxNodeShiftBit = rx::log2<MaxNodeSize>::result };
+    enum { MaxNodeShiftBit = rx::LOG2<MaxNodeSize>::result };
 }test_mp_cfg_t;
 
 //---------------------------------------------------------

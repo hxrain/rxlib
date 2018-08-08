@@ -1,3 +1,6 @@
+#include "../../rx_os_thread.h"
+
+#include "../../rx_os_cond.h"
 #include "../../rx_os_sem.h"
 
 #include "../ut_os_lock.h"

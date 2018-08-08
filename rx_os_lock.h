@@ -108,7 +108,7 @@ namespace rx
         {
             //初始化互斥锁的属性对象
             lock_attr la;
-            if (!la) return -1;
+            if (!la()) return -1;
             if (!la.set_private()) return -2;
             if (!la.set_recursive()) return -3;
             //初始化互斥锁,应用锁属性
@@ -129,6 +129,7 @@ namespace rx
         //构造函数,默认进行初始化
         locker_t(){m_init();}
         ~locker_t(){m_uninit();}
+        pthread_mutex_t *handle(){return &m_handle;}
         //--------------------------------------------------
         //锁定
         bool lock(bool is_wr_lock=true){return pthread_mutex_lock(&m_handle)==0;}
@@ -190,6 +191,7 @@ namespace rx
         //构造函数,默认进行初始化
         rw_locker_t(){m_init();}
         ~rw_locker_t(){m_uninit();}
+        pthread_mutex_t *handle(){return &m_handle;}
         //--------------------------------------------------
         //锁定,默认情况下使用写锁
         bool lock(bool is_wr_lock=true)
@@ -241,6 +243,7 @@ namespace rx
         //构造函数,默认进行初始化
         locker_t(){m_init();}
         ~locker_t(){m_uninit();}
+        CRITICAL_SECTION *handle(){return &m_handle;}
         //--------------------------------------------------
         //锁定
         bool lock(bool is_wr_lock = true) { EnterCriticalSection(&m_handle); return true; }
@@ -272,6 +275,7 @@ namespace rx
         //构造函数,默认进行初始化
         rw_locker_t(){m_init();}
         ~rw_locker_t(){}
+        SRWLOCK *handle(){return &m_handle;}
         //--------------------------------------------------
         //锁定,默认情况下使用写锁
         bool lock(bool is_wr_lock=true)

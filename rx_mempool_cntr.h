@@ -159,7 +159,7 @@ namespace rx
                 rx_static_assert((!!0)==0);
                 rx_static_assert((!!3) == 1);                   //要求逻辑取反后的值为0或1
 
-                uint32_t offset = rx_fls(Size)-1;               //快速查找Size的高比特位置,可以当作是log2(Size)
+                uint32_t offset = rx_fls(Size)-1;               //快速查找Size的高比特位置,可以当作是LOG2(Size)
                 blocksize = 1 << offset;                        //先计算一下Size对应的pow2(offset)整数
                 uint32_t bit_adj = (uint32_t)!!(blocksize^Size);//异或后的值进行逻辑化处理,就是为了判断是否Size大于pow2(offset)
                 blocksize <<= bit_adj;                          //进行最终的尺寸校正
@@ -217,11 +217,11 @@ namespace rx
         {
             enum {
                 MIN_ALIGN  = cfg_t::MinNodeSize,            //最小对齐尺寸
-                FLI_MAX    = log2<cfg_t::MaxNodeSize>::result,//一级索引最大数量
+                FLI_MAX    = rx::LOG2<cfg_t::MaxNodeSize>::result,//一级索引最大数量
                 SLI_MAX    = SLI_COUNT,                     //二级索引最大数量
 
-                SLI_SHIFT  = rx::log2<SLI_MAX>::result,     //二级索引的比特数量
-                FLI_OFFSET = rx::log2<MIN_ALIGN>::result,   //一级索引的偏移量
+                SLI_SHIFT  = rx::LOG2<SLI_MAX>::result,     //二级索引的比特数量
+                FLI_OFFSET = rx::LOG2<MIN_ALIGN>::result,   //一级索引的偏移量
             };
         }tlmap_cfg_t;
         enum{FM_PoolCount=tlmap_cfg_t::FLI_MAX*tlmap_cfg_t::SLI_MAX};//定长内存池数组尺寸

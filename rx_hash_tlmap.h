@@ -14,8 +14,8 @@ typedef struct tlmap_cfg_t
         FLI_MAX    = 30,                            //一级索引最大数量
         SLI_MAX    = 8,                             //二级索引最大数量
 
-        SLI_SHIFT  = rx::log2<SLI_MAX>::result,     //二级索引的比特数量
-        FLI_OFFSET = rx::log2<MIN_ALIGN>::result,   //一级索引的偏移量
+        SLI_SHIFT  = rx::LOG2<SLI_MAX>::result,     //二级索引的比特数量
+        FLI_OFFSET = rx::LOG2<MIN_ALIGN>::result,   //一级索引的偏移量
     };
 }tlmap_cfg_t;
 
@@ -32,7 +32,7 @@ inline void rx_hash_tlmap(uint32_t size, uint32_t& fl, uint32_t& sl)
     2 剩余的size进行第二级内的线性划分,定位到第二级SL.
 
     两级映射的标准算法:
-    * FL = log2(size)   对结果取整后FL=fls(size)
+    * FL = LOG2(size)   对结果取整后FL=fls(size)
     * SL = (size - pow2(FL)) * (pow2(SLI) / pow2(FL))
 
     SL的变换计算(引入subsize为size在当前一级索引对应的剩余尺寸):
