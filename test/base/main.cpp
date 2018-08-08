@@ -1,3 +1,5 @@
+#include "../ut_os_tasks.h"
+#include "../../rx_os_tasks.h"
 #include "../../rx_os_thread.h"
 
 #include "../../rx_os_cond.h"
@@ -50,7 +52,7 @@ using namespace std;
 
 int main()
 {
-    cout << "Hello world!\n" << rx_cc_desc() << endl << endl;
+    cout << "ÄãºÃHello world!\n" << rx_cc_desc() << endl << endl;
     rx_static_assert(1);
 
     rx_tdd_run(rtl_2);

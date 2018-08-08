@@ -80,7 +80,7 @@ namespace rx
         //任务被启动了
         virtual void on_begin(void* param) {}
         //-------------------------------------------------
-        //持续循环,直到出现中断标记
+        //默认任务处理过程,持续循环,直到出现中断标记
         virtual uint32_t on_run(void* param)
         {
             while (!need_break())

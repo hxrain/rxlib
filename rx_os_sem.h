@@ -3,6 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
+#include <limits.h>
 
 #if RX_OS_POSIX
     #include <pthread.h>
@@ -75,7 +76,7 @@ namespace rx
         bool init(uint32_t init_value = 0) 
         { 
             rx_assert(m_handle == NULL);
-            m_handle=CreateSemaphore(NULL,(long)init_value,(long)-1,NULL);
+            m_handle=CreateSemaphore(NULL,(long)init_value,LONG_MAX,NULL);
             return NULL != m_handle;
         }
         //-----------------------------------------------------
