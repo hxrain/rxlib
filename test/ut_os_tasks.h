@@ -43,7 +43,7 @@ inline void test_my_disp_task()
     }
 }
 
-rx_tdd(rx_os_tasks_base)
+rx_tdd_rtl(rx_os_tasks_base,rtl_3)
 {
     test_my_disp_task();
 }

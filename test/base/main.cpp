@@ -14,6 +14,7 @@
 #include "../ut_mem_pool_cntr.h"
 #include "../../rx_mempool_cntr.h"
 
+#include "../ut_hash.h"
 #include "../../rx_hash_data.h"
 #include "../../rx_hash_int.h"
 

@@ -5,7 +5,7 @@
 
     //-----------------------------------------------------
     //倾向于小范围高密度的素数表,便于构建轻量级哈希表
-    inline uint32_t rx_tiny_prime(uint32_t idx)
+    inline uint32_t rx_tiny_prime(const uint32_t idx)
     {
         static const uint32_t primes[] = {
             2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,113,127,131,137,139,149,151,157,163,167,
@@ -32,7 +32,7 @@
 
     //-----------------------------------------------------
     //轻量级斐波那契序数
-    inline uint32_t rx_tiny_fibonacci(uint32_t idx)
+    inline uint32_t rx_tiny_fibonacci(const uint32_t idx)
     {
         static const uint32_t seqs[] = {
             1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025,
@@ -43,13 +43,20 @@
             return 0;
         return seqs[idx];
     }
+    //-----------------------------------------------------
+    //黄金分隔哈希算法,极其简单.因子可选斐波那契序数.使用此函数给定不同的参数即可造就一系列的哈希函数组
+    inline uint32_t rx_hash_gold(uint32_t x, uint32_t factor = 17711, uint32_t r_shift = 0)
+    {
+        return (x >> r_shift)* factor;
+    }
 
     //-----------------------------------------------------
     //integer hash function
     //-----------------------------------------------------
+    typedef uint32_t(*rx_hash32_func_t)(uint32_t x);
+    //-----------------------------------------------------
     // Tomas Wang
-    template<class DT>
-    inline DT rx_hash_tomas32(DT key)
+    inline uint32_t rx_hash_tomas(uint32_t key)
     {
         key = ~key + (key << 15); // key = (key << 15) - key - 1;
         key = key ^ (key >> 12);
@@ -61,8 +68,7 @@
     }
     //-----------------------------------------------------
     // 64 bit Mix Functions
-    template<class DT>
-    inline DT rx_hash_tomas64(DT key)
+    inline uint64_t rx_hash_tomas(uint64_t key)
     {
         key = (~key) + (key << 21); // key = (key << 21) - key - 1;
         key = key ^ (key >> 24);
@@ -76,7 +82,7 @@
 
     //-----------------------------------------------------
     // 64 bit to 32 bit Mix Functions
-    inline uint32_t rx_hash_tomas2(uint64_t key)
+    inline uint32_t rx_hash_tomas64to32(uint64_t key)
     {
         key = (~key) + (key << 18); // key = (key << 18) - key - 1;
         key = key ^ (key >> 31);
@@ -89,8 +95,7 @@
     //-----------------------------------------------------
     // Bob Jenkins' 32 bit integer hash function
     // 这六个数是随机数， 通过设置合理的6个数，你可以找到对应的perfect hash.
-    template<class DT>
-    inline DT rx_hash_bobj(DT a)
+    inline uint32_t rx_hash_bobj(uint32_t a)
     {
         a = (a + 0x7ed55d16) + (a << 12);
         a = (a ^ 0xc761c23c) ^ (a >> 19);
@@ -103,9 +108,8 @@
 
     //-----------------------------------------------------
     //32位整数的Murmur哈希码算法; from code.google.com/p/smhasher/wiki/MurmurHash3
-    //对于自然数效果较好
-    template<class DT>
-    inline DT rx_hash_murmur3(DT h)
+    //对于自然数效果较好(exact bias: 0.26398543281818287)
+    inline uint32_t rx_hash_murmur3(uint32_t h)
     {
         h ^= h >> 16;
         h *= 0x85ebca6b;
@@ -114,31 +118,24 @@
         h ^= h >> 16;
         return h;
     }
-    //-----------------------------------------------------
-    //黄金分隔哈希算法,极其简单.因子可选斐波那契序数.
-    template<class DT>
-    inline DT rx_hash_gold(DT x, DT factor = 17711, uint32_t x_shift = 0)
-    {
-        return (x >> x_shift)* factor;
-    }
 
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
     //进行过雪崩系数验证的哈希函数(Avalanche score = 1.67)
-    template<class DT>
-    inline DT rx_hash_mosquito32(DT x)
+    inline uint32_t rx_hash_mosquito(uint32_t x)
     {
         x = ~x;
         x ^= x >> 16;
-        x *= DT(0xb03a22b3);
+        x *= uint32_t(0xb03a22b3);
         x ^= x >> 10;
         return x;
     }
+
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
+    //-----------------------------------------------------
     //进行过雪崩系数验证的哈希函数(Avalanche score = 1.51)
-    template<class DT>
-    inline DT rx_hash_skeeto32a(DT x)
+    inline uint32_t rx_hash_skeeto_a(uint32_t x)
     {
         x = ~x;
         x ^= x >> 2;
@@ -152,8 +149,7 @@
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
     //进行过雪崩系数验证的哈希函数(Avalanche score = 1.1875)
-    template<class DT>
-    inline DT rx_hash_skeeto32b(DT x)
+    inline uint32_t rx_hash_skeeto_b(uint32_t x)
     {
         x = ~x;
         x ^= x << 16;
@@ -166,9 +162,8 @@
     }
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    //进行过雪崩系数验证的哈希函数(Avalanche score = 1.03)
-    template<class DT>
-    inline DT rx_hash_skeeto32c(DT x)
+    //进行过雪崩系数验证的哈希函数(Avalanche score = 1.03 / exact bias: 0.34968228323361017)
+    inline uint32_t rx_hash_skeeto_c(uint32_t x)
     {
         x ^= x >> 15;
         x *= uint32_t(0x2c1b3c6d);
@@ -177,59 +172,104 @@
         x ^= x >> 15;
         return x;
     }
+    //进行过统计验证的哈希函数(exact bias: 0.20207553121367283)
+    inline uint32_t rx_hash_skeeto_d(uint32_t x)
+    {
+        x ^= x >> 16;
+        x *= uint32_t(0xe2d0d4cb);
+        x ^= x >> 15;
+        x *= uint32_t(0x3c6ad939);
+        x ^= x >> 15;
+        return x;
+    }
+
+    //进行过统计验证的哈希函数(exact bias: 0.19768193144773874)
+    inline uint32_t rx_hash_skeeto_e(uint32_t x)
+    {
+        x ^= x >> 18;
+        x *= uint32_t(0xa136aaad);
+        x ^= x >> 16;
+        x *= uint32_t(0x9f6d62d7);
+        x ^= x >> 17;
+        return x;
+    }
+
+    //进行过统计验证的哈希函数(exact bias: 0.022829781930394154)
+    inline uint32_t rx_hash_skeeto_f(uint32_t x)
+    {
+        x ^= x >> 18;
+        x *= uint32_t(0xed5ad4bb);
+        x ^= x >> 12;
+        x *= uint32_t(0xac4c1b51);
+        x ^= x >> 17;
+        x *= uint32_t(0xc0a8e5d7);
+        x ^= x >> 12;
+        return x;
+    }
     //-----------------------------------------------------
-    //可用的整数哈希函数类型
+    //整数哈希函数类型
     typedef enum rx_int_hash_type
     {
         IHT_tomas = 0,
         IHT_bobj,
         IHT_murmur3,
-        IHT_gold,
         IHT_mosquito,
-        IHT_skeeto32a,
-        IHT_skeeto32b,
-        IHT_skeeto32c,
+        IHT_skeeto_a,
+        IHT_skeeto_b,
+        IHT_skeeto_c,
+        IHT_skeeto_d,
+        IHT_skeeto_e,
+        IHT_skeeto_f,
 
         IHT_Count                                        //当作类型的数量
     }rx_int_hash_type;
 
     //-----------------------------------------------------
     //根据哈希函数类型获取其对应的算法名称
-    inline const char* rx_int_hash_name(rx_data_hash_type Type)
+    inline const char* rx_int_hash_name(rx_int_hash_type Type)
     {
         switch (Type)
         {
         case IHT_tomas:     return "IntHash::tomas";
         case IHT_bobj:      return "IntHash::bobj";
         case IHT_murmur3:   return "IntHash::murmur3";
-        case IHT_gold:      return "IntHash::gold";
         case IHT_mosquito:  return "IntHash::mosquito";
-        case IHT_skeeto32a: return "IntHash::skeeto32a";
-        case IHT_skeeto32b: return "IntHash::skeeto32b";
-        case IHT_skeeto32c: return "IntHash::skeeto32c";
+        case IHT_skeeto_a:  return "IntHash::skeeto_a";
+        case IHT_skeeto_b:  return "IntHash::skeeto_b";
+        case IHT_skeeto_c:  return "IntHash::skeeto_c";
+        case IHT_skeeto_d:  return "IntHash::skeeto_d";
+        case IHT_skeeto_e:  return "IntHash::skeeto_e";
+        case IHT_skeeto_f:  return "IntHash::skeeto_f";
 
         default:            return "Hash::Unknown";
         }
     }
 
     //-----------------------------------------------------
-    //根据哈希函数类型计算给定数据的哈希码
-    inline uint32_t rx_int_hash(rx_data_hash_type Type, uint32_t Key)
+    //获取指定哈希函数
+    inline rx_hash32_func_t rx_int_hash(const rx_int_hash_type Type)
     {
-        switch (Type)
-        {
-        case IHT_tomas:     return rx_hash_tomas32(Key);
-        case IHT_bobj:      return rx_hash_bobj(Key);
-        case IHT_murmur3:   return rx_hash_murmur3(Key);
-        case IHT_gold:      return rx_hash_gold(Key);
-        case IHT_mosquito:  return rx_hash_mosquito32(Key);
-        case IHT_skeeto32a: return rx_hash_skeeto32a(Key);
-        case IHT_skeeto32b: return rx_hash_skeeto32b(Key);
-        case IHT_skeeto32c: return rx_hash_skeeto32c(Key);
-
-        default:            return rx_hash_skeeto32c(Key);
-        }
-
+        static rx_hash32_func_t funcs[] = {
+            rx_hash_tomas,
+            rx_hash_bobj,
+            rx_hash_murmur3,
+            rx_hash_mosquito,
+            rx_hash_skeeto_a,
+            rx_hash_skeeto_b,
+            rx_hash_skeeto_c,
+            rx_hash_skeeto_d,
+            rx_hash_skeeto_e,
+            rx_hash_skeeto_f
+        };
+        return funcs[Type];
     }
+
+    //-----------------------------------------------------
+    //根据哈希函数类型计算给定数据的哈希码
+    inline uint32_t rx_int_hash(rx_int_hash_type Type, uint32_t Key)
+    {
+        return rx_int_hash(rx_int_hash_type(Type<IHT_Count?Type: IHT_Count-1))(Key);
+    }
+
 
 #endif
