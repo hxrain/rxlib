@@ -4,11 +4,11 @@
 #include "../rx_tdd.h"
 #include "../rx_hash_int.h"
 
-
+//---------------------------------------------------------
 inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_func_t hash,rx_tdd_base &rt)
 {
-    const uint32_t array_size = 100;
-    const uint32_t loop_count = 50000000;
+    const uint32_t array_size = 1000;
+    const uint32_t loop_count = array_size*500000;
 
     uint32_t count_array[array_size];
     memset(count_array,0,sizeof(count_array));
@@ -16,7 +16,7 @@ inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_fun
     uint32_t h = seed;
     for (uint32_t i = 0; i < loop_count; ++i)
     {
-        h = hash(h+i);
+        h = hash(h);
         uint32_t idx = h%array_size;
         ++count_array[idx];
     }
@@ -26,18 +26,19 @@ inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_fun
     for (uint32_t i = 0; i < array_size; ++i)
     {
         uint32_t c= count_array[i];
-        //printf("hash func <%20s> num<%3u> count = %8u\n",hash_name,i,c);
+        //printf("hash func <%-20s> num<%3u> count = %8u\n",hash_name,i,c);
         variance += (want_count - c)*(want_count - c);
     }
-    printf("hash func <%20s> var = %.4f\n", hash_name, (double)variance / loop_count);
+    printf("hash func <%30s> stddev = %.4f\n", hash_name, sqrt((double)variance / array_size));
 }
 
+//---------------------------------------------------------
 inline uint32_t tmp_test_stdrand(uint32_t x)
 {
     return rand();
 }
-
-rx_tdd_rtl(rx_hash_int_base,rtl_3)
+//---------------------------------------------------------
+rx_tdd_rtl(rx_hash_int_base,rtl_2)
 {
     uint32_t seed = (uint32_t)time(NULL);
     for(int i=0;i<IHT_Count;++i)

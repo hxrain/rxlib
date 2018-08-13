@@ -206,6 +206,32 @@
         x ^= x >> 12;
         return x;
     }
+
+    //进行过统计验证的哈希函数(exact bias: 0.021334944237993255)
+    inline uint32_t rx_hash_skeeto_g(uint32_t x)
+    {
+        x ^= x >> 18;
+        x *= uint32_t(0xed5ad4bb);
+        x ^= x >> 11;
+        x *= uint32_t(0xac4c1b51);
+        x ^= x >> 15;
+        x *= uint32_t(0x31848bab);
+        x ^= x >> 14;
+        return x;
+    }
+
+    //进行过统计验证的哈希函数(exact bias: 0.020888578919738908)
+    inline uint32_t rx_hash_skeeto_triple(uint32_t x)
+    {
+        x ^= x >> 17;
+        x *= uint32_t(0xed5ad4bb);
+        x ^= x >> 11;
+        x *= uint32_t(0xac4c1b51);
+        x ^= x >> 15;
+        x *= uint32_t(0x31848bab);
+        x ^= x >> 14;
+        return x;
+    }
     //-----------------------------------------------------
     //整数哈希函数类型
     typedef enum rx_int_hash_type
@@ -220,6 +246,8 @@
         IHT_skeeto_d,
         IHT_skeeto_e,
         IHT_skeeto_f,
+        IHT_skeeto_g,
+        IHT_skeeto_triple,
 
         IHT_Count                                        //当作类型的数量
     }rx_int_hash_type;
@@ -240,6 +268,8 @@
         case IHT_skeeto_d:  return "IntHash::skeeto_d";
         case IHT_skeeto_e:  return "IntHash::skeeto_e";
         case IHT_skeeto_f:  return "IntHash::skeeto_f";
+        case IHT_skeeto_g:  return "IntHash::skeeto_g";
+        case IHT_skeeto_triple:  return "IntHash::skeeto_triple";
 
         default:            return "Hash::Unknown";
         }
@@ -259,7 +289,9 @@
             rx_hash_skeeto_c,
             rx_hash_skeeto_d,
             rx_hash_skeeto_e,
-            rx_hash_skeeto_f
+            rx_hash_skeeto_f,
+            rx_hash_skeeto_g,
+            rx_hash_skeeto_triple
         };
         return funcs[Type];
     }
