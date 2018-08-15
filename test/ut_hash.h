@@ -7,8 +7,8 @@
 //---------------------------------------------------------
 inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_func_t hash,rx_tdd_base &rt)
 {
-    const uint32_t array_size = 1000;
-    const uint32_t loop_count = array_size*500000;
+    const uint32_t array_size = 10000;
+    const uint32_t loop_count = array_size*80000;
 
     uint32_t count_array[array_size];
     memset(count_array,0,sizeof(count_array));
@@ -29,7 +29,7 @@ inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_fun
         //printf("hash func <%-20s> num<%3u> count = %8u\n",hash_name,i,c);
         variance += (want_count - c)*(want_count - c);
     }
-    printf("hash func <%30s> stddev = %.4f\n", hash_name, sqrt((double)variance / array_size));
+    printf("hash func <%30s> sdv = %.4f\n", hash_name, sqrt((double)variance / array_size));
 }
 
 //---------------------------------------------------------

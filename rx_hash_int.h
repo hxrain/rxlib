@@ -194,6 +194,17 @@
         return x;
     }
 
+    //进行过统计验证的哈希函数(exact bias: 0.19768193144773874)
+    inline uint32_t rx_hash_skeeto_e_r(uint32_t x)
+    {
+        x ^= x >> 17;
+        x *= uint32_t(0x5f68b0e7);
+        x ^= x >> 16;
+        x *= uint32_t(0x79e64925);
+        x ^= x >> 18;
+        return x;
+    }
+
     //进行过统计验证的哈希函数(exact bias: 0.022829781930394154)
     inline uint32_t rx_hash_skeeto_f(uint32_t x)
     {
@@ -220,9 +231,10 @@
         return x;
     }
 
-    //进行过统计验证的哈希函数(exact bias: 0.020888578919738908)
+    //进行过统计验证的哈希函数(exact bias: 0.020829410544597495)
     inline uint32_t rx_hash_skeeto_triple(uint32_t x)
     {
+        ++x;
         x ^= x >> 17;
         x *= uint32_t(0xed5ad4bb);
         x ^= x >> 11;
@@ -232,6 +244,19 @@
         x ^= x >> 14;
         return x;
     }
+    inline uint32_t rx_hash_skeeto_triple_r(uint32_t x)
+    {
+        x ^= x >> 14 ^ x >> 28;
+        x *= uint32_t(0x32b21703);
+        x ^= x >> 15 ^ x >> 30;
+        x *= uint32_t(0x469e0db1);
+        x ^= x >> 11 ^ x >> 22;
+        x *= uint32_t(0x79a85073);
+        x ^= x >> 17;
+        --x;
+        return x;
+    }
+
     //-----------------------------------------------------
     //整数哈希函数类型
     typedef enum rx_int_hash_type
@@ -245,9 +270,11 @@
         IHT_skeeto_c,
         IHT_skeeto_d,
         IHT_skeeto_e,
+        IHT_skeeto_e_r,
         IHT_skeeto_f,
         IHT_skeeto_g,
         IHT_skeeto_triple,
+        IHT_skeeto_triple_r,
 
         IHT_Count                                        //当作类型的数量
     }rx_int_hash_type;
@@ -267,9 +294,11 @@
         case IHT_skeeto_c:  return "IntHash::skeeto_c";
         case IHT_skeeto_d:  return "IntHash::skeeto_d";
         case IHT_skeeto_e:  return "IntHash::skeeto_e";
+        case IHT_skeeto_e_r:return "IntHash::skeeto_e_r";
         case IHT_skeeto_f:  return "IntHash::skeeto_f";
         case IHT_skeeto_g:  return "IntHash::skeeto_g";
         case IHT_skeeto_triple:  return "IntHash::skeeto_triple";
+        case IHT_skeeto_triple_r:return "IntHash::skeeto_triple_r";
 
         default:            return "Hash::Unknown";
         }
@@ -289,9 +318,11 @@
             rx_hash_skeeto_c,
             rx_hash_skeeto_d,
             rx_hash_skeeto_e,
+            rx_hash_skeeto_e_r,
             rx_hash_skeeto_f,
             rx_hash_skeeto_g,
-            rx_hash_skeeto_triple
+            rx_hash_skeeto_triple,
+            rx_hash_skeeto_triple_r
         };
         return funcs[Type];
     }
