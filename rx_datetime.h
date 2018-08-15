@@ -1,11 +1,20 @@
 ﻿#ifndef _MY_TIME_H_
 #define _MY_TIME_H_
-    
+
     #include "rx_cc_macro.h"
     #include <stdio.h>
     #include <time.h>
+
 #if defined(RX_OS_WIN)
     #include <winsock.h>
+
+    #if !defined(HAVE_STRUCT_TIMESPEC)&&!defined(_TIMESPEC_DEFINED)
+        struct timespec
+        {
+            time_t   tv_sec;
+            uint32_t tv_nsec;
+        };
+    #endif
 #endif
 /*
 	本单元进行UTC时间和ISO时间的相互转换处理.
