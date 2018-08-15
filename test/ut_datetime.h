@@ -104,7 +104,7 @@ rx_tdd(localtime_base)
 
 }
 
-rx_tdd_rtl(localtime_loop,rtl_3)
+rx_tdd_rtl(localtime_loop,tdd_level_slow)
 {
 #if defined(RX_OS_WIN)
     test_localtime_loop(*this);

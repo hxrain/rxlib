@@ -60,8 +60,20 @@ void test_atomic_base(rx_tdd_base &rt)
     rt.tdd_assert(atomic == 0);
 }
 
+inline void test_spinlock_base_1(rx_tdd_base &rt)
+{
+    rx::spin_lock lk;
+    rt.tdd_assert(lk.lock());
+    rt.tdd_assert(!lk.trylock());
+    lk.unlock();
+
+    rt.tdd_assert(lk.trylock());
+    lk.unlock();
+}
+
 rx_tdd(rx_atomic)
 {
+    test_spinlock_base_1(*this);
     test_atomic_base<int32_t>(*this);
 #if RX_ATOMIC64
     test_atomic_base<int64_t>(*this);

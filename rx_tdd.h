@@ -19,7 +19,7 @@ rx_tdd(test_name2)
     test_1(*this);
 }
 
-rx_tdd_rtl(test_name3,rtl_2)
+rx_tdd_rtl(test_name3,tdd_level_slow)
 {
     assert(1);
     test_1(*this);
@@ -80,17 +80,11 @@ inline rx_tdd_stat& _rx_tdd_stat()
 //TDD的级别,定义时指定,运行时可选择运行某个级别之下的TDD
 typedef enum rx_tdd_level
 {
-    rtl_default = 0,
-    rtl_1       = 1,
-    rtl_2       = 2,
-    rtl_3       = 3,
-
-    rtl_all     = (unsigned char)0xFF,
+    tdd_level_base      = 0,                                //最基础的tdd级别,不耽误时间,很基础的用例
+    tdd_level_std       = 1,                                //标准的tdd级别,稍稍占用一些时间,但会执行必要的用例
+    tdd_level_slow      = 2,                                //很慢的tdd级别,非常占用时间,在进行完整的性能测试
+    tdd_level_ui        = 3,                                //需要UI交互的级别,人员离开后会出现阻塞
 }rx_tdd_level;
-
-#ifndef RX_RUN_RTL
-    #define RX_RUN_RTL rtl_all
-#endif
 
 //---------------------------------------------------------
 //实现TDD用例的基类
@@ -187,7 +181,7 @@ protected:
 
 //---------------------------------------------------------
 //运行TDD用例,输出统计结果(可指定要求运行的等级,进行长时间运行测试的过滤)
-inline void rx_tdd_run(rx_tdd_level rtl=RX_RUN_RTL)
+inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow)
 {
     rx_tdd_stat &s=_rx_tdd_stat();
     rx_tdd_base *node=s.head;
@@ -207,6 +201,8 @@ inline void rx_tdd_run(rx_tdd_level rtl=RX_RUN_RTL)
           s._total,s._perform,s._assert,s._failed);
 }
 
+//---------------------------------------------------------
+//定义便捷宏,方便输出调用者的行号
 #define tdd_assert(v) assert(v,__LINE__)
 #define msg_assert(v,msg,...) assert(v,__LINE__,msg,##__VA_ARGS__)
 
@@ -221,7 +217,7 @@ inline void rx_tdd_run(rx_tdd_level rtl=RX_RUN_RTL)
     inline void __RX_TDD_CLS__##name::on_exec()
 
 //定义rx_tdd宏,用于便捷的建立一个指定名字的测试用例
-#define rx_tdd(name) rx_tdd_rtl(name,rtl_default)
+#define rx_tdd(name) rx_tdd_rtl(name,tdd_level_base)
 
 
 #endif
