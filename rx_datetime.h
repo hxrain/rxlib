@@ -9,11 +9,14 @@
     #include <winsock.h>
 
     #if !defined(HAVE_STRUCT_TIMESPEC)&&!defined(_TIMESPEC_DEFINED)
+        #if (RX_CC==RX_CC_VC&&RX_CC_VER_MAJOR>16)
+        #else
         struct timespec
         {
             time_t   tv_sec;
             uint32_t tv_nsec;
         };
+        #endif
     #endif
 #endif
 /*

@@ -6,19 +6,6 @@
 #include "rx_os_lock.h"
 #include "rx_os_cond.h"
 
-#if RX_OS_POSIX
-    //让线程休眠指定的时间(毫秒)
-    void thread_yield(uint32_t ms) { usleep(ms*1000); }
-    //获取当前线程ID
-    uint64_t thread_id() { return pthread_self(); }
-#elif RX_OS_WIN
-    #include <process.h>
-    //让线程休眠指定的时间(毫秒)
-    void thread_yield(uint32_t ms) { Sleep(ms); }
-    //获取当前线程ID
-    uint64_t thread_id() { return GetCurrentThreadId(); }
-#endif
-
 namespace rx
 {
     /*任务与线程的使用样例
@@ -59,12 +46,12 @@ namespace rx
         void sleep(uint32_t ms)
         {
             uint32_t sc = ms / 100;
-            if (!sc) thread_yield(ms);
+            if (!sc) rx_thread_yield(ms);
             else
             {
                 for (uint32_t i = 0; i < sc; ++i)
                 {
-                    thread_yield(100);
+                    rx_thread_yield(100);
                     if (need_break())
                         break;
                 }

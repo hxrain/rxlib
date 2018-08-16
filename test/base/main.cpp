@@ -1,3 +1,5 @@
+ï»¿#include "../../rx_os_spinlock.h"
+
 #include "../ut_os_tasks.h"
 #include "../../rx_os_tasks.h"
 #include "../../rx_os_thread.h"
@@ -53,7 +55,7 @@ using namespace std;
 
 int main()
 {
-    cout << "ÄãºÃHello world!\n" << rx_cc_desc() << endl << endl;
+    cout << "ä½ å¥½Hello world!\n" << rx_cc_desc() << endl << endl;
     rx_static_assert(1);
 
     rx_tdd_run(tdd_level_std);

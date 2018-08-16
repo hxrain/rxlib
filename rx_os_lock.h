@@ -5,9 +5,48 @@
 #include "rx_assert.h"
 
 #if RX_OS_POSIX
-    #include <pthread.h>
+     #include <pthread.h>
     //-lpthread
+
+    //让线程休眠指定的时间(毫秒)
+    void rx_thread_yield(uint32_t ms) 
+    { 
+        if (!ms)
+            sched_yield();
+        else
+            usleep(ms*1000); 
+    }
+    //尝试进行微秒级休眠
+    void rx_thread_yield_us(uint32_t us)
+    {
+        if (!us)
+            sched_yield();
+        else
+            usleep(us);
+    }
+    //让当前线程让步给本核上的其他线程,返回值告知是否切换成功
+    bool rx_thread_yield() { return !sched_yield(); }
+    //获取当前线程ID
+    uint64_t rx_thread_id() { return pthread_self(); }
+
+#elif RX_OS_WIN
+
+    #include <process.h>
+    //让线程休眠指定的时间(毫秒)
+    void rx_thread_yield(uint32_t ms) { Sleep(ms); }
+    //尝试进行微秒级休眠(win上不准确)
+    void rx_thread_yield_us(uint32_t us)
+    {
+        Sleep((us+999)/1000);
+    }
+    //让当前线程让步给本核上的其他线程,返回值告知是否切换成功
+    bool rx_thread_yield() {return !!SwitchToThread();}
+    //获取当前线程ID
+    uint64_t rx_thread_id() { return GetCurrentThreadId(); }
+
 #endif
+
+    #define rx_mm_pause() _mm_pause()
 
 namespace rx
 {
@@ -45,6 +84,7 @@ namespace rx
         virtual bool trylock(bool is_wr_lock=true){return true;}
     };
 
+
     //------------------------------------------------------
     //封装一个锁定对象的卫兵对象,利用卫兵对象的构造与析构自动进行作用域内的锁定/解锁
     template<class lt,bool is_wr_lock=true>
@@ -78,8 +118,11 @@ namespace rx
     //读写锁中，读锁的语法糖定义
     #define RGUARD(Locker) guarded<ilock,false> RX_CT_SYM(_guard_)((Locker))
     #define rguard(Locker) for(guarded<ilock,false> RX_CT_SYM(_guard_)(Locker);RX_CT_SYM(_guard_).pass_one();)
+}
 
 #if RX_OS_POSIX
+namespace rx
+{
     //------------------------------------------------------
     //封装一个进程内的递归锁
     class locker_t:public ilock
@@ -215,17 +258,20 @@ namespace rx
         }
         //--------------------------------------------------
     };
+}
 #elif RX_OS_WIN
+namespace rx
+{
     //------------------------------------------------------
     //封装一个进程内的递归锁
-    class locker_t:public ilock
+    class locker_t :public ilock
     {
         //--------------------------------------------------
         //进行递归锁的初始化,返回值0成功.
-        int m_init(DWORD spinCount=1000)
+        int m_init(DWORD spinCount = 1000)
         {
             //初始化互斥锁,应用锁属性
-            if (!InitializeCriticalSectionAndSpinCount(&m_handle,spinCount))
+            if (!InitializeCriticalSectionAndSpinCount(&m_handle, spinCount))
                 return -1;
 
             return 0;
@@ -241,9 +287,9 @@ namespace rx
     public:
         //--------------------------------------------------
         //构造函数,默认进行初始化
-        locker_t(){m_init();}
-        ~locker_t(){m_uninit();}
-        CRITICAL_SECTION *handle(){return &m_handle;}
+        locker_t() { m_init(); }
+        ~locker_t() { m_uninit(); }
+        CRITICAL_SECTION *handle() { return &m_handle; }
         //--------------------------------------------------
         //锁定
         bool lock(bool is_wr_lock = true) { EnterCriticalSection(&m_handle); return true; }
@@ -252,13 +298,13 @@ namespace rx
         bool unlock() { LeaveCriticalSection(&m_handle); return true; }
         //--------------------------------------------------
         //尝试锁定
-        bool trylock(bool is_wr_lock=true){return !!TryEnterCriticalSection(&m_handle);}
+        bool trylock(bool is_wr_lock = true) { return !!TryEnterCriticalSection(&m_handle); }
         //--------------------------------------------------
     };
 
     //------------------------------------------------------
     //封装进程内的读写锁(非递归)
-    class rw_locker_t:public ilock
+    class rw_locker_t :public ilock
     {
         //--------------------------------------------------
         //进行锁的初始化,返回值0成功.
@@ -273,18 +319,18 @@ namespace rx
     public:
         //--------------------------------------------------
         //构造函数,默认进行初始化
-        rw_locker_t(){m_init();}
-        ~rw_locker_t(){}
-        SRWLOCK *handle(){return &m_handle;}
+        rw_locker_t() { m_init(); }
+        ~rw_locker_t() {}
+        SRWLOCK *handle() { return &m_handle; }
         //--------------------------------------------------
         //锁定,默认情况下使用写锁
-        bool lock(bool is_wr_lock=true)
+        bool lock(bool is_wr_lock = true)
         {
             if (is_wr_lock)
                 AcquireSRWLockExclusive(&m_handle);
             else
                 AcquireSRWLockShared(&m_handle);
-            m_is_write=is_wr_lock;
+            m_is_write = is_wr_lock;
             return true;
         }
         //--------------------------------------------------
@@ -299,7 +345,7 @@ namespace rx
         }
         //--------------------------------------------------
         //尝试锁定
-        bool trylock(bool is_wr_lock=true)
+        bool trylock(bool is_wr_lock = true)
         {
             if (is_wr_lock)
             {
@@ -312,12 +358,12 @@ namespace rx
                     return false;
             }
 
-            m_is_write=is_wr_lock;
+            m_is_write = is_wr_lock;
             return true;
         }
         //--------------------------------------------------
     };
+}
 #endif
 
-}
 #endif
