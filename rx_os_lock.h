@@ -109,15 +109,18 @@ namespace rx
 
     //------------------------------------------------------
     //使用宏定义,便于使用锁定对象的卫兵模式,对于读写锁来说，为写锁
-    #define GUARD(Locker) guarded<ilock> RX_CT_SYM(_guard_)((Locker))
-
+    #define GUARD_T(Locker,LT) guarded<LT> RX_CT_SYM(_guard_)((Locker))
+    #define GUARD(Locker) GUARD_T(Locker,ilock)
     //使用for语句结构进行锁定范围限定的宏定义语法糖
-    #define guard(Locker) for(guarded<ilock> RX_CT_SYM(_guard_for_)(Locker);RX_CT_SYM(_guard_for_).pass_one();)
-
+    #define guard_t(Locker,LT) for(guarded<LT> RX_CT_SYM(_guard_for_)(Locker);RX_CT_SYM(_guard_for_).pass_one();)
+    #define guard(Locker) guard_t(Locker,ilock)
     //------------------------------------------------------
     //读写锁中，读锁的语法糖定义
-    #define RGUARD(Locker) guarded<ilock,false> RX_CT_SYM(_guard_)((Locker))
-    #define rguard(Locker) for(guarded<ilock,false> RX_CT_SYM(_guard_)(Locker);RX_CT_SYM(_guard_).pass_one();)
+    #define RGUARD_T(Locker,LT) guarded<LT,false> RX_CT_SYM(_guard_)((Locker))
+    #define RGUARD(Locker) RGUARD_T(Locker,ilock)
+    //使用for语句结构进行锁定范围限定的宏定义语法糖
+    #define rguard_t(Locker,LT) for(guarded<LT,false> RX_CT_SYM(_guard_)(Locker);RX_CT_SYM(_guard_).pass_one();)
+    #define rguard(Locker) rguard_t(Locker,ilock)
 }
 
 #if RX_OS_POSIX

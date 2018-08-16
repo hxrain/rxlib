@@ -7,15 +7,15 @@
 
 namespace rx
 {
+    enum { CPU_CACHELINE_SIZE = 64 };                       // 进行CACH-LINE高速缓存的优化填充
     //------------------------------------------------------
     //参考:  https://github.com/shines77/RingQueue/blob/master/include/RingQueue/RingQueue.h
     //基于原子变量实现的自旋锁,不可重入
     class spin_lock_t :public ilock
     {
-        enum { CACHE_SIZE = 64 };                           // 进行CACH-LINE高速缓存的优化填充
-        uint8_t     padding1[CACHE_SIZE / 2];
+        uint8_t     padding1[CPU_CACHELINE_SIZE / 2];
         int32_t     m_lock;
-        uint8_t     padding2[CACHE_SIZE / 2 - sizeof(long)];
+        uint8_t     padding2[CPU_CACHELINE_SIZE / 2 - sizeof(long)];
     public:
         spin_lock_t():m_lock(0){}
         //--------------------------------------------------

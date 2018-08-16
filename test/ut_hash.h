@@ -7,8 +7,8 @@
 //---------------------------------------------------------
 inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_func_t hash,rx_tdd_base &rt)
 {
-    const uint32_t array_size = 5000;
-    const uint32_t loop_count = array_size*40000;
+    const uint32_t array_size = 1000;
+    const uint32_t loop_count = array_size*100000;
 
     uint32_t count_array[array_size];
     memset(count_array,0,sizeof(count_array));
@@ -38,7 +38,7 @@ inline uint32_t tmp_test_stdrand(uint32_t x)
     return rand();
 }
 //---------------------------------------------------------
-rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
+rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
 {
     uint32_t seed = (uint32_t)time(NULL);
     for(int i=0;i<IHT_Count;++i)

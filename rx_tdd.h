@@ -90,6 +90,8 @@ typedef enum rx_tdd_level
 //实现TDD用例的基类
 class rx_tdd_base
 {
+    friend void rx_tdd_run(rx_tdd_level rtl,bool only_curr_level);
+
     const char* m_tdd_name;
     const char* m_file_name;
     int         m_line_no;
@@ -125,9 +127,9 @@ public:
     }
     //-----------------------------------------------------
     //执行本用例
-    void exec(rx_tdd_level rtl)
+    void exec(rx_tdd_level rtl,bool only_curr_level=false)
     {
-        if (m_level>rtl)
+        if (rtl<m_level||(only_curr_level&&rtl!=m_level))
         {
             _rx_tdd_stat().out("RX TDD *SKIP* {%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
             return;
@@ -172,7 +174,6 @@ public:
 
     }
 protected:
-    friend void rx_tdd_run(rx_tdd_level rtl);
     void enable_error_wait(bool v=true){m_wait_key=v;}
     //-----------------------------------------------------
     //子类用于执行具体的测试动作
@@ -181,7 +182,7 @@ protected:
 
 //---------------------------------------------------------
 //运行TDD用例,输出统计结果(可指定要求运行的等级,进行长时间运行测试的过滤)
-inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow)
+inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=false)
 {
     rx_tdd_stat &s=_rx_tdd_stat();
     rx_tdd_base *node=s.head;
@@ -189,7 +190,7 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow)
     s.out("RX TDD BEGIN===============================\r\n");
     while(node)
     {
-        node->exec(rtl);
+        node->exec(rtl, only_curr_level);
         node=node->m_next;
     }
     s.out("RX TDD END=================================\r\n");

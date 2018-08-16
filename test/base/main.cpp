@@ -1,4 +1,7 @@
-﻿#include "../../rx_os_spinlock.h"
+﻿#include "../ut_dtl_ringqueue.h"
+#include "../../rx_dtl_ringqueue.h"
+
+#include "../../rx_os_spinlock.h"
 
 #include "../ut_os_tasks.h"
 #include "../../rx_os_tasks.h"
