@@ -30,7 +30,7 @@ void main()
     rx_tdd_run();
 }
 */
-
+#include "rx_cc_macro.h"
 #include <stdarg.h>
 #include <stdio.h>
 //---------------------------------------------------------
@@ -171,10 +171,11 @@ public:
             s.out("press enter key to continue...\r\n");
             getchar();
         }
-
     }
-protected:
+    //-----------------------------------------------------
+    //出现错误的时候,是否提升进行UI等待确认
     void enable_error_wait(bool v=true){m_wait_key=v;}
+protected:
     //-----------------------------------------------------
     //子类用于执行具体的测试动作
     virtual void on_exec()=0;

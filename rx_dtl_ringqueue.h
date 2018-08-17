@@ -64,7 +64,7 @@ namespace rx
         virtual ~ringqueue_base() {}
     public:
         ringqueue_base():m_array(NULL), m_capacity(0), m_mask(0){}
-        
+
         //-------------------------------------------------
         //获取队列长度,返回值
         size_type   size()
@@ -128,8 +128,9 @@ namespace rx
     class ringqueue_fixed :public ringqueue_base<DT, LT, ST>
     {
         DT  m_items[1<<CP];                                 //定义真正的队列空间
+        typedef ringqueue_base<DT, LT, ST> superclass;
     public:
-        ringqueue_fixed() { rx_check(m_init(m_items,uint32_t(1<<CP))); }        //构造时进行初始化
+        ringqueue_fixed() { rx_check(superclass::m_init(m_items,uint32_t(1<<CP))); }        //构造时进行初始化
     };
 }
 

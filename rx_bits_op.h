@@ -3,16 +3,15 @@
 #include "rx_cc_macro.h"
 
     //---------------------------------------------------------
-    //对变量b进行位序操作(位序i从0开始)
-    #define bit_tst(b,i)        bits_tst(b,(1<<(i)))        //测试,b的第i位是否置位
-    #define bit_set(b,i)        bits_set(b,(1<<(i)))        //置位,b的第i位
-    #define bit_clr(b,i)        bits_clr(b,(1<<(i)))        //复位,b的第i位
-
-    //---------------------------------------------------------
     //对变量b进行值v操作
     #define bits_tst(b,v)       ((b)&(v))                   //获取b&v的结果
     #define bits_set(b,v)       ((b)|=(v))                  //给b设置v的值
     #define bits_clr(b,v)       ((b)&=~(v))                 //对b清理v的值
+    //---------------------------------------------------------
+    //对变量b进行位序操作(位序i从0开始)
+    #define bit_tst(b,i)        bits_tst(b,(1<<(i)))        //测试,b的第i位是否置位
+    #define bit_set(b,i)        bits_set(b,(1<<(i)))        //置位,b的第i位
+    #define bit_clr(b,i)        bits_clr(b,(1<<(i)))        //复位,b的第i位
 
     //---------------------------------------------------------
     class rx_bits_mask
@@ -397,12 +396,12 @@
         uint32_t pos() { return (m_bytes_idx <<3) + m_bits_offset; }
         //-----------------------------------------------------------
         //获取待遍历的剩余比特总数
-        uint32_t remain() 
-        { 
+        uint32_t remain()
+        {
             if (m_order_dir)
                 return pos() + 1;
             else
-                return bits() - pos(); 
+                return bits() - pos();
         }
         //-----------------------------------------------------------
         //测试当前位(需要在end()返回false的情况下)
@@ -429,8 +428,8 @@
             {//降序
                 for (uint8_t i = 0; i<bitcount; ++i)
                 {
-                    if (bit_get())
-                        bit_set(value, (sizeof(DT) << 3) - i - 1);
+                    if (tst())
+                        set(value, (sizeof(DT) << 3) - i - 1);
                     next();
                 }
             }
@@ -438,8 +437,8 @@
             {//升序
                 for (uint8_t i = 0; i<bitcount; ++i)
                 {
-                    if (bit_get())
-                        bit_set(value, i);
+                    if (tst())
+                        set(value, i);
                     next();
                 }
             }

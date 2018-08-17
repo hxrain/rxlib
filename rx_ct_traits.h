@@ -38,6 +38,10 @@ namespace rx
         typedef rx_type_true_t    has_trivial_assignment_operator;
         typedef rx_type_true_t    has_trivial_destructor;
         typedef rx_type_true_t    is_POD_type;
+
+        typedef uint8_t unsigned_t;
+        typedef int8_t  signed_t;
+        typedef uint8_t invsigned_t;
     };
 
     template<> struct rx_type_check_t<uint8_t>
@@ -47,6 +51,10 @@ namespace rx
         typedef rx_type_true_t    has_trivial_assignment_operator;
         typedef rx_type_true_t    has_trivial_destructor;
         typedef rx_type_true_t    is_POD_type;
+
+        typedef uint8_t unsigned_t;
+        typedef int8_t  signed_t;
+        typedef int8_t  invsigned_t;
     };
 
     template<> struct rx_type_check_t<int16_t>
@@ -56,6 +64,10 @@ namespace rx
         typedef rx_type_true_t    has_trivial_assignment_operator;
         typedef rx_type_true_t    has_trivial_destructor;
         typedef rx_type_true_t    is_POD_type;
+
+        typedef uint16_t unsigned_t;
+        typedef int16_t  signed_t;
+        typedef uint16_t invsigned_t;
     };
 
     template<> struct rx_type_check_t<uint16_t>
@@ -65,6 +77,10 @@ namespace rx
         typedef rx_type_true_t    has_trivial_assignment_operator;
         typedef rx_type_true_t    has_trivial_destructor;
         typedef rx_type_true_t    is_POD_type;
+
+        typedef uint16_t unsigned_t;
+        typedef int16_t  signed_t;
+        typedef int16_t  invsigned_t;
     };
 
     template<> struct rx_type_check_t<int32_t>
@@ -74,6 +90,10 @@ namespace rx
         typedef rx_type_true_t    has_trivial_assignment_operator;
         typedef rx_type_true_t    has_trivial_destructor;
         typedef rx_type_true_t    is_POD_type;
+
+        typedef uint32_t unsigned_t;
+        typedef int32_t  signed_t;
+        typedef uint32_t invsigned_t;
     };
 
     template<> struct rx_type_check_t<uint32_t>
@@ -83,6 +103,10 @@ namespace rx
         typedef rx_type_true_t    has_trivial_assignment_operator;
         typedef rx_type_true_t    has_trivial_destructor;
         typedef rx_type_true_t    is_POD_type;
+
+        typedef uint32_t unsigned_t;
+        typedef int32_t  signed_t;
+        typedef int32_t  invsigned_t;
     };
 
     template<> struct rx_type_check_t<int64_t>
@@ -92,6 +116,10 @@ namespace rx
         typedef rx_type_true_t    has_trivial_assignment_operator;
         typedef rx_type_true_t    has_trivial_destructor;
         typedef rx_type_true_t    is_POD_type;
+
+        typedef uint64_t unsigned_t;
+        typedef int64_t  signed_t;
+        typedef uint64_t invsigned_t;
     };
 
     template<> struct rx_type_check_t<uint64_t>
@@ -101,6 +129,10 @@ namespace rx
         typedef rx_type_true_t    has_trivial_assignment_operator;
         typedef rx_type_true_t    has_trivial_destructor;
         typedef rx_type_true_t    is_POD_type;
+
+        typedef uint64_t unsigned_t;
+        typedef int64_t  signed_t;
+        typedef int64_t  invsigned_t;
     };
 
     template<> struct rx_type_check_t<float>

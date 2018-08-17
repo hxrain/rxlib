@@ -9,12 +9,12 @@
     //-lpthread
 
     //让线程休眠指定的时间(毫秒)
-    void rx_thread_yield(uint32_t ms) 
-    { 
+    void rx_thread_yield(uint32_t ms)
+    {
         if (!ms)
             sched_yield();
         else
-            usleep(ms*1000); 
+            usleep(ms*1000);
     }
     //尝试进行微秒级休眠
     void rx_thread_yield_us(uint32_t us)
@@ -330,7 +330,7 @@ namespace rx
         bool lock(bool is_wr_lock = true)
         {
             if (is_wr_lock)
-                AcquireSRWLockExclusive(&m_handle);
+                ::AcquireSRWLockExclusive(&m_handle);
             else
                 AcquireSRWLockShared(&m_handle);
             m_is_write = is_wr_lock;

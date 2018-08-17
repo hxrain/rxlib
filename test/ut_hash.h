@@ -1,8 +1,11 @@
 #ifndef _RX_UT_HASH_H_
 #define _RX_UT_HASH_H_
 
+#include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
 #include "../rx_hash_int.h"
+#include <time.h>
+#include <math.h>
 
 //---------------------------------------------------------
 inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_func_t hash,rx_tdd_base &rt)

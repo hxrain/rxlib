@@ -1,8 +1,10 @@
 #ifndef _RX_UT_HASH_TLMAP_H_
 #define _RX_UT_HASH_TLMAP_H_
 
+#include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
 #include "../rx_hash_tlmap.h"
+
 namespace tn_tmp
 {
     typedef struct tlmap_cfg_t

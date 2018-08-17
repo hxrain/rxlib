@@ -474,9 +474,9 @@
         #endif
 
         #define WIN32_LEAN_AND_MEAN
-        
+
         #include <windows.h>
-        
+
         #if RX_CC==RX_CC_VC&&RX_CC_VER_MAJOR<=16
         #else
             #include <synchapi.h>
