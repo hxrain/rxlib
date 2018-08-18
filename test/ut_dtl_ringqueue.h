@@ -140,7 +140,6 @@ namespace rx
     {
         typedef ringqueue_fixed<uint32_t, CP, LT, ST> ringqueue_t;
         ringqueue_t rq;
-        srand((uint32_t)time(NULL));
         uint32_t tc = 0;
 
         for (uint32_t lc = 0; lc < tt; ++lc)
@@ -169,10 +168,10 @@ namespace rx
                 }
             }
 
-            if (lc % 1000==0)
-                printf("[%8u/%8u] test op=%8u\n",lc,tt,tc);
+            //if (lc % 1000==0)
+            //    printf("[%8u/%8u] test op=%8u\n",lc,tt,tc);
         }
-        printf("CP=%u test=%8u  op=%8u\n",CP, tt,tc);
+        printf("CP=%4u test=%8u  op=%8u\n",CP, tt,tc);
     }
 
     //---------------------------------------------------------
@@ -196,13 +195,14 @@ rx_tdd(dtl_ringqueue_base)
 {
     rx::test_dtl_ringqueue_base_1(*this);
     rx::test_dtl_ringqueue_base_2(*this);
-
+    srand((uint32_t)time(NULL));
     rx::test_dtl_ringqueue_base_3L<rx::null_lock_t>(*this,10);
     rx::test_dtl_ringqueue_base_3L<rx::spin_lock_t>(*this,10);
 }
 
 rx_tdd_rtl(dtl_ringqueue_base_2,tdd_level_slow)
 {
+    srand((uint32_t)time(NULL));
     rx::test_dtl_ringqueue_base_3L<rx::null_lock_t>(*this,1000000);
     rx::test_dtl_ringqueue_base_3L<rx::spin_lock_t>(*this,1000000);
 

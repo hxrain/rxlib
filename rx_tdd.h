@@ -131,15 +131,15 @@ public:
     {
         if (rtl<m_level||(only_curr_level&&rtl!=m_level))
         {
-            _rx_tdd_stat().out("RX TDD *SKIP* {%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
+            _rx_tdd_stat().out("RX TDD::<SKIP> {%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
             return;
         }
 
-        _rx_tdd_stat().out("RX TDD {%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
+        _rx_tdd_stat().out("RX TDD::{%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
         try{on_exec();}
         catch(...)
         {
-            _rx_tdd_stat().out("RX TDD <%s> at <%s:%d> => throw exception!\r\n",m_tdd_name,m_file_name,m_line_no);
+            _rx_tdd_stat().out("RX TDD::<EXCEPTION> {%s} at <%s:%d> => throw exception!\r\n",m_tdd_name,m_file_name,m_line_no);
             ++_rx_tdd_stat()._failed;                   //捕捉异常时记录失败次数
         }
         ++_rx_tdd_stat()._perform;                      //执行过的用例数增加
@@ -155,7 +155,7 @@ public:
         if (v) return;
         ++s._failed;
 
-		s.out("RX TDD <%s> at <%s : %d> => assert fail!\r\n",m_tdd_name,m_file_name,_line_no);
+		s.out("RX TDD::<*FAIL*>         {%s} at <%s : %d>\r\n",m_tdd_name,m_file_name,_line_no);
 		if (msg&&msg[0])
 		{
 			s.out("    ");
@@ -188,18 +188,18 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
     rx_tdd_stat &s=_rx_tdd_stat();
     rx_tdd_base *node=s.head;
 
-    s.out("RX TDD BEGIN===============================\r\n");
+    s.out("RX TDD::BEGIN===============================\r\n");
     while(node)
     {
         node->exec(rtl, only_curr_level);
         node=node->m_next;
     }
-    s.out("RX TDD END=================================\r\n");
+    s.out("RX TDD::END=================================\r\n");
 
     s.out(
           "       OBJECT total <%4u> : perform <%4u>\r\n"
           "       ASSERT total <%4u> : failed  <%4u>\r\n"
-          "RX TDD COMPLETE============================\r\n",
+          "RX TDD::COMPLETE============================\r\n",
           s._total,s._perform,s._assert,s._failed);
 }
 

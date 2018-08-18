@@ -35,13 +35,13 @@
     //---------------------------------------------------------
     //获取变量b的指定位序i与位数的值(位序i从0开始,位数方向从高向低计算)
     #define bits_get1(b,i)      (((b)&(0x01<<(i)))>>(i))
-    #define bits_get2(b,i)      (((b)&(0x03<<(i)))>>(i))
-    #define bits_get3(b,i)      (((b)&(0x07<<(i)))>>(i))
-    #define bits_get4(b,i)      (((b)&(0x0f<<(i)))>>(i))
-    #define bits_get5(b,i)      (((b)&(0x1f<<(i)))>>(i))
-    #define bits_get6(b,i)      (((b)&(0x3f<<(i)))>>(i))
-    #define bits_get7(b,i)      (((b)&(0x7f<<(i)))>>(i))
-    #define bits_get8(b,i)      (((b)&(0xff<<(i)))>>(i))
+    #define bits_get2(b,i)      (((b)&(0x03<<(i-1)))>>(i-1))
+    #define bits_get3(b,i)      (((b)&(0x07<<(i-2)))>>(i-2))
+    #define bits_get4(b,i)      (((b)&(0x0f<<(i-3)))>>(i-3))
+    #define bits_get5(b,i)      (((b)&(0x1f<<(i-4)))>>(i-4))
+    #define bits_get6(b,i)      (((b)&(0x3f<<(i-5)))>>(i-5))
+    #define bits_get7(b,i)      (((b)&(0x7f<<(i-6)))>>(i-6))
+    #define bits_get8(b,i)      (((b)&(0xff<<(i-7)))>>(i-7))
 
     //获取变量b的指定位序i与位数c的值(位序i从0开始,位数方向从高向低计算)
     //回值告知是否成功;结果为R
@@ -56,21 +56,21 @@
         uint32_t mask = rx_bits_mask::lowset(c - 1);
         if (!mask)
             return false;
-
-        R = (b & (mask << i)) >> i;
+        uint32_t offset = i - c + 1;
+        R = (b & (mask << offset)) >> offset;
         return true;
     }
 
     //---------------------------------------------------------
     //覆盖设置变量b的指定位序i与位数的值为v(位序i从0开始,位数方向从高向低计算)
     #define bits_put1(b,i,v)    (((b)&=~(0x01<<(i))),(b|=(((v)&0x01)<<(i))))
-    #define bits_put2(b,i,v)    (((b)&=~(0x03<<(i))),(b|=(((v)&0x03)<<(i))))
-    #define bits_put3(b,i,v)    (((b)&=~(0x07<<(i))),(b|=(((v)&0x07)<<(i))))
-    #define bits_put4(b,i,v)    (((b)&=~(0x0f<<(i))),(b|=(((v)&0x0f)<<(i))))
-    #define bits_put5(b,i,v)    (((b)&=~(0x1f<<(i))),(b|=(((v)&0x1f)<<(i))))
-    #define bits_put6(b,i,v)    (((b)&=~(0x3f<<(i))),(b|=(((v)&0x3f)<<(i))))
-    #define bits_put7(b,i,v)    (((b)&=~(0x7f<<(i))),(b|=(((v)&0x7f)<<(i))))
-    #define bits_put8(b,i,v)    (((b)&=~(0xff<<(i))),(b|=(((v)&0xff)<<(i))))
+    #define bits_put2(b,i,v)    (((b)&=~(0x03<<(i-1))),(b|=(((v)&0x03)<<(i-1))))
+    #define bits_put3(b,i,v)    (((b)&=~(0x07<<(i-2))),(b|=(((v)&0x07)<<(i-2))))
+    #define bits_put4(b,i,v)    (((b)&=~(0x0f<<(i-3))),(b|=(((v)&0x0f)<<(i-3))))
+    #define bits_put5(b,i,v)    (((b)&=~(0x1f<<(i-4))),(b|=(((v)&0x1f)<<(i-4))))
+    #define bits_put6(b,i,v)    (((b)&=~(0x3f<<(i-5))),(b|=(((v)&0x3f)<<(i-5))))
+    #define bits_put7(b,i,v)    (((b)&=~(0x7f<<(i-6))),(b|=(((v)&0x7f)<<(i-6))))
+    #define bits_put8(b,i,v)    (((b)&=~(0xff<<(i-7))),(b|=(((v)&0xff)<<(i-7))))
 
     //覆盖设置变量b的指定位序i与位数c的值为v(位序i从0开始,位数方向从高向低计算)
     //回值告知是否成功;结果为R
@@ -86,9 +86,10 @@
         if (!mask)
             return false;
 
+        uint32_t offset = i - c + 1;
         R = b;
-        R &= ~(mask << i);                                  //先清理原位置
-        R |= (v & mask) << i;                               //再覆盖新值
+        R &= ~(mask << offset);                             //先清理原位置
+        R |= (v & mask) << offset;                          //再覆盖新值
 
         return true;
     }
@@ -354,7 +355,7 @@
             }
             return true;
         }
-        bool begin(uint8_t* data, uint32_t datalen, bool asc)
+        bool begin(uint8_t* data, uint32_t datalen, bool asc = true)
         {
             m_bytes = data;
             m_bytes_len = datalen;
@@ -367,22 +368,23 @@
         {
             if (m_order_dir)
             {//降序
+                if (!m_bytes_idx&&!m_bits_offset)
+                    return false;
+
                 --m_bits_offset;
-                if (!m_bits_offset)
+                if (!m_bits_offset&&m_bytes_idx)
                 {
-                    if (!m_bytes_idx)
-                        return false;
                     --m_bytes_idx;
                     m_bits_offset = 7;
                 }
             }
             else
             {//升序
+                if ((m_bytes_idx == m_bytes_len - 1)&& m_bits_offset==7)
+                    return false;
                 ++m_bits_offset;
                 if (m_bits_offset == 8)
                 {
-                    if (m_bytes_idx == m_bytes_len - 1)
-                        return false;
                     ++m_bytes_idx;
                     m_bits_offset = 0;
                 }
@@ -390,21 +392,31 @@
             return true;
         }
         //-----------------------------------------------------------
+        //比特总数
         uint32_t bits() { return (m_bytes_len << 3); }
         //-----------------------------------------------------------
         //得到当前正在操作的bit序号,从0开始.
         uint32_t pos() { return (m_bytes_idx <<3) + m_bits_offset; }
+        //调整操作位序点
+        bool pos(uint32_t idx)
+        {
+            if (idx >= bits())
+                return false;
+            m_bytes_idx = (idx >> 3);
+            m_bits_offset = idx & 7;
+            return true;
+        }
         //-----------------------------------------------------------
         //获取待遍历的剩余比特总数
         uint32_t remain()
         {
-            if (m_order_dir)
-                return pos() + 1;
-            else
-                return bits() - pos();
+            if (m_order_dir)        //降序
+                return pos();
+            else                    //升序
+                return bits() - pos()-1;
         }
         //-----------------------------------------------------------
-        //测试当前位(需要在end()返回false的情况下)
+        //测试当前位
         bool tst() { return !!bit_tst(m_bytes[m_bytes_idx], m_bits_offset); }
         //-----------------------------------------------------------
         //当前位置位
@@ -414,6 +426,7 @@
         void clr() { bit_clr(m_bytes[m_bytes_idx], m_bits_offset); }
         //-----------------------------------------------------------
         //从当前位置获取bitcount比特位的值到value中.
+        //升降序决定了value中的开始位置.(升序从低向高;降序从高向低)
         //返回值:告知是否成功
         template<class DT>
         bool fetch(DT &value, uint8_t bitcount)
@@ -425,20 +438,20 @@
                 return false;
 
             if (m_order_dir)
-            {//降序
+            {//降序,填充到value的高处
                 for (uint8_t i = 0; i<bitcount; ++i)
                 {
                     if (tst())
-                        set(value, (sizeof(DT) << 3) - i - 1);
+                        bit_set(value, (sizeof(DT) << 3) - i - 1);
                     next();
                 }
             }
             else
-            {//升序
+            {//升序,填充到value的低处
                 for (uint8_t i = 0; i<bitcount; ++i)
                 {
                     if (tst())
-                        set(value, i);
+                        bit_set(value, i);
                     next();
                 }
             }
@@ -446,7 +459,8 @@
             return true;
         }
         //-----------------------------------------------------------
-        //将value中的bitcount比特填充到当前bit流的位置
+        //将value中的bitcount比特填充到当前bit流的位置.
+        //升降序决定了value中的开始位置.(升序从低向高;降序从高向低)
         template<class DT>
         bool fill(const DT value, uint8_t bitcount)
         {
@@ -456,7 +470,7 @@
                 return false;
 
             if (m_order_dir)
-            {//降序
+            {//降序,从value的高位处逐一复制
                 for (uint8_t i = 0; i<bitcount; ++i)
                 {
                     if (bit_tst(value, (sizeof(DT) << 3) - i - 1))
@@ -467,7 +481,7 @@
                 }
             }
             else
-            {//升序
+            {//升序,从value的低位处逐一复制
                 for (uint8_t i = 0; i<bitcount; ++i)
                 {
                     if (bit_tst(value, i))
