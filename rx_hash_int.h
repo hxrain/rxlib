@@ -285,20 +285,20 @@
     {
         switch (Type)
         {
-        case IHT_tomas:     return "IntHash::tomas";
-        case IHT_bobj:      return "IntHash::bobj";
-        case IHT_murmur3:   return "IntHash::murmur3";
-        case IHT_mosquito:  return "IntHash::mosquito";
-        case IHT_skeeto_a:  return "IntHash::skeeto_a";
-        case IHT_skeeto_b:  return "IntHash::skeeto_b";
-        case IHT_skeeto_c:  return "IntHash::skeeto_c";
-        case IHT_skeeto_d:  return "IntHash::skeeto_d";
-        case IHT_skeeto_e:  return "IntHash::skeeto_e";
-        case IHT_skeeto_e_r:return "IntHash::skeeto_e_r";
-        case IHT_skeeto_f:  return "IntHash::skeeto_f";
-        case IHT_skeeto_g:  return "IntHash::skeeto_g";
-        case IHT_skeeto_triple:  return "IntHash::skeeto_triple";
-        case IHT_skeeto_triple_r:return "IntHash::skeeto_triple_r";
+        case IHT_tomas:             return "IntHash::tomas";
+        case IHT_bobj:              return "IntHash::bobj";
+        case IHT_murmur3:           return "IntHash::murmur3";
+        case IHT_mosquito:          return "IntHash::mosquito";
+        case IHT_skeeto_a:          return "IntHash::skeeto_a";
+        case IHT_skeeto_b:          return "IntHash::skeeto_b";
+        case IHT_skeeto_c:          return "IntHash::skeeto_c";
+        case IHT_skeeto_d:          return "IntHash::skeeto_d";
+        case IHT_skeeto_e:          return "IntHash::skeeto_e";
+        case IHT_skeeto_e_r:        return "IntHash::skeeto_e_r";
+        case IHT_skeeto_f:          return "IntHash::skeeto_f";
+        case IHT_skeeto_g:          return "IntHash::skeeto_g";
+        case IHT_skeeto_triple:     return "IntHash::skeeto_triple";
+        case IHT_skeeto_triple_r:   return "IntHash::skeeto_triple_r";
 
         default:            return "Hash::Unknown";
         }
@@ -328,11 +328,49 @@
     }
 
     //-----------------------------------------------------
-    //根据哈希函数类型计算给定数据的哈希码
-    inline uint32_t rx_int_hash(rx_int_hash_type Type, uint32_t Key)
+    //根据哈希函数类型区分的整数哈希函数族
+    inline uint32_t rx_int_hash(uint32_t Key, rx_int_hash_type Type= IHT_skeeto_triple)
     {
         return rx_int_hash(rx_int_hash_type(Type<IHT_Count?Type: IHT_Count-1))(Key);
     }
 
+    //-----------------------------------------------------
+    //算法一致性的整数哈希函数族(三绕模式)
+    const uint32_t triple_cfg_size = 14;
+    inline uint32_t rx_int_hash_skeeto(uint32_t x,uint32_t cfg_idx=0)
+    {
+        struct triple_cfg
+        {
+            uint8_t     shr_1, shr_2, shr_3, shr_4;
+            uint32_t    mul_1, mul_2, mul_3;
+        }static const triple_cfgs[] = {
+            { 17, 11, 15, 14, 0xed5ad4bb, 0xac4c1b51, 0x31848bab }, //(exact bias:0.020829410544597495)
+            { 18, 11, 15, 14, 0xed5ad4bb, 0xac4c1b51, 0x31848bab }, //(exact bias:0.021334944237993255)
+            { 18, 13, 15, 15, 0x4260bb47, 0x27e8e1ed, 0x9d48a33b }, //exact bias: 0.021576730651802156
+            { 15, 14, 17, 15, 0x5dfa224b, 0x4bee7e4b, 0x930ee371 }, //exact bias: 0.021845216288848130
+            { 16, 14, 16, 15, 0x2bbed51b, 0xcd09896b, 0x38d4c587 }, //exact bias: 0.022159936298777144
+            { 16, 14, 16, 16, 0x0ab694cd, 0x4c139e47, 0x11a42c3b }, //exact bias: 0.022209281912203550
+            { 16, 14, 16, 16, 0x66e756d5, 0xb5f5a9cd, 0x84e56b11 }, //exact bias: 0.022372957847491555
+            { 16, 14, 16, 17, 0x45109e55, 0x3b94759d, 0xadf31ea5 }, //exact bias: 0.022436433678417977
+            { 16, 14, 16, 15, 0x7001e6eb, 0xbb8e7313, 0x3aa8c523 }, //exact bias: 0.022491767264054854
+            { 16, 14, 15, 15, 0x49ed0a13, 0x83588f29, 0x658f258d }, //exact bias: 0.022500668856510898
+            { 16, 14, 14, 16, 0x6cdb9705, 0x4d58d2ed, 0xc8642b37 }, //exact bias: 0.022504626537729222
+            { 15, 13, 15, 16, 0xfc54c453, 0x08213789, 0x669f96eb }, //exact bias: 0.022591114646032095
+            { 16, 14, 15, 16, 0x13566dbb, 0x59369a03, 0x990f9d1b }, //exact bias: 0.022712430070797596
+            { 18, 12, 17, 12, 0xed5ad4bb, 0xac4c1b51, 0xc0a8e5d7 }, //(exact bias:0.022829781930394154)
+        };
 
+        const struct triple_cfg &cfg_t = triple_cfgs[cfg_idx>= triple_cfg_size ?0:cfg_idx];
+        ++x;
+        x ^= x >> cfg_t.shr_1;
+        x *= cfg_t.mul_1;
+        x ^= x >> cfg_t.shr_2;
+        x *= cfg_t.mul_2;
+        x ^= x >> cfg_t.shr_3;
+        x *= cfg_t.mul_3;
+        x ^= x >> cfg_t.shr_4;
+        return x;
+    }
 #endif
+
+    
