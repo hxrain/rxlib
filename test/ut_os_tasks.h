@@ -13,7 +13,7 @@ protected:
     {
         uint64_t data=(uint64_t)param;
         printf("task_disp [%u] [%d]\n",(uint32_t)rx_thread_id(),(uint32_t)data);
-        Sleep(500);
+        rx_thread_yield(500);
         return 0;
     }
 };

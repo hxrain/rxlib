@@ -29,18 +29,17 @@ namespace rx
                 pthread_condattr_destroy(&m_attr);
             }
         };
-        
+
         pthread_cond_t      m_cond;
 
         //-----------------------------------------------------
         bool m_init()
         {
             cond_attr ca;
-            if (!ca) return false;
+            if (!ca()) return false;
             //要求使用系统滴答相对时间进行等待
             if (!ca.set_monotonic()) return false;
-            retval = pthread_cond_init(&m_cond, &ca.attr());
-            return 0==retval;
+            return 0 == pthread_cond_init(&m_cond, &ca.attr());
         }
         //-----------------------------------------------------
         void m_uninit()
@@ -64,21 +63,10 @@ namespace rx
             else
             {
                 struct timespec ts;
-                rx_tick_us(ts,ms);
+                rx_get_tick_us(ts,ms);
                 return pthread_cond_timedwait(&m_cond,locker.handle(),&ts)==0;
             }
         }
-        bool wait(rw_locker_t &locker, int ms = -1)
-        {
-            if (ms == -1)
-                return pthread_cond_wait(&m_cond, locker.handle()) == 0;
-            else
-            {
-                struct timespec ts;
-                rx_tick_us(ts, ms);
-                return pthread_cond_timedwait(&m_cond, locker.handle(), &ts) == 0;
-            }
-}
         //-----------------------------------------------------
         //对条件变量发送通知:是否为广播通知
         bool post(bool to_all=false)

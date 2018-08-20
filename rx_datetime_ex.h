@@ -5,7 +5,7 @@
 	#include "rx_datetime.h"
     #include "rx_atomic.h"
 	#include <time.h>
-    
+
 /*
 	本单元进行系统时间相关函数的封装处理.
 		rx_time_zone()										获取系统当前时区(秒)
@@ -58,7 +58,7 @@
         //获取系统UTC时间
         if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) < 0)
             return false;
-        time_add_ms(ts, ms);
+        rx_add_ms(ts, ms);
         return true;
     }
 

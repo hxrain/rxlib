@@ -181,8 +181,8 @@ namespace rx
         public:
             thread_attr() { m_is_valid = (pthread_attr_init(&m_attr) == 0); }
             bool operator()() { return m_is_valid; }
-            bool set_stacksize(uint32_t size=0) 
-            { 
+            bool set_stacksize(uint32_t size=0)
+            {
                 if (size&&pthread_attr_setstacksize(&m_attr, size))
                     return false;
                 return true;
@@ -212,7 +212,8 @@ namespace rx
             //进行线程属性的初始化
             thread_attr ta;
             if (!ta()) return false;
-            if (!ta.set_stacksize(stacksize)) return;
+            if (!ta.set_stacksize(stacksize))
+                return false;
 
             m_task_param = task_param;
 

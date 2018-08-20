@@ -417,6 +417,9 @@
     #if defined(__linux__)
         #define RX_OS                       RX_OS_LINUX
         #define RX_OS_NAME                  "linux"
+        #ifndef RX_OS_POSIX
+            #define RX_OS_POSIX             5
+        #endif
     #endif
 
     #if defined(__MACOSX__)

@@ -7,6 +7,7 @@
 #if RX_OS_POSIX
      #include <pthread.h>
     //-lpthread
+    #include <unistd.h>
 
     //让线程休眠指定的时间(毫秒)
     void rx_thread_yield(uint32_t ms)
@@ -29,6 +30,8 @@
     //获取当前线程ID
     uint64_t rx_thread_id() { return pthread_self(); }
 
+    #define rx_mm_pause() __asm__ __volatile__ ("pause\n")
+
 #elif RX_OS_WIN
 
     #include <process.h>
@@ -44,9 +47,10 @@
     //获取当前线程ID
     uint64_t rx_thread_id() { return GetCurrentThreadId(); }
 
+    #define rx_mm_pause() _mm_pause()
 #endif
 
-    #define rx_mm_pause() _mm_pause()
+
 
 namespace rx
 {
@@ -158,9 +162,7 @@ namespace rx
             if (!la.set_private()) return -2;
             if (!la.set_recursive()) return -3;
             //初始化互斥锁,应用锁属性
-            rc=pthread_mutex_init(&m_handle,&la.attr());
-
-            return rc;
+            return pthread_mutex_init(&m_handle,&la.attr());
         }
         //--------------------------------------------------
         //进行递归锁的解除
@@ -194,14 +196,14 @@ namespace rx
     {
         class lock_attr
         {
-            pthread_mutexattr_t m_attr;
+            pthread_rwlockattr_t m_attr;
             bool m_is_valid;
         public:
             lock_attr(){m_is_valid=(pthread_rwlockattr_init(&m_attr)==0);}
             bool operator()(){return m_is_valid;}
             bool set_private(){return 0==pthread_rwlockattr_setpshared(&m_attr, PTHREAD_PROCESS_PRIVATE);}
             bool set_prefer_write(){return 0==pthread_rwlockattr_setkind_np(&m_attr, PTHREAD_MUTEX_RECURSIVE);}
-            pthread_mutexattr_t& attr(){return m_attr;}
+            pthread_rwlockattr_t& attr(){return m_attr;}
             ~lock_attr()
             {
                 if (!m_is_valid) return;
@@ -216,13 +218,11 @@ namespace rx
         {
             //初始化互斥锁的属性对象
             lock_attr la;
-            if (!la) return -1;
+            if (!la()) return -1;
             if (!la.set_private()) return -2;
             if (!la.set_prefer_write()) return -3;
             //初始化互斥锁,应用锁属性
-            rc=pthread_rwilocknit(&m_handle,&m_attr);
-
-            return rc;
+            return pthread_rwlock_init(&m_handle,&la.attr());
         }
         //--------------------------------------------------
         //进行递归锁的解除
@@ -237,7 +237,7 @@ namespace rx
         //构造函数,默认进行初始化
         rw_locker_t(){m_init();}
         ~rw_locker_t(){m_uninit();}
-        pthread_mutex_t *handle(){return &m_handle;}
+        pthread_rwlock_t *handle(){return &m_handle;}
         //--------------------------------------------------
         //锁定,默认情况下使用写锁
         bool lock(bool is_wr_lock=true)

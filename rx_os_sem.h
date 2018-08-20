@@ -8,6 +8,8 @@
 #if RX_OS_POSIX
     #include <pthread.h>
     #include <semaphore.h>
+    #include <memory.h>
+    #include <errno.h>
     //-lpthread
 #endif
 
@@ -73,8 +75,8 @@ namespace rx
         ~semp_t() { uninit(); }
         //-----------------------------------------------------
         //初始化旗标,告知初始值
-        bool init(uint32_t init_value = 0) 
-        { 
+        bool init(uint32_t init_value = 0)
+        {
             rx_assert(m_handle == NULL);
             m_handle=CreateSemaphore(NULL,(long)init_value,LONG_MAX,NULL);
             return NULL != m_handle;
