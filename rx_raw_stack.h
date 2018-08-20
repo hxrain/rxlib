@@ -5,8 +5,15 @@
 
 namespace rx
 {
+/*
+    //使用此原始stack(或list)的时候,应该构造如下的节点类型
+    typedef struct raw_stack_node_t
+	{
+		struct raw_stack_node_t* volatile next;	            //节点的后趋
+    }raw_stack_node_t;
+*/    
     //-----------------------------------------------------
-    //Raw Stack:原始的栈,保持最简形式,不用管理内存
+    //Raw Stack:原始的栈(或单向list),保持最简形式,不用管理内存
     //要求node_t节点类型中至少含有一个后趋指针next
     template<class node_t>
     class raw_stack
@@ -32,10 +39,10 @@ namespace rx
             return now_top;
         }
         //-------------------------------------------------
-        //查看栈顶
+        //查看栈顶(链表头)
         node_t* peek() const {return (node_t*)m_head;}
         //-------------------------------------------------
-        //节点入栈
+        //节点入栈(在头节点前插入,变成新的头)
         void push(node_t *new_node)
         {
             new_node->next = m_head;
@@ -43,7 +50,8 @@ namespace rx
             ++m_count;
         }
         //-------------------------------------------------
-        //弹出(不进行空栈检测,外面使用前需要进行检查)
+        //弹出(头结点摘除,后趋变为新节点)
+        //(不进行空栈检测,外面使用前需要进行检查)
         node_t* pop()
         {
             rx_assert(m_count!=0);

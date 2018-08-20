@@ -24,18 +24,19 @@
     //---------------------------------------------------------------
     //利用系统时间函数(本地时间),获取系统本地的时区(秒值)
     //注意:此方法多线程使用时须注意
-    inline int32_t rx_time_zone()
+    inline int32_t rx_time_zone(time_t dt = 0)
     {
-        time_t dt = 0;
         struct tm dp;
-    #if RX_CC==RX_CC_VC
+        //先用给定的时间,获取对应的本地时间.
+    #if RX_CC==RX_CC_VC||RX_CC_MINGW
         localtime_s(&dp, &dt);                              //win上据说是安全的
     #elif RX_OS==RX_OS_LINUX
         localtime_r(&dt, &dp);                              //linux上据说有多线程锁定性能的问题
     #else
         dp = *localtime((time_t*)&dt);                      //多线程不安全的标准函数
     #endif
-        return (int32_t)rx_make_utc(dp, 0);
+        //再将本地时间转换为时区偏差0处的UTC时间.
+        return (int32_t)(rx_make_utc(dp, 0)-dt);
     }
 
     //---------------------------------------------------------------

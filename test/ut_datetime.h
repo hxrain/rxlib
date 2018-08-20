@@ -39,7 +39,17 @@ inline void test_localtime_loop(rx_tdd_base &rt)
     int tag = -1;
     struct tm tp;
     char tmp[20];
+    time_t ct=time(NULL);
+    printf("rx_time_zone=%d ct=%u\n",rx_time_zone(ct),(uint32_t)ct);
+    printf("rx_time_zone=%d ct=%u\n",rx_time_zone(575),575);
+    printf("rx_time_zone=%d ct=%u\n",rx_time_zone(57599),57599);
+    printf("rx_time_zone=%d ct=%u\n",rx_time_zone(57600),57600);
+    printf("rx_time_zone=%d ct=%u\n",rx_time_zone(57601),57601);
+
     uint64_t dtloop = rx_make_utc(2118, 5, 22, 10, 45, 15);
+#if RX_CC_MINGW
+    dtloop=57600;   //mingw的时区数据有问题
+#endif
     for (uint64_t dt = 0; dt < dtloop; ++dt)
     {
         test_localtime(dt, tp, rt);

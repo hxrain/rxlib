@@ -64,7 +64,7 @@ int main()
     cout << "你好Hello world!\n" << rx_cc_desc() << endl << endl;
     rx_static_assert(1);
 
-    rx_tdd_run(tdd_level_ui);
+    rx_tdd_run(tdd_level_std);
 
 	getchar();
     return 0;

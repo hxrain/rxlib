@@ -257,6 +257,9 @@
     #if !RX_CC_TESTED
     #endif
 
+    #if RX_CC==RX_CC_MINGW32||RX_CC==RX_CC_MINGW64
+        #define RX_CC_MINGW 1
+    #endif
     //-----------------------------------------------------
     //定义常用CPU的类型
     #ifndef RX_CPU
