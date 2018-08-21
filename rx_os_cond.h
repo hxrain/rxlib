@@ -110,15 +110,6 @@ namespace rx
                 return !!SleepConditionVariableCS(&m_cond,locker.handle(),ms);
         }
         //-----------------------------------------------------
-        //对条件变量进行等待:默认无限等待(毫秒)
-        bool wait(rw_locker_t &locker, int ms = -1)
-        {
-            if (ms == -1)
-                return !!SleepConditionVariableSRW(&m_cond, locker.handle(), INFINITE,0);
-            else
-                return !!SleepConditionVariableSRW(&m_cond, locker.handle(), ms,0);
-        }
-        //-----------------------------------------------------
         //对条件变量发送通知:是否为广播通知
         bool post(bool to_all=false)
         {
