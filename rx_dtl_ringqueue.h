@@ -63,11 +63,11 @@ namespace rx
         }
         virtual ~ringqueue_base() {}
     public:
+        //-------------------------------------------------
         ringqueue_base():m_array(NULL), m_capacity(0), m_mask(0){}
-
         //-------------------------------------------------
         //获取队列长度,返回值
-        size_type   size()
+        size_type   size() const
         {
             mem_barrier();
 
@@ -79,7 +79,16 @@ namespace rx
         }
         //-------------------------------------------------
         //获取队列能力值
-        size_type   capacity() { return m_capacity; }
+        size_type   capacity() const { return m_capacity; }
+        //-------------------------------------------------
+        //剩余空间
+        size_type   remain() const { return m_capacity - size(); }
+        //-------------------------------------------------
+        //判断队列是否为空
+        bool        empty() const { return m_pointing.head == m_pointing.tail; }
+        //-------------------------------------------------
+        //直接清空队列
+        void        clear() { m_pointing.head = 0; m_pointing.tail = 0; }
         //-------------------------------------------------
         //数据入队,返回值告知是否成功
         bool push(item_type data)
@@ -109,11 +118,11 @@ namespace rx
             if (tail == head)                               //头尾相同说明队列是空的
                 return NULL;
 
-            if (tail > head && (head - tail) > m_mask)
-            {
-                rx_show_msg("(tail > head && (head - tail) > m_mask) == true");
-                return NULL;
-            }
+//            if (tail > head && (head - tail) > m_mask)
+//            {
+//                rx_show_msg("(tail > head && (head - tail) > m_mask) == true");
+//                return NULL;
+//            }
 
             if (!is_peek)
                 m_pointing.tail = tail + 1;                 //不是查看模式,则尾位置前移
@@ -123,8 +132,8 @@ namespace rx
     };
 
     //-----------------------------------------------------
-    //静态空间的环形队列,数据类型DT;容量(1<<CP);数字类型NT;锁类型LT.
-    template<class DT,uint32_t CP=8, class LT = null_lock_t,class ST=uint32_t>
+    //静态空间的环形队列,数据类型DT;容量(CP为2的整数倍);数字类型NT;锁类型LT.
+    template<class DT,uint32_t CP=log2<128>::result, class LT = null_lock_t,class ST=uint32_t>
     class ringqueue_fixed :public ringqueue_base<DT, LT, ST>
     {
         DT  m_items[1<<CP];                                 //定义真正的队列空间
