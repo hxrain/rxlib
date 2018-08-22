@@ -1,4 +1,4 @@
-﻿#include "../ut_dtl_ringbuff.h.h"
+﻿#include "../ut_dtl_ringbuff.h"
 #include "../../rx_dtl_ringbuff.h"
 
 #include "../ut_dtl_ringqueue.h"
