@@ -1,4 +1,5 @@
-﻿
+﻿#include "../../rx_mem_alloc.h"
+
 #include "../ut_dtl_ringbuff.h"
 #include "../../rx_dtl_ringbuff.h"
 

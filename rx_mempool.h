@@ -21,7 +21,7 @@ namespace rx
     };
 
     //------------------------------------------------------
-    //用于记录内存池工作情况
+    //用于记录内存分配器的工作情况
     typedef struct alloc_stat_t
     {
         uint32_t c_alloced;                                 //缓存已分配
@@ -29,7 +29,7 @@ namespace rx
     }alloc_stat_t;
 
 	//------------------------------------------------------
-    //用于记录内存池工作情况
+    //用于记录内存池的工作情况
     typedef struct mempool_stat_t
     {
         uint32_t pool_size;                                 //内存池总量
@@ -162,37 +162,6 @@ namespace rx
         //校验最大节点尺寸合法性,确定MaxNodeSize是2的整数次幂
         enum{MaxNodeShiftBit=LOG2<MaxNodeSize>::result};
     }mempool_cfg_t;
-
-	//======================================================
-	//标准内存分配器的存根
-    typedef struct alloc_cookie_t
-    {
-        //内存分配存根
-        typedef struct HNodeCookie
-        {
-            uint32_t Cookie;                              //记录此内存块是否为数组,数组元素的数量
-            uint32_t MemSize;                             //此内存块的尺寸
-        }HNodeCookie;
-        //存根结构的大小
-        enum{HNodeCookieSize=sizeof(HNodeCookie)};
-        //分配的类型:单独的对象,对象数组
-        enum{AllocType_ObjectArray=0x80000000};
-        //--------------------------------------------------
-        //将附加信息放入Cookie:Count=0代表Alloc,1代表New,其他为New数组;MemSize代表本内存块的实际大小
-        static inline void Record(void* P,uint32_t Count,uint32_t MemSize)
-        {
-            ((HNodeCookie*)P)->Cookie=Count;
-            ((HNodeCookie*)P)->MemSize=MemSize;
-        }
-        //--------------------------------------------------
-        //从Cookie中得到附加信息
-        static inline bool Get(void* P,uint32_t &Count,uint32_t &MemSize)
-        {
-            Count=((HNodeCookie*)P)->Cookie&~AllocType_ObjectArray;
-            MemSize=((HNodeCookie*)P)->MemSize;
-            return !!(((HNodeCookie*)P)->Cookie&AllocType_ObjectArray);
-        }
-    }alloc_cookie_t;
 }
 
 

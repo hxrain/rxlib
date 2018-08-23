@@ -24,7 +24,12 @@ namespace rx
         //根据类型偏特化判断的数组构造函数
         template <class T>  static inline void do_array_construct(T* p,const uint32_t Count,const rx_type_true_t&){}
         template <class T>	static inline void do_array_construct(T* p,const uint32_t Count,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i);}
-        template <class T,class PT1>	static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i,P1);}
+        template <class T,class PT1>	
+                            static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i,P1);}
+        template <class T,class PT1,class PT2>	
+                            static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,PT2 &P2,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i,P1,P2);}
+        template <class T,class PT1,class PT2,class PT3>	
+                            static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,PT2 &P2,PT3& P3,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i,P1,P2,P3);}
     public:
         //--------------------------------------------------
         //进行对象构造
@@ -72,6 +77,30 @@ namespace rx
         {
             typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
             do_array_construct(Array,Count,P1, trivial_default_constructor());
+        }
+        template <class T,class PT1,class PT2>
+        static inline void AC(T* Array,const uint32_t Count,PT1& P1,PT2& P2)
+        {
+            typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+            do_array_construct(Array,Count,P1,P2, trivial_default_constructor());
+        }
+        template <class T,class PT1,class PT2>
+        static inline void AC(T* Array,const uint32_t Count,const PT1& P1,const PT2& P2)
+        {
+            typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+            do_array_construct(Array,Count,P1,P2, trivial_default_constructor());
+        }
+        template <class T,class PT1,class PT2,class PT3>
+        static inline void AC(T* Array,const uint32_t Count,PT1& P1,PT2& P2,PT3& P3)
+        {
+            typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+            do_array_construct(Array,Count,P1,P2,P3, trivial_default_constructor());
+        }
+        template <class T,class PT1,class PT2,class PT3>
+        static inline void AC(T* Array,const uint32_t Count,const PT1& P1,const PT2& P2,PT3& P3)
+        {
+            typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+            do_array_construct(Array,Count,P1,P2,P3, trivial_default_constructor());
         }
         //--------------------------------------------------
         //进行数组析构
