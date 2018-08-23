@@ -171,7 +171,8 @@ namespace rx
             //if (lc % 1000==0)
             //    printf("[%8u/%8u] test op=%8u\n",lc,tt,tc);
         }
-        printf("CP=%4u test=%8u  op=%8u\n",CP, tt,tc);
+        if (tt>100)
+            printf("CP=%4u test=%8u  op=%8u\n",CP, tt,tc);
     }
 
     //---------------------------------------------------------

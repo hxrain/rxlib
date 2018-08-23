@@ -106,9 +106,8 @@ namespace rx
             if (!size)
                 size = this->size();                        //没有指定待获取尺寸的时候,就是访问当前的全部可用数据
 
-            if ((a_start + size > m_capacity)||             //访问数据总是从A区进行,并且不能超过可读范围
-                (a_start + size > a_end))                
-                return NULL;                                //A区没有可用的那么多数据时,也返回空.
+            if ((a_start + size > a_end))                   //访问数据总是从A区进行,并且不能超过可读范围;A区没有可用的那么多数据时,也返回空.
+                return NULL;
 
             uint8_t *pos = m_data + a_start;                //记录数据访问点,必须从A区开始
 
