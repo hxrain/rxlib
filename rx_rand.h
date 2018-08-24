@@ -125,7 +125,7 @@ namespace rx
     rand_i& rnd(){static rnd_t rnd;return rnd;}
 
 }
-    //语法糖,快速访问随机数发生器(不建议多线程直接并发使用,需建立自己的线程独立发生器)
+    //语法糖,快速访问随机数发生器(不建议多线程直接并发使用,需建立自己的线程独立的随机数发生器)
     #define rx_rnd_hge() rx::rnd<rx::rand_hge>()
     #define rx_rnd_std() rx::rnd<rx::rand_std>()
     #define rx_rnd_b32() rx::rnd<rx::rand_skeeto_b>()

@@ -109,7 +109,7 @@ namespace rx
 
         //内存池中每个内存条的最大尺寸
         #ifndef RX_MEMCFG_StripeAlign
-        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*4)
+        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*16)
         #endif
     #endif
 
@@ -152,14 +152,17 @@ namespace rx
     typedef struct mempool_cfg_t
     {
         enum {
-            MinNodeSize = RX_MEMCFG_MinNode,                //可缓存的最小节点尺寸
-            MaxNodeSize = RX_MEMCFG_MaxNode,                //可缓存的最大节点尺寸
-            StripeAlignSize = RX_MEMCFG_StripeAlign         //每个内存条的最大或对齐尺寸
+            //可缓存的最小节点尺寸
+            MinNodeSize = RX_MEMCFG_MinNode,
+            //可缓存的最大节点尺寸
+            MaxNodeSize = RX_MEMCFG_MaxNode,
+            //每个内存条的最大或对齐尺寸
+            StripeAlignSize = RX_MEMCFG_StripeAlign
         };
 
-        //校验最小对齐尺寸合法性,确定MinNodeSize是2的整数次幂
+        //默认不需改动:log2(最小对齐尺寸),确定MinNodeSize是2的整数次幂
         enum{MinNodeShiftBit=LOG2<MinNodeSize>::result};
-        //校验最大节点尺寸合法性,确定MaxNodeSize是2的整数次幂
+        //默认不需改动:log2(最大节点尺寸),确定MaxNodeSize是2的整数次幂
         enum{MaxNodeShiftBit=LOG2<MaxNodeSize>::result};
     }mempool_cfg_t;
 }

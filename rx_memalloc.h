@@ -10,7 +10,7 @@ namespace rx
 {
     //======================================================
     //内存分配器接口类
-    class mem_alloc_i
+    class mem_allotter_i
     {
         //标准内存分配器的存根
         typedef struct alloc_cookie_t
@@ -37,25 +37,25 @@ namespace rx
             {
                 return *(cookie_t*)P;
             }
-        }alloc_cookie_t;        
+        }alloc_cookie_t;
 
         //-------------------------------------------------
         //对象与数组的分配构造基础语句,可复用.
-        #define __DESC_NEW_BASE__ \
-            uint32_t MemSize=sizeof(VT)*Count+alloc_cookie_t::cookie_size;  \
-            uint8_t *R=(uint8_t*)base_alloc(MemSize,MemSize);               \
+        #define __DESC_NEW_BASE__   \
+            uint32_t MemSize=0;     \
+            uint8_t *R=(uint8_t*)base_alloc(MemSize,sizeof(VT)*Count+alloc_cookie_t::cookie_size);\
             if (R==NULL) return NULL;                                       \
             alloc_cookie_t::set(R,Count,MemSize);                           \
             VT* Ret=(VT*)(R+alloc_cookie_t::cookie_size);                   \
 
-        mem_alloc_i& operator=(const mem_alloc_i&);
+        mem_allotter_i& operator=(const mem_allotter_i&);
     public:
         //-------------------------------------------------
         //根据原始分配接口,得到内存块
         void* alloc(uint32_t Size)
         {
-            uint32_t MemSize=Size+alloc_cookie_t::cookie_size;
-            uint8_t *R=(uint8_t*)base_alloc(MemSize,MemSize);
+            uint32_t MemSize=0;
+            uint8_t *R=(uint8_t*)base_alloc(MemSize,Size+alloc_cookie_t::cookie_size);
             if (R==NULL) return NULL;
             alloc_cookie_t::set(R,0,MemSize);
             return (R+alloc_cookie_t::cookie_size);
@@ -90,11 +90,11 @@ namespace rx
                 return P;
 
             //现在发现,原指针确实不够长了,需要申请新空间
-            uint32_t MemSize=NewSize+reserved;
-            R=(uint8_t*)base_alloc(MemSize, MemSize);
+            uint32_t MemSize=0;
+            R=(uint8_t*)base_alloc(MemSize, NewSize+reserved);
             if (R==NULL) return NULL;
             alloc_cookie_t::set(R,0,MemSize);
-            
+
             //拷贝原数据
             void *Ret=(R+alloc_cookie_t::cookie_size);
             memcpy(Ret,P,ck.node_mem_size-alloc_cookie_t::cookie_size);
@@ -106,35 +106,39 @@ namespace rx
 
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,使用默认构造函数进行初始化
-        template<class VT> 
+        template<class VT>
         VT* new0(uint32_t Count=1)
         {
             __DESC_NEW_BASE__
-            return Count==1?ct::OC(Ret):ct::AC(Ret,Count);
+            Count==1?ct::OC(Ret):ct::AC(Ret,Count);
+            return Ret;
         }
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
-        template<class VT,class PT1> 
+        template<class VT,class PT1>
         VT* new1(PT1& P1,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
-            return Count==1?ct::OC(Ret,P1):ct::AC(Ret,Count,P1);
+            Count==1?ct::OC(Ret,P1):ct::AC(Ret,Count,P1);
+            return Ret;
         }
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
-        template<class VT,class PT1,class PT2> 
+        template<class VT,class PT1,class PT2>
         VT* new2(PT1& P1,PT2 &P2,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
-            return Count==1?ct::OC(Ret,P1,P2):ct::AC(Ret,Count,P1,P2);
+            Count==1?ct::OC(Ret,P1,P2):ct::AC(Ret,Count,P1,P2);
+            return Ret;
         }
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
-        template<class VT,class PT1,class PT2,class PT3> 
+        template<class VT,class PT1,class PT2,class PT3>
         VT* new3(PT1& P1,PT2 &P2,PT3 &P3,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
-            return Count==1?ct::OC(Ret,P1,P2,P3):ct::AC(Ret,Count,P1,P2,P3);
+            Count==1?ct::OC(Ret,P1,P2,P3):ct::AC(Ret,Count,P1,P2,P3);
+            return Ret;
         }
         //-------------------------------------------------
         //将new系列函数分配的对象或数组进行析构并收回内存
@@ -154,7 +158,7 @@ namespace rx
         //-------------------------------------------------
         template<class VT> bool _del(void* P){try{throw 1;}catch(...){} rx_show_msg("此函数专为型别匹配使用!不应该被调用!请检查代码错误");}
         //-------------------------------------------------
-        virtual ~mem_alloc_i(){}
+        virtual ~mem_allotter_i(){}
     protected:
         #undef __DESC_NEW_BASE__
         //-------------------------------------------------

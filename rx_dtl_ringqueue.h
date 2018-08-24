@@ -4,7 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_os_spinlock.h"
 #include "rx_bits_op.h"
-
+#include "rx_ct_util.h"
 
 namespace rx
 {
@@ -133,7 +133,7 @@ namespace rx
 
     //-----------------------------------------------------
     //静态空间的环形队列,数据类型DT;容量(CP为2的整数倍);数字类型NT;锁类型LT.
-    template<class DT,uint32_t CP=log2<128>::result, class LT = null_lock_t,class ST=uint32_t>
+    template<class DT,uint32_t CP=LOG2<128>::result, class LT = null_lock_t,class ST=uint32_t>
     class ringqueue_fixed :public ringqueue_base<DT, LT, ST>
     {
         DT  m_items[1<<CP];                                 //定义真正的队列空间

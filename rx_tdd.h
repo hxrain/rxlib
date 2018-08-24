@@ -210,16 +210,22 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
 
 //---------------------------------------------------------
 //定义rx_tdd宏,并指定运行级别,用于便捷的建立一个指定名字的测试用例
-#define rx_tdd_rtl(name,rtl) class __RX_TDD_CLS__##name:public rx_tdd_base \
+#define _tdd_rtl_desc(name,rtl,lineno) class __RX_TDD_CLS__##name:public rx_tdd_base \
     {public:                                                    \
-        __RX_TDD_CLS__##name():rx_tdd_base(#name,rtl,__FILE__,__LINE__){} \
+        __RX_TDD_CLS__##name():rx_tdd_base(#name,rtl,__FILE__,lineno){} \
         void on_exec();                                         \
     };                                                          \
     __RX_TDD_CLS__##name __RX_TDD_OBJ__##name;                  \
     inline void __RX_TDD_CLS__##name::on_exec()
 
+//中间宏定义,为了进行name的展开转换
+#define _tdd_desc(name,rtl) _tdd_rtl_desc(name,rtl,__LINE__)
+
+//定义rx_tdd_rtl宏,用于便捷的建立一个指定名字和运行级的测试用例
+#define rx_tdd_rtl(name,rtl) _tdd_desc(RX_CT_SYM(name),rtl)
+
 //定义rx_tdd宏,用于便捷的建立一个指定名字的测试用例
-#define rx_tdd(name) rx_tdd_rtl(name,tdd_level_base)
+#define rx_tdd(name) _tdd_desc(RX_CT_SYM(name),tdd_level_base)
 
 
 #endif

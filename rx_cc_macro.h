@@ -435,8 +435,8 @@
     #define _RX_CONCAT_(A,B)                A##B
     #define RX_CONCAT(A,B)                  _RX_CONCAT_(A,B)            //宏拼接
 
-    #define RX_CT_LINE                      RX_CONCAT(LINE_,__LINE__)   //行号拼接得行符号 LINE_xxx
-    #define RX_CT_LINE_EX(n)                RX_CONCAT(LINE_,n)          //常量数字拼接得行符号
+    #define RX_CT_LINE                      RX_CONCAT(_LINE,__LINE__)   //行号拼接得行符号 LINE_xxx
+    #define RX_CT_LINE_EX(n)                RX_CONCAT(_LINE,n)          //常量数字拼接得行符号
 
     #define RX_CT_SYM(prename)              RX_CONCAT(prename,RX_CT_LINE)//在行符号的基础上再拼接符号前缀
     #define RX_CT_SYM_EX(prename,n)         RX_CONCAT(prename,RX_CT_LINE_EX(n))
