@@ -110,8 +110,7 @@ namespace rx
         VT* new0(uint32_t Count=1)
         {
             __DESC_NEW_BASE__
-            Count==1?ct::OC(Ret):ct::AC(Ret,Count);
-            return Ret;
+            return Count==1? ct::OC(Ret) : ct::AC(Ret,Count);
         }
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
@@ -119,8 +118,7 @@ namespace rx
         VT* new1(PT1& P1,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
-            Count==1?ct::OC(Ret,P1):ct::AC(Ret,Count,P1);
-            return Ret;
+            return Count==1? ct::OC(Ret,P1) : ct::AC(Ret,Count,P1);
         }
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
@@ -128,8 +126,7 @@ namespace rx
         VT* new2(PT1& P1,PT2 &P2,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
-            Count==1?ct::OC(Ret,P1,P2):ct::AC(Ret,Count,P1,P2);
-            return Ret;
+            return Count==1? ct::OC(Ret,P1,P2) : ct::AC(Ret,Count,P1,P2);
         }
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
@@ -137,8 +134,7 @@ namespace rx
         VT* new3(PT1& P1,PT2 &P2,PT3 &P3,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
-            Count==1?ct::OC(Ret,P1,P2,P3):ct::AC(Ret,Count,P1,P2,P3);
-            return Ret;
+            return Count==1? ct::OC(Ret,P1,P2,P3) : ct::AC(Ret,Count,P1,P2,P3);
         }
         //-------------------------------------------------
         //将new系列函数分配的对象或数组进行析构并收回内存
