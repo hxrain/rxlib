@@ -16,7 +16,7 @@ namespace rx
     //------------------------------------------------------
     //标准的,基于内存池接口的内存分配器
     template<class lock_t>
-    class mem_allotter_std :public mem_allotter_i
+    class mem_allotter_base :public mem_allotter_i
     {
     protected:
         mempool   &m_base_pool;
@@ -32,17 +32,34 @@ namespace rx
             GUARD_T(m_lock, lock_t);
             m_base_pool.do_free(ptr, size);
         }
-        mem_allotter_std(mempool& pool):m_base_pool(pool){}
+        mem_allotter_base(mempool& pool):m_base_pool(pool){}
+    };
+
+    //------------------------------------------------------
+    //使用C标准库的内存分配器功能封装
+    class mem_allotter_std :public mem_allotter_i
+    {
+    protected:
+        //-------------------------------------------------
+        virtual void* base_alloc(uint32_t &bksize,uint32_t size)
+        {
+            bksize=size;
+            return mempool_std::do_alloc(size);
+        }
+        virtual void base_free(void* ptr, uint32_t size)
+        {
+            mempool_std::do_free(ptr, size);
+        }
     };
 
     //------------------------------------------------------
     //基于内存池的内存分配器容器
     template<class pool_t,class lock_t=null_lock_t>
-    class mem_allotter_pool:public mem_allotter_std<lock_t>
+    class mem_allotter_pool:public mem_allotter_base<lock_t>
     {//描述默认的各种容器类型的内存分配器,无锁保护,单线程安全.
         pool_t      m_pool;
     public:
-        mem_allotter_pool():mem_allotter_std<lock_t>(m_pool){}
+        mem_allotter_pool():mem_allotter_base<lock_t>(m_pool){}
     };
 
     //------------------------------------------------------

@@ -472,6 +472,7 @@
     inline const char* rx_cc_desc() {return RX_CC_DESC;}
 #endif
 
+    typedef void* ptr_t;
     //-----------------------------------------------------
     //根据上面的各类分析,引入各个平台的开发基础头文件
     #if RX_OS_WIN

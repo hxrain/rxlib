@@ -111,14 +111,14 @@
         typedef uint64_t TickType;
         rx_tick():m_tick_count(0){}
         //-------------------------------------------------
-        //更新内部滴答数
+        //立即更新内部滴答数并返回
         TickType update(){m_tick_count=func();return m_tick_count;}
         void update(uint64_t Tick){m_tick_count=Tick;}
         //-------------------------------------------------
-        //得到上次update得到的滴答数
+        //获取最后update记录的滴答数
         TickType count(){return m_tick_count;}
         //-------------------------------------------------
-        //得到系统当前滴答数
+        //得到最新滴答数
         static TickType ticks(){return func();}
     };
     //-----------------------------------------------------
