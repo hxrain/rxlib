@@ -67,4 +67,7 @@
     #define rx_check(R)             (R)
 #endif
 
+    //断言条件判断,如果C成立,则要求R也成立.
+    #define rx_assert_if(C,R) rx_assert(((C)?(R):true))
+
 #endif
