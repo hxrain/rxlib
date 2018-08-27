@@ -63,7 +63,7 @@ inline void test_raw_list_1(rx_tdd_base &rt)
     rt.tdd_assert(list.peek()==list.peek(true));
     rt.tdd_assert(list.peek(true)==NULL);
     rt.tdd_assert(list.peek()==NULL);
-    
+
 }
 //---------------------------------------------------------
 inline void test_raw_stack_1(rx_tdd_base &rt)
@@ -76,7 +76,7 @@ inline void test_raw_stack_1(rx_tdd_base &rt)
 
     rt.tdd_assert(stack.size()==0);
     rt.tdd_assert(stack.peek()==NULL);
-    
+
     stack.push(tmp[0]);
     rt.tdd_assert(stack.size()==1);
     rt.tdd_assert(stack.peek()!=NULL);
@@ -105,13 +105,13 @@ void test_mem_pool_base(rx_tdd_base &rt)
 {
     uint32_t bsize;
     T mempool(4);
-    
+
     uint8_t *p1=(uint8_t *)mempool.do_alloc(bsize);
     rt.assert(p1!=NULL);
-    
+
     uint8_t *p2=(uint8_t *)mempool.do_alloc(bsize);
     rt.assert(p2!=NULL);
-    
+
     mempool.do_free(p1);
 
     mempool.do_free(p2);
@@ -119,11 +119,14 @@ void test_mem_pool_base(rx_tdd_base &rt)
     mempool.do_uninit();
 }
 
-
-rx_tdd(test_mem_pool_base)
+rx_tdd(test_raw_list_stack)
 {
     test_raw_list_1(*this);
     test_raw_stack_1(*this);
+}
+
+rx_tdd(test_mem_pool_base)
+{
     test_mem_pool_base<rx::mempool_fixed_t<> >(*this);
 }
 

@@ -25,7 +25,10 @@ class test_mem_alloc_a
 public:
     static void test(rx_tdd_base &rt,const char* ms_type,uint32_t seed)
     {
-        rx_tt(tt,"mem_alloc_test",ms_type);
+        tdd_tt(tt,"mem_alloc_test",ms_type);
+        tdd_tt_hit(tt,"array_size=%u,loop_test=%u,max_mem_size=%u",array_size,loop_test,max_mem_size);
+        tdd_tt_hit(tt,"tmp1");
+        tdd_tt_hit(tt,"tmp2");
         ptr_t   ptr_array[array_size];
         rx::rand_skeeto_b rnd;
         ma_t ma;
@@ -42,6 +45,7 @@ public:
                 ma.free(ptr_array[l]);
             }
         }
+
     }
 
 };
@@ -51,10 +55,10 @@ rx_tdd(test_mem_alloc_base)
 {
     test_mem_alloc_base(*this);
     uint32_t seed=(uint32_t)time(NULL);
-    test_mem_alloc_a<rx::mem_allotter_lin_slt,100,100>::test(*this,"mem_allotter_lin_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_pow2_slt,100,100>::test(*this,"mem_allotter_pow2_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,100,100>::test(*this,"mem_allotter_tlmap_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_std,100,100>::test(*this,"mem_allotter_std",seed);
+    test_mem_alloc_a<rx::mem_allotter_lin_slt,100,200>::test(*this,"mem_allotter_lin_slt",seed);
+    test_mem_alloc_a<rx::mem_allotter_pow2_slt,100,200>::test(*this,"mem_allotter_pow2_slt",seed);
+    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,100,200>::test(*this,"mem_allotter_tlmap_slt",seed);
+    test_mem_alloc_a<rx::mem_allotter_std,100,200>::test(*this,"mem_allotter_std",seed);
 
 }
 

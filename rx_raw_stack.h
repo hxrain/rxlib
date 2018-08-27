@@ -11,7 +11,7 @@ namespace rx
 	{
 		struct raw_stack_node_t* volatile next;	            //节点的后趋
     }raw_stack_node_t;
-*/    
+*/
     //-----------------------------------------------------
     //Raw Stack:原始的栈(或单向list),保持最简形式,不用管理内存
     //要求node_t节点类型中至少含有一个后趋指针next
@@ -100,7 +100,10 @@ namespace rx
         void push_back(node_t *new_node)
         {
             new_node->next = NULL;                          //新节点后趋为空
-            m_tail?m_tail->next=new_node:m_head=new_node;   //将新节点挂接到尾节点的后趋;空链表时关联头结点
+            if (m_tail)
+                m_tail->next=new_node;                      //将新节点挂接到尾节点的后趋;
+            else
+                m_head=new_node;                            //空链表时关联头结点
             m_tail=new_node;                                //尾节点指向新节点
             ++m_count;
         }
@@ -127,7 +130,7 @@ namespace rx
             rx_assert_if(m_count==0,m_tail==NULL&&m_head==NULL);
             return now_top;
         }
-    };    
+    };
 }
 
 #endif

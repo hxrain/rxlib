@@ -45,6 +45,7 @@ namespace rx
             m_msg_b=msg_b;if (!m_msg_b) m_msg_b="";
             m_file=file;if (!m_file) m_file="";
             m_lineno=lineno;
+            m_tab_deep=0;
         }
         uint32_t &tab_deep(){return m_tab_deep;}
         //-------------------------------------------------
@@ -58,14 +59,14 @@ namespace rx
                 return;
 
             char tab_str[32];
-            uint32_t tab_deep=m_tab_deep;
+            uint32_t tab_deep=m_tab_deep+1;
             if (tab_deep>sizeof(tab_str)-1)
                 tab_deep=sizeof(tab_str)-1;
-            memset(tab_str,' ',tab_deep);
+            memset(tab_str,'.',tab_deep);
             tab_str[tab_deep]=0;
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"<tdd_ts>[%s]%s using [%3uus] at {%s}:(%s:%u).\n",m_msg_a,tab_str,dt,msg_c,file,lineno);
+            snprintf(tmp,sizeof(tmp),"<tdd_tt>{%s}:hit:%s (%6u)us {%s} : (%s:%u).\n",m_msg_a,tab_str,dt,msg_c,file,lineno);
             on_output(tmp);
         }
         //-------------------------------------------------
@@ -78,7 +79,7 @@ namespace rx
                 return;
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"<tdd_ts>[%s] using [%3uus] at {%s}:(%s:%u).\n",m_msg_a,dt,m_msg_b,m_file,m_lineno);
+            snprintf(tmp,sizeof(tmp),"<tdd_tt>{%s}:all: (%6u)us {%s} : (%s:%u).\n",m_msg_a,dt,m_msg_b,m_file,m_lineno);
             on_output(tmp);
             m_enable=false;
         }
@@ -98,17 +99,15 @@ namespace rx
     class tdd_tick_guard
     {
         tdd_tick_t  &m_tdd_tick;
-        const char* m_file;
-        uint32_t    m_lineno;
     public:
         //-------------------------------------------------
-        tdd_tick_guard(tdd_tick_t& tc,const char* file,uint32_t lineno,char* fmt,...):m_tdd_tick(tc)
+        tdd_tick_guard(tdd_tick_t& tc,const char* file,uint32_t lineno,const char* fmt,...):m_tdd_tick(tc)
         {
             va_list ap;
-            va_start(fmt,ap);
+            va_start(ap,fmt);
             char msg_c[256];
             vsnprintf(msg_c,sizeof(msg_c),fmt,ap);
-            m_tdd_tick.hit(msg_c,m_file,m_lineno);
+            m_tdd_tick.hit(msg_c,file,lineno);
             va_end(ap);
 
             ++m_tdd_tick.tab_deep();
@@ -118,14 +117,18 @@ namespace rx
 }
 
     //-----------------------------------------------------
-    #define rx_tt_enable true
-    #define rx_tt_limit 0
+    #define tdd_tt_enable true                              //默认tdd计时是否开启
+    #define tdd_tt_limit 0                                  //默认tdd计时的超时限定值
 
     //用来定义一个tt滴答计时对象,可以给出完整的参数
-    #define rx_tt_desc(sym,msg_a,msg_b,limit) rx::rx_tdd_tick<> __rx_tt_obj_##sym(rx_tt_enable,limit,msg_a,msg_b,__FILE__,__LINE__)
+    #define tdd_tt_desc(sym,msg_a,msg_b,limit) rx::rx_tdd_tick<> __tdd_tt_obj_##sym(tdd_tt_enable,limit,msg_a,msg_b,__FILE__,__LINE__)
     //用于简化定义一个tt滴答计时对象,用时限制使用默认值
-    #define rx_tt(sym,msg_a,msg_b) rx_tt_desc(sym,msg_a,msg_b,rx_tt_limit)
+    #define tdd_tt(sym,msg_a,msg_b) tdd_tt_desc(sym,msg_a,msg_b,tdd_tt_limit)
     //用于简化定义一个tt滴答计时对象的中间可嵌套计时动作
-    #define rx_tt_hit(sym,fmt,...) rx::tdd_tick_guard<> __rx_tt_hit_obj_##sym(__rx_tt_obj_##sym,__FILE__,__LINE__,fmt,__VA_ARGS__)
+    #define _tdd_tt_hit(sym,dis,fmt,...) rx::tdd_tick_guard<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,fmt,##__VA_ARGS__)
+    //中间宏定义,为了进行dis的展开转换
+    #define _tdd_tt_hit_(sym,dis,fmt,...) _tdd_tt_hit(sym,dis,fmt,##__VA_ARGS__)
+    //定义rx_tdd_rtl宏,用于便捷的建立一个指定名字和运行级的测试用例
+    #define tdd_tt_hit(sym,fmt,...) _tdd_tt_hit_(sym,RX_CT_SYM(sym),fmt,##__VA_ARGS__)
 
 #endif
