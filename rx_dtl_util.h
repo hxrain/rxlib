@@ -398,6 +398,7 @@ namespace rx
 
     //-----------------------------------------------------
     //封装一个简易的字符串功能,用于dtl容器内部的临时key字符串存储
+    //!!!必须注意!!!:在本对象实例的后部,留出足够长度的m_capacity空间.
     template<class CT=char>
     struct tiny_string
     {
