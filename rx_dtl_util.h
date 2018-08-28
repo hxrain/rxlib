@@ -406,9 +406,9 @@ namespace rx
         tiny_string& operator=(const tiny_string&);
         tiny_string(const tiny_string&);
         //-------------------------------------------------
-        uint16_t    m_capacity;
-        uint16_t    m_length;
-        CT          m_string[0];
+        uint16_t    m_capacity;                             //必须告知m_string的可用容量
+        uint16_t    m_length;                               //记录m_string的实际长度.
+        CT          m_string[0];                            //使用弹性数组定义方法,在当前内存位置向后m_capacity个字节内存放实际的字符串.
     public:
         tiny_string(uint16_t cap, const CT* str, uint32_t len = 0) :m_capacity(cap) { set(str,len); }
         //-------------------------------------------------

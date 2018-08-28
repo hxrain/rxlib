@@ -41,7 +41,7 @@ inline void dtl_util_base_2(rx_tdd_base &rt)
     rx::ct::OC<tmp_tiny_str_t>((tmp_tiny_str_t*)buff,cap,"haha");
     tmp_tiny_str_t &t=*(tmp_tiny_str_t*)buff;
     rt.tdd_assert(t.s=="haha");
-    rt.tdd_assert(strcmp(buff+8,"haha")==0);
+    rt.tdd_assert(strcmp((char*)buff+8,"haha")==0);
 }
 //---------------------------------------------------------
 rx_tdd(dtl_util_base)
