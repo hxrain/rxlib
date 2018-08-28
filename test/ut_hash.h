@@ -4,7 +4,7 @@
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
 #include "../rx_hash_int.h"
-#include "../rx_rand.h"
+#include "../rx_hash_rand.h"
 #include <time.h>
 #include <math.h>
 

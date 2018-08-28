@@ -1,5 +1,5 @@
-#ifndef _RX_RAND_H_
-#define _RX_RAND_H_
+#ifndef _RX_HASH_RAND_H_
+#define _RX_HASH_RAND_H_
 
 #include "rx_cc_macro.h"
 #include <stdlib.h>

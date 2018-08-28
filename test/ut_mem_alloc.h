@@ -3,7 +3,7 @@
 
 #include "../rx_memalloc_cntr.h"
 #include "../rx_tdd.h"
-#include "../rx_rand.h"
+#include "../rx_hash_rand.h"
 
 void test_mem_alloc_base(rx_tdd_base &rt)
 {
