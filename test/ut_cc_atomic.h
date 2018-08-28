@@ -9,7 +9,7 @@
 template<class T>
 void test_cc_atomic_base(rx_tdd_base &rt)
 {
-    rx_st_assert(sizeof(T) == 4 || sizeof(T) == 8, "sizeof()==4|8");
+    rx_static_assert(sizeof(T) == 4 || sizeof(T) == 8);
 
     T val = 0;
     rx_atomic_store(&val, (T)1);

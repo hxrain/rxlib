@@ -448,9 +448,7 @@
 
     //-----------------------------------------------------
     //¾²Ì¬¶ÏÑÔµÄÊµÏÖ
-    namespace rx_imp{template <bool> struct rx_static_assert;template <> struct rx_static_assert<true> {};}
-    #define rx_st_assert(cond, error_msg) {rx_imp::rx_static_assert<(cond)>();}
-    #define rx_static_assert(cond) {rx_imp::rx_static_assert<(cond)>();}
+    #define rx_static_assert(cond) struct RX_CT_SYM(rx_static_assert) {int static_assert_fail:cond;}
 
 #if RX_CC == RX_CC_VC
 	#include <stdio.h>

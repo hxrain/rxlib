@@ -47,7 +47,7 @@ namespace rx
             uint32_t unset=0;
             uint8_t* new_stripe=(uint8_t*)base_alloc(unset,CT::StripeAlignSize);//利用传入的物理内存池,分配一个内存条
             rx_assert(new_stripe!=NULL);
-            rx_st_assert(sizeof(mp_stripes_t)<=CT::MaxNodeSize,"sizeof(mp_stripes_t)<=CT::MaxNodeSize");
+            rx_static_assert(sizeof(mp_stripes_t)<=CT::MaxNodeSize);
 
             mp_stripes_t *sp=m_stripes.peek();
             if (!sp||sp->count==sp->total)
@@ -114,7 +114,7 @@ namespace rx
                 BlockSize=sizeof(struct mp_block_t);        //固定池内每个节点的最小尺寸为需要包含块头
 
             //记录内存块尺寸
-            m_block_size=BlockSize;                         
+            m_block_size=BlockSize;
             //记算条中的块数量
             m_per_stripe_blocks=Max(CT::StripeAlignSize/m_block_size,(uint32_t)1);
             return true;
