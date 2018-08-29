@@ -9,7 +9,7 @@
 #include <math.h>
 
 //---------------------------------------------------------
-inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_func_t hash,rx_tdd_base &rt)
+inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_func_t hash,rx_tdd_t &rt)
 {
     const uint32_t array_size = 1000;
     const uint32_t loop_count = array_size*100000;
@@ -36,7 +36,7 @@ inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_fun
 }
 //---------------------------------------------------------
 template<class rnd_t>
-inline void rx_hash_int_base_2(uint32_t seed,const char* hash_name,rx_tdd_base &rt)
+inline void rx_hash_int_base_2(uint32_t seed,const char* hash_name,rx_tdd_t &rt)
 {
     const uint32_t array_size = 1000;
     const uint32_t loop_count = array_size*100000;
@@ -71,10 +71,10 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
 {
     uint32_t seed = (uint32_t)time(NULL);
 
-    rx_hash_int_base_2<rx::rand_std>(seed,"rand_std",*this);
-    rx_hash_int_base_2<rx::rand_hge>(seed,"rand_hge",*this);
-    rx_hash_int_base_2<rx::rand_skeeto_b>(seed,"rand_skeeto_b",*this);
-    rx_hash_int_base_2<rx::rand_skeeto_triple>(seed,"rand_skeeto_triple",*this);
+    rx_hash_int_base_2<rx::rand_std_t>(seed,"rand_std",*this);
+    rx_hash_int_base_2<rx::rand_hge_t>(seed,"rand_hge",*this);
+    rx_hash_int_base_2<rx::rand_skeeto_b32_t>(seed,"rand_skeeto_b",*this);
+    rx_hash_int_base_2<rx::rand_skeeto_triple_t>(seed,"rand_skeeto_triple",*this);
 
     for(int i=0;i<IHT_Count;++i)
         rx_hash_int_base_1(seed,rx_int_hash_name((rx_int_hash_type)i),rx_int_hash((rx_int_hash_type)i),*this);

@@ -12,7 +12,7 @@ namespace rx
     //封装一个通用的ring queue的基类,自己不进行存储空间的管理,需要子类集成后提供
     //因为无符号整数的回绕问题,因此ST类型最大值的一半就是环形队列的最大容量
     template<class DT, class LT,class ST=uint32_t>
-    class ringqueue_base
+    class ringqueue_t
     {
     public:
         typedef DT item_type;
@@ -61,10 +61,10 @@ namespace rx
             m_mask = m_capacity - 1;
             return true;
         }
-        virtual ~ringqueue_base() {}
+        virtual ~ringqueue_t() {}
     public:
         //-------------------------------------------------
-        ringqueue_base():m_array(NULL), m_capacity(0), m_mask(0){}
+        ringqueue_t():m_array(NULL), m_capacity(0), m_mask(0){}
         //-------------------------------------------------
         //获取队列长度,返回值
         size_type   size() const
@@ -118,12 +118,6 @@ namespace rx
             if (tail == head)                               //头尾相同说明队列是空的
                 return NULL;
 
-//            if (tail > head && (head - tail) > m_mask)
-//            {
-//                rx_show_msg("(tail > head && (head - tail) > m_mask) == true");
-//                return NULL;
-//            }
-
             if (!is_peek)
                 m_pointing.tail = tail + 1;                 //不是查看模式,则尾位置前移
 
@@ -134,12 +128,12 @@ namespace rx
     //-----------------------------------------------------
     //静态空间的环形队列,数据类型DT;容量(CP为2的整数倍);数字类型NT;锁类型LT.
     template<class DT,uint32_t CP=LOG2<128>::result, class LT = null_lock_t,class ST=uint32_t>
-    class ringqueue_fixed :public ringqueue_base<DT, LT, ST>
+    class ringqueue_fixed_t :public ringqueue_t<DT, LT, ST>
     {
         DT  m_items[1<<CP];                                 //定义真正的队列空间
-        typedef ringqueue_base<DT, LT, ST> superclass;
+        typedef ringqueue_t<DT, LT, ST> superclass;
     public:
-        ringqueue_fixed() { rx_check(superclass::m_init(m_items,uint32_t(1<<CP))); }        //构造时进行初始化
+        ringqueue_fixed_t() { rx_check(superclass::m_init(m_items,uint32_t(1<<CP))); }        //构造时进行初始化
     };
 }
 

@@ -14,7 +14,7 @@
     #define bit_clr(b,i)        bits_clr(b,(1<<(i)))        //复位,b的第i位
 
     //---------------------------------------------------------
-    class rx_bits_mask
+    class rx_bits_mask_t
     {
     public:
         //获取指定的低位置位的掩码
@@ -53,7 +53,7 @@
         if (i >= mbc || c<1 || c>mbc || c - 1 > i)
             return false;
 
-        uint32_t mask = rx_bits_mask::lowset(c - 1);
+        uint32_t mask = rx_bits_mask_t::lowset(c - 1);
         if (!mask)
             return false;
         uint32_t offset = i - c + 1;
@@ -82,7 +82,7 @@
         if (i >= mbc || c<1 || c>mbc || c - 1 > i)
             return false;
 
-        uint32_t mask = rx_bits_mask::lowset(c - 1);
+        uint32_t mask = rx_bits_mask_t::lowset(c - 1);
         if (!mask)
             return false;
 
@@ -325,7 +325,7 @@
 
     //--------------------------------------------------------------
     //bits数组功能封装
-    class rx_bits_array
+    class rx_bits_array_t
     {
         uint32_t         m_bytes_idx;                       //字节索引
         uint8_t          m_bits_offset;                     //字节内比特偏移
@@ -333,9 +333,9 @@
         uint8_t         *m_bytes;                           //字节数组
         uint32_t         m_bytes_len;                       //字节数组长度
     public:
-        rx_bits_array():m_bytes(0), m_bytes_len(0) {}
-        rx_bits_array(uint8_t* data, uint32_t datalen) :m_bytes(data), m_bytes_len(datalen) { begin(true); }
-        rx_bits_array(uint8_t* data, uint32_t datalen, bool asc) :m_bytes(data), m_bytes_len(datalen) { begin(asc); }
+        rx_bits_array_t():m_bytes(0), m_bytes_len(0) {}
+        rx_bits_array_t(uint8_t* data, uint32_t datalen) :m_bytes(data), m_bytes_len(datalen) { begin(true); }
+        rx_bits_array_t(uint8_t* data, uint32_t datalen, bool asc) :m_bytes(data), m_bytes_len(datalen) { begin(asc); }
         //-----------------------------------------------------------
         //准备进行顺序操作.从低字节低位序开始访问,升序/从高字节高位序开始访问,降序
         bool begin(bool asc_order = true)

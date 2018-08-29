@@ -14,8 +14,8 @@ namespace rx
 {
     //-----------------------------------------------------
     //滴答增量计时器,用于记录代码段执行用时
-    template<class tick_type=rx_tick_us>
-    class rx_tdd_tick
+    template<class tick_type=rx_tick_us_t>
+    class tdd_tick_t
     {
         tick_type    m_tick_meter;                          //滴答计数器
         uint64_t     m_begin_tick;                          //计时开始的最初时间
@@ -29,7 +29,7 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造函数,传入时间戳的限定值和消息提示
-        rx_tdd_tick(bool enable=true,uint32_t expend_limit=0,const char* msg_a=NULL,const char* msg_b=NULL,const char* file=NULL,int lineno=0)
+        tdd_tick_t(bool enable=true,uint32_t expend_limit=0,const char* msg_a=NULL,const char* msg_b=NULL,const char* file=NULL,int lineno=0)
         {
             begin(enable,expend_limit,msg_a,msg_b,file,lineno);
         }
@@ -85,7 +85,7 @@ namespace rx
         }
         //-------------------------------------------------
         //析构函数,计算前后时间是否超过了限定值
-        virtual ~rx_tdd_tick()
+        virtual ~tdd_tick_t()
         {
             end();
         }
@@ -95,13 +95,13 @@ namespace rx
 
     //-----------------------------------------------------
     //进行滴答计时的tab深度管理,同时简化输出时的参数数量
-    template<class tdd_tick_t=rx_tdd_tick<> >
-    class tdd_tick_guard
+    template<class tt=tdd_tick_t<> >
+    class tdd_tick_guard_t
     {
-        tdd_tick_t  &m_tdd_tick;
+        tt  &m_tdd_tick;
     public:
         //-------------------------------------------------
-        tdd_tick_guard(tdd_tick_t& tc,const char* file,uint32_t lineno,const char* fmt,...):m_tdd_tick(tc)
+        tdd_tick_guard_t(tt& tc,const char* file,uint32_t lineno,const char* fmt,...):m_tdd_tick(tc)
         {
             va_list ap;
             va_start(ap,fmt);
@@ -112,7 +112,7 @@ namespace rx
 
             ++m_tdd_tick.tab_deep();
         }
-        ~tdd_tick_guard(){--m_tdd_tick.tab_deep();}
+        ~tdd_tick_guard_t(){--m_tdd_tick.tab_deep();}
     };
 }
 
@@ -121,11 +121,11 @@ namespace rx
     #define tdd_tt_limit 0                                  //默认tdd计时的超时限定值
 
     //用来定义一个tt滴答计时对象,可以给出完整的参数
-    #define tdd_tt_desc(sym,msg_a,msg_b,limit) rx::rx_tdd_tick<> __tdd_tt_obj_##sym(tdd_tt_enable,limit,msg_a,msg_b,__FILE__,__LINE__)
+    #define tdd_tt_desc(sym,msg_a,msg_b,limit) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,limit,msg_a,msg_b,__FILE__,__LINE__)
     //用于简化定义一个tt滴答计时对象,用时限制使用默认值
     #define tdd_tt(sym,msg_a,msg_b) tdd_tt_desc(sym,msg_a,msg_b,tdd_tt_limit)
     //用于简化定义一个tt滴答计时对象的中间可嵌套计时动作
-    #define _tdd_tt_hit(sym,dis,fmt,...) rx::tdd_tick_guard<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,fmt,##__VA_ARGS__)
+    #define _tdd_tt_hit(sym,dis,fmt,...) rx::tdd_tick_guard_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,fmt,##__VA_ARGS__)
     //中间宏定义,为了进行dis的展开转换
     #define _tdd_tt_hit_(sym,dis,fmt,...) _tdd_tt_hit(sym,dis,fmt,##__VA_ARGS__)
     //定义rx_tdd_rtl宏,用于便捷的建立一个指定名字和运行级的测试用例

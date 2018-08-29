@@ -5,10 +5,10 @@
 #include "../rx_tdd.h"
 #include "../rx_dtl_ringbuff.h"
 
-inline void test_dtl_ringbuff_base_1(rx_tdd_base &rt)
+inline void test_dtl_ringbuff_base_1(rx_tdd_t &rt)
 {
     uint8_t tmp[5];
-    rx::ringbuff_fixed<17> rb;
+    rx::ringbuff_fixed_t<17> rb;
 
     rt.tdd_assert(rb.empty());
     rt.tdd_assert(rb.capacity()==17);

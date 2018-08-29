@@ -7,8 +7,8 @@
 /*
 	本单元基于原子操作API进行原子变量的对象化封装.
 	class atomic_flag;										//原子标记
-	class atomic_int;										//32位整数原子量
-	class atomic_long;										//64位整数原子量(VC只有在x64模式下有效)
+	class atomic_int_t;										//32位整数原子量
+	class atomic_long_t;										//64位整数原子量(VC只有在x64模式下有效)
 */
 
 namespace rx
@@ -16,14 +16,14 @@ namespace rx
     //-----------------------------------------------------
     //通用原子变量封装
     template <typename T>
-    class atomic
+    class atomic_t
     {
         T        m_value;
         typedef typename rx_type_check_t<T>::signed_t vt;
     public:
         //构造与赋值函数
-        atomic(T v = 0) : m_value(v) {}
-        atomic(const atomic& a){ store(a);}
+        atomic_t(T v = 0) : m_value(v) {}
+        atomic_t(const atomic_t& a){ store(a);}
         //给当前原子变量设置值V
         void     store(T v)              { rx_atomic_store((vt*)&m_value, (vt)v); }
         //强制装载当前原子变量并返回当前值
@@ -49,8 +49,8 @@ namespace rx
 
         //运算符重载
                  operator T (void) const { return load(); }
-        atomic&  operator = (const atomic& a){store(a);return *this;}
-        atomic&  operator = (T v)        { store(v); return *this; }
+        atomic_t&  operator = (const atomic_t& a){store(a);return *this;}
+        atomic_t&  operator = (T v)        { store(v); return *this; }
         T        operator++ (int)        { return inc(); }
         T        operator-- (int)        { return dec(); }
         T        operator++ (void)       { inc() ;return load(); }
@@ -66,7 +66,7 @@ namespace rx
     //最简原子标记
     class atomic_flag
     {
-        atomic<int>     m_Flag;
+        atomic_t<int>     m_Flag;
     public:
         //构造函数
         atomic_flag(bool v = false)    : m_Flag(v?1:0) {}
@@ -117,11 +117,11 @@ namespace rx
 
     //-----------------------------------------------------
     //最终使用的原子变量
-    typedef atomic<int32_t>     atomic_int;
-    typedef atomic<uint32_t>    atomic_uint;
+    typedef atomic_t<int32_t>     atomic_int_t;
+    typedef atomic_t<uint32_t>    atomic_uint_t;
 #if RX_ATOMIC64
-    typedef atomic<int64_t>     atomic_long;
-    typedef atomic<uint64_t>    atomic_ulong;
+    typedef atomic_t<int64_t>     atomic_long_t;
+    typedef atomic_t<uint64_t>    atomic_ulong_t;
 #endif
 }
 

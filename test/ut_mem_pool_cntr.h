@@ -7,7 +7,7 @@
 
 //---------------------------------------------------------
 template<class T>
-void test_mem_pool_cntr_lin(rx_tdd_base &rt)
+void test_mem_pool_cntr_lin(rx_tdd_t &rt)
 {
 	T mempool;
 	uint32_t bsize1,bsize2;
@@ -22,7 +22,7 @@ void test_mem_pool_cntr_lin(rx_tdd_base &rt)
 
 //---------------------------------------------------------
 template<class T>
-void test_mem_pool_cntr_pow2(rx_tdd_base &rt)
+void test_mem_pool_cntr_pow2(rx_tdd_t &rt)
 {
     T mempool;
     uint32_t bsize1, bsize2;
@@ -44,7 +44,7 @@ void test_mem_pool_cntr_pow2(rx_tdd_base &rt)
 }
 //---------------------------------------------------------
 template<class T>
-void test_mem_pool_cntr_tlmap(rx_tdd_base &rt)
+void test_mem_pool_cntr_tlmap(rx_tdd_t &rt)
 {
     T mempool;
     uint32_t bsize1, bsize2;
@@ -79,7 +79,7 @@ void test_mem_pool_cntr_tlmap(rx_tdd_base &rt)
     mempool.do_free(p2, bsize2);
 }
 template<class T>
-void test_mem_pool_cntr_tlmap2(rx_tdd_base &rt)
+void test_mem_pool_cntr_tlmap2(rx_tdd_t &rt)
 {
     T mempool;
     uint32_t bsize1, bsize2;
@@ -134,9 +134,9 @@ typedef struct test_mp_cfg_t
 //---------------------------------------------------------
 rx_tdd(test_mem_pool_cntr_base)
 {
-	typedef rx::mempool_cntr_lin<rx::mempool_fixed_t<test_mp_cfg_t>,test_mp_cfg_t> rx_mempool_lin_t;
-    typedef rx::mempool_cntr_pow2<rx::mempool_fixed_t<test_mp_cfg_t>,test_mp_cfg_t> rx_mempool_pow2_t;
-    typedef rx::mempool_cntr_tlmap<rx::mempool_fixed_t<test_mp_cfg_t>,test_mp_cfg_t> rx_mempool_tlmap_t;
+	typedef rx::mempool_cntr_lin_t<rx::mempool_fixed_t<test_mp_cfg_t>,test_mp_cfg_t> rx_mempool_lin_t;
+    typedef rx::mempool_cntr_pow2_t<rx::mempool_fixed_t<test_mp_cfg_t>,test_mp_cfg_t> rx_mempool_pow2_t;
+    typedef rx::mempool_cntr_tlmap_t<rx::mempool_fixed_t<test_mp_cfg_t>,test_mp_cfg_t> rx_mempool_tlmap_t;
 
     test_mem_pool_cntr_lin<rx_mempool_lin_t>(*this);
     test_mem_pool_cntr_pow2<rx_mempool_pow2_t>(*this);

@@ -13,7 +13,7 @@
 namespace rx
 {
     //统一封装了对原始字符串处理的函数
-    class s
+    class st
     {
     public:
         //-----------------------------------------------------
@@ -50,8 +50,8 @@ namespace rx
         }
         //-----------------------------------------------------
         //长度
-        static size_t           strlen(const char* Str){return ::strlen(Str);}
-        static size_t           strlen(const wchar_t* Str){return ::wcslen(Str);}
+        static uint32_t         strlen(const char* Str){return (uint32_t)::strlen(Str);}
+        static uint32_t         strlen(const wchar_t* Str){return (uint32_t)::wcslen(Str);}
 
         //拷贝
         static char*            strcpy(char* dst,const char* src){return ::strcpy(dst,src);}
@@ -62,12 +62,12 @@ namespace rx
         static wchar_t*         strcat(wchar_t* dst,const wchar_t* src){return wcscat(dst,src);}
 
         //计数拷贝
-        static char*            strncpy(char* dst,const char* src,size_t len){return ::strncpy(dst,src,len);}
-        static wchar_t*         strncpy(wchar_t* dst,const wchar_t* src,size_t len){return ::wcsncpy(dst,src,len);}
+        static char*            strncpy(char* dst,const char* src,uint32_t len){return ::strncpy(dst,src,len);}
+        static wchar_t*         strncpy(wchar_t* dst,const wchar_t* src,uint32_t len){return ::wcsncpy(dst,src,len);}
 
         //尾部拷贝(取src的后n位)
         template<class CT>
-        static CT*              strrcpy(CT* dst,const CT* src,size_t n,size_t srclen=0)
+        static CT*              strrcpy(CT* dst,const CT* src,uint32_t n,uint32_t srclen=0)
         {
             if (!srclen)
                 srclen=strlen(src);
@@ -90,16 +90,16 @@ namespace rx
 
         //定长比较,区分大小写,规定最大长度
 
-        static int              strncmp(const char *s1, const char *s2, size_t  maxlen){return ::strncmp(s1,s2,maxlen);}
-        static int              strncmp(const wchar_t *s1, const wchar_t *s2, size_t  maxlen){return ::wcsncmp(s1,s2,maxlen);}
+        static int              strncmp(const char *s1, const char *s2, uint32_t  maxlen){return ::strncmp(s1,s2,maxlen);}
+        static int              strncmp(const wchar_t *s1, const wchar_t *s2, uint32_t  maxlen){return ::wcsncmp(s1,s2,maxlen);}
 
         //定长比较,不区分大小写,规定最大长度
 #if RX_CC==RX_CC_BCC
-        static int              strncmpi(const char *s1, const char *s2, size_t n){return ::strncmpi(s1,s2,n);}
-        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, size_t n){return ::wcsncmpi(s1,s2,n);}
+        static int              strncmpi(const char *s1, const char *s2, uint32_t n){return ::strncmpi(s1,s2,n);}
+        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n){return ::wcsncmpi(s1,s2,n);}
 #else
-        static int              strncmpi(const char *s1, const char *s2, size_t n){return ::_strnicmp(s1,s2,n);}
-        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, size_t n){return ::_wcsnicmp(s1,s2,n);}
+        static int              strncmpi(const char *s1, const char *s2, uint32_t n){return ::_strnicmp(s1,s2,n);}
+        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n){return ::_wcsnicmp(s1,s2,n);}
 #endif
 
         //子串搜索
@@ -400,18 +400,18 @@ namespace rx
     //封装一个简易的字符串功能,用于dtl容器内部的临时key字符串存储
     //!!!必须注意!!!:在本对象实例的后部,留出足够长度的m_capacity空间.
     template<class CT=char>
-    struct tiny_string
+    struct tiny_string_t
     {
     private:
         //-------------------------------------------------
-        tiny_string& operator=(const tiny_string&);
-        tiny_string(const tiny_string&);
+        tiny_string_t& operator=(const tiny_string_t&);
+        tiny_string_t(const tiny_string_t&);
         //-------------------------------------------------
         uint16_t    m_capacity;                             //必须告知m_string的可用容量
         uint16_t    m_length;                               //记录m_string的实际长度.
         CT          m_string[0];                            //使用弹性数组定义方法,在当前内存位置向后m_capacity个字节内存放实际的字符串.
     public:
-        tiny_string(uint16_t cap, const CT* str, uint32_t len = 0) :m_capacity(cap) { set(str,len); }
+        tiny_string_t(uint16_t cap, const CT* str, uint32_t len = 0) :m_capacity(cap) { set(str,len); }
         //-------------------------------------------------
         uint16_t set(const CT* str, uint32_t len = 0)
         {
@@ -424,9 +424,9 @@ namespace rx
             else
             {
                 //进行字符串的拷贝
-                if (!len) len = (uint32_t)s::strlen(str);
+                if (!len) len = (uint32_t)st::strlen(str);
                 m_length = Min(len, uint32_t(m_capacity - 1));
-                s::strncpy(m_string, str, m_length);
+                st::strncpy(m_string, str, m_length);
                 m_string[m_length] = 0;
                 return m_length;
             }
@@ -436,12 +436,12 @@ namespace rx
         const CT* c_str() const { return m_string; }
         operator const CT* ()const{return m_string;}
         //-------------------------------------------------
-        bool operator <  (const tiny_string& str) const {return strcmp(m_string, str.m_string) < 0;}
-        bool operator <= (const tiny_string& str) const {return strcmp(m_string, str.m_string) <= 0;}
-        bool operator == (const tiny_string& str) const {return strcmp(m_string, str.m_string) == 0;}
-        bool operator >  (const tiny_string& str) const {return strcmp(m_string, str.m_string) > 0;}
-        bool operator >= (const tiny_string& str) const {return strcmp(m_string, str.m_string) >= 0;}
-        bool operator != (const tiny_string& str) const {return strcmp(m_string, str.m_string) != 0;}
+        bool operator <  (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) < 0;}
+        bool operator <= (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) <= 0;}
+        bool operator == (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) == 0;}
+        bool operator >  (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) > 0;}
+        bool operator >= (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) >= 0;}
+        bool operator != (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) != 0;}
         //-------------------------------------------------
         bool operator <  (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) < 0;}
         bool operator <= (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) <= 0;}
@@ -459,8 +459,8 @@ namespace rx
     #pragma warning(default:4200)
 #endif
 
-    typedef tiny_string<char> tiny_stringc;
-    typedef tiny_string<wchar_t> tiny_stringw;
+    typedef tiny_string_t<char> tiny_stringc_t;
+    typedef tiny_string_t<wchar_t> tiny_stringw_t;
 
     ////-----------------------------------------------------
     //在给定的buff内存块上构造简易串对象并进行初始化
@@ -468,7 +468,7 @@ namespace rx
     template<class CT>
     uint32_t make_tiny_string(void* buff,uint32_t buffsize,const CT* str,uint32_t len=0)
     {
-        typedef struct tiny_string<CT> string_t;
+        typedef struct tiny_string_t<CT> string_t;
         if (buffsize <= sizeof(string_t))       //检查最小尺寸
             return 0;
 

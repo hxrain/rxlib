@@ -11,11 +11,11 @@ typedef struct tmp_raw_stack_node_t
 }tmp_raw_stack_node_t;
 
 //---------------------------------------------------------
-inline void test_raw_list_1(rx_tdd_base &rt)
+inline void test_raw_list_1(rx_tdd_t &rt)
 {
     tmp_raw_stack_node_t *node;
     tmp_raw_stack_node_t tmp[3];
-    rx::raw_list<tmp_raw_stack_node_t> list;
+    rx::raw_list_t<tmp_raw_stack_node_t> list;
     for(int i=0;i<3;++i)
         tmp[i].tmp_value=i;
 
@@ -66,11 +66,11 @@ inline void test_raw_list_1(rx_tdd_base &rt)
 
 }
 //---------------------------------------------------------
-inline void test_raw_stack_1(rx_tdd_base &rt)
+inline void test_raw_stack_1(rx_tdd_t &rt)
 {
     tmp_raw_stack_node_t *node;
     tmp_raw_stack_node_t tmp[3];
-    rx::raw_stack<tmp_raw_stack_node_t> stack;
+    rx::raw_stack_t<tmp_raw_stack_node_t> stack;
     for(int i=0;i<3;++i)
         tmp[i].tmp_value=i;
 
@@ -101,7 +101,7 @@ inline void test_raw_stack_1(rx_tdd_base &rt)
 }
 //---------------------------------------------------------
 template<class T>
-void test_mem_pool_base(rx_tdd_base &rt)
+void test_mem_pool_base(rx_tdd_t &rt)
 {
     uint32_t bsize;
     T mempool(4);

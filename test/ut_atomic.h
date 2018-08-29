@@ -4,11 +4,11 @@
 #include "../rx_atomic.h"
 
 template<class T>
-void test_atomic_base(rx_tdd_base &rt)
+void test_atomic_base(rx_tdd_t &rt)
 {
     rx_static_assert(sizeof(T) == 4 || sizeof(T) == 8);
 
-    rx::atomic<T> atomic;
+    rx::atomic_t<T> atomic;
 
     atomic.store((T)1);
     rt.tdd_assert(atomic.load() == 1);
@@ -60,7 +60,7 @@ void test_atomic_base(rx_tdd_base &rt)
     rt.tdd_assert(atomic == 0);
 }
 
-inline void test_spinlock_base_1(rx_tdd_base &rt)
+inline void test_spinlock_base_1(rx_tdd_t &rt)
 {
     rx::spin_lock lk;
     rt.tdd_assert(lk.lock());

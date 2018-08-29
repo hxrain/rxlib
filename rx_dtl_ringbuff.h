@@ -22,7 +22,7 @@ namespace rx
 */
     //-----------------------------------------------------
     //基于bipbuffer原理封装一个循环缓冲区功能对象
-    class bipbuff_base
+    class bipbuff_t
     {
     protected:
         uint8_t     b_inuse;                                //标记B区域是否被使用了
@@ -137,11 +137,11 @@ namespace rx
     //-----------------------------------------------------
     //静态空间的环形缓冲区;容量CP.
     template<uint32_t CP = 256>
-    class ringbuff_fixed :public bipbuff_base
+    class ringbuff_fixed_t :public bipbuff_t
     {
         uint8_t  m_buff[CP];                                //定义真正的缓冲区空间
     public:
-        ringbuff_fixed() { bipbuff_base::m_init(CP,m_buff); }//构造时进行初始化
+        ringbuff_fixed_t() { bipbuff_t::m_init(CP,m_buff); }//构造时进行初始化
     };
 }
 

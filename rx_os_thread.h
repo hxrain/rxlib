@@ -36,7 +36,7 @@ namespace rx
     //线程任务接口,内置循环处理与停止逻辑
     class task_t
     {
-        atomic_int   m_stop_flag;
+        atomic_int_t   m_stop_flag;
         friend class thread_t;
     protected:
         //-------------------------------------------------
@@ -84,7 +84,7 @@ namespace rx
 
     //-----------------------------------------------------
     //带有暂停/恢复功能的任务处理功能对象
-    class task_ex :public task_t
+    class task_ex_t :public task_t
     {
         cond_t      m_cond;
         locker_t    m_lock;
@@ -105,7 +105,7 @@ namespace rx
             return task_t::need_break();
         }
     public:
-        task_ex(bool is_pause = false) :m_pause_flag(is_pause) {}
+        task_ex_t(bool is_pause = false) :m_pause_flag(is_pause) {}
         //-------------------------------------------------
         //标记,让线程进入逻辑暂停
         void pause()

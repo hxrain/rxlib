@@ -5,7 +5,7 @@
 #include "../rx_tdd.h"
 
 //---------------------------------------------------------
-inline void ut_bits_op_base_1(rx_tdd_base &rt)
+inline void ut_bits_op_base_1(rx_tdd_t &rt)
 {
     uint32_t v;
     v = rx_byte_flip<uint32_t, 1>();
@@ -118,7 +118,7 @@ inline void ut_bits_op_base_1(rx_tdd_base &rt)
 }
 
 //---------------------------------------------------------
-inline void ut_bits_op_base_2(rx_tdd_base &rt)
+inline void ut_bits_op_base_2(rx_tdd_t &rt)
 {
     uint32_t v = 0x80010422;//1000 0000 0000 0001 0000 0100 0010 0010b
     uint32_t r;
@@ -180,7 +180,7 @@ inline void ut_bits_op_base_2(rx_tdd_base &rt)
 
     //ÉıĞò
     v = 0x80010422;
-    rx_bits_array ba;
+    rx_bits_array_t ba;
     rt.tdd_assert(ba.begin(bs, sizeof(v)));
     rt.tdd_assert(ba.bits() == sizeof(v) << 3);
     rt.tdd_assert(ba.pos() == 0);

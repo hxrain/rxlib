@@ -8,7 +8,7 @@ rx_tdd(test_name1)
     assert(1);
 }
 
-void test_1(rx_tdd_base &tdd)
+void test_1(rx_tdd_t &tdd)
 {
     tdd.assert(1);
 }
@@ -41,20 +41,20 @@ inline void rx_tdd_out_fun(const char* msg,va_list vl)
     vprintf(msg,vl);
 }
 
-class rx_tdd_base;
+class rx_tdd_t;
 
 //---------------------------------------------------------
 //定义TDD用例的运行状态
-typedef struct rx_tdd_stat
+typedef struct rx_tdd_stat_t
 {
     unsigned int _total;                                    //记录TDD用例总数
     unsigned int _perform;                                  //记录TDD用例已执行数量
     unsigned int _failed;                                   //记录断言失败数量
     unsigned int _assert;                                   //记录断言运行的次数
 
-    rx_tdd_base *head;                                      //指向TDD用例的链表头结点
-    rx_tdd_base *tail;                                      //指向TDD用例的链表尾结点
-    rx_tdd_base *runed;                                     //指向TDD用例的链表已执行结点
+    rx_tdd_t *head;                                      //指向TDD用例的链表头结点
+    rx_tdd_t *tail;                                      //指向TDD用例的链表尾结点
+    rx_tdd_t *runed;                                     //指向TDD用例的链表已执行结点
 
     rx_tdd_out_fun_t out_fun;                               //记录输出内容的函数指针，可调整。
     void out(const char* msg,...)
@@ -65,16 +65,9 @@ typedef struct rx_tdd_stat
         va_end(v);
     }
 
-    rx_tdd_stat():_total(0),_perform(0),_failed(0),_assert(0),head(0),tail(0),runed(0),out_fun(rx_tdd_out_fun){}
-}rx_tdd_stat;
-
-//---------------------------------------------------------
-//使用简化的单件模式，获取TDD的运行状态
-inline rx_tdd_stat& _rx_tdd_stat()
-{
-    static rx_tdd_stat stat;
-    return stat;
-}
+    rx_tdd_stat_t():_total(0),_perform(0),_failed(0),_assert(0),head(0),tail(0),runed(0),out_fun(rx_tdd_out_fun){}
+    static rx_tdd_stat_t& get(){static rx_tdd_stat_t st;return st;}
+}rx_tdd_stat_t;
 
 //---------------------------------------------------------
 //TDD的级别,定义时指定,运行时可选择运行某个级别之下的TDD
@@ -88,18 +81,18 @@ typedef enum rx_tdd_level
 
 //---------------------------------------------------------
 //实现TDD用例的基类
-class rx_tdd_base
+class rx_tdd_t
 {
     friend void rx_tdd_run(rx_tdd_level rtl,bool only_curr_level);
 
     const char* m_tdd_name;
     const char* m_file_name;
     int         m_line_no;
-    rx_tdd_base *m_next;
+    rx_tdd_t *m_next;
     unsigned char m_wait_key;
     unsigned char m_level;
 
-    void m_bind(rx_tdd_stat &root)
+    void m_bind(rx_tdd_stat_t &root)
     {
         if (root.head==0)
         {//初始的时候，让TDD用例链表的头和尾都指向当前对象
@@ -116,14 +109,14 @@ class rx_tdd_base
 
 public:
     //-----------------------------------------------------
-    rx_tdd_base(const char* tdd_name,rx_tdd_level rtl,const char* _file_name,const int _line_no)
+    rx_tdd_t(const char* tdd_name,rx_tdd_level rtl,const char* _file_name,const int _line_no)
     {
         m_tdd_name=tdd_name;
         m_file_name=_file_name;
         m_line_no=_line_no;
         m_wait_key=false;
         m_level=rtl;
-        m_bind(_rx_tdd_stat());
+        m_bind(rx_tdd_stat_t::get());
     }
     //-----------------------------------------------------
     //执行本用例
@@ -131,18 +124,18 @@ public:
     {
         if (rtl<m_level||(only_curr_level&&rtl!=m_level))
         {
-            _rx_tdd_stat().out("RX TDD::<SKIP> {%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
+            rx_tdd_stat_t::get().out("RX TDD::<SKIP> {%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
             return;
         }
 
-        _rx_tdd_stat().out("RX TDD::{%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
+        rx_tdd_stat_t::get().out("RX TDD::{%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
         try{on_exec();}
         catch(...)
         {
-            _rx_tdd_stat().out("RX TDD::<EXCEPTION> {%s} at <%s:%d> => throw exception!\r\n",m_tdd_name,m_file_name,m_line_no);
-            ++_rx_tdd_stat()._failed;                   //捕捉异常时记录失败次数
+            rx_tdd_stat_t::get().out("RX TDD::<EXCEPTION> {%s} at <%s:%d> => throw exception!\r\n",m_tdd_name,m_file_name,m_line_no);
+            ++rx_tdd_stat_t::get()._failed;                   //捕捉异常时记录失败次数
         }
-        ++_rx_tdd_stat()._perform;                      //执行过的用例数增加
+        ++rx_tdd_stat_t::get()._perform;                      //执行过的用例数增加
     }
     //-----------------------------------------------------
     //内部断言，用于记录失败次数
@@ -150,7 +143,7 @@ public:
     void assert(bool v,int _line_no){assert(v,_line_no,NULL);}
     void assert(bool v,int _line_no,const char* msg,...)
     {
-        rx_tdd_stat &s=_rx_tdd_stat();
+        rx_tdd_stat_t &s=rx_tdd_stat_t::get();
         ++s._assert;
         if (v) return;
         ++s._failed;
@@ -185,8 +178,8 @@ protected:
 //运行TDD用例,输出统计结果(可指定要求运行的等级,进行长时间运行测试的过滤)
 inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=false)
 {
-    rx_tdd_stat &s=_rx_tdd_stat();
-    rx_tdd_base *node=s.head;
+    rx_tdd_stat_t &s=rx_tdd_stat_t::get();
+    rx_tdd_t *node=s.head;
 
     s.out("RX TDD::BEGIN===============================\r\n");
     while(node)
@@ -210,9 +203,9 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
 
 //---------------------------------------------------------
 //定义rx_tdd宏,并指定运行级别,用于便捷的建立一个指定名字的测试用例
-#define _tdd_rtl_desc(name,rtl,lineno) class __RX_TDD_CLS__##name:public rx_tdd_base \
+#define _tdd_rtl_desc(name,rtl,lineno) class __RX_TDD_CLS__##name:public rx_tdd_t \
     {public:                                                    \
-        __RX_TDD_CLS__##name():rx_tdd_base(#name,rtl,__FILE__,lineno){} \
+        __RX_TDD_CLS__##name():rx_tdd_t(#name,rtl,__FILE__,lineno){} \
         void on_exec();                                         \
     };                                                          \
     __RX_TDD_CLS__##name __RX_TDD_OBJ__##name;                  \

@@ -16,10 +16,10 @@ namespace rx
     //------------------------------------------------------
     //标准的,基于内存池接口的内存分配器
     template<class lock_t>
-    class mem_allotter_base :public mem_allotter_i
+    class mem_allotter_base_t :public mem_allotter_i
     {
     protected:
-        mempool   &m_base_pool;
+        mempool_t  &m_base_pool;
         lock_t     m_lock;
         //-------------------------------------------------
         virtual void* base_alloc(uint32_t &bksize,uint32_t size)
@@ -32,53 +32,53 @@ namespace rx
             GUARD_T(m_lock, lock_t);
             m_base_pool.do_free(ptr, size);
         }
-        mem_allotter_base(mempool& pool):m_base_pool(pool){}
+        mem_allotter_base_t(mempool_t& pool):m_base_pool(pool){}
     };
 
     //------------------------------------------------------
     //使用C标准库的内存分配器功能封装
-    class mem_allotter_std :public mem_allotter_i
+    class mem_allotter_std_t :public mem_allotter_i
     {
     protected:
         //-------------------------------------------------
         virtual void* base_alloc(uint32_t &bksize,uint32_t size)
         {
             bksize=size;
-            return mempool_std::do_alloc(size);
+            return mempool_std_t::do_alloc(size);
         }
         virtual void base_free(void* ptr, uint32_t size)
         {
-            mempool_std::do_free(ptr, size);
+            mempool_std_t::do_free(ptr, size);
         }
     };
 
     //------------------------------------------------------
     //基于内存池的内存分配器容器
     template<class pool_t,class lock_t=null_lock_t>
-    class mem_allotter_pool:public mem_allotter_base<lock_t>
+    class mem_allotter_pool_t:public mem_allotter_base_t<lock_t>
     {//描述默认的各种容器类型的内存分配器,无锁保护,单线程安全.
         pool_t      m_pool;
     public:
-        mem_allotter_pool():mem_allotter_base<lock_t>(m_pool){}
+        mem_allotter_pool_t():mem_allotter_base_t<lock_t>(m_pool){}
     };
 
     //------------------------------------------------------
     //描述一个通用的内存分配器类型拼装宏
     //tname为最终的类型名;cfg_t为内存池参数配置;locl_t为锁类型;cntr_t为内存池容器类型;pool_t为内存池类型
     #define desc_mem_allotter(tname,cfg_t,lock_t,cntr_t,pool_t) \
-        typedef mem_allotter_pool<cntr_t<pool_t<cfg_t>,cfg_t> ,lock_t>  tname
+        typedef mem_allotter_pool_t<cntr_t<pool_t<cfg_t>,cfg_t> ,lock_t>  tname
 
     //简化的内存分配器(线性递增)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
     #define desc_mem_allotter_lin(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_lin,mempool_fixed_t)
+        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_lin_t,mempool_fixed_t)
 
     //简化的内存分配器(指数倍增)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
     #define desc_mem_allotter_pow2(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_pow2,mempool_fixed_t)
+        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_pow2_t,mempool_fixed_t)
 
     //简化的内存分配器(两级映射)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
     #define desc_mem_allotter_tlmap(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_tlmap,mempool_fixed_t)
+        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_tlmap_t,mempool_fixed_t)
 
     //------------------------------------------------------
     //描述默认的各种容器类型的内存分配器,无锁保护,单线程安全.

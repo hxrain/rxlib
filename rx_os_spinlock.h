@@ -11,7 +11,7 @@ namespace rx
     //------------------------------------------------------
     //参考:  https://github.com/shines77/RingQueue/blob/master/include/RingQueue/RingQueue.h
     //基于原子变量实现的自旋锁,不可重入
-    class spin_lock_t :public ilock
+    class spin_lock_t :public lock_i
     {
         uint8_t     padding1[CPU_CACHELINE_SIZE / 2];
         int32_t     m_lock;

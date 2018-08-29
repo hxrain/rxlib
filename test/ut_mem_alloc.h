@@ -5,7 +5,7 @@
 #include "../rx_tdd.h"
 #include "../rx_hash_rand.h"
 
-void test_mem_alloc_base(rx_tdd_base &rt)
+void test_mem_alloc_base(rx_tdd_t &rt)
 {
     uint32_t *dp1=rx_new(uint32_t);
     rt.tdd_assert(dp1!=NULL);
@@ -23,14 +23,14 @@ template<class ma_t,uint32_t array_size=5000,uint32_t loop_test=5000,uint32_t ma
 class test_mem_alloc_a
 {
 public:
-    static void test(rx_tdd_base &rt,const char* ms_type,uint32_t seed)
+    static void test(rx_tdd_t &rt,const char* ms_type,uint32_t seed)
     {
         tdd_tt(tt,"mem_alloc_test",ms_type);
         tdd_tt_hit(tt,"array_size=%u,loop_test=%u,max_mem_size=%u",array_size,loop_test,max_mem_size);
         tdd_tt_hit(tt,"tmp1");
         tdd_tt_hit(tt,"tmp2");
         ptr_t   ptr_array[array_size];
-        rx::rand_skeeto_b rnd;
+        rx::rand_skeeto_b32_t rnd;
         ma_t ma;
         rnd.seed(seed);
 
@@ -58,7 +58,7 @@ rx_tdd(test_mem_alloc_base)
     test_mem_alloc_a<rx::mem_allotter_lin_slt,100,200>::test(*this,"mem_allotter_lin_slt",seed);
     test_mem_alloc_a<rx::mem_allotter_pow2_slt,100,200>::test(*this,"mem_allotter_pow2_slt",seed);
     test_mem_alloc_a<rx::mem_allotter_tlmap_slt,100,200>::test(*this,"mem_allotter_tlmap_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_std,100,200>::test(*this,"mem_allotter_std",seed);
+    test_mem_alloc_a<rx::mem_allotter_std_t,100,200>::test(*this,"mem_allotter_std",seed);
 
 }
 
@@ -69,7 +69,7 @@ rx_tdd_rtl(test_mem_alloc_base,tdd_level_slow)
     test_mem_alloc_a<rx::mem_allotter_lin_slt>::test(*this,"mem_allotter_lin_slt",seed);
     test_mem_alloc_a<rx::mem_allotter_pow2_slt>::test(*this,"mem_allotter_pow2_slt",seed);
     test_mem_alloc_a<rx::mem_allotter_tlmap_slt>::test(*this,"mem_allotter_tlmap_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_std>::test(*this,"mem_allotter_std",seed);
+    test_mem_alloc_a<rx::mem_allotter_std_t>::test(*this,"mem_allotter_std",seed);
 
 }
 

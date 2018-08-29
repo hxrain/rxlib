@@ -104,12 +104,12 @@
     //=====================================================
     //进行滴答数简单管理的类,内部持有滴答数计数器
     template<rx_tick_func_t func>
-    class rx_tick
+    class rx_tick_t
     {
         uint64_t m_tick_count;
     public:
         typedef uint64_t TickType;
-        rx_tick():m_tick_count(0){}
+        rx_tick_t():m_tick_count(0){}
         //-------------------------------------------------
         //立即更新内部滴答数并返回
         TickType update(){m_tick_count=func();return m_tick_count;}
@@ -123,14 +123,14 @@
     };
     //-----------------------------------------------------
     //微妙滴答数计数器
-    typedef rx_tick<rx_get_tick_us> rx_tick_us;
+    typedef rx_tick_t<rx_get_tick_us> rx_tick_us_t;
     //毫秒滴答数计数器
-    typedef rx_tick<rx_get_tick_ms> rx_tick_ms;
+    typedef rx_tick_t<rx_get_tick_ms> rx_tick_ms_t;
 
     //=====================================================
     //被动计时器(不建议跨线程使用)
     template<class tick_t>
-    class rx_tick_meter
+    class rx_tick_meter_t
     {
     public:
         typedef typename tick_t::TickType TickType;
@@ -140,10 +140,10 @@
     public:
         //-------------------------------------------------
         //构造函数,指定定时器间隔时间,告知是否首次(立即)触发(默认正常等待超时才触发)
-        rx_tick_meter(TickType interval,bool first_hit=false):m_interval(interval){can_first_hit(first_hit);}
+        rx_tick_meter_t(TickType interval,bool first_hit=false):m_interval(interval){can_first_hit(first_hit);}
         //默认首次触发
-        rx_tick_meter():m_interval(0){}
-        virtual ~rx_tick_meter(){}
+        rx_tick_meter_t():m_interval(0){}
+        virtual ~rx_tick_meter_t(){}
         //-------------------------------------------------
         //设置是否进行首次触发(设置前提:从未被触发过)
         void can_first_hit(bool first_hit=true)
@@ -182,26 +182,26 @@
         void reset(){m_tick.update(0);}
         //-------------------------------------------------
     };
-    typedef rx_tick_meter<rx_tick_us> rx_tick_meter_us;
-    typedef rx_tick_meter<rx_tick_ms> rx_tick_meter_ms;
+    typedef rx_tick_meter_t<rx_tick_us_t> rx_tick_meter_us_t;
+    typedef rx_tick_meter_t<rx_tick_ms_t> rx_tick_meter_ms_t;
 
 
 	//=====================================================
 	//基于滴答计时器的周期计速器
 	template<class meter_t,uint32_t interval>
-	class rx_speed_meter
+	class rx_speed_meter_t
 	{
-		meter_t		    m_tick_meter;                       //最后的更新时间
-		rx::atomic_uint	m_working_value;                    //临时计数器
-		rx::atomic_uint	m_total;                            //累计数据总量
-		rx::atomic_uint	m_updated;							//累计被更新的次数
-		double		    m_speed_value;                      //上一统计周期内的速度值
-		uint32_t	    m_calc_cycle;						//统计周期数量
-		rx_speed_meter& operator=(const rx_speed_meter&);
+		meter_t		        m_tick_meter;                   //最后的更新时间
+		rx::atomic_uint_t	m_working_value;                //临时计数器
+		rx::atomic_uint_t	m_total;                        //累计数据总量
+		rx::atomic_uint_t	m_updated;						//累计被更新的次数
+		double		        m_speed_value;                  //上一统计周期内的速度值
+		uint32_t	        m_calc_cycle;				    //统计周期数量
+		rx_speed_meter_t& operator=(const rx_speed_meter_t&);
 	public:
 		//-------------------------------------------------
-		rx_speed_meter() :m_speed_value(0), m_calc_cycle(1) {set(interval,1);m_tick_meter.update();}
-		virtual ~rx_speed_meter() {}
+		rx_speed_meter_t() :m_speed_value(0), m_calc_cycle(1) {set(interval,1);m_tick_meter.update();}
+		virtual ~rx_speed_meter_t() {}
 		//-------------------------------------------------
 		//获取上一个统计周期内的速度值
 		uint32_t  value(uint32_t Divisor = 1)const { return (uint32_t)m_speed_value / Divisor; }
@@ -248,8 +248,8 @@
 			m_calc_cycle = Cycle;
 		}
 	};
-    typedef rx_speed_meter<rx_tick_meter_us,1000*1000> rx_speed_meter_us;
-    typedef rx_speed_meter<rx_tick_meter_ms,1000> rx_speed_meter_ms;
+    typedef rx_speed_meter_t<rx_tick_meter_us_t,1000*1000> rx_speed_meter_us_t;
+    typedef rx_speed_meter_t<rx_tick_meter_ms_t,1000> rx_speed_meter_ms_t;
 
 
 #endif

@@ -174,7 +174,7 @@ namespace rx
 
     //----------------------------------------------------------
     /*
-    类型提取工具模板rx_type_pick能够得到各种条件下的各种类型
+    类型提取工具模板rx_type_pick_t能够得到各种条件下的各种类型
     base_代表基本类型  /  org_代表输入的原类型  /  const_代表const类型  /  not_const_t代表非const的原输入类型  /  const_t代表const后的原输入类型
 
     T=C             val_t=C    ptr_t=C*   ref_t=C&
@@ -186,7 +186,7 @@ namespace rx
     T=const C**     val_t=C*   ptr_t=C**  ref_t=C* &
     */
     template <class T>
-    struct rx_type_pick {
+    struct rx_type_pick_t {
       typedef T                          base_val_t;
       typedef T*                         base_ptr_t;
       typedef T&                         base_ref_t;
@@ -202,7 +202,7 @@ namespace rx
 
 
     template <class T>
-    struct rx_type_pick<const T> {
+    struct rx_type_pick_t<const T> {
       typedef T                          base_val_t;
       typedef T*                         base_ptr_t;
       typedef T&                         base_ref_t;
@@ -218,7 +218,7 @@ namespace rx
 
 
     template <class T>
-    struct rx_type_pick<T*> {
+    struct rx_type_pick_t<T*> {
       typedef T                          base_val_t;
       typedef T*                         base_ptr_t;
       typedef T&                         base_ref_t;
@@ -234,7 +234,7 @@ namespace rx
 
 
     template <class T>
-    struct rx_type_pick<const T*> {
+    struct rx_type_pick_t<const T*> {
       typedef T                          base_val_t;
       typedef T*                         base_ptr_t;
       typedef T&                         base_ref_t;
@@ -249,7 +249,7 @@ namespace rx
     };
 
     template <class T>
-    struct rx_type_pick<T&> {
+    struct rx_type_pick_t<T&> {
       typedef T                          base_val_t;
       typedef T*                         base_ptr_t;
       typedef T&                         base_ref_t;
@@ -265,7 +265,7 @@ namespace rx
 
 
     template <class T>
-    struct rx_type_pick<const T&> {
+    struct rx_type_pick_t<const T&> {
       typedef T                          base_val_t;
       typedef T*                         base_ptr_t;
       typedef T&                         base_ref_t;

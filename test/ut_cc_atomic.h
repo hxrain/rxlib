@@ -7,7 +7,7 @@
 
 
 template<class T>
-void test_cc_atomic_base(rx_tdd_base &rt)
+void test_cc_atomic_base(rx_tdd_t &rt)
 {
     rx_static_assert(sizeof(T) == 4 || sizeof(T) == 8);
 

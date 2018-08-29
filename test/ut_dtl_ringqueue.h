@@ -10,9 +10,9 @@
 namespace rx
 {
     //---------------------------------------------------------
-    inline void test_dtl_ringqueue_base_1(rx_tdd_base &rt)
+    inline void test_dtl_ringqueue_base_1(rx_tdd_t &rt)
     {
-        typedef ringqueue_fixed<uint32_t, 7, spin_lock_t,uint8_t> ringqueue_t;
+        typedef ringqueue_fixed_t<uint32_t, 7, spin_lock_t,uint8_t> ringqueue_t;
         ringqueue_t rq;
 
         rt.tdd_assert(rq.capacity() == 128);
@@ -103,9 +103,9 @@ namespace rx
 
     }
     //---------------------------------------------------------
-    inline void test_dtl_ringqueue_base_2(rx_tdd_base &rt)
+    inline void test_dtl_ringqueue_base_2(rx_tdd_t &rt)
     {
-        typedef ringqueue_fixed<uint32_t, 8, spin_lock_t> ringqueue_t;
+        typedef ringqueue_fixed_t<uint32_t, 8, spin_lock_t> ringqueue_t;
         ringqueue_t rq;
 
         rt.tdd_assert(rq.capacity() == 256);
@@ -136,9 +136,9 @@ namespace rx
 
     //---------------------------------------------------------
     template<class ST,uint32_t CP,class LT>
-    inline void test_dtl_ringqueue_base_3(rx_tdd_base &rt,const uint32_t tt=1000)
+    inline void test_dtl_ringqueue_base_3(rx_tdd_t &rt,const uint32_t tt=1000)
     {
-        typedef ringqueue_fixed<uint32_t, CP, LT, ST> ringqueue_t;
+        typedef ringqueue_fixed_t<uint32_t, CP, LT, ST> ringqueue_t;
         ringqueue_t rq;
         uint32_t tc = 0;
 
@@ -177,7 +177,7 @@ namespace rx
 
     //---------------------------------------------------------
     template<class LT>
-    inline void test_dtl_ringqueue_base_3L(rx_tdd_base &rt,const uint32_t tt=1000)
+    inline void test_dtl_ringqueue_base_3L(rx_tdd_t &rt,const uint32_t tt=1000)
     {
         test_dtl_ringqueue_base_3<uint8_t, 7, LT>(rt,tt);
         test_dtl_ringqueue_base_3<uint8_t, 6, LT>(rt,tt);

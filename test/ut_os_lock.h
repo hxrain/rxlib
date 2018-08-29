@@ -8,7 +8,7 @@
 
 namespace rx
 {
-    inline void os_lock_base_1(rx_tdd_base &rt)
+    inline void os_lock_base_1(rx_tdd_t &rt)
     {
         locker_t locker;
         {GUARD(locker); }
@@ -18,7 +18,7 @@ namespace rx
         guard(locker);
     }
 }
-inline void test_spinlock_base_2(rx_tdd_base &rt)
+inline void test_spinlock_base_2(rx_tdd_t &rt)
 {
     rx::spin_lock_t lk;
     rt.tdd_assert(lk.lock());

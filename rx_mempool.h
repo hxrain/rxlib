@@ -10,14 +10,14 @@ namespace rx
 {
     //------------------------------------------------------
 	//内存池分配接口
-    class mempool
+    class mempool_t
     {
     public:
         virtual void *do_alloc(uint32_t &blocksize,uint32_t size)=0;
         virtual void *do_realloc(uint32_t &blocksize,void* ptr,uint32_t newsize){return NULL;}
         virtual void do_free(void* ptr, uint32_t blocksize=0)=0;
     protected:
-        virtual ~mempool(){}
+        virtual ~mempool_t(){}
     };
 
     //------------------------------------------------------
@@ -39,7 +39,7 @@ namespace rx
 
     //------------------------------------------------------
     //基于C标准库的内存池
-    class mempool_std
+    class mempool_std_t
     {
     public:
         static void *do_alloc(uint32_t size) { return malloc(size); }
@@ -49,11 +49,11 @@ namespace rx
 
     //------------------------------------------------------
     //内存池功能基类
-    class mempool_i:public mempool
+    class mempool_i:public mempool_t
     {
     protected:
 		mempool_stat_t	m_stat;
-		mempool        *m_base;
+		mempool_t        *m_base;
         //--------------------------------------------------
         mempool_i():m_base(0){memset(&m_stat,0,sizeof(m_stat));}
         //--------------------------------------------------
@@ -64,7 +64,7 @@ namespace rx
             else
             {
                 blocksize=size;
-                return mempool_std::do_alloc(size);
+                return mempool_std_t::do_alloc(size);
             }
         }
         //--------------------------------------------------
@@ -75,7 +75,7 @@ namespace rx
             else
             {
                 blocksize=newsize;
-                return mempool_std::do_realloc(ptr,newsize);
+                return mempool_std_t::do_realloc(ptr,newsize);
             }
         }
         //--------------------------------------------------
@@ -84,11 +84,11 @@ namespace rx
             if (m_base)
                 return m_base->do_free(ptr,blocksize);
             else
-                return mempool_std::do_free(ptr,blocksize);
+                return mempool_std_t::do_free(ptr,blocksize);
         }
 
 	public:
-        void bind(mempool& mp){m_base=&mp;}
+        void bind(mempool_t& mp){m_base=&mp;}
 		virtual bool do_init(uint32_t size=0){return true;}
 		virtual void do_uninit(bool force=false){}
 		const mempool_stat_t& stat() const {return m_stat;}

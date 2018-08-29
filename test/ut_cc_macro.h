@@ -8,7 +8,7 @@
 
 
 //函数的行号与内部代码行位置不要改变,否则测试不能通过.
-void rx_test_CT_LINE(rx_tdd_base &rt)
+void rx_test_CT_LINE(rx_tdd_t &rt)
 {
     int RX_CT_LINE = __LINE__;
     int RX_CT_LINE = __LINE__;
@@ -20,7 +20,7 @@ void rx_test_CT_LINE(rx_tdd_base &rt)
     rt.assert(RX_CT_SYM_EX(int_, 19) == 19);
 }
 
-void rx_test_CT_BASE(rx_tdd_base &rt)
+void rx_test_CT_BASE(rx_tdd_t &rt)
 {
     rt.assert((!0)==1);
     rt.assert((!!0)==0);

@@ -27,14 +27,14 @@ namespace rx
         typedef struct mp_stripes_t
         {
             enum{  total=(CT::MaxNodeSize-sizeof(void*)-sizeof(uint32_t))/sizeof(void*) };
-            struct mp_stripes_t* volatile next;	        //节点的后趋
+            struct mp_stripes_t* volatile next;	            //节点的后趋
             uint32_t  count;
             void *    ptrs[total];
         }mp_stripes_t;
 
         //-------------------------------------------------
-		raw_stack<mp_block_t>   m_free_blocks;              //可用内存块链表
-        raw_stack<mp_stripes_t> m_stripes;                  //已经分配出的内存条链表
+		raw_stack_t<mp_block_t>   m_free_blocks;            //可用内存块链表
+        raw_stack_t<mp_stripes_t> m_stripes;                //已经分配出的内存条链表
 
         uint32_t         m_block_size;                      //每个内存块可用的空间尺寸,初始确定,不会再次改变
         uint32_t         m_per_stripe_blocks;               //每个内存条中的内存块数量,初始确定,不会再次改变

@@ -20,7 +20,7 @@ namespace tn_tmp
     }tlmap_cfg_t;
 }
 
-inline void rx_hash_tlmap_base_1(rx_tdd_base &rt)
+inline void rx_hash_tlmap_base_1(rx_tdd_t &rt)
 {
     uint32_t fl, sl;
     rx_hash_tlmap<tn_tmp::tlmap_cfg_t>(0, fl, sl);

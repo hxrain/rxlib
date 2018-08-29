@@ -15,7 +15,7 @@ namespace rx
     //---------------------------------------------------------
     //内存池容器基类,可以放置多个固定尺寸内存池,形成动态尺寸的分配能力
 	template<class pool_t,class cfg_t= mempool_cfg_t>
-	class mempool_cntr_base:public mempool_i
+	class mempool_cntr_t:public mempool_i
 	{
     protected:
 		pool_t     *m_pool_array;							//固定尺寸内存块数组指针
@@ -25,12 +25,12 @@ namespace rx
         virtual bool on_init()=0;
         virtual void on_uninit()=0;
 		//-----------------------------------------------------
-		mempool_cntr_base &operator =(const mempool_cntr_base &);
-		mempool_cntr_base(const mempool_cntr_base&);
+		mempool_cntr_t &operator =(const mempool_cntr_t &);
+		mempool_cntr_t(const mempool_cntr_t&);
 	public:
 		typedef cfg_t mem_cfg_t;
 		//-----------------------------------------------------
-        mempool_cntr_base():m_pool_array(NULL){}
+        mempool_cntr_t():m_pool_array(NULL){}
 		//-----------------------------------------------------
 		//初始化内存池:固定池中每块包含的节点数量,清空池定时时间
 		virtual bool do_init(uint32_t size=0)
@@ -90,11 +90,11 @@ namespace rx
     //内存池容器,线性递增
     //---------------------------------------------------------
     template<class pool_t,class cfg_t= mempool_cfg_t>
-	class mempool_cntr_lin:public mempool_cntr_base<pool_t,cfg_t>
+	class mempool_cntr_lin_t:public mempool_cntr_t<pool_t,cfg_t>
 	{
         uint32_t m_pool_array_size;
     private:
-        typedef mempool_cntr_base<pool_t,cfg_t> parent_t;
+        typedef mempool_cntr_t<pool_t,cfg_t> parent_t;
 		enum{FM_PoolCount=cfg_t::MaxNodeSize/cfg_t::MinNodeSize};//定长内存池线性递增所需数组尺寸
         //-----------------------------------------------------
 		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
@@ -126,12 +126,12 @@ namespace rx
             parent_t::base_free(parent_t::m_pool_array, m_pool_array_size);
         }
 		//-----------------------------------------------------
-		mempool_cntr_lin &operator =(const mempool_cntr_lin &);
-		mempool_cntr_lin(const mempool_cntr_lin&);
+		mempool_cntr_lin_t &operator =(const mempool_cntr_lin_t &);
+		mempool_cntr_lin_t(const mempool_cntr_lin_t&);
 	public:
 		//-----------------------------------------------------
-        mempool_cntr_lin(bool init=true){if (init) parent_t::do_init();}
-        virtual ~mempool_cntr_lin() { parent_t::do_uninit(); }
+        mempool_cntr_lin_t(bool init=true){if (init) parent_t::do_init();}
+        virtual ~mempool_cntr_lin_t() { parent_t::do_uninit(); }
 	};
 
 
@@ -139,11 +139,11 @@ namespace rx
     //内存池容器,指数递增
     //---------------------------------------------------------
     template<class pool_t,class cfg_t= mempool_cfg_t>
-	class mempool_cntr_pow2:public mempool_cntr_base<pool_t,cfg_t>
+	class mempool_cntr_pow2_t:public mempool_cntr_t<pool_t,cfg_t>
 	{
         uint32_t m_pool_array_size;
     private:
-        typedef mempool_cntr_base<pool_t,cfg_t> parent_t;
+        typedef mempool_cntr_t<pool_t,cfg_t> parent_t;
 		enum{FM_PoolCount=cfg_t::MaxNodeShiftBit-cfg_t::MinNodeShiftBit+1};//定长内存池线性递增所需数组尺寸
         //-----------------------------------------------------
 		//待分配的尺寸向上对齐后再计算在定长内存池数组中的偏移位置
@@ -192,13 +192,13 @@ namespace rx
             parent_t::base_free(parent_t::m_pool_array, m_pool_array_size);
         }
 		//-----------------------------------------------------
-		mempool_cntr_pow2 &operator =(const mempool_cntr_pow2 &);
-		mempool_cntr_pow2(const mempool_cntr_pow2&);
+		mempool_cntr_pow2_t &operator =(const mempool_cntr_pow2_t &);
+		mempool_cntr_pow2_t(const mempool_cntr_pow2_t&);
 	public:
 		typedef cfg_t mem_cfg_t;
 		//-----------------------------------------------------
-		mempool_cntr_pow2(bool init=true){if (init) parent_t::do_init();}
-        virtual ~mempool_cntr_pow2() { parent_t::do_uninit(); }
+		mempool_cntr_pow2_t(bool init=true){if (init) parent_t::do_init();}
+        virtual ~mempool_cntr_pow2_t() { parent_t::do_uninit(); }
 	};
 
 
@@ -206,11 +206,11 @@ namespace rx
     //内存池容器,两级bit映射
     //---------------------------------------------------------
     template<class pool_t,class cfg_t= mempool_cfg_t,uint32_t SLI_COUNT=8,bool USE_MIN_ALIGN=true>
-	class mempool_cntr_tlmap:public mempool_cntr_base<pool_t,cfg_t>
+	class mempool_cntr_tlmap_t:public mempool_cntr_t<pool_t,cfg_t>
 	{
         uint32_t m_pool_array_size;
     private:
-        typedef mempool_cntr_base<pool_t,cfg_t> parent_t;
+        typedef mempool_cntr_t<pool_t,cfg_t> parent_t;
         //---------------------------------------------------------
         //两级bitmap索引计算的限定条件
         typedef struct tlmap_cfg_t
@@ -266,13 +266,13 @@ namespace rx
             parent_t::base_free(parent_t::m_pool_array, m_pool_array_size);
         }
 		//-----------------------------------------------------
-		mempool_cntr_tlmap &operator =(const mempool_cntr_tlmap &);
-		mempool_cntr_tlmap(const mempool_cntr_tlmap&);
+		mempool_cntr_tlmap_t &operator =(const mempool_cntr_tlmap_t &);
+		mempool_cntr_tlmap_t(const mempool_cntr_tlmap_t&);
 	public:
 		typedef cfg_t mem_cfg_t;
 		//-----------------------------------------------------
-		mempool_cntr_tlmap(bool init=true){if (init) parent_t::do_init();}
-        virtual ~mempool_cntr_tlmap() { parent_t::do_uninit(); }
+		mempool_cntr_tlmap_t(bool init=true){if (init) parent_t::do_init();}
+        virtual ~mempool_cntr_tlmap_t() { parent_t::do_uninit(); }
 	};
 
 }

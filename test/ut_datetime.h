@@ -7,7 +7,7 @@
 #include "../rx_tdd.h"
 
 
-inline void test_localtime(uint64_t dt, struct tm &tp, rx_tdd_base &rt)
+inline void test_localtime(uint64_t dt, struct tm &tp, rx_tdd_t &rt)
 {
     char t1[20],t2[20];
     rx_localtime(dt, tp);
@@ -34,7 +34,7 @@ inline void test_localtime(uint64_t dt, struct tm &tp, rx_tdd_base &rt)
     rt.msg_assert(rx_make_utc(tp) == dt,"%llu -> %s -> %s",dt,t1,t2);
 }
 
-inline void test_localtime_loop(rx_tdd_base &rt)
+inline void test_localtime_loop(rx_tdd_t &rt)
 {
     int tag = -1;
     struct tm tp;
@@ -62,7 +62,7 @@ inline void test_localtime_loop(rx_tdd_base &rt)
     }
 }
 
-inline void test_tick_us(rx_tdd_base &rt)
+inline void test_tick_us(rx_tdd_t &rt)
 {
     uint64_t bt=rx_get_tick_us();
     char tmp[1024*128];
@@ -71,14 +71,14 @@ inline void test_tick_us(rx_tdd_base &rt)
     rt.msg_assert(dt<500,"memset 1k byte use time:<%7u> us",dt);
 }
 
-inline void test_tick_us2(rx_tdd_base &rt)
+inline void test_tick_us2(rx_tdd_t &rt)
 {
     uint64_t bt=rx_get_tick_us();
     uint32_t dt=uint32_t(rx_get_tick_us()-bt);
     rt.msg_assert(dt<=100,"rx_tick_us() use time:<%7u> us",dt);
 }
 
-inline void test_localtime_base_1(rx_tdd_base &rt)
+inline void test_localtime_base_1(rx_tdd_t &rt)
 {
     rt.enable_error_wait();
 
@@ -114,18 +114,18 @@ inline void test_localtime_base_1(rx_tdd_base &rt)
         test_tick_us(rt);
 }
 
-inline void test_tick_base_1(rx_tdd_base &rt)
+inline void test_tick_base_1(rx_tdd_t &rt)
 {
-    rx_tick_us tu;
-    rx_tick_us::TickType BT=tu.update();
-    rx_tick_us::TickType ET=tu.update();
+    rx_tick_us_t tu;
+    rx_tick_us_t::TickType BT=tu.update();
+    rx_tick_us_t::TickType ET=tu.update();
     rt.tdd_assert(ET-BT<100);
 
-    rx_tick_meter_us tmu(1);
+    rx_tick_meter_us_t tmu(1);
     rx_thread_yield_us(10);
     rt.tdd_assert(tmu.is_timing());
 
-    rx_speed_meter_us smu;
+    rx_speed_meter_us_t smu;
     smu.set(10);
     rt.tdd_assert(!smu.hit(100));
     rt.tdd_assert(smu.count()==1);

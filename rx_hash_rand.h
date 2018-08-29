@@ -25,12 +25,12 @@ namespace rx
 
     //-----------------------------------------------------
     //参照HGE的随机数算法
-    class rand_hge:public rand_i
+    class rand_hge_t:public rand_i
     {
-        rand_hge& operator=(const rand_hge&);
+        rand_hge_t& operator=(const rand_hge_t&);
         uint32_t  m_seed;
     public:
-        rand_hge(uint32_t s=0){seed(s);}
+        rand_hge_t(uint32_t s=0){seed(s);}
         //初始化种子
         virtual void seed(uint32_t s){m_seed=s;}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
@@ -43,11 +43,11 @@ namespace rx
 
     //-----------------------------------------------------
     //封装std随机数算法
-    class rand_std:public rand_i
+    class rand_std_t:public rand_i
     {
-        rand_hge& operator=(const rand_hge&);
+        rand_hge_t& operator=(const rand_hge_t&);
     public:
-        rand_std(uint32_t s=0){seed(s);}
+        rand_std_t(uint32_t s=0){seed(s);}
         //初始化种子
         virtual void seed(uint32_t s){srand(s);}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
@@ -59,9 +59,9 @@ namespace rx
 
     //-----------------------------------------------------
     //参照skeeto的hash随机数算法(b)
-    class rand_skeeto_b:public rand_i
+    class rand_skeeto_b32_t:public rand_i
     {
-        rand_hge& operator=(const rand_hge&);
+        rand_hge_t& operator=(const rand_hge_t&);
         uint32_t  m_seed;
 
         static uint32_t hash(uint32_t x)
@@ -76,7 +76,7 @@ namespace rx
             return x;
         }
     public:
-        rand_skeeto_b(uint32_t s=0){seed(s);}
+        rand_skeeto_b32_t(uint32_t s=0){seed(s);}
         //初始化种子
         virtual void seed(uint32_t s){m_seed=s;}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
@@ -89,9 +89,9 @@ namespace rx
 
     //-----------------------------------------------------
     //参照skeeto的hash随机数算法(triple)
-    class rand_skeeto_triple:public rand_i
+    class rand_skeeto_triple_t:public rand_i
     {
-        rand_hge& operator=(const rand_hge&);
+        rand_hge_t& operator=(const rand_hge_t&);
         uint32_t  m_seed;
 
         //进行过统计验证的哈希函数(exact bias: 0.020829410544597495)
@@ -108,7 +108,7 @@ namespace rx
             return x;
         }
     public:
-        rand_skeeto_triple(uint32_t s=0){seed(s);}
+        rand_skeeto_triple_t(uint32_t s=0){seed(s);}
         //初始化种子
         virtual void seed(uint32_t s){m_seed=s;}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
@@ -126,9 +126,9 @@ namespace rx
 
 }
     //语法糖,快速访问随机数发生器(不建议多线程直接并发使用,需建立自己的线程独立的随机数发生器)
-    #define rx_rnd_hge() rx::rnd<rx::rand_hge>()
-    #define rx_rnd_std() rx::rnd<rx::rand_std>()
-    #define rx_rnd_b32() rx::rnd<rx::rand_skeeto_b>()
-    #define rx_rnd_t32() rx::rnd<rx::rand_skeeto_triple>()
+    #define rx_rnd_hge() rx::rnd<rx::rand_hge_t>()
+    #define rx_rnd_std() rx::rnd<rx::rand_std_t>()
+    #define rx_rnd_b32() rx::rnd<rx::rand_skeeto_b32_t>()
+    #define rx_rnd_t32() rx::rnd<rx::rand_skeeto_triple_t>()
 
 #endif

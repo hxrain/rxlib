@@ -16,16 +16,16 @@ namespace rx
     //Raw Stack:原始的栈(或单向list),保持最简形式,不用管理内存
     //要求node_t节点类型中至少含有一个后趋指针next
     template<class node_t>
-    class raw_stack
+    class raw_stack_t
     {
-        raw_stack& operator=(const raw_stack&);
+        raw_stack_t& operator=(const raw_stack_t&);
     private:
         node_t                 *m_head;	            //栈顶指针
         uint32_t	            m_count;            //栈内长度
     public:
         //-------------------------------------------------
         //构造函数
-        raw_stack():m_head(NULL),m_count(0){}
+        raw_stack_t():m_head(NULL),m_count(0){}
         //-------------------------------------------------
         //栈内元素数量
         uint32_t size() const {return m_count;}
@@ -68,9 +68,9 @@ namespace rx
     //Raw List:原始的单向list(或queue),保持最简形式,不用管理内存
     //要求node_t节点类型中至少含有一个后趋指针next
     template<class node_t>
-    class raw_list
+    class raw_list_t
     {
-        raw_list& operator=(const raw_list&);
+        raw_list_t& operator=(const raw_list_t&);
     private:
         node_t                 *m_head;	            //链表头指针
         node_t                 *m_tail;             //链表尾指针
@@ -78,7 +78,7 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造函数
-        raw_list():m_head(NULL),m_tail(NULL),m_count(0){}
+        raw_list_t():m_head(NULL),m_tail(NULL),m_count(0){}
         //-------------------------------------------------
         //元素数量
         uint32_t size() const {return m_count;}
