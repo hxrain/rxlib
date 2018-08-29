@@ -4,8 +4,8 @@
 #include "../../rx_tdd_tick.h"
 
 #include "../ut_mem_alloc.h"
-#include "../../rx_memalloc_cntr.h"
-#include "../../rx_memalloc.h"
+#include "../../rx_mem_alloc_cntr.h"
+#include "../../rx_mem_alloc.h"
 
 #include "../ut_dtl_ringbuff.h"
 #include "../../rx_dtl_ringbuff.h"
@@ -29,7 +29,7 @@
 #include "../../rx_hash_tlmap.h"
 
 #include "../ut_mem_pool_cntr.h"
-#include "../../rx_mempool_cntr.h"
+#include "../../rx_mem_pool_cntr.h"
 
 #include "../ut_hash.h"
 #include "../../rx_hash_rand.h"
@@ -40,9 +40,9 @@
 #include "../../rx_bits_op.h"
 
 #include "../ut_mem_pool.h"
-#include "../../rx_mempool_fx1.h"
+#include "../../rx_mem_pool_fx1.h"
 #include "../../rx_raw_stack.h"
-#include "../../rx_mempool.h"
+#include "../../rx_mem_pool.h"
 
 
 #include "../ut_ct_obj.h"

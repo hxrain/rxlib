@@ -3,7 +3,7 @@
 
 
 #include "rx_cc_macro.h"
-#include "rx_mempool.h"
+#include "rx_mem_pool.h"
 #include "rx_raw_stack.h"
 #include "rx_assert.h"
 

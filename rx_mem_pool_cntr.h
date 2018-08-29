@@ -2,7 +2,7 @@
 #define _RX_MEMPOOL_CNTR_H_
 
 #include "rx_cc_macro.h"
-#include "rx_mempool.h"
+#include "rx_mem_pool.h"
 #include "rx_ct_util.h"
 #include "rx_bits_op.h"
 #include "rx_hash_tlmap.h"

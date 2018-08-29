@@ -2,12 +2,12 @@
 #define _RX_MEM_ALLOC_CNTR_H_
 
 #include "rx_cc_macro.h"
-#include "rx_mempool.h"
-#include "rx_mempool_cntr.h"
-#include "rx_mempool_fx1.h"
+#include "rx_mem_pool.h"
+#include "rx_mem_pool_cntr.h"
+#include "rx_mem_pool_fx1.h"
 #include "rx_assert.h"
 #include "rx_ct_util.h"
-#include "rx_memalloc.h"
+#include "rx_mem_alloc.h"
 #include "rx_os_lock.h"
 #include "rx_os_spinlock.h"
 

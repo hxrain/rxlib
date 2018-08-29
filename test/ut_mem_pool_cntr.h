@@ -1,8 +1,8 @@
 #ifndef _UT_MEM_POOL_CNTR_H_
 #define _UT_MEM_POOL_CNTR_H_
 
-#include "../rx_mempool_cntr.h"
-#include "../rx_mempool_fx1.h"
+#include "../rx_mem_pool_cntr.h"
+#include "../rx_mem_pool_fx1.h"
 #include "../rx_tdd.h"
 
 //---------------------------------------------------------

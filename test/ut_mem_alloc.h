@@ -1,7 +1,7 @@
 #ifndef _UT_MEM_ALLOC_H_
 #define _UT_MEM_ALLOC_H_
 
-#include "../rx_memalloc_cntr.h"
+#include "../rx_mem_alloc_cntr.h"
 #include "../rx_tdd.h"
 #include "../rx_hash_rand.h"
 
