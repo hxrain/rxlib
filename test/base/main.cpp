@@ -1,5 +1,6 @@
-﻿#include "../ut_dtl_util.h"
-#include "../../rx_dtl_util.h"
+﻿#include "../ut_str_util.h"
+#include "../../rx_str_tiny.h"
+#include "../../rx_str_util.h"
 
 #include "../../rx_tdd_tick.h"
 

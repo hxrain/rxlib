@@ -1,5 +1,5 @@
-#ifndef _RX_DTL_UTIL_H_
-#define _RX_DTL_UTIL_H_
+#ifndef _RX_STR_UTIL_H_
+#define _RX_STR_UTIL_H_
 
 #include "rx_cc_macro.h"
 #include "rx_ct_util.h"
@@ -55,148 +55,6 @@ namespace rx
     class st
     {
     public:
-        //-----------------------------------------------------
-        //根据长度拷贝字符串
-        //入口:dst目标缓冲区;dstMaxSize目标的最大容量;Src源串;SrcLen源串的长度
-        //返回值:0失败,参数错误或目标缓冲区不足;其他为实际拷贝的长度
-        template<class CT>
-        uint32_t strcpy(CT* dst,uint32_t dstMaxSize,const CT* Src,uint32_t SrcLen=0)
-        {
-            dst[0]=0;
-            if (is_empty(Src)) return 0;
-            if (SrcLen==0) SrcLen=strlen(Src);
-            if (SrcLen>dstMaxSize-1)                        //总要保证缓冲区的最后要有一个0串结束符的位置
-                return 0;
-            strncpy(dst,Src,SrcLen);
-            dst[SrcLen]=0;                                  //标记串结束符
-            return SrcLen;
-        }
-
-        //不超过目标容量,尽量拷贝
-        //dst目标缓冲区;MaxSize目标最大容量;Src原串
-        //返回值:实际拷贝的长度
-        template<class CT>
-        uint32_t strcpy2(CT* dst,uint32_t dstMaxSize,const CT* Src,uint32_t SrcLen=0)
-        {
-            dst[0]=0;
-            if (is_empty(Src)) return 0;
-            if (SrcLen==0) SrcLen=strlen(Src);
-            if (SrcLen>--dstMaxSize)
-                SrcLen=dstMaxSize;								//总要保证缓冲区的最后要有一个0串结束符的位置
-            strncpy(dst,Src,SrcLen);
-            dst[SrcLen]=0;										//标记串结束符
-            return SrcLen;
-        }
-        //-----------------------------------------------------
-        //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就只能拼接一部分.
-        //返回值:新串的完整长度
-        template<class CT>
-        static uint32_t strcat2(CT *Dest,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
-        {
-            uint32_t DestLen=strlen(Dest);                  //计算得到目标现在已有的串长度
-            if (SrcLen==0) 
-                SrcLen=strlen(Src);                         //计算得到原串现在已有的长度
-            uint32_t DestRemainLen=DestMaxSize-DestLen-1;   //计算目标可用容量
-            if (SrcLen>DestRemainLen) 
-                SrcLen=DestRemainLen;
-            strncpy(&Dest[DestLen],Src,SrcLen);			    //拼接拷贝
-            uint32_t NewLen=SrcLen+DestLen;					//目标现在的长度
-            Dest[NewLen]=0;                                 //确保目标正确结束
-            return NewLen;
-        }
-        //-----------------------------------------------------
-        //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就失败了.
-        //返回值:0失败;或新串的完整长度
-        template<class CT>
-        static uint32_t strcat(CT *Dest,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
-        {
-            uint32_t DestLen=strlen(Dest);                  //计算得到目标现在已有的串长度
-            if (SrcLen==0) SrcLen=strlen(Src);              //计算得到原串现在已有的长度
-            uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
-            if (SrcLen>DestRemainLen-1) return 0;           //空间不足,不能连接了
-            strncpy(&Dest[DestLen],Src,SrcLen);             //拼接拷贝
-            uint32_t NewLen=SrcLen+DestLen;                 //目标现在的长度
-            Dest[NewLen]=0;                                 //确保目标正确结束
-            return NewLen;
-        }
-        //-----------------------------------------------------
-        //串连接,将Src1和Src2都拼装到Dest中.
-        //返回值:0失败;其他为新结果的长度
-        template<class CT>
-        static uint32_t strcat(CT *Dest,uint32_t DestMaxSize,const CT* Src1,const CT* Src2)
-        {
-            uint32_t DestLen=strcpy(Dest,DestMaxSize,Src1);
-            uint32_t Src2Len=strlen(Src2);                  //计算得到原串现在已有的长度
-            uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
-            if (Src2Len>DestRemainLen-1) return 0;          //空间不足,不能连接了
-            strncpy(&Dest[DestLen],Src2,Src2Len);           //拼接拷贝
-            uint32_t NewLen=Src2Len+DestLen;                //目标现在的长度
-            Dest[NewLen]=0;                                 //确保目标正确结束
-            return NewLen;
-        }
-        //-----------------------------------------------------
-        //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就失败了.
-        //返回值:0失败;或新串的完整长度
-        template<class CT>
-        static uint32_t strcat(CT *Dest,uint32_t &DestLen,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
-        {
-            if (SrcLen==0) SrcLen=strlen(Src);              //计算得到原串现在已有的长度
-            uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
-            if (SrcLen>DestRemainLen-1) return 0;           //空间不足,不能连接了
-            strncpy(&Dest[DestLen],Src,SrcLen);             //拼接拷贝
-            DestLen+=SrcLen;                                //目标现在的长度
-            Dest[DestLen]=0;                                //确保目标正确结束
-            return DestLen;
-        }
-        template<class CT>
-        static uint32_t strcat(CT *Dest,uint32_t &DestLen,uint32_t DestMaxSize,CT Src)
-        {
-            uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
-            if (DestRemainLen<2)   return 0;                //空间不足,不能连接了
-            Dest[DestLen]=Src;                              //拼接拷贝
-            Dest[++DestLen]=0;                              //确保目标正确结束
-            return DestLen;
-        }
-
-        //-----------------------------------------------------
-        //将Src拼接到Dst的后面,不论Src与Dst为什么情况,拼接后的分隔符只有一个SP
-        template<class CT>
-        static char* strcat(CT* Dst, const CT* Src, const CT SP)
-        {
-            if (is_empty(Dst) || !Src)
-                return NULL;
-
-            int DstLen = strlen(Dst);
-            if (Dst[DstLen - 1] == SP)
-            {//目标已经是SP结束了
-                if (Src[0] == SP)
-                    strcpy(&Dst[DstLen], &Src[1]);
-                else
-                    strcpy(&Dst[DstLen], Src);
-            }
-            else
-            {//目标不是SP结束
-                if (Src[0] == SP)
-                    strcpy(&Dst[DstLen], Src);
-                else
-                {
-                    Dst[DstLen++] = SP;
-                    strcpy(&Dst[DstLen], Src);
-                }
-            }
-            return Dst;
-        }
-        //将str1和str2仅用sp分隔后拼接到dest中
-        //返回值:拼接后的实际长度.0目标缓冲器不足
-        template<class CT>
-        static uint32_t strcpy(CT *Dest, uint32_t DestMaxSize, const CT* Src1, const CT* Src2,const CT SP)
-        {
-            uint32_t L1 = strcpy(Dest, DestMaxSize, Src1);
-            if (!L1) return 0;
-            uint32_t L2 = strlen(Src2);
-            if (L1 + L2 > DestMaxSize) return 0;
-            return strlen(strcat(Dest, Src2, SP));
-        }
         //-----------------------------------------------------
         //长度
         static uint32_t         strlen(const char* Str){return (uint32_t)::strlen(Str);}
@@ -401,6 +259,151 @@ namespace rx
             if (is_empty(S)) return DefValue;
             return S;
         }
+        //-----------------------------------------------------
+        //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就失败了.
+        //返回值:0失败;或新串的完整长度
+        template<class CT>
+        static uint32_t strcat(CT *Dest,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
+        {
+            uint32_t DestLen=strlen(Dest);                  //计算得到目标现在已有的串长度
+            if (SrcLen==0) SrcLen=strlen(Src);              //计算得到原串现在已有的长度
+            uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
+            if (SrcLen>DestRemainLen-1) return 0;           //空间不足,不能连接了
+            strncpy(&Dest[DestLen],Src,SrcLen);             //拼接拷贝
+            uint32_t NewLen=SrcLen+DestLen;                 //目标现在的长度
+            Dest[NewLen]=0;                                 //确保目标正确结束
+            return NewLen;
+        }
+
+        //-----------------------------------------------------
+        //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就只能拼接一部分.
+        //返回值:新串的完整长度
+        template<class CT>
+        static uint32_t strcat2(CT *Dest,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
+        {
+            uint32_t DestLen=strlen(Dest);                  //计算得到目标现在已有的串长度
+            if (SrcLen==0) 
+                SrcLen=strlen(Src);                         //计算得到原串现在已有的长度
+            uint32_t DestRemainLen=DestMaxSize-DestLen-1;   //计算目标可用容量
+            if (SrcLen>DestRemainLen) 
+                SrcLen=DestRemainLen;
+            strncpy(&Dest[DestLen],Src,SrcLen);			    //拼接拷贝
+            uint32_t NewLen=SrcLen+DestLen;					//目标现在的长度
+            Dest[NewLen]=0;                                 //确保目标正确结束
+            return NewLen;
+        }
+        //-----------------------------------------------------
+        //串连接,将Src1和Src2都拼装到Dest中.
+        //返回值:0失败;其他为新结果的长度
+        template<class CT>
+        static uint32_t strcat(CT *Dest,uint32_t DestMaxSize,const CT* Src1,const CT* Src2)
+        {
+            uint32_t DestLen=strcpy(Dest,DestMaxSize,Src1);
+            uint32_t Src2Len=strlen(Src2);                  //计算得到原串现在已有的长度
+            uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
+            if (Src2Len>DestRemainLen-1) return 0;          //空间不足,不能连接了
+            strncpy(&Dest[DestLen],Src2,Src2Len);           //拼接拷贝
+            uint32_t NewLen=Src2Len+DestLen;                //目标现在的长度
+            Dest[NewLen]=0;                                 //确保目标正确结束
+            return NewLen;
+        }
+        //-----------------------------------------------------
+        //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就失败了.
+        //返回值:0失败;或新串的完整长度
+        template<class CT>
+        static uint32_t strcat(CT *Dest,uint32_t &DestLen,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
+        {
+            if (SrcLen==0) SrcLen=strlen(Src);              //计算得到原串现在已有的长度
+            uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
+            if (SrcLen>DestRemainLen-1) return 0;           //空间不足,不能连接了
+            strncpy(&Dest[DestLen],Src,SrcLen);             //拼接拷贝
+            DestLen+=SrcLen;                                //目标现在的长度
+            Dest[DestLen]=0;                                //确保目标正确结束
+            return DestLen;
+        }
+        template<class CT>
+        static uint32_t strcat(CT *Dest,uint32_t &DestLen,uint32_t DestMaxSize,CT Src)
+        {
+            uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
+            if (DestRemainLen<2)   return 0;                //空间不足,不能连接了
+            Dest[DestLen]=Src;                              //拼接拷贝
+            Dest[++DestLen]=0;                              //确保目标正确结束
+            return DestLen;
+        }
+
+        //-----------------------------------------------------
+        //将Src拼接到Dst的后面,不论Src与Dst为什么情况,拼接后的分隔符只有一个SP
+        template<class CT>
+        static CT* strcat(CT* Dst, const CT* Src, const CT SP)
+        {
+            if (is_empty(Dst) || !Src)
+                return NULL;
+
+            int DstLen = strlen(Dst);
+            if (Dst[DstLen - 1] == SP)
+            {//目标已经是SP结束了
+                if (Src[0] == SP)
+                    strcpy(&Dst[DstLen], &Src[1]);
+                else
+                    strcpy(&Dst[DstLen], Src);
+            }
+            else
+            {//目标不是SP结束
+                if (Src[0] == SP)
+                    strcpy(&Dst[DstLen], Src);
+                else
+                {
+                    Dst[DstLen++] = SP;
+                    strcpy(&Dst[DstLen], Src);
+                }
+            }
+            return Dst;
+        }
+        //将str1和str2仅用sp分隔后拼接到dest中
+        //返回值:拼接后的实际长度.0目标缓冲器不足
+        template<class CT>
+        static uint32_t strcpy(CT *Dest, uint32_t DestMaxSize, const CT* Src1, const CT* Src2,const CT SP)
+        {
+            uint32_t L1 = strcpy(Dest, DestMaxSize, Src1);
+            if (!L1) return 0;
+            uint32_t L2 = strlen(Src2);
+            if (L1 + L2 > DestMaxSize) return 0;
+            return strlen(strcat(Dest, Src2, SP));
+        }
+        //-----------------------------------------------------
+        //根据长度拷贝字符串
+        //入口:dst目标缓冲区;dstMaxSize目标的最大容量;Src源串;SrcLen源串的长度
+        //返回值:0失败,参数错误或目标缓冲区不足;其他为实际拷贝的长度
+        template<class CT>
+        static uint32_t strcpy(CT* dst,uint32_t dstMaxSize,const CT* Src,uint32_t SrcLen=0)
+        {
+            dst[0]=0;
+            if (is_empty(Src)) return 0;
+            if (SrcLen==0) SrcLen=strlen(Src);
+            if (SrcLen>dstMaxSize-1)                        //总要保证缓冲区的最后要有一个0串结束符的位置
+                return 0;
+            strncpy(dst,Src,SrcLen);
+            dst[SrcLen]=0;                                  //标记串结束符
+            return SrcLen;
+        }
+
+        //不超过目标容量,尽量拷贝
+        //dst目标缓冲区;MaxSize目标最大容量;Src原串
+        //返回值:实际拷贝的长度
+        template<class CT>
+        static uint32_t strcpy2(CT* dst,uint32_t dstMaxSize,const CT* Src,uint32_t SrcLen=0)
+        {
+            dst[0]=0;
+            if (is_empty(Src)) return 0;
+            if (SrcLen==0) SrcLen=strlen(Src);
+            if (SrcLen>--dstMaxSize)
+                SrcLen=dstMaxSize;								//总要保证缓冲区的最后要有一个0串结束符的位置
+            strncpy(dst,Src,SrcLen);
+            dst[SrcLen]=0;										//标记串结束符
+            return SrcLen;
+        }
+
+
         //-------------------------------------------------
         //统计给定的串S中指定字符Char的数量
         template<class CT>
@@ -430,19 +433,7 @@ namespace rx
             }
             return Ret;
         }
-        //-------------------------------------------------
-        //从S中选择第一个Char之前的串到Result中
-        //返回值:NULL失败(在S中没有Char);非空,成功(S中当前Char的位置指针)
-        template<class CT>
-        static const CT* pick(const CT *S,const CT Char,CT* Result)
-        {
-            const CT* Ret=strchr(S,Char);
-            if (!Ret) return NULL;
-            uint32_t len=Ret-S;
-            strncpy(Result,S,len);
-            Result[len]=0;
-            return Ret;
-        }
+
         //-----------------------------------------------------
         //尝试在Str串指定的偏移位置后面,定位查找SubStr子串
         //返回值:-1未找到;其他为结果偏移量(相对于Str而不是相对于StartIdx)
@@ -498,40 +489,94 @@ namespace rx
         static bool pos(const CT* src,const CT* A,const CT* B,uint32_t &PA,uint32_t &PB)
         {
             if (src==NULL) return false;
-            return Pos(src,strlen(src),A,B,PA,PB)>=0;
+            return pos(src,strlen(src),A,B,PA,PB)>=0;
         }
         //-----------------------------------------------------
         //找到在A串和B串之间的字符串,结果中不包含A与B(A为空则从头开始截取,B为空则到尾结束)
+        //返回值:0失败;>0为截取的内容长度
         template<class CT>
-        static bool sub(const CT* src,uint32_t srclen,const CT* AStr,const CT* BStr,CT* Result,uint32_t ResultMaxSize)
+        static uint32_t sub(const CT* src,uint32_t srclen,const CT* AStr,const CT* BStr,CT* Result,uint32_t ResultMaxSize)
         {
             if (Result==NULL)
-                return false;
+                return 0;
             Result[0]=0;
             uint32_t APos,BPos;
-            int Alen=Pos(src,srclen,AStr,BStr,APos,BPos);
+            int Alen=pos(src,srclen,AStr,BStr,APos,BPos);
             if (Alen<0)
-                return false;
+                return 0;
 
             uint32_t RL=BPos-APos-Alen;
             if (!RL)
-                return false;
-            return RL==strcpy(Result,ResultMaxSize,&src[APos+Alen],RL);
+                return 0;
+            return strcpy(Result,ResultMaxSize,&src[APos+Alen],RL);
         }
         template<class CT>
-        static bool sub(const CT* src,const CT* AStr,const CT* BStr,CT* Result,uint32_t ResultMaxSize)
+        static uint32_t sub(const CT* src,const CT* AStr,const CT* BStr,CT* Result,uint32_t ResultMaxSize)
         {
             if (Result==NULL)
-                return false;
+                return 0;
             Result[0]=0;
             if (is_empty(src))
                 return false;
-            return SubStr(src,strlen(src),AStr,BStr,Result,ResultMaxSize);
+            return sub(src,strlen(src),AStr,BStr,Result,ResultMaxSize);
         }
         //-----------------------------------------------------
         //将src中AStr后面的内容放入结果
         template<class CT>
-        static bool sub(const CT* src,const CT* AStr,CT* Result,uint32_t ResultMaxSize){return SubStr(src,AStr,NULL,Result,ResultMaxSize);}
+        static uint32_t sub(const CT* src,const CT* AStr,CT* Result,uint32_t ResultMaxSize){return sub(src,AStr,NULL,Result,ResultMaxSize);}
+        //-----------------------------------------------------
+        //截取Str中从首部到SP分隔符之前的内容到Result,Str在截取后调整到SP之后
+        //返回值:<0错误;>=0截取到的内容长度
+        template<class CT>
+        static int sub(CT* &Str,const CT SP,CT *Result,uint32_t ResultSize)
+        {
+            if (!Str) return -1;
+            CT* Pos=strchr(Str,SP);
+            if (!Pos) return -2;
+            uint32_t Len=uint32_t(Pos-Str);
+            if (!Len)
+            {
+                ++Str;
+                return 0;
+            }
+
+            if (strcpy(Result,ResultSize,Str,Len)==Len)
+            {
+                Str=Pos+1;
+                return Len;
+            }
+            return -3;
+        }
+        //-----------------------------------------------------
+        //截取Str中从首部到SP分隔符之前的内容并转换到整数Result,Str在截取后调整到SP之后
+        //返回值:<0错误;>=0截取到的内容长度
+        template<class CT>
+        static int sub(CT* &Str,const CT SP,uint32_t &Result,const uint32_t radix=10)
+        {
+            if (!Str) return -1;
+            CT* Pos=strchr(Str,SP);
+            if (!Pos) return -2;
+            *Pos=0;
+
+            uint32_t Len=uint32_t(Pos-Str);
+            Result=atoul(Str,radix);
+
+            Str=Pos+1;
+            return Len;
+        }
+        //-------------------------------------------------
+        //从S中选择第一个Char之前的串到Result中
+        //返回值:NULL失败(在S中没有Char);非空,成功(S中当前Char的位置指针)
+        template<class CT>
+        static const CT* sub(const CT *S,const CT Char,CT* Result)
+        {
+            const CT* Ret=strchr(S,Char);
+            if (!Ret) return NULL;
+            uint32_t len=Ret-S;
+            strncpy(Result,S,len);
+            Result[len]=0;
+            return Ret;
+        }
 
         //-----------------------------------------------------
         //将数字转换成十进制字符串:num=数字;result=结果串;C为结果串长度(数字长度不足的前面补零)
@@ -608,16 +653,21 @@ namespace rx
             return result;
         }
 
+        //将4bit数字转换成十六进制字符
+        template<class CT>
+        static CT hex(uint32_t num)
+        {
+            rx_assert(num<=0x0F);
+            return sc<CT>::hex_upr(num);
+        }
         //-----------------------------------------------------
         //将数字转换成十六进制字符串:num=数字;result=结果串;C为结果串长度(数字长度不足的前面补零)
         template<class CT>
         static CT* hex(uint32_t num,CT *result,uint32_t C)
         {
-            uint8_t TI;
             while (C-->0)
             {
-                TI=(uint8_t)(num%16);
-                result[C]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+                result[C]=sc<CT>::hex_upr(num&0xf);
                 num>>=4;
             }
             return result;
@@ -627,12 +677,9 @@ namespace rx
         template<class CT>
         static CT* hex2(uint32_t num,CT *result)
         {
-            uint8_t TI;
-            TI=(uint8_t)(num%16);
-            result[1]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[1]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[0]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[0]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
             return result;
         }
@@ -642,18 +689,13 @@ namespace rx
         template<class CT>
         static CT* hex4(uint32_t num,CT *result)
         {
-            uint8_t TI;
-            TI=(uint8_t)(num%16);
-            result[3]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[3]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[2]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[2]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[1]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[1]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[0]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[0]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
             return result;
         }
@@ -662,30 +704,21 @@ namespace rx
         template<class CT>
         static CT* hex8(uint32_t num,CT *result)
         {
-            uint8_t TI;
-            TI=(uint8_t)(num%16);
-            result[7]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[7]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[6]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[6]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[5]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[5]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[4]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[4]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[3]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[3]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[2]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[2]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[1]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[1]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
-            TI=(uint8_t)(num%16);
-            result[0]=uint8_t(TI+(TI>=10?(sc<CT>::A()-10):(sc<CT>::zero())));
+            result[0]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
             return result;
         }
@@ -693,7 +726,7 @@ namespace rx
         //将二进制数据流转换成十六进制串
         template<class CT>
         static CT* hex(const uint8_t *bin, uint32_t size,CT *result,bool IsLower=false)
-        {//针对char的版本
+        {
             CT *Map=sc<CT>::hex_upr();
             if (!IsLower) Map=sc<CT>::hex_lwr();
 
@@ -737,25 +770,23 @@ namespace rx
         //-----------------------------------------------------
         //将给定的字符C(A~F|a~f|0~9)转为对应的数字(字节)
         template<class CT>
-        static uint8_t byte(const CT C)
+        static uint8_t byte(CT C)
         {
-            uint8_t R=0;
             if (C>=sc<CT>::a()&&C<=sc<CT>::f())
-                R+=C-sc<CT>::a()+10;
+                return C-sc<CT>::a()+10;
             else if (C>=sc<CT>::A()&&C<=sc<CT>::F())
-                R+=C-sc<CT>::A()+10;
+                return C-sc<CT>::A()+10;
             else
-                R+=C-sc<CT>::zero();
-            return R;
+                return C-sc<CT>::zero();
         }
         //-----------------------------------------------------
         //将给定的十六进制形式的字符串中的开头的两个字符转换为一个字节长度的数字
         template<class CT>
         static uint8_t byte(const CT *str)
         {
-            uint8_t R=byte(str[0]);
+            uint8_t R=byte<CT>((CT)str[0]);
             R<<=4;
-            return R+byte(str[1]);
+            return R+byte<CT>((CT)str[1]);
         }
         //-----------------------------------------------------
         //将指定长度的十六进制串转换成对应的二进制字节流
@@ -813,7 +844,7 @@ namespace rx
         template<class CT>
         static CT* replace(const CT *SrcStr,const CT* From,uint32_t FromLen,const CT* To,uint32_t ToLen,CT* Dst,uint32_t DstSize,uint32_t SrcLen=0)
         {
-            const char* Src=SrcStr;
+            const CT* Src=SrcStr;
             if (is_empty(Src)||is_empty(From)||!Dst)
                 return NULL;
             if (!SrcLen) SrcLen=strlen(Src);
@@ -822,11 +853,11 @@ namespace rx
             uint32_t DstLen=0;
             while(Pos)
             {
-                uint32_t SegLen=Pos-Src;                          //当前目标前面的部分,需要放入结果缓冲区
+                uint32_t SegLen=uint32_t(Pos-Src);          //当前目标前面的部分,需要放入结果缓冲区
 
-                if (DstLen+SegLen>=DstSize) return NULL;        //目标缓冲区不足,退出
-                strncpy(&Dst[DstLen],Src,SegLen);          //将当前段之前的部分拷贝到目标缓冲区
-                DstLen+=SegLen;                                 //目标长度增加
+                if (DstLen+SegLen>=DstSize) return NULL;    //目标缓冲区不足,退出
+                strncpy(&Dst[DstLen],Src,SegLen);           //将当前段之前的部分拷贝到目标缓冲区
+                DstLen+=SegLen;                             //目标长度增加
 
                 if (DstLen+ToLen>=DstSize)
                     return NULL;
@@ -841,7 +872,7 @@ namespace rx
                 SrcLen-=SegLen+FromLen;
                 Pos=strstr(Src,From);
             }
-            strncpy(&Dst[DstLen],Src,SrcLen);
+            strncpy(&Dst[DstLen],Src,SrcLen);               //将剩余部分拷贝到目标
             DstLen+=SrcLen;
             Dst[DstLen++]=0;
             return Dst;
@@ -849,17 +880,17 @@ namespace rx
         template<class CT>
         static CT* replace(const CT *SrcStr,const CT* From,const CT* To,CT* Dst,uint32_t DstSize,uint32_t SrcLen=0)
         {
-            const char* Src=SrcStr;
+            const CT* Src=SrcStr;
             if (is_empty(Src)||is_empty(From)||!Dst)
                 return NULL;
             uint32_t FromLen=strlen(From);
             uint32_t ToLen=is_empty(To)?0:strlen(To);
-            return ReplaceStr(SrcStr,From,FromLen,To,ToLen,Dst,DstSize,SrcLen);
+            return replace(SrcStr,From,FromLen,To,ToLen,Dst,DstSize,SrcLen);
         }
         //-----------------------------------------------------
-        //判断给定的字符串是否为数字
+        //判断给定的字符串是否全部都为数字(十进制或十六进制整形)
         template<class CT>
-        static bool is_number(const CT* Str,uint32_t StrLen=0,bool IsHex=false)
+        static bool isnumber_str(const CT* Str,uint32_t StrLen=0,bool IsHex=false)
         {
             if (is_empty(Str)) return false;
             if (!StrLen) StrLen=strlen(Str);
@@ -881,140 +912,7 @@ namespace rx
             }
             return true;                                    //全部的字符都检查完成了,说明当前串是合法的数字串.
         }
-
-        //-----------------------------------------------------
-        //截取Str中从首部到SP分隔符之前的内容到Result,Str在截取后调整到SP之后
-        //返回值:<0错误;>=0截取到的内容长度
-        template<class CT>
-        static int intercept(CT* &Str,const CT SP,CT *Result,uint32_t ResultSize)
-        {
-            if (!Str) return -1;
-            CT* Pos=strchr(Str,SP);
-            if (!Pos) return -2;
-            uint32_t Len=uint32_t(Pos-Str);
-            if (!Len)
-            {
-                ++Str;
-                return 0;
-            }
-
-            if (strcpy(Result,ResultSize,Str,Len)==Len)
-            {
-                Str=Pos+1;
-                return Len;
-            }
-            return -3;
-        }
-        //-----------------------------------------------------
-        //截取Str中从首部到SP分隔符之前的内容并转换到整数Result,Str在截取后调整到SP之后
-        //返回值:<0错误;>=0截取到的内容长度
-        template<class CT>
-        static int intercept(CT* &Str,const CT SP,uint32_t &Result,const uint32_t radix=10)
-        {
-            if (!Str) return -1;
-            CT* Pos=strchr(Str,SP);
-            if (!Pos) return -2;
-            *Pos=0;
-
-            uint32_t Len=uint32_t(Pos-Str);
-            Result=atoul(Str,radix);
-
-            Str=Pos+1;
-            return Len;
-        }
     };
-
-
-#if RX_CC == RX_CC_VC
-    #pragma warning(disable:4200)
-#endif
-
-#if RX_CC == RX_CC_GCC||RX_CC_MINGW
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
-
-    //-----------------------------------------------------
-    //封装一个简易的字符串功能,用于dtl容器内部的临时key字符串存储
-    //!!!必须注意!!!:在本对象实例的后部,留出足够长度的m_capacity空间.
-    template<class CT=char>
-    struct tiny_string_t
-    {
-    private:
-        //-------------------------------------------------
-        tiny_string_t& operator=(const tiny_string_t&);
-        tiny_string_t(const tiny_string_t&);
-        //-------------------------------------------------
-        uint16_t    m_capacity;                             //必须告知m_string的可用容量
-        uint16_t    m_length;                               //记录m_string的实际长度.
-        CT          m_string[0];                            //使用弹性数组定义方法,在当前内存位置向后m_capacity个字节内存放实际的字符串.
-    public:
-        tiny_string_t(uint16_t cap, const CT* str, uint32_t len = 0) :m_capacity(cap) { set(str,len); }
-        //-------------------------------------------------
-        uint16_t set(const CT* str, uint32_t len = 0)
-        {
-            if (is_empty(str)|| m_capacity==1)
-            {
-                m_length = 0;
-                m_string[0] = 0;
-                return 0;
-            }
-            else
-            {
-                //进行字符串的拷贝
-                if (!len) len = (uint32_t)st::strlen(str);
-                m_length = Min(len, uint32_t(m_capacity - 1));
-                st::strncpy(m_string, str, m_length);
-                m_string[m_length] = 0;
-                return m_length;
-            }
-        }
-        //-------------------------------------------------
-        uint16_t length()const { return m_length; }
-        const CT* c_str() const { return m_string; }
-        operator const CT* ()const{return m_string;}
-        //-------------------------------------------------
-        bool operator <  (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) < 0;}
-        bool operator <= (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) <= 0;}
-        bool operator == (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) == 0;}
-        bool operator >  (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) > 0;}
-        bool operator >= (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) >= 0;}
-        bool operator != (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) != 0;}
-        //-------------------------------------------------
-        bool operator <  (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) < 0;}
-        bool operator <= (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) <= 0;}
-        bool operator == (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) == 0;}
-        bool operator >  (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) > 0;}
-        bool operator >= (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) >= 0;}
-        bool operator != (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) != 0;}
-        //-------------------------------------------------
-    };
-#if RX_CC == RX_CC_GCC||RX_CC_MINGW
-    #pragma GCC diagnostic pop
-#endif
-
-#if RX_CC == RX_CC_VC
-    #pragma warning(default:4200)
-#endif
-
-    typedef tiny_string_t<char> tiny_stringc_t;
-    typedef tiny_string_t<wchar_t> tiny_stringw_t;
-
-    ////-----------------------------------------------------
-    //在给定的buff内存块上构造简易串对象并进行初始化
-    //返回值:0内存块过小,构造失败;>0为实际初始化拷贝的str长度
-    template<class CT>
-    uint32_t make_tiny_string(void* buff,uint32_t buffsize,const CT* str,uint32_t len=0)
-    {
-        typedef struct tiny_string_t<CT> string_t;
-        if (buffsize <= sizeof(string_t))       //检查最小尺寸
-            return 0;
-
-        //在给定的缓冲区上构造简易字符串对象
-        uint32_t cap = buffsize - sizeof(string_t);
-        string_t *s=ct::OC<string_t >((string_t*)buff, cap,str,len);
-        return s->length();
-    }
 }
 
 
