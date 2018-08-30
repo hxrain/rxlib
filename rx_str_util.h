@@ -3,6 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_ct_util.h"
+#include "rx_assert.h"
 #include "stdlib.h"
 #include <stdio.h>
 
@@ -282,10 +283,10 @@ namespace rx
         static uint32_t strcat2(CT *Dest,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
         {
             uint32_t DestLen=strlen(Dest);                  //计算得到目标现在已有的串长度
-            if (SrcLen==0) 
+            if (SrcLen==0)
                 SrcLen=strlen(Src);                         //计算得到原串现在已有的长度
             uint32_t DestRemainLen=DestMaxSize-DestLen-1;   //计算目标可用容量
-            if (SrcLen>DestRemainLen) 
+            if (SrcLen>DestRemainLen)
                 SrcLen=DestRemainLen;
             strncpy(&Dest[DestLen],Src,SrcLen);			    //拼接拷贝
             uint32_t NewLen=SrcLen+DestLen;					//目标现在的长度
@@ -905,7 +906,7 @@ namespace rx
                 if (!IsHex)
                     return false;                           //不是十六进制模式,非数字的串出现就返回假
 
-                if (C>=sc<CT>::A()&&C<=sc<CT>::F()||C>=sc<CT>::a()&&C<=sc<CT>::f())
+                if ((C>=sc<CT>::A()&&C<=sc<CT>::F())||(C>=sc<CT>::a()&&C<=sc<CT>::f()))
                     continue;                               //十六进制时,当前字符是合法的,跳过,准备判断下一个.
                 else
                     return false;                           //否则说明当前不是合法的十六进制数字串
