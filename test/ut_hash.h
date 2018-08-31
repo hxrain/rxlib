@@ -9,7 +9,7 @@
 #include <math.h>
 
 //---------------------------------------------------------
-inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_hash32_func_t hash,rx_tdd_t &rt)
+inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_int_hash32_t hash,rx_tdd_t &rt)
 {
     const uint32_t array_size = 1000;
     const uint32_t loop_count = array_size*100000;
@@ -77,13 +77,15 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
     rx_hash_int_base_2<rx::rand_skeeto_triple_t>(seed,"rand_skeeto_triple",*this);
 
     for(int i=0;i<IHT_Count;++i)
-        rx_hash_int_base_1(seed,rx_int_hash_name((rx_int_hash_type)i),rx_int_hash((rx_int_hash_type)i),*this);
+        rx_hash_int_base_1(seed,rx_int_hash32_name((rx_int_hash32_type)i),rx_int_hash32((rx_int_hash32_type)i),*this);
     srand(seed);
     rx_hash_int_base_1(seed,"std::rand", tmp_test_stdrand,*this);
 
     rx_rnd_b32().seed(seed);
     rx_rnd_b32().get();
 
+    rx_int_hash32_t hf=rx_int_hash32_skeeto3s(0);
+    hf(0);
 }
 
 

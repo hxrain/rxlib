@@ -1,10 +1,10 @@
-ï»¿#ifndef _RX_HASH_INT_H_
+#ifndef _RX_HASH_INT_H_
 #define _RX_HASH_INT_H_
 
 #include "rx_cc_macro.h"
 
     //-----------------------------------------------------
-    //å€¾å‘äºå°èŒƒå›´é«˜å¯†åº¦çš„ç´ æ•°è¡¨,ä¾¿äºæ„å»ºè½»é‡çº§å“ˆå¸Œè¡¨
+    //ÇãÏòÓÚĞ¡·¶Î§¸ßÃÜ¶ÈµÄËØÊı±í,±ãÓÚ¹¹½¨ÇáÁ¿¼¶¹şÏ£±í
     inline uint32_t rx_tiny_prime(const uint32_t idx)
     {
         static const uint32_t primes[] = {
@@ -31,7 +31,7 @@
     }
 
     //-----------------------------------------------------
-    //è½»é‡çº§æ–æ³¢é‚£å¥‘åºæ•°
+    //ÇáÁ¿¼¶ì³²¨ÄÇÆõĞòÊı
     inline uint32_t rx_tiny_fibonacci(const uint32_t idx)
     {
         static const uint32_t seqs[] = {
@@ -44,7 +44,7 @@
         return seqs[idx];
     }
     //-----------------------------------------------------
-    //é»„é‡‘åˆ†éš”å“ˆå¸Œç®—æ³•,æå…¶ç®€å•.å› å­å¯é€‰æ–æ³¢é‚£å¥‘åºæ•°.ä½¿ç”¨æ­¤å‡½æ•°ç»™å®šä¸åŒçš„å‚æ•°å³å¯é€ å°±ä¸€ç³»åˆ—çš„å“ˆå¸Œå‡½æ•°ç»„
+    //»Æ½ğ·Ö¸ô¹şÏ£Ëã·¨,¼«Æä¼òµ¥.Òò×Ó¿ÉÑ¡ì³²¨ÄÇÆõĞòÊı.Ê¹ÓÃ´Ëº¯Êı¸ø¶¨²»Í¬µÄ²ÎÊı¼´¿ÉÔì¾ÍÒ»ÏµÁĞµÄ¹şÏ£º¯Êı×é
     inline uint32_t rx_hash_gold(uint32_t x, uint32_t factor = 17711, uint32_t r_shift = 0)
     {
         return (x >> r_shift)* factor;
@@ -53,7 +53,7 @@
     //-----------------------------------------------------
     //integer hash function
     //-----------------------------------------------------
-    typedef uint32_t(*rx_hash32_func_t)(uint32_t x);
+    typedef uint32_t(*rx_int_hash32_t)(uint32_t x);
     //-----------------------------------------------------
     // Tomas Wang
     inline uint32_t rx_hash_tomas(uint32_t key)
@@ -94,21 +94,21 @@
     }
     //-----------------------------------------------------
     // Bob Jenkins' 32 bit integer hash function
-    // è¿™å…­ä¸ªæ•°æ˜¯éšæœºæ•°ï¼Œ é€šè¿‡è®¾ç½®åˆç†çš„6ä¸ªæ•°ï¼Œä½ å¯ä»¥æ‰¾åˆ°å¯¹åº”çš„perfect hash.
+    // ÕâÁù¸öÊıÊÇËæ»úÊı£¬ Í¨¹ıÉèÖÃºÏÀíµÄ6¸öÊı£¬Äã¿ÉÒÔÕÒµ½¶ÔÓ¦µÄperfect hash.
     inline uint32_t rx_hash_bobj(uint32_t a)
     {
         a = (a + 0x7ed55d16) + (a << 12);
         a = (a ^ 0xc761c23c) ^ (a >> 19);
         a = (a + 0x165667b1) + (a << 5);
         a = (a + 0xd3a2646c) ^ (a << 9);
-        a = (a + 0xfd7046c5) + (a << 3); // <<å’Œ +çš„ç»„åˆæ˜¯å¯é€†çš„
+        a = (a + 0xfd7046c5) + (a << 3); // <<ºÍ +µÄ×éºÏÊÇ¿ÉÄæµÄ
         a = (a ^ 0xb55a4f09) ^ (a >> 16);
         return a;
     }
 
     //-----------------------------------------------------
-    //32ä½æ•´æ•°çš„Murmurå“ˆå¸Œç ç®—æ³•; from code.google.com/p/smhasher/wiki/MurmurHash3
-    //å¯¹äºè‡ªç„¶æ•°æ•ˆæœè¾ƒå¥½(exact bias: 0.26398543281818287)
+    //32Î»ÕûÊıµÄMurmur¹şÏ£ÂëËã·¨; from code.google.com/p/smhasher/wiki/MurmurHash3
+    //¶ÔÓÚ×ÔÈ»ÊıĞ§¹û½ÏºÃ(exact bias: 0.26398543281818287)
     inline uint32_t rx_hash_murmur3(uint32_t h)
     {
         h ^= h >> 16;
@@ -121,7 +121,7 @@
 
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    //è¿›è¡Œè¿‡é›ªå´©ç³»æ•°éªŒè¯çš„å“ˆå¸Œå‡½æ•°(Avalanche score = 1.67)
+    //½øĞĞ¹ıÑ©±ÀÏµÊıÑéÖ¤µÄ¹şÏ£º¯Êı(Avalanche score = 1.67)
     inline uint32_t rx_hash_mosquito(uint32_t x)
     {
         x = ~x;
@@ -134,7 +134,7 @@
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
     //-----------------------------------------------------
-    //è¿›è¡Œè¿‡é›ªå´©ç³»æ•°éªŒè¯çš„å“ˆå¸Œå‡½æ•°(Avalanche score = 1.51)
+    //½øĞĞ¹ıÑ©±ÀÏµÊıÑéÖ¤µÄ¹şÏ£º¯Êı(Avalanche score = 1.51)
     inline uint32_t rx_hash_skeeto_a(uint32_t x)
     {
         x = ~x;
@@ -148,7 +148,7 @@
     }
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    //è¿›è¡Œè¿‡é›ªå´©ç³»æ•°éªŒè¯çš„å“ˆå¸Œå‡½æ•°(Avalanche score = 1.1875)
+    //½øĞĞ¹ıÑ©±ÀÏµÊıÑéÖ¤µÄ¹şÏ£º¯Êı(Avalanche score = 1.1875)
     inline uint32_t rx_hash_skeeto_b(uint32_t x)
     {
         x = ~x;
@@ -162,7 +162,7 @@
     }
     //-----------------------------------------------------
     //https://github.com/skeeto/hash-prospector
-    //è¿›è¡Œè¿‡é›ªå´©ç³»æ•°éªŒè¯çš„å“ˆå¸Œå‡½æ•°(Avalanche score = 1.03 / exact bias: 0.34968228323361017)
+    //½øĞĞ¹ıÑ©±ÀÏµÊıÑéÖ¤µÄ¹şÏ£º¯Êı(Avalanche score = 1.03 / exact bias: 0.34968228323361017)
     inline uint32_t rx_hash_skeeto_c(uint32_t x)
     {
         x ^= x >> 15;
@@ -172,7 +172,7 @@
         x ^= x >> 15;
         return x;
     }
-    //è¿›è¡Œè¿‡ç»Ÿè®¡éªŒè¯çš„å“ˆå¸Œå‡½æ•°(exact bias: 0.20207553121367283)
+    //½øĞĞ¹ıÍ³¼ÆÑéÖ¤µÄ¹şÏ£º¯Êı(exact bias: 0.20207553121367283)
     inline uint32_t rx_hash_skeeto_d(uint32_t x)
     {
         x ^= x >> 16;
@@ -183,7 +183,7 @@
         return x;
     }
 
-    //è¿›è¡Œè¿‡ç»Ÿè®¡éªŒè¯çš„å“ˆå¸Œå‡½æ•°(exact bias: 0.19768193144773874)
+    //½øĞĞ¹ıÍ³¼ÆÑéÖ¤µÄ¹şÏ£º¯Êı(exact bias: 0.19768193144773874)
     inline uint32_t rx_hash_skeeto_e(uint32_t x)
     {
         x ^= x >> 18;
@@ -194,7 +194,7 @@
         return x;
     }
 
-    //è¿›è¡Œè¿‡ç»Ÿè®¡éªŒè¯çš„å“ˆå¸Œå‡½æ•°(exact bias: 0.19768193144773874)
+    //½øĞĞ¹ıÍ³¼ÆÑéÖ¤µÄ¹şÏ£º¯Êı(exact bias: 0.19768193144773874)
     inline uint32_t rx_hash_skeeto_e_r(uint32_t x)
     {
         x ^= x >> 17;
@@ -205,7 +205,7 @@
         return x;
     }
 
-    //è¿›è¡Œè¿‡ç»Ÿè®¡éªŒè¯çš„å“ˆå¸Œå‡½æ•°(exact bias: 0.022829781930394154)
+    //½øĞĞ¹ıÍ³¼ÆÑéÖ¤µÄ¹şÏ£º¯Êı(exact bias: 0.022829781930394154)
     inline uint32_t rx_hash_skeeto_f(uint32_t x)
     {
         x ^= x >> 18;
@@ -218,7 +218,7 @@
         return x;
     }
 
-    //è¿›è¡Œè¿‡ç»Ÿè®¡éªŒè¯çš„å“ˆå¸Œå‡½æ•°(exact bias: 0.021334944237993255)
+    //½øĞĞ¹ıÍ³¼ÆÑéÖ¤µÄ¹şÏ£º¯Êı(exact bias: 0.021334944237993255)
     inline uint32_t rx_hash_skeeto_g(uint32_t x)
     {
         x ^= x >> 18;
@@ -231,7 +231,7 @@
         return x;
     }
 
-    //è¿›è¡Œè¿‡ç»Ÿè®¡éªŒè¯çš„å“ˆå¸Œå‡½æ•°(exact bias: 0.020829410544597495)
+    //½øĞĞ¹ıÍ³¼ÆÑéÖ¤µÄ¹şÏ£º¯Êı(exact bias: 0.020829410544597495)
     inline uint32_t rx_hash_skeeto_triple(uint32_t x)
     {
         ++x;
@@ -258,8 +258,8 @@
     }
 
     //-----------------------------------------------------
-    //æ•´æ•°å“ˆå¸Œå‡½æ•°ç±»å‹
-    typedef enum rx_int_hash_type
+    //ÕûÊı¹şÏ£º¯ÊıÀàĞÍ
+    typedef enum rx_int_hash32_type
     {
         IHT_tomas = 0,
         IHT_bobj,
@@ -273,15 +273,15 @@
         IHT_skeeto_e_r,
         IHT_skeeto_f,
         IHT_skeeto_g,
-        IHT_skeeto_triple,
         IHT_skeeto_triple_r,
+        IHT_skeeto_triple,
 
-        IHT_Count                                        //å½“ä½œç±»å‹çš„æ•°é‡
-    }rx_int_hash_type;
+        IHT_Count                                        //µ±×÷ÀàĞÍµÄÊıÁ¿
+    }rx_int_hash32_type;
 
     //-----------------------------------------------------
-    //æ ¹æ®å“ˆå¸Œå‡½æ•°ç±»å‹è·å–å…¶å¯¹åº”çš„ç®—æ³•åç§°
-    inline const char* rx_int_hash_name(rx_int_hash_type Type)
+    //¸ù¾İ¹şÏ£º¯ÊıÀàĞÍ»ñÈ¡Æä¶ÔÓ¦µÄËã·¨Ãû³Æ
+    inline const char* rx_int_hash32_name(rx_int_hash32_type Type)
     {
         switch (Type)
         {
@@ -297,18 +297,18 @@
         case IHT_skeeto_e_r:        return "IntHash::skeeto_e_r";
         case IHT_skeeto_f:          return "IntHash::skeeto_f";
         case IHT_skeeto_g:          return "IntHash::skeeto_g";
-        case IHT_skeeto_triple:     return "IntHash::skeeto_triple";
         case IHT_skeeto_triple_r:   return "IntHash::skeeto_triple_r";
+        case IHT_skeeto_triple:     return "IntHash::skeeto_triple";
 
         default:            return "Hash::Unknown";
         }
     }
 
     //-----------------------------------------------------
-    //è·å–æŒ‡å®šå“ˆå¸Œå‡½æ•°
-    inline rx_hash32_func_t rx_int_hash(const rx_int_hash_type Type)
+    //¸ù¾İ¸øµÄÀàĞÍ,»ñÈ¡Ö¸¶¨¹şÏ£º¯Êı
+    inline rx_int_hash32_t rx_int_hash32(const rx_int_hash32_type Type)
     {
-        static rx_hash32_func_t funcs[] = {
+        static rx_int_hash32_t funcs[] = {
             rx_hash_tomas,
             rx_hash_bobj,
             rx_hash_murmur3,
@@ -321,77 +321,82 @@
             rx_hash_skeeto_e_r,
             rx_hash_skeeto_f,
             rx_hash_skeeto_g,
+            rx_hash_skeeto_triple_r,
             rx_hash_skeeto_triple,
-            rx_hash_skeeto_triple_r
         };
         return funcs[Type];
     }
 
     //-----------------------------------------------------
-    //æ ¹æ®å“ˆå¸Œå‡½æ•°ç±»å‹åŒºåˆ†çš„æ•´æ•°å“ˆå¸Œå‡½æ•°æ—
-    inline uint32_t rx_int_hash(uint32_t Key, rx_int_hash_type Type= IHT_skeeto_triple)
+    //¸ù¾İ¹şÏ£º¯ÊıÀàĞÍ¼ÆËã½á¹ûµÄÕûÊı¹şÏ£º¯Êı×å
+    inline uint32_t rx_int_hash32(uint32_t Key, rx_int_hash32_type Type= IHT_skeeto_triple)
     {
-        return rx_int_hash(rx_int_hash_type(Type<IHT_Count?Type: IHT_Count-1))(Key);
+        return rx_int_hash32(rx_int_hash32_type(Type<IHT_Count?Type: IHT_Count-1))(Key);
     }
+
 
     //-----------------------------------------------------
-    //ç®—æ³•ä¸€è‡´æ€§çš„æ•´æ•°å“ˆå¸Œå‡½æ•°æ—(ä¸‰ç»•æ¨¡å¼)
-    const uint32_t triple_cfg_size = 35;
-    inline uint32_t rx_int_hash_skeeto(uint32_t x,uint32_t cfg_idx=0)
+    //Ëã·¨Ò»ÖÂĞÔµÄÕûÊı¹şÏ£º¯Êı×å(ÈıÈÆÄ£Ê½)
+    template<uint32_t shr_1,uint32_t mul_1,uint32_t shr_2,uint32_t mul_2,uint32_t shr_3,uint32_t mul_3,uint32_t shr_4>
+    inline uint32_t rx_int_hash32_skeeto3(uint32_t x)
     {
-        struct triple_cfg
-        {
-            uint8_t     shr_1, shr_2, shr_3, shr_4;
-            uint32_t    mul_1, mul_2, mul_3;
-        }static const triple_cfgs[] = {
-            { 17, 11, 15, 14, 0xed5ad4bb, 0xac4c1b51, 0x31848bab }, //(exact bias:0.020829410544597495)
-            { 18, 11, 15, 14, 0xed5ad4bb, 0xac4c1b51, 0x31848bab }, //(exact bias:0.021334944237993255)
-            { 16, 14, 16, 17, 0xaeccedab, 0xac613e37, 0x19c89935 }, //exact bias: 0.021246568167078764
-            { 18, 13, 15, 15, 0x4260bb47, 0x27e8e1ed, 0x9d48a33b }, //exact bias: 0.021576730651802156
-            { 17, 12, 16, 17, 0x3f6cde45, 0x51d608ef, 0x6e93639d }, //exact bias: 0.021772288363808408
-            { 15, 14, 17, 15, 0x5dfa224b, 0x4bee7e4b, 0x930ee371 }, //exact bias: 0.021845216288848130
-            { 16, 14, 16, 16, 0x66046c65, 0xd3f0865b, 0xf9999193 }, //exact bias: 0.021944606836500700
-            { 16, 14, 16, 15, 0xb1a89b33, 0x09136aaf, 0x5f2a44a7 }, //exact bias: 0.021998624107282542
-            { 15, 15, 16, 16, 0x4df8395b, 0x466b428b, 0xb4b2868b }, //exact bias: 0.022140187420461286
-            { 16, 14, 16, 15, 0x2bbed51b, 0xcd09896b, 0x38d4c587 }, //exact bias: 0.022159936298777144
-            { 16, 14, 16, 16, 0x0ab694cd, 0x4c139e47, 0x11a42c3b }, //exact bias: 0.022209281912203550
-            { 17, 12, 16, 16, 0x7f1e072b, 0x8750a507, 0xecbb5b5f }, //exact bias: 0.022283743052847804
-            { 16, 14, 16, 16, 0x66e756d5, 0xb5f5a9cd, 0x84e56b11 }, //exact bias: 0.022372957847491555
-            { 15, 15, 16, 17, 0x233354bb, 0xce1247bd, 0x855089bb }, //exact bias: 0.022406591070966285
-            { 16, 14, 16, 16, 0x8288ab57, 0x0d1bfe57, 0x131631e5 }, //exact bias: 0.022431656871313443
-            { 16, 14, 16, 17, 0x45109e55, 0x3b94759d, 0xadf31ea5 }, //exact bias: 0.022436433678417977
-            { 16, 14, 16, 15, 0x7001e6eb, 0xbb8e7313, 0x3aa8c523 }, //exact bias: 0.022491767264054854
-            { 16, 14, 15, 15, 0x49ed0a13, 0x83588f29, 0x658f258d }, //exact bias: 0.022500668856510898
-            { 16, 14, 14, 16, 0x6cdb9705, 0x4d58d2ed, 0xc8642b37 }, //exact bias: 0.022504626537729222
-            { 16, 14, 15, 17, 0xa986846b, 0xbdd5372d, 0xad44de6b }, //exact bias: 0.022528238323120016
-            { 16, 15, 16, 16, 0xc9575725, 0x9448f4c5, 0x3b7a5443 }, //exact bias: 0.022586511310042686
-            { 15, 13, 15, 16, 0xfc54c453, 0x08213789, 0x669f96eb }, //exact bias: 0.022591114646032095
-            { 16, 14, 16, 16, 0xd47ef17b, 0x642fa58f, 0xa8b65b9b }, //exact bias: 0.022600633971701509
-            { 16, 15, 17, 15, 0x953a55e9, 0x8523822b, 0x56e7aa63 }, //exact bias: 0.022667180032713324
-            { 16, 15, 16, 17, 0xa3d7345b, 0x7f41c9c7, 0x308bd62d }, //exact bias: 0.022688845770122031
-            { 16, 14, 16, 15, 0x195565c7, 0x16064d6f, 0x0f9ec575 }, //exact bias: 0.022697810688752193
-            { 16, 14, 15, 16, 0x13566dbb, 0x59369a03, 0x990f9d1b }, //exact bias: 0.022712430070797596
-            { 16, 15, 15, 15, 0x8430cc4b, 0xa7831cbd, 0xc6ccbd33 }, //exact bias: 0.022734765033419774
-            { 18, 12, 17, 12, 0xed5ad4bb, 0xac4c1b51, 0xc0a8e5d7 }, //(exact bias:0.022829781930394154)
-            { 16, 14, 16, 15, 0x699f272b, 0x09c01023, 0x39bd48c3 }, //exact bias: 0.022854175321846512
-            { 15, 13, 16, 16, 0x336536c3, 0x4f0e38b1, 0x15d229f7 }, //exact bias: 0.022884125170795171
-            { 16, 12, 16, 16, 0x221f686d, 0xd8948a07, 0xed8a8345 }, //exact bias: 0.022902500408830236
-            { 16, 13, 15, 16, 0xd7ca8cbb, 0xeb4e259f, 0x34ab1143 }, //exact bias: 0.022905955538176669
-            { 16, 14, 16, 15, 0x7cb04f65, 0x9b96da73, 0x83625687 }, //exact bias: 0.022906573700088178
-            { 15, 14, 15, 17, 0x5156196b, 0x940d8869, 0x0086f473 }, //exact bias: 0.022984943828687553
-        };
-
-        const struct triple_cfg &cfg_t = triple_cfgs[cfg_idx>= triple_cfg_size ?0:cfg_idx];
         ++x;
-        x ^= x >> cfg_t.shr_1;
-        x *= cfg_t.mul_1;
-        x ^= x >> cfg_t.shr_2;
-        x *= cfg_t.mul_2;
-        x ^= x >> cfg_t.shr_3;
-        x *= cfg_t.mul_3;
-        x ^= x >> cfg_t.shr_4;
+        x ^= x >> shr_1;
+        x *= mul_1;
+        x ^= x >> shr_2;
+        x *= mul_2;
+        x ^= x >> shr_3;
+        x *= mul_3;
+        x ^= x >> shr_4;
         return x;
     }
+
+    //¸ù¾İ¸øµÄĞòºÅ,»ñÈ¡ÈıÈÆÕûÊı¹şÏ£º¯Êı
+    const uint32_t rx_int_hash32_skeeto3s_count=35;
+    inline const rx_int_hash32_t rx_int_hash32_skeeto3s(const uint32_t idx=0)
+    {
+        static const rx_int_hash32_t funcs[] = {
+            rx_int_hash32_skeeto3< 17, 0xed5ad4bb, 11, 0xac4c1b51, 15, 0x31848bab, 14 >, //(exact bias:0.020829410544597495)
+            rx_int_hash32_skeeto3< 18, 0xed5ad4bb, 11, 0xac4c1b51, 15, 0x31848bab, 14 >, //(exact bias:0.021334944237993255)
+            rx_int_hash32_skeeto3< 16, 0xaeccedab, 14, 0xac613e37, 16, 0x19c89935, 17 >, //exact bias: 0.021246568167078764
+            rx_int_hash32_skeeto3< 18, 0x4260bb47, 13, 0x27e8e1ed, 15, 0x9d48a33b, 15 >, //exact bias: 0.021576730651802156
+            rx_int_hash32_skeeto3< 17, 0x3f6cde45, 12, 0x51d608ef, 16, 0x6e93639d, 17 >, //exact bias: 0.021772288363808408
+            rx_int_hash32_skeeto3< 15, 0x5dfa224b, 14, 0x4bee7e4b, 17, 0x930ee371, 15 >, //exact bias: 0.021845216288848130
+            rx_int_hash32_skeeto3< 16, 0x66046c65, 14, 0xd3f0865b, 16, 0xf9999193, 16 >, //exact bias: 0.021944606836500700
+            rx_int_hash32_skeeto3< 16, 0xb1a89b33, 14, 0x09136aaf, 16, 0x5f2a44a7, 15 >, //exact bias: 0.021998624107282542
+            rx_int_hash32_skeeto3< 15, 0x4df8395b, 15, 0x466b428b, 16, 0xb4b2868b, 16 >, //exact bias: 0.022140187420461286
+            rx_int_hash32_skeeto3< 16, 0x2bbed51b, 14, 0xcd09896b, 16, 0x38d4c587, 15 >, //exact bias: 0.022159936298777144
+            rx_int_hash32_skeeto3< 16, 0x0ab694cd, 14, 0x4c139e47, 16, 0x11a42c3b, 16 >, //exact bias: 0.022209281912203550
+            rx_int_hash32_skeeto3< 17, 0x7f1e072b, 12, 0x8750a507, 16, 0xecbb5b5f, 16 >, //exact bias: 0.022283743052847804
+            rx_int_hash32_skeeto3< 16, 0x66e756d5, 14, 0xb5f5a9cd, 16, 0x84e56b11, 16 >, //exact bias: 0.022372957847491555
+            rx_int_hash32_skeeto3< 15, 0x233354bb, 15, 0xce1247bd, 16, 0x855089bb, 17 >, //exact bias: 0.022406591070966285
+            rx_int_hash32_skeeto3< 16, 0x8288ab57, 14, 0x0d1bfe57, 16, 0x131631e5, 16 >, //exact bias: 0.022431656871313443
+            rx_int_hash32_skeeto3< 16, 0x45109e55, 14, 0x3b94759d, 16, 0xadf31ea5, 17 >, //exact bias: 0.022436433678417977
+            rx_int_hash32_skeeto3< 16, 0x7001e6eb, 14, 0xbb8e7313, 16, 0x3aa8c523, 15 >, //exact bias: 0.022491767264054854
+            rx_int_hash32_skeeto3< 16, 0x49ed0a13, 14, 0x83588f29, 15, 0x658f258d, 15 >, //exact bias: 0.022500668856510898
+            rx_int_hash32_skeeto3< 16, 0x6cdb9705, 14, 0x4d58d2ed, 14, 0xc8642b37, 16 >, //exact bias: 0.022504626537729222
+            rx_int_hash32_skeeto3< 16, 0xa986846b, 14, 0xbdd5372d, 15, 0xad44de6b, 17 >, //exact bias: 0.022528238323120016
+            rx_int_hash32_skeeto3< 16, 0xc9575725, 15, 0x9448f4c5, 16, 0x3b7a5443, 16 >, //exact bias: 0.022586511310042686
+            rx_int_hash32_skeeto3< 15, 0xfc54c453, 13, 0x08213789, 15, 0x669f96eb, 16 >, //exact bias: 0.022591114646032095
+            rx_int_hash32_skeeto3< 16, 0xd47ef17b, 14, 0x642fa58f, 16, 0xa8b65b9b, 16 >, //exact bias: 0.022600633971701509
+            rx_int_hash32_skeeto3< 16, 0x953a55e9, 15, 0x8523822b, 17, 0x56e7aa63, 15 >, //exact bias: 0.022667180032713324
+            rx_int_hash32_skeeto3< 16, 0xa3d7345b, 15, 0x7f41c9c7, 16, 0x308bd62d, 17 >, //exact bias: 0.022688845770122031
+            rx_int_hash32_skeeto3< 16, 0x195565c7, 14, 0x16064d6f, 16, 0x0f9ec575, 15 >, //exact bias: 0.022697810688752193
+            rx_int_hash32_skeeto3< 16, 0x13566dbb, 14, 0x59369a03, 15, 0x990f9d1b, 16 >, //exact bias: 0.022712430070797596
+            rx_int_hash32_skeeto3< 16, 0x8430cc4b, 15, 0xa7831cbd, 15, 0xc6ccbd33, 15 >, //exact bias: 0.022734765033419774
+            rx_int_hash32_skeeto3< 18, 0xed5ad4bb, 12, 0xac4c1b51, 17, 0xc0a8e5d7, 12 >, //(exact bias:0.022829781930394154)
+            rx_int_hash32_skeeto3< 16, 0x699f272b, 14, 0x09c01023, 16, 0x39bd48c3, 15 >, //exact bias: 0.022854175321846512
+            rx_int_hash32_skeeto3< 15, 0x336536c3, 13, 0x4f0e38b1, 16, 0x15d229f7, 16 >, //exact bias: 0.022884125170795171
+            rx_int_hash32_skeeto3< 16, 0x221f686d, 12, 0xd8948a07, 16, 0xed8a8345, 16 >, //exact bias: 0.022902500408830236
+            rx_int_hash32_skeeto3< 16, 0xd7ca8cbb, 13, 0xeb4e259f, 15, 0x34ab1143, 16 >, //exact bias: 0.022905955538176669
+            rx_int_hash32_skeeto3< 16, 0x7cb04f65, 14, 0x9b96da73, 16, 0x83625687, 15 >, //exact bias: 0.022906573700088178
+            rx_int_hash32_skeeto3< 15, 0x5156196b, 14, 0x940d8869, 15, 0x0086f473, 17 >, //exact bias: 0.022984943828687553
+        };
+        rx_static_assert(sizeof(funcs)/sizeof(funcs[0])==rx_int_hash32_skeeto3s_count);
+        return funcs[idx>=rx_int_hash32_skeeto3s_count?0:idx];
+    }
+
+
 #endif
 
 

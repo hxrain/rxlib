@@ -1,11 +1,14 @@
-ï»¿#ifndef _RX_HASH_DATA_H_
+#ifndef _RX_HASH_DATA_H_
 #define _RX_HASH_DATA_H_
 
 #include "rx_cc_macro.h"
+#include "rx_hash_int.h"
 
     //-----------------------------------------------------
     //data hash function
+    typedef uint32_t (*rx_data_hash32_t)(const void *data, uint32_t len, uint32_t seed);
     //-----------------------------------------------------
+
     // RS Hash Function
     inline uint32_t rx_hash_rs(const void* data,uint32_t Len, uint32_t seed = 0)
     {
@@ -153,9 +156,7 @@
     {
         uint32_t hash = seed;
         while (*str)
-        {
             hash = (*str ++ ) + (hash << 6 ) + (hash << 16 ) - hash;
-        }
         return hash;
     }
 
@@ -206,9 +207,9 @@
     }
     //-----------------------------------------------------
     //DEK Hash
-    inline uint32_t rx_hash_dek(const void* data,uint32_t Len)
+    inline uint32_t rx_hash_dek(const void* data,uint32_t Len,uint32_t seed=0)
     {
-        uint32_t hash = Len;
+        uint32_t hash = Len+seed;
         for(uint32_t i = 0; i < Len; i++)
             hash = ((hash << 5) ^ (hash >> 27)) ^ ((uint8_t*)data)[i];
         return hash;
@@ -327,29 +328,31 @@
 
     //-----------------------------------------------------
     //https://github.com/rurban/smhasher/blob/master/fasthash.cpp
-    static inline uint64_t rx_hash_fast_mix(uint64_t h) {
-        h ^= h >> 23;
-        h *= 0x2127599bf4325c37ULL;
-        h ^= h >> 47;
-        return h;
-    }
-
-    uint64_t rx_hash_fast64(const void *buf, size_t len, uint64_t seed=0)
+    //fasthash
+    uint64_t rx_hash_fast64(const void *buf, uint32_t len, uint64_t seed=0)
     {
+        typedef struct util{
+            static inline uint64_t mix(uint64_t h) {
+                h ^= h >> 23;
+                h *= 0x2127599bf4325c37ULL;
+                h ^= h >> 47;
+                return h;
+            }
+        }util;
+
         const uint64_t    m = 0x880355f21e6d1965ULL;
         const uint64_t *pos = (const uint64_t *)buf;
         const uint64_t *end = pos + (len / 8);
-        const unsigned char *pos2;
         uint64_t h = seed ^ (len * m);
         uint64_t v;
 
         while (pos != end) {
             v = *pos++;
-            h ^= rx_hash_fast_mix(v);
+            h ^= util::mix(v);
             h *= m;
         }
 
-        pos2 = (const unsigned char*)pos;
+        const uint8_t *pos2 = (const uint8_t*)pos;
         v = 0;
 
         switch (len & 7) {
@@ -360,14 +363,14 @@
         case 3: v ^= (uint64_t)pos2[2] << 16;
         case 2: v ^= (uint64_t)pos2[1] << 8;
         case 1: v ^= (uint64_t)pos2[0];
-            h ^= rx_hash_fast_mix(v);
+            h ^= util::mix(v);
             h *= m;
         }
 
-        return rx_hash_fast_mix(h);
+        return util::mix(h);
     }
 
-    uint32_t rx_hash_fast(const void *buf, size_t len, uint32_t seed=0)
+    uint32_t rx_hash_fast32(const void *buf, uint32_t len, uint32_t seed=0)
     {
         // the following trick converts the 64-bit hashcode to Fermat
         // residue, which shall retain information from both the higher
@@ -377,8 +380,8 @@
     }
 
     //-----------------------------------------------------
-    //å¯ç”¨çš„æ•°æ®å“ˆå¸Œå‡½æ•°ç±»å‹
-    typedef enum rx_data_hash_type
+    //¿ÉÓÃµÄÊı¾İ¹şÏ£º¯ÊıÀàĞÍ
+    typedef enum rx_data_hash32_type
     {
         DHT_RS=0,
         DHT_JS,
@@ -394,12 +397,12 @@
         DHT_MURMUR,
         DHT_MOSQUITO,
         DHT_FAST,
-        DHT_Count,                                       //å½“ä½œç±»å‹çš„æ•°é‡
-    }rx_data_hash_type;
+        DHT_Count,                                       //µ±×÷ÀàĞÍµÄÊıÁ¿
+    }rx_data_hash32_type;
 
     //-----------------------------------------------------
-    //æ ¹æ®å“ˆå¸Œå‡½æ•°ç±»å‹è·å–å…¶å¯¹åº”çš„ç®—æ³•åç§°
-    inline const char* rx_data_hash_name(rx_data_hash_type Type)
+    //¸ù¾İ¹şÏ£º¯ÊıÀàĞÍ»ñÈ¡Æä¶ÔÓ¦µÄËã·¨Ãû³Æ
+    inline const char* rx_data_hash32_name(rx_data_hash32_type Type)
     {
         switch(Type)
         {
@@ -423,8 +426,8 @@
     }
 
     //-----------------------------------------------------
-    //æ ¹æ®å“ˆå¸Œå‡½æ•°ç±»å‹è®¡ç®—ç»™å®šæ•°æ®çš„å“ˆå¸Œç 
-    inline uint32_t rx_data_hash(rx_data_hash_type Type,const void* data,uint32_t Len)
+    //¸ù¾İ¹şÏ£º¯ÊıÀàĞÍ¼ÆËã¸ø¶¨Êı¾İµÄ¹şÏ£Âë
+    inline uint32_t rx_data_hash32(const void* data,uint32_t Len,const rx_data_hash32_type Type=rx_data_hash32_type(DHT_Count-1))
     {
         switch(Type)
         {
@@ -441,10 +444,81 @@
             case DHT_FNV:    return rx_hash_fnv(data,Len);
             case DHT_MURMUR: return rx_hash_murmur(data,Len);
             case DHT_MOSQUITO:return rx_hash_mosquito(data, Len);
-            case DHT_FAST:   return rx_hash_fast(data, Len);
+            case DHT_FAST:   return rx_hash_fast32(data, Len);
 
-            default:         return rx_hash_mosquito(data,Len);
+            default:         return rx_hash_fast32(data,Len);
         }
+    }
+
+    //-----------------------------------------------------
+    //¸ù¾İ¹şÏ£º¯ÊıÀàĞÍ»ñÈ¡¶ÔÓ¦µÄ¹şÏ£º¯Êı
+    inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type=rx_data_hash32_type(DHT_Count-1))
+    {
+        static const rx_data_hash32_t funcs[]={
+            rx_hash_rs,
+            rx_hash_js,
+            rx_hash_pjw,
+            rx_hash_elf,
+            rx_hash_bkdr,
+            rx_hash_sdbm,
+            rx_hash_djb,
+            rx_hash_ap,
+            rx_hash_dek,
+            rx_hash_bp,
+            rx_hash_fnv,
+            rx_hash_murmur,
+            rx_hash_mosquito,
+            rx_hash_fast32
+        };
+        rx_static_assert(sizeof(funcs)/sizeof(funcs[0])==DHT_Count);
+        return funcs[type>=DHT_Count?DHT_Count-1:type];
+    }
+
+    //-----------------------------------------------------
+    //ÀûÓÃ²»Í¬µÄÕûÊı¹şÏ£º¯ÊıÀàĞÍ,¹¹ÔìÊı¾İ¹şÏ£º¯Êı×å(Öğ4×Ö½ÚÕûÊı±éÀúÀÛ¼Æ)
+    template<rx_int_hash32_t hf>
+    inline uint32_t rx_data_hash32(const void* data, uint32_t len, uint32_t seed=1)
+    {
+        uint32_t hash = seed;
+        uint32_t lc=len>>2;
+        for (uint32_t i = 0; i < lc; i++)
+            hash ^= hf(((uint32_t*)data)[i]);
+
+        uint32_t v=0;
+        uint8_t *pos2=(uint8_t*)((uint32_t*)data+lc);
+        switch (len & 3)
+        {
+            case 3: v ^= (uint32_t)pos2[2] << 16;
+            case 2: v ^= (uint32_t)pos2[1] << 8;
+            case 1: v ^= (uint32_t)pos2[0];
+                hash ^= hf(v);
+        }
+        return hf(hash);
+    }
+
+    //-----------------------------------------------------
+    //ÀûÓÃ²»Í¬µÄÕûÊı¹şÏ£º¯ÊıÀàĞÍ,¹¹ÔìÊı¾İ¹şÏ£º¯Êı×å,¿ÉÍ¨¹ıĞòºÅ»ñÈ¡
+    const uint32_t rx_data_hash32s_count=14;
+    inline rx_data_hash32_t rx_data_hash32s(const uint32_t idx=rx_data_hash32s_count-1)
+    {
+        static const rx_data_hash32_t funcs[]={
+            rx_data_hash32<rx_hash_tomas        >,
+            rx_data_hash32<rx_hash_bobj         >,
+            rx_data_hash32<rx_hash_murmur3      >,
+            rx_data_hash32<rx_hash_mosquito     >,
+            rx_data_hash32<rx_hash_skeeto_a     >,
+            rx_data_hash32<rx_hash_skeeto_b     >,
+            rx_data_hash32<rx_hash_skeeto_c     >,
+            rx_data_hash32<rx_hash_skeeto_d     >,
+            rx_data_hash32<rx_hash_skeeto_e     >,
+            rx_data_hash32<rx_hash_skeeto_e_r   >,
+            rx_data_hash32<rx_hash_skeeto_f     >,
+            rx_data_hash32<rx_hash_skeeto_g     >,
+            rx_data_hash32<rx_hash_skeeto_triple_r>,
+            rx_data_hash32<rx_hash_skeeto_triple>,
+        };
+        rx_static_assert(rx_data_hash32s_count==sizeof(funcs)/sizeof(funcs[0]));
+        return funcs[idx>=rx_data_hash32s_count?rx_data_hash32s_count-1:idx];
     }
 
 #endif
