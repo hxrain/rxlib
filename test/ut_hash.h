@@ -83,11 +83,14 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
 
     rx_rnd_b32().seed(seed);
     rx_rnd_b32().get();
-
-    rx_int_hash32_t hf=rx_int_hash32_skeeto3s(0);
-    hf(0);
 }
 
-
+rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
+{
+    rx_int_hash32_t hf=rx_int_hash32_skeeto3s(0);
+    hf(0);
+    rx_tiny_prime(0);
+    rx_tiny_fibonacci(0);
+}
 
 #endif

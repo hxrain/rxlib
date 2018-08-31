@@ -426,56 +426,39 @@
     }
 
     //-----------------------------------------------------
-    //根据哈希函数类型计算给定数据的哈希码
-    inline uint32_t rx_data_hash32(const void* data,uint32_t Len,const rx_data_hash32_type Type=rx_data_hash32_type(DHT_Count-1))
-    {
-        switch(Type)
-        {
-            case DHT_RS:     return rx_hash_rs(data,Len);
-            case DHT_JS:     return rx_hash_js(data,Len);
-            case DHT_PJW:    return rx_hash_pjw(data,Len);
-            case DHT_ELF:    return rx_hash_elf(data,Len);
-            case DHT_BKDR:   return rx_hash_bkdr(data,Len);
-            case DHT_SDBM:   return rx_hash_sdbm(data,Len);
-            case DHT_DJB:    return rx_hash_djb(data,Len);
-            case DHT_AP:     return rx_hash_ap(data,Len);
-            case DHT_DEK:    return rx_hash_dek(data,Len);
-            case DHT_BP:     return rx_hash_bp(data,Len);
-            case DHT_FNV:    return rx_hash_fnv(data,Len);
-            case DHT_MURMUR: return rx_hash_murmur(data,Len);
-            case DHT_MOSQUITO:return rx_hash_mosquito(data, Len);
-            case DHT_FAST:   return rx_hash_fast32(data, Len);
-
-            default:         return rx_hash_fast32(data,Len);
-        }
-    }
-
-    //-----------------------------------------------------
+    //已经实现的数据哈希算法
+    static const rx_data_hash32_t rx_data_hash32_funcs[]={
+        rx_hash_rs,
+        rx_hash_js,
+        rx_hash_pjw,
+        rx_hash_elf,
+        rx_hash_bkdr,
+        rx_hash_sdbm,
+        rx_hash_djb,
+        rx_hash_ap,
+        rx_hash_dek,
+        rx_hash_bp,
+        rx_hash_fnv,
+        rx_hash_murmur,
+        rx_hash_mosquito,
+        rx_hash_fast32
+    };
+    const uint32_t rx_data_hash32_funcs_count=DHT_Count;
     //根据哈希函数类型获取对应的哈希函数
-    inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type=rx_data_hash32_type(DHT_Count-1))
+    inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type=rx_data_hash32_type(rx_data_hash32_funcs_count-1))
     {
-        static const rx_data_hash32_t funcs[]={
-            rx_hash_rs,
-            rx_hash_js,
-            rx_hash_pjw,
-            rx_hash_elf,
-            rx_hash_bkdr,
-            rx_hash_sdbm,
-            rx_hash_djb,
-            rx_hash_ap,
-            rx_hash_dek,
-            rx_hash_bp,
-            rx_hash_fnv,
-            rx_hash_murmur,
-            rx_hash_mosquito,
-            rx_hash_fast32
-        };
-        rx_static_assert(sizeof(funcs)/sizeof(funcs[0])==DHT_Count);
-        return funcs[type>=DHT_Count?DHT_Count-1:type];
+        rx_static_assert(sizeof(rx_data_hash32_funcs)/sizeof(rx_data_hash32_funcs[0])==rx_data_hash32_funcs_count);
+        return rx_data_hash32_funcs[type>=rx_data_hash32_funcs_count?rx_data_hash32_funcs_count-1:type];
+    }
+    //根据哈希函数类型计算给定数据的哈希码
+    inline uint32_t rx_data_hash32(const void* data,uint32_t len,const rx_data_hash32_type Type=rx_data_hash32_type(rx_data_hash32_funcs_count-1),uint32_t seed=0)
+    {
+        return rx_data_hash32(Type)(data,len,seed);
     }
 
     //-----------------------------------------------------
-    //利用不同的整数哈希函数类型,构造数据哈希函数族(逐4字节整数遍历累计)
+    //利用不同的整数哈希函数类型,构造一致性数据哈希函数族(逐4字节整数遍历累计)
+    //-----------------------------------------------------
     template<rx_int_hash32_t hf>
     inline uint32_t rx_data_hash32(const void* data, uint32_t len, uint32_t seed=1)
     {
@@ -498,27 +481,27 @@
 
     //-----------------------------------------------------
     //利用不同的整数哈希函数类型,构造数据哈希函数族,可通过序号获取
-    const uint32_t rx_data_hash32s_count=14;
+    static const rx_data_hash32_t rx_data_hash32s_funcs[]={
+        rx_data_hash32<rx_hash_tomas        >,
+        rx_data_hash32<rx_hash_bobj         >,
+        rx_data_hash32<rx_hash_murmur3      >,
+        rx_data_hash32<rx_hash_mosquito     >,
+        rx_data_hash32<rx_hash_skeeto_a     >,
+        rx_data_hash32<rx_hash_skeeto_b     >,
+        rx_data_hash32<rx_hash_skeeto_c     >,
+        rx_data_hash32<rx_hash_skeeto_d     >,
+        rx_data_hash32<rx_hash_skeeto_e     >,
+        rx_data_hash32<rx_hash_skeeto_e_r   >,
+        rx_data_hash32<rx_hash_skeeto_f     >,
+        rx_data_hash32<rx_hash_skeeto_g     >,
+        rx_data_hash32<rx_hash_skeeto_triple_r>,
+        rx_data_hash32<rx_hash_skeeto_triple>,
+    };
+    const uint32_t rx_data_hash32s_count=IHT_Count;
     inline rx_data_hash32_t rx_data_hash32s(const uint32_t idx=rx_data_hash32s_count-1)
     {
-        static const rx_data_hash32_t funcs[]={
-            rx_data_hash32<rx_hash_tomas        >,
-            rx_data_hash32<rx_hash_bobj         >,
-            rx_data_hash32<rx_hash_murmur3      >,
-            rx_data_hash32<rx_hash_mosquito     >,
-            rx_data_hash32<rx_hash_skeeto_a     >,
-            rx_data_hash32<rx_hash_skeeto_b     >,
-            rx_data_hash32<rx_hash_skeeto_c     >,
-            rx_data_hash32<rx_hash_skeeto_d     >,
-            rx_data_hash32<rx_hash_skeeto_e     >,
-            rx_data_hash32<rx_hash_skeeto_e_r   >,
-            rx_data_hash32<rx_hash_skeeto_f     >,
-            rx_data_hash32<rx_hash_skeeto_g     >,
-            rx_data_hash32<rx_hash_skeeto_triple_r>,
-            rx_data_hash32<rx_hash_skeeto_triple>,
-        };
-        rx_static_assert(rx_data_hash32s_count==sizeof(funcs)/sizeof(funcs[0]));
-        return funcs[idx>=rx_data_hash32s_count?rx_data_hash32s_count-1:idx];
+        rx_static_assert(rx_data_hash32s_count==sizeof(rx_data_hash32s_funcs)/sizeof(rx_data_hash32s_funcs[0]));
+        return rx_data_hash32s_funcs[idx>=rx_data_hash32s_count?rx_data_hash32s_count-1:idx];
     }
 
 #endif
