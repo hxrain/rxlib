@@ -448,7 +448,7 @@
     inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type=rx_data_hash32_type(rx_data_hash32_funcs_count-1))
     {
         rx_static_assert(sizeof(rx_data_hash32_funcs)/sizeof(rx_data_hash32_funcs[0])==rx_data_hash32_funcs_count);
-        return rx_data_hash32_funcs[type>=rx_data_hash32_funcs_count?rx_data_hash32_funcs_count-1:type];
+        return rx_data_hash32_funcs[(uint32_t)type>=rx_data_hash32_funcs_count?rx_data_hash32_funcs_count-1:type];
     }
     //根据哈希函数类型计算给定数据的哈希码
     inline uint32_t rx_data_hash32(const void* data,uint32_t len,const rx_data_hash32_type Type=rx_data_hash32_type(rx_data_hash32_funcs_count-1),uint32_t seed=0)
@@ -462,8 +462,8 @@
     template<rx_int_hash32_t hf>
     inline uint32_t rx_data_hash32(const void* data, uint32_t len, uint32_t seed=1)
     {
-        uint32_t hash = seed;
         uint32_t lc=len>>2;
+        uint32_t hash = seed+len;
         for (uint32_t i = 0; i < lc; i++)
             hash ^= hf(((uint32_t*)data)[i]);
 

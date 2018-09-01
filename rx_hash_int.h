@@ -326,7 +326,7 @@
     inline rx_int_hash32_t rx_int_hash32(const rx_int_hash32_type Type)
     {
         rx_static_assert(rx_int_hash32_funcs_count==sizeof(rx_int_hash32_funcs)/sizeof(rx_int_hash32_funcs[0]));
-        return rx_int_hash32_funcs[Type>=rx_int_hash32_funcs_count?rx_int_hash32_funcs_count-1:Type];
+        return rx_int_hash32_funcs[(uint32_t)Type>=rx_int_hash32_funcs_count?rx_int_hash32_funcs_count-1:Type];
     }
 
     //-----------------------------------------------------
