@@ -19,18 +19,18 @@ namespace rx
     //封装一个简易的字符串功能,用于dtl容器内部的临时key字符串存储
     //!!!必须注意!!!:在本对象实例的后部,留出足够长度的m_capacity空间.
     template<class CT=char>
-    struct tiny_string_t
+    struct tiny_string_head_t
     {
     private:
         //-------------------------------------------------
-        tiny_string_t& operator=(const tiny_string_t&);
-        tiny_string_t(const tiny_string_t&);
+        tiny_string_head_t& operator=(const tiny_string_head_t&);
+        tiny_string_head_t(const tiny_string_head_t&);
         //-------------------------------------------------
         uint16_t    m_capacity;                             //必须告知m_string的可用容量
         uint16_t    m_length;                               //记录m_string的实际长度.
         CT          m_string[0];                            //使用弹性数组定义方法,在当前内存位置向后m_capacity个字节内存放实际的字符串.
     public:
-        tiny_string_t(uint16_t cap, const CT* str, uint32_t len = 0) :m_capacity(cap) { set(str,len); }
+        tiny_string_head_t(uint16_t cap, const CT* str, uint32_t len = 0) :m_capacity(cap) { set(str,len); }
         //-------------------------------------------------
         uint16_t set(const CT* str, uint32_t len = 0)
         {
@@ -55,12 +55,12 @@ namespace rx
         const CT* c_str() const { return m_string; }
         operator const CT* ()const{return m_string;}
         //-------------------------------------------------
-        bool operator <  (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) < 0;}
-        bool operator <= (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) <= 0;}
-        bool operator == (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) == 0;}
-        bool operator >  (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) > 0;}
-        bool operator >= (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) >= 0;}
-        bool operator != (const tiny_string_t& str) const {return strcmp(m_string, str.m_string) != 0;}
+        bool operator <  (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) < 0;}
+        bool operator <= (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) <= 0;}
+        bool operator == (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) == 0;}
+        bool operator >  (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) > 0;}
+        bool operator >= (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) >= 0;}
+        bool operator != (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) != 0;}
         //-------------------------------------------------
         bool operator <  (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) < 0;}
         bool operator <= (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) <= 0;}
@@ -78,8 +78,8 @@ namespace rx
 #pragma warning(default:4200)
 #endif
 
-    typedef tiny_string_t<char> tiny_string_ct;
-    typedef tiny_string_t<wchar_t> tiny_string_wt;
+    typedef tiny_string_head_t<char> tiny_string_head_ct;
+    typedef tiny_string_head_t<wchar_t> tiny_string_head_wt;
 
     ////-----------------------------------------------------
     //在给定的buff内存块上构造简易串对象并进行初始化
@@ -87,7 +87,7 @@ namespace rx
     template<class CT>
     uint32_t make_tiny_string(void* buff,uint32_t buffsize,const CT* str,uint32_t len=0)
     {
-        typedef struct tiny_string_t<CT> string_t;
+        typedef struct tiny_string_head_t<CT> string_t;
         if (buffsize <= sizeof(string_t))       //检查最小尺寸
             return 0;
 

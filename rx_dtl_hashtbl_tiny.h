@@ -34,9 +34,16 @@ namespace rx
     typedef hashfunc_adaptor_t<uint32_t, rx_int_hash32_t> uint_hash_adaptor_t;
 
     //-----------------------------------------------------
-    //uint32_t类型的集合
+    //进行key类型/value类型/hash函数适配器的组装后,得到最终便于使用的哈希表类型
+    //-----------------------------------------------------
+
+    //uint32_t类型的轻量级集合
     template<uint32_t max_set_size>
-    class uint32_set_t :public raw_set_t<uint32_t, max_set_size, uint_hash_adaptor_t> {};
+    class uint32_set_t :public tiny_set_t<uint32_t, max_set_size, uint_hash_adaptor_t> {};
+
+    //uint32_t(key/value)类型的轻量级哈希表
+    template<uint32_t max_set_size>
+    class uint32_hashtbl_t :public tiny_hashtbl_t<uint32_t,uint32_t, max_set_size, uint_hash_adaptor_t> {};
 }
 
 #endif

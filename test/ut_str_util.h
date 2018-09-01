@@ -12,9 +12,9 @@ inline void str_util_base_1(rx_tdd_t &rt)
     rt.tdd_assert(rx::make_tiny_string(tmp1,sizeof(tmp1),"123")==0);
     rt.tdd_assert(rx::make_tiny_string(tmp2, sizeof(tmp2), "123") == 1);
     rt.tdd_assert(rx::make_tiny_string(tmp3, sizeof(tmp3), "123") == 2);
-    rx::tiny_string_ct &a=*(rx::tiny_string_ct *)tmp1;
-    rx::tiny_string_ct &b=*(rx::tiny_string_ct *)tmp2;
-    rx::tiny_string_ct &c=*(rx::tiny_string_ct *)tmp3;
+    rx::tiny_string_head_ct &a=*(rx::tiny_string_head_ct *)tmp1;
+    rx::tiny_string_head_ct &b=*(rx::tiny_string_head_ct *)tmp2;
+    rx::tiny_string_head_ct &c=*(rx::tiny_string_head_ct *)tmp3;
     rt.tdd_assert(a < b);
     rt.tdd_assert(b < c);
     rt.tdd_assert(b <= c);
@@ -30,7 +30,7 @@ inline void str_util_base_1(rx_tdd_t &rt)
 typedef struct tmp_tiny_str_t
 {
     int a;
-    rx::tiny_string_ct s;
+    rx::tiny_string_head_ct s;
     tmp_tiny_str_t(uint16_t c,const char* s):s(c,s){}
 }tmp_tiny_str_t;
 #pragma pack(pop)
