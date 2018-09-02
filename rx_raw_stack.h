@@ -5,13 +5,13 @@
 
 namespace rx
 {
-/*
-    //使用此原始stack(或list)的时候,应该构造如下的节点类型
-    typedef struct raw_stack_node_t
-	{
-		struct raw_stack_node_t* volatile next;	            //节点的后趋
-    }raw_stack_node_t;
-*/
+    /*
+        //使用此原始stack(或list)的时候,应该构造如下的节点类型
+        typedef struct raw_stack_node_t
+    	{
+    		struct raw_stack_node_t* volatile next;	            //节点的后趋
+        }raw_stack_node_t;
+    */
     //-----------------------------------------------------
     //Raw Stack:原始的栈(或单向list),保持最简形式,不用管理内存
     //要求node_t节点类型中至少含有一个后趋指针next
@@ -25,7 +25,7 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造函数
-        raw_stack_t():m_head(NULL),m_count(0){}
+        raw_stack_t():m_head(NULL),m_count(0) {}
         //-------------------------------------------------
         //栈内元素数量
         uint32_t size() const {return m_count;}
@@ -49,7 +49,7 @@ namespace rx
             m_head=new_node;
             ++m_count;
         }
-        void push(node_t &new_node){push(&new_node);}
+        void push(node_t &new_node) {push(&new_node);}
         //-------------------------------------------------
         //弹出(头结点摘除,后趋变为新节点)
         //(不进行空栈检测,外面使用前需要进行检查)
@@ -78,7 +78,7 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造函数
-        raw_list_t():m_head(NULL),m_tail(NULL),m_count(0){}
+        raw_list_t():m_head(NULL),m_tail(NULL),m_count(0) {}
         //-------------------------------------------------
         //元素数量
         uint32_t size() const {return m_count;}
@@ -107,7 +107,7 @@ namespace rx
             m_tail=new_node;                                //尾节点指向新节点
             ++m_count;
         }
-        void push_back(node_t &new_node){push_back(&new_node);}
+        void push_back(node_t &new_node) {push_back(&new_node);}
         //-------------------------------------------------
         //节点挂入头部(变成新的头节点)
         void push_front(node_t *new_node)
@@ -117,7 +117,7 @@ namespace rx
             m_head=new_node;
             ++m_count;
         }
-        void push_front(node_t &new_node){push_front(&new_node);}
+        void push_front(node_t &new_node) {push_front(&new_node);}
         //-------------------------------------------------
         //节点弹出(头结点摘除,后趋变为新头)
         //(不进行空栈检测,外面使用前需要进行检查)

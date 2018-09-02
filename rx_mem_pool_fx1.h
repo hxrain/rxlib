@@ -19,21 +19,21 @@ namespace rx
         //-------------------------------------------------
         //内存块节点头结构描述,不可直接使用
         typedef struct mp_block_t
-		{
-			struct mp_block_t* volatile next;	            //节点的后趋,该内存块在内存池中时,被m_free_blocks使用
-        }mp_block_t;
+        {
+            struct mp_block_t* volatile next;	            //节点的后趋,该内存块在内存池中时,被m_free_blocks使用
+        } mp_block_t;
         //-------------------------------------------------
         //使用另外的内存块记录每个内存条的指针
         typedef struct mp_stripes_t
         {
-            enum{  total=(CT::MaxNodeSize-sizeof(void*)-sizeof(uint32_t))/sizeof(void*) };
+            enum {  total=(CT::MaxNodeSize-sizeof(void*)-sizeof(uint32_t))/sizeof(void*) };
             struct mp_stripes_t* volatile next;	            //节点的后趋
             uint32_t  count;
             void *    ptrs[total];
-        }mp_stripes_t;
+        } mp_stripes_t;
 
         //-------------------------------------------------
-		raw_stack_t<mp_block_t>   m_free_blocks;            //可用内存块链表
+        raw_stack_t<mp_block_t>   m_free_blocks;            //可用内存块链表
         raw_stack_t<mp_stripes_t> m_stripes;                //已经分配出的内存条链表
 
         uint32_t         m_block_size;                      //每个内存块可用的空间尺寸,初始确定,不会再次改变
@@ -51,7 +51,8 @@ namespace rx
 
             mp_stripes_t *sp=m_stripes.peek();
             if (!sp||sp->count==sp->total)
-            {//如果当期的内存条记录块不在或满了,则分配新内存块进行记录
+            {
+                //如果当期的内存条记录块不在或满了,则分配新内存块进行记录
                 sp=(mp_stripes_t*)base_alloc(unset,CT::MaxNodeSize);
                 rx_assert(sp!=NULL);
                 memset(sp,0,sizeof(mp_stripes_t));
@@ -59,7 +60,7 @@ namespace rx
             }
             sp->ptrs[sp->count++]=new_stripe;
 
-            for(uint32_t i=0;i<m_per_stripe_blocks;i++)     //将新条中的各个新块放入自由块链
+            for(uint32_t i=0; i<m_per_stripe_blocks; i++)   //将新条中的各个新块放入自由块链
                 m_free_blocks.push((mp_block_t*)&new_stripe[i*m_block_size]);
             return true;
         }
@@ -69,7 +70,8 @@ namespace rx
         {
             if (m_free_blocks.peek())
                 return m_free_blocks.pop();                 //直接从可用块链中获取一个块
-            if (!m_alloc_stripe()) return NULL;             //否则就新分配一批,分配失败说明物理内存不足
+            if (!m_alloc_stripe())
+                return NULL;             //否则就新分配一批,分配失败说明物理内存不足
             return (void*)m_free_blocks.pop();              //再次尝试从可用块链中获取一个块并返回
         }
         //-------------------------------------------------
@@ -81,7 +83,7 @@ namespace rx
             while(m_stripes.size())
             {
                 mp_stripes_t *sp=m_stripes.pop();
-                for(uint32_t i=0;i<sp->count;++i)
+                for(uint32_t i=0; i<sp->count; ++i)
                     base_free(sp->ptrs[i]);
                 base_free(sp);
             }
@@ -89,10 +91,10 @@ namespace rx
         }
         //-------------------------------------------------
 
-		mempool_fixed_t &operator =(const mempool_fixed_t&);
-		mempool_fixed_t(const mempool_fixed_t&);
-	public:
-		typedef CT mem_cfg_t;
+        mempool_fixed_t &operator =(const mempool_fixed_t&);
+        mempool_fixed_t(const mempool_fixed_t&);
+    public:
+        typedef CT mem_cfg_t;
         //-------------------------------------------------
         //构造函数:内存块尺寸
         mempool_fixed_t(uint32_t BlockSize=0):m_block_size(0),m_per_stripe_blocks(0)
@@ -100,7 +102,7 @@ namespace rx
             if (BlockSize)
                 do_init(BlockSize);
         }
-        ~mempool_fixed_t(){do_uninit();}
+        ~mempool_fixed_t() {do_uninit();}
         //-------------------------------------------------
         //对内存池进行初始化:内存块尺寸
         virtual bool do_init(uint32_t BlockSize)
@@ -129,22 +131,22 @@ namespace rx
             m_block_size=0;
             m_per_stripe_blocks=0;
         }
-		//-------------------------------------------------
-		//分配固定尺寸的内存块
-		virtual void* do_alloc(uint32_t &blocksize,uint32_t unused=0)
-		{
-			rx_assert(unused ==0|| unused ==m_block_size);
-			blocksize=m_block_size;
+        //-------------------------------------------------
+        //分配固定尺寸的内存块
+        virtual void* do_alloc(uint32_t &blocksize,uint32_t unused=0)
+        {
+            rx_assert(unused ==0|| unused ==m_block_size);
+            blocksize=m_block_size;
             return m_alloc_block();
-		}
-		//-------------------------------------------------
-		//归还内存
-		virtual void do_free(void* p, uint32_t unused = 0)
-		{
-			rx_assert(p!=NULL);
+        }
+        //-------------------------------------------------
+        //归还内存
+        virtual void do_free(void* p, uint32_t unused = 0)
+        {
+            rx_assert(p!=NULL);
             rx_assert(unused == 0 || unused == m_block_size);
             m_free_blocks.push((mp_block_t*)p);
-		}
+        }
     };
 }
 

@@ -9,15 +9,15 @@
 namespace rx
 {
     //------------------------------------------------------
-	//内存池分配接口
+    //内存池分配接口
     class mempool_t
     {
     public:
         virtual void *do_alloc(uint32_t &blocksize,uint32_t size)=0;
-        virtual void *do_realloc(uint32_t &blocksize,void* ptr,uint32_t newsize){return NULL;}
+        virtual void *do_realloc(uint32_t &blocksize,void* ptr,uint32_t newsize) {return NULL;}
         virtual void do_free(void* ptr, uint32_t blocksize=0)=0;
     protected:
-        virtual ~mempool_t(){}
+        virtual ~mempool_t() {}
     };
 
     //------------------------------------------------------
@@ -26,16 +26,16 @@ namespace rx
     {
         uint32_t c_alloced;                                 //缓存已分配
         uint32_t c_realsize;                                //缓存刚需量
-    }alloc_stat_t;
+    } alloc_stat_t;
 
-	//------------------------------------------------------
+    //------------------------------------------------------
     //用于记录内存池的工作情况
     typedef struct mempool_stat_t
     {
         uint32_t pool_size;                                 //内存池总量
         uint32_t pool_free;                                 //内存池余量
         uint32_t nc_alloced;                                //非缓存分配
-    }mempool_stat_t;
+    } mempool_stat_t;
 
     //------------------------------------------------------
     //基于C标准库的内存池
@@ -52,10 +52,10 @@ namespace rx
     class mempool_i:public mempool_t
     {
     protected:
-		mempool_stat_t	m_stat;
-		mempool_t        *m_base;
+        mempool_stat_t	m_stat;
+        mempool_t        *m_base;
         //--------------------------------------------------
-        mempool_i():m_base(0){memset(&m_stat,0,sizeof(m_stat));}
+        mempool_i():m_base(0) {memset(&m_stat,0,sizeof(m_stat));}
         //--------------------------------------------------
         void *base_alloc(uint32_t &blocksize,uint32_t size)
         {
@@ -87,71 +87,72 @@ namespace rx
                 return mempool_std_t::do_free(ptr,blocksize);
         }
 
-	public:
-        void bind(mempool_t& mp){m_base=&mp;}
-		virtual bool do_init(uint32_t size=0){return true;}
-		virtual void do_uninit(bool force=false){}
-		const mempool_stat_t& stat() const {return m_stat;}
+    public:
+        void bind(mempool_t& mp) {m_base=&mp;}
+        virtual bool do_init(uint32_t size=0) {return true;}
+        virtual void do_uninit(bool force=false) {}
+        const mempool_stat_t& stat() const {return m_stat;}
     };
 
     //======================================================
     //便捷配置参数:大块缓存,默认可以缓存64K的内存块
-    #ifdef RX_MEMCFG_BIG_BLOCK
-        //内存池最小分配节点尺寸
-        #ifndef RX_MEMCFG_MinNode
-        #define RX_MEMCFG_MinNode 128
-        #endif
-
-        //内存池最大分配节点尺寸
-        #ifndef RX_MEMCFG_MaxNode
-        #define RX_MEMCFG_MaxNode (1024*256)
-        #endif
-
-        //内存池中每个内存条的最大尺寸
-        #ifndef RX_MEMCFG_StripeAlign
-        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*16)
-        #endif
-    #endif
-
-    //便捷配置参数:小块缓存,默认可以缓存4K的内存块
-    #ifdef RX_MEMCFG_SMALL_BLOCK
-        //内存池最小对齐尺寸和最小分配节点尺寸
-        #ifndef RX_MEMCFG_MinNode
-        #define RX_MEMCFG_MinNode 32
-        #endif
-
-        //内存池最大分配节点尺寸
-        #ifndef RX_MEMCFG_MaxNode
-        #define RX_MEMCFG_MaxNode (1024*4)
-        #endif
-
-        //内存池中每个内存条的最大尺寸
-        #ifndef RX_MEMCFG_StripeAlign
-        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*2)
-        #endif
-    #endif
-
-    //默认配置
-    //内存池最小对齐尺寸和最小分配节点尺寸
+#ifdef RX_MEMCFG_BIG_BLOCK
+    //内存池最小分配节点尺寸
     #ifndef RX_MEMCFG_MinNode
-        #define RX_MEMCFG_MinNode 64
+        #define RX_MEMCFG_MinNode 128
     #endif
 
     //内存池最大分配节点尺寸
     #ifndef RX_MEMCFG_MaxNode
-        #define RX_MEMCFG_MaxNode (1024*16)
+        #define RX_MEMCFG_MaxNode (1024*256)
     #endif
 
     //内存池中每个内存条的最大尺寸
     #ifndef RX_MEMCFG_StripeAlign
-        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*8)
+        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*16)
     #endif
+#endif
+
+    //便捷配置参数:小块缓存,默认可以缓存4K的内存块
+#ifdef RX_MEMCFG_SMALL_BLOCK
+    //内存池最小对齐尺寸和最小分配节点尺寸
+    #ifndef RX_MEMCFG_MinNode
+        #define RX_MEMCFG_MinNode 32
+    #endif
+
+    //内存池最大分配节点尺寸
+    #ifndef RX_MEMCFG_MaxNode
+        #define RX_MEMCFG_MaxNode (1024*4)
+    #endif
+
+    //内存池中每个内存条的最大尺寸
+    #ifndef RX_MEMCFG_StripeAlign
+        #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*2)
+    #endif
+#endif
+
+    //默认配置
+    //内存池最小对齐尺寸和最小分配节点尺寸
+#ifndef RX_MEMCFG_MinNode
+    #define RX_MEMCFG_MinNode 64
+#endif
+
+    //内存池最大分配节点尺寸
+#ifndef RX_MEMCFG_MaxNode
+    #define RX_MEMCFG_MaxNode (1024*16)
+#endif
+
+    //内存池中每个内存条的最大尺寸
+#ifndef RX_MEMCFG_StripeAlign
+    #define RX_MEMCFG_StripeAlign (RX_MEMCFG_MaxNode*8)
+#endif
 
     //======================================================
     //默认内存池的配置参数(每个值都必须为2的整数次幂)
     typedef struct mempool_cfg_t
     {
-        enum {
+        enum
+        {
             //可缓存的最小节点尺寸
             MinNodeSize = RX_MEMCFG_MinNode,
             //可缓存的最大节点尺寸
@@ -161,10 +162,10 @@ namespace rx
         };
 
         //默认不需改动:log2(最小对齐尺寸),确定MinNodeSize是2的整数次幂
-        enum{MinNodeShiftBit=LOG2<MinNodeSize>::result};
+        enum {MinNodeShiftBit=LOG2<MinNodeSize>::result};
         //默认不需改动:log2(最大节点尺寸),确定MaxNodeSize是2的整数次幂
-        enum{MaxNodeShiftBit=LOG2<MaxNodeSize>::result};
-    }mempool_cfg_t;
+        enum {MaxNodeShiftBit=LOG2<MaxNodeSize>::result};
+    } mempool_cfg_t;
 }
 
 

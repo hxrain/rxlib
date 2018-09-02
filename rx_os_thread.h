@@ -1,4 +1,4 @@
-ï»¿#ifndef _HX_THREAD_H_
+#ifndef _HX_THREAD_H_
 #define _HX_THREAD_H_
 
 #include "rx_cc_macro.h"
@@ -8,9 +8,9 @@
 
 namespace rx
 {
-    /*ä»»åŠ¡ä¸çº¿ç¨‹çš„ä½¿ç”¨æ ·ä¾‹
+    /*ÈÎÎñÓëÏß³ÌµÄÊ¹ÓÃÑùÀı
 
-        //å¯è¿›è¡Œå¾ªç¯å¹¶é€»è¾‘ç»ˆæ­¢çš„ä»»åŠ¡
+        //¿É½øĞĞÑ­»·²¢Âß¼­ÖÕÖ¹µÄÈÎÎñ
         class my_task_t:public task_t
         {
             uint32_t on_run(void* param)
@@ -23,17 +23,17 @@ namespace rx
         };
 
 
-        //å®šä¹‰ä»»åŠ¡å¯¹è±¡ä¸çº¿ç¨‹å¯¹è±¡å¹¶ç»‘å®š
+        //¶¨ÒåÈÎÎñ¶ÔÏóÓëÏß³Ì¶ÔÏó²¢°ó¶¨
         my_task_t task;
         thread_t thread(task);
 
-        //å¯åŠ¨çº¿ç¨‹,ç­‰å¾…çº¿ç¨‹åœæ­¢
+        //Æô¶¯Ïß³Ì,µÈ´ıÏß³ÌÍ£Ö¹
         if (thread.start())
             thread.stop();
     */
 
     //-----------------------------------------------------
-    //çº¿ç¨‹ä»»åŠ¡æ¥å£,å†…ç½®å¾ªç¯å¤„ç†ä¸åœæ­¢é€»è¾‘
+    //Ïß³ÌÈÎÎñ½Ó¿Ú,ÄÚÖÃÑ­»·´¦ÀíÓëÍ£Ö¹Âß¼­
     class task_t
     {
         atomic_int_t   m_stop_flag;
@@ -42,11 +42,12 @@ namespace rx
         //-------------------------------------------------
         virtual bool need_break() { return !!m_stop_flag; }
         //-------------------------------------------------
-        //å°†ä¸€ä¸ªé•¿ä¼‘çœ å˜ä¸ºå¤šä¸ªçŸ­ä¼‘çœ ,ä¾¿äºæ£€æŸ¥æ˜¯å¦è¦æ±‚åœæ­¢
+        //½«Ò»¸ö³¤ĞİÃß±äÎª¶à¸ö¶ÌĞİÃß,±ãÓÚ¼ì²éÊÇ·ñÒªÇóÍ£Ö¹
         void sleep(uint32_t ms)
         {
             uint32_t sc = ms / 100;
-            if (!sc) rx_thread_yield(ms);
+            if (!sc)
+                rx_thread_yield(ms);
             else
             {
                 for (uint32_t i = 0; i < sc; ++i)
@@ -60,14 +61,14 @@ namespace rx
     public:
         virtual ~task_t() {}
         //-------------------------------------------------
-        //è®©ä»»åŠ¡å¾ªç¯é€»è¾‘ç»ˆæ­¢
+        //ÈÃÈÎÎñÑ­»·Âß¼­ÖÕÖ¹
         virtual void stop() { m_stop_flag.inc(); }
     protected:
         //-------------------------------------------------
-        //ä»»åŠ¡è¢«å¯åŠ¨äº†
+        //ÈÎÎñ±»Æô¶¯ÁË
         virtual void on_begin(void* param) {}
         //-------------------------------------------------
-        //é»˜è®¤ä»»åŠ¡å¤„ç†è¿‡ç¨‹,æŒç»­å¾ªç¯,ç›´åˆ°å‡ºç°ä¸­æ–­æ ‡è®°
+        //Ä¬ÈÏÈÎÎñ´¦Àí¹ı³Ì,³ÖĞøÑ­»·,Ö±µ½³öÏÖÖĞ¶Ï±ê¼Ç
         virtual uint32_t on_run(void* param)
         {
             while (!need_break())
@@ -75,15 +76,15 @@ namespace rx
             return 0;
         }
         //-------------------------------------------------
-        //å•æ¬¡æ‰§è¡Œ
+        //µ¥´ÎÖ´ĞĞ
         virtual void on_step(void* param) {}
         //-------------------------------------------------
-        //ä»»åŠ¡ä¸»å‡½æ•°ç»“æŸäº†
+        //ÈÎÎñÖ÷º¯Êı½áÊøÁË
         virtual void on_end(void* param) {}
     };
 
     //-----------------------------------------------------
-    //å¸¦æœ‰æš‚åœ/æ¢å¤åŠŸèƒ½çš„ä»»åŠ¡å¤„ç†åŠŸèƒ½å¯¹è±¡
+    //´øÓĞÔİÍ£/»Ö¸´¹¦ÄÜµÄÈÎÎñ´¦Àí¹¦ÄÜ¶ÔÏó
     class task_ex_t :public task_t
     {
         cond_t      m_cond;
@@ -107,7 +108,7 @@ namespace rx
     public:
         task_ex_t(bool is_pause = false) :m_pause_flag(is_pause) {}
         //-------------------------------------------------
-        //æ ‡è®°,è®©çº¿ç¨‹è¿›å…¥é€»è¾‘æš‚åœ
+        //±ê¼Ç,ÈÃÏß³Ì½øÈëÂß¼­ÔİÍ£
         void pause()
         {
             if (!m_pause_flag)
@@ -117,7 +118,7 @@ namespace rx
             }
         }
         //-------------------------------------------------
-        //æ ‡è®°,è®©ä»»åŠ¡ä»é€»è¾‘æš‚åœä¸­æ¢å¤
+        //±ê¼Ç,ÈÃÈÎÎñ´ÓÂß¼­ÔİÍ£ÖĞ»Ö¸´
         void resume()
         {
             if (m_pause_flag)
@@ -128,7 +129,7 @@ namespace rx
             }
         }
         //-------------------------------------------------
-        //æ ‡è®°,è®©ä»»åŠ¡å¾ªç¯é€»è¾‘ç»ˆæ­¢
+        //±ê¼Ç,ÈÃÈÎÎñÑ­»·Âß¼­ÖÕÖ¹
         void stop()
         {
             task_t::stop();
@@ -139,37 +140,49 @@ namespace rx
 
 
 
-#if RX_OS_POSIX
+    #if RX_OS_POSIX
     //-----------------------------------------------------
-    //çº¿ç¨‹åŠŸèƒ½å¯¹è±¡åŒ–å°è£…
+    //Ïß³Ì¹¦ÄÜ¶ÔÏó»¯·â×°
     class thread_t
     {
-        task_t      &m_task;                                    //çº¿ç¨‹è°ƒç”¨çš„ä»»åŠ¡å¯¹è±¡.å¼•ç”¨.
-        void        *m_task_param;                              //çº¿ç¨‹ä»»åŠ¡çš„å…¥å£å‚æ•°
-        pthread_t    m_handle;                                  //çº¿ç¨‹å¥æŸ„
+        task_t      &m_task;                                    //Ïß³Ìµ÷ÓÃµÄÈÎÎñ¶ÔÏó.ÒıÓÃ.
+        void        *m_task_param;                              //Ïß³ÌÈÎÎñµÄÈë¿Ú²ÎÊı
+        pthread_t    m_handle;                                  //Ïß³Ì¾ä±ú
         //-------------------------------------------------
-        //çœŸæ­£çš„çº¿ç¨‹æ‰§è¡Œå…¥å£å‡½æ•°
+        //ÕæÕıµÄÏß³ÌÖ´ĞĞÈë¿Úº¯Êı
         static void *thread_start_routine(void * THIS)
         {
             thread_t &thread = *static_cast<thread_t*>(THIS);
-            //è¿›è¡Œä»»åŠ¡å¯åŠ¨äº‹ä»¶çš„è°ƒç”¨
-            try {
+            //½øĞĞÈÎÎñÆô¶¯ÊÂ¼şµÄµ÷ÓÃ
+            try
+            {
                 thread.m_task.on_begin(thread.m_task_param);
             }
-            catch (...) { rx_alert( "thread.m_task.on_begin() exception."); }
+            catch (...)
+            {
+                rx_alert( "thread.m_task.on_begin() exception.");
+            }
 
-            //è¿›è¡Œä»»åŠ¡ä¸»ä½“å‡½æ•°çš„è°ƒç”¨
+            //½øĞĞÈÎÎñÖ÷Ìåº¯ÊıµÄµ÷ÓÃ
             int rc = 0;
-            try {
+            try
+            {
                 rc = thread.m_task.on_run(thread.m_task_param);
             }
-            catch (...) { rx_alert( "thread.m_task.on_run() exception."); }
+            catch (...)
+            {
+                rx_alert( "thread.m_task.on_run() exception.");
+            }
 
-            //è¿›è¡Œä»»åŠ¡ç»“æŸäº‹ä»¶çš„è°ƒç”¨
-            try {
+            //½øĞĞÈÎÎñ½áÊøÊÂ¼şµÄµ÷ÓÃ
+            try
+            {
                 thread.m_task.on_end(thread.m_task_param);
             }
-            catch (...) { rx_alert( "thread.m_task.on_end() exception."); }
+            catch (...)
+            {
+                rx_alert( "thread.m_task.on_end() exception.");
+            }
 
             return (void*)(intptr_t)rc;
         }
@@ -190,13 +203,14 @@ namespace rx
             pthread_attr_t& attr() { return m_attr; }
             ~thread_attr()
             {
-                if (!m_is_valid) return;
+                if (!m_is_valid)
+                    return;
                 m_is_valid = false;
                 pthread_attr_destroy(&m_attr);
             }
         };
         //-------------------------------------------------
-        //è¿›è¡Œçº¿ç¨‹å±æ€§å‚æ•°çš„è®¾ç½®
+        //½øĞĞÏß³ÌÊôĞÔ²ÎÊıµÄÉèÖÃ
         bool m_init_attr(pthread_attr_t *attr, uint32_t stacksize = 0)
         {
             if (stacksize&&pthread_attr_setstacksize(attr, stacksize))
@@ -206,12 +220,13 @@ namespace rx
     public:
         thread_t(task_t& task) :m_task(task), m_task_param(NULL), m_handle(-1) {}
         //-------------------------------------------------
-        //åˆ›å»ºçº¿ç¨‹,å¯åŠ¨ä»»åŠ¡,å¹¶ä¼ é€’ä»»åŠ¡å‚æ•°æŒ‡é’ˆ(éœ€è¦æ³¨æ„ä»»åŠ¡å‚æ•°çš„ç”Ÿå­˜æœŸä¸çº¿ç¨‹çš„ç”Ÿå­˜æœŸçš„å…³ç³»)
+        //´´½¨Ïß³Ì,Æô¶¯ÈÎÎñ,²¢´«µİÈÎÎñ²ÎÊıÖ¸Õë(ĞèÒª×¢ÒâÈÎÎñ²ÎÊıµÄÉú´æÆÚÓëÏß³ÌµÄÉú´æÆÚµÄ¹ØÏµ)
         bool start(void* task_param = NULL, uint32_t stacksize = 0)
         {
-            //è¿›è¡Œçº¿ç¨‹å±æ€§çš„åˆå§‹åŒ–
+            //½øĞĞÏß³ÌÊôĞÔµÄ³õÊ¼»¯
             thread_attr ta;
-            if (!ta()) return false;
+            if (!ta())
+                return false;
             if (!ta.set_stacksize(stacksize))
                 return false;
 
@@ -220,7 +235,7 @@ namespace rx
             return 0 == pthread_create(&m_handle, &ta.attr(), thread_start_routine, this);
         }
         //-------------------------------------------------
-        //ç­‰å¾…çº¿ç¨‹ç»“æŸå¹¶å¾—åˆ°ä»»åŠ¡çš„é€€å‡ºç 
+        //µÈ´ıÏß³Ì½áÊø²¢µÃµ½ÈÎÎñµÄÍË³öÂë
         int stop()
         {
             if (m_handle == (pthread_t)-1)
@@ -235,38 +250,50 @@ namespace rx
         //-------------------------------------------------
     };
 
-#elif RX_OS_WIN
+    #elif RX_OS_WIN
     //-----------------------------------------------------
-    //çº¿ç¨‹åŠŸèƒ½å¯¹è±¡åŒ–å°è£…
+    //Ïß³Ì¹¦ÄÜ¶ÔÏó»¯·â×°
     class thread_t
     {
-        task_t      &m_task;                                    //çº¿ç¨‹è°ƒç”¨çš„ä»»åŠ¡å¯¹è±¡.å¼•ç”¨.
-        void        *m_task_param;                              //çº¿ç¨‹ä»»åŠ¡çš„å…¥å£å‚æ•°
-        HANDLE      m_handle;                                   //çº¿ç¨‹å¥æŸ„
-        int         m_rc;                                       //ä»»åŠ¡çš„è¿”å›å€¼
+        task_t      &m_task;                                    //Ïß³Ìµ÷ÓÃµÄÈÎÎñ¶ÔÏó.ÒıÓÃ.
+        void        *m_task_param;                              //Ïß³ÌÈÎÎñµÄÈë¿Ú²ÎÊı
+        HANDLE      m_handle;                                   //Ïß³Ì¾ä±ú
+        int         m_rc;                                       //ÈÎÎñµÄ·µ»ØÖµ
         //-------------------------------------------------
-        //çœŸæ­£çš„çº¿ç¨‹æ‰§è¡Œå…¥å£å‡½æ•°
+        //ÕæÕıµÄÏß³ÌÖ´ĞĞÈë¿Úº¯Êı
         static unsigned int WINAPI thread_start_routine(void * THIS)
         {
             thread_t &thread = *static_cast<thread_t*>(THIS);
-            //è¿›è¡Œä»»åŠ¡å¯åŠ¨äº‹ä»¶çš„è°ƒç”¨
-            try {
+            //½øĞĞÈÎÎñÆô¶¯ÊÂ¼şµÄµ÷ÓÃ
+            try
+            {
                 thread.m_task.on_begin(thread.m_task_param);
             }
-            catch (...) { rx_alert( "thread.m_task.on_begin() exception."); }
+            catch (...)
+            {
+                rx_alert( "thread.m_task.on_begin() exception.");
+            }
 
-            //è¿›è¡Œä»»åŠ¡ä¸»ä½“å‡½æ•°çš„è°ƒç”¨
+            //½øĞĞÈÎÎñÖ÷Ìåº¯ÊıµÄµ÷ÓÃ
             thread.m_rc = 0;
-            try {
+            try
+            {
                 thread.m_rc = thread.m_task.on_run(thread.m_task_param);
             }
-            catch (...) { rx_alert( "thread.m_task.on_run() exception."); }
+            catch (...)
+            {
+                rx_alert( "thread.m_task.on_run() exception.");
+            }
 
-            //è¿›è¡Œä»»åŠ¡ç»“æŸäº‹ä»¶çš„è°ƒç”¨
-            try {
+            //½øĞĞÈÎÎñ½áÊøÊÂ¼şµÄµ÷ÓÃ
+            try
+            {
                 thread.m_task.on_end(thread.m_task_param);
             }
-            catch (...) { rx_alert( "thread.m_task.on_end() exception."); }
+            catch (...)
+            {
+                rx_alert( "thread.m_task.on_end() exception.");
+            }
 
             return thread.m_rc;
         }
@@ -274,10 +301,10 @@ namespace rx
     public:
         thread_t(task_t& task) :m_task(task), m_task_param(NULL), m_handle(NULL) {}
         //-------------------------------------------------
-        //åˆ›å»ºçº¿ç¨‹,å¯åŠ¨ä»»åŠ¡,å¹¶ä¼ é€’ä»»åŠ¡å‚æ•°æŒ‡é’ˆ(éœ€è¦æ³¨æ„ä»»åŠ¡å‚æ•°çš„ç”Ÿå­˜æœŸä¸çº¿ç¨‹çš„ç”Ÿå­˜æœŸçš„å…³ç³»)
+        //´´½¨Ïß³Ì,Æô¶¯ÈÎÎñ,²¢´«µİÈÎÎñ²ÎÊıÖ¸Õë(ĞèÒª×¢ÒâÈÎÎñ²ÎÊıµÄÉú´æÆÚÓëÏß³ÌµÄÉú´æÆÚµÄ¹ØÏµ)
         bool start(void* task_param = NULL, uint32_t stacksize = 0)
         {
-            //è¿›è¡Œçº¿ç¨‹å±æ€§çš„åˆå§‹åŒ–
+            //½øĞĞÏß³ÌÊôĞÔµÄ³õÊ¼»¯
             uint32_t CreateFlag = 0;
             if (stacksize)
                 CreateFlag = STACK_SIZE_PARAM_IS_A_RESERVATION;
@@ -287,7 +314,7 @@ namespace rx
             return m_handle!=NULL;
         }
         //-------------------------------------------------
-        //ç­‰å¾…çº¿ç¨‹ç»“æŸå¹¶å¾—åˆ°ä»»åŠ¡çš„é€€å‡ºç 
+        //µÈ´ıÏß³Ì½áÊø²¢µÃµ½ÈÎÎñµÄÍË³öÂë
         int stop()
         {
             if (m_handle == NULL)
@@ -304,6 +331,6 @@ namespace rx
         }
         //-------------------------------------------------
     };
-#endif
+    #endif
 }
 #endif

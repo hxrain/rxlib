@@ -1,4 +1,4 @@
-ï»¿#ifndef _RX_OS_COND_H_
+#ifndef _RX_OS_COND_H_
 #define _RX_OS_COND_H_
 
 #include "rx_cc_macro.h"
@@ -8,9 +8,9 @@
 
 namespace rx
 {
-#if RX_OS_POSIX
+    #if RX_OS_POSIX
     //---------------------------------------------------------
-    //å¯¹æ¡ä»¶å˜é‡è¿›è¡ŒåŠŸèƒ½å°è£…
+    //¶ÔÌõ¼ş±äÁ¿½øĞĞ¹¦ÄÜ·â×°
     class cond_t
     {
         class cond_attr
@@ -18,13 +18,14 @@ namespace rx
             pthread_condattr_t  m_attr;
             bool m_is_valid;
         public:
-            cond_attr(){m_is_valid=(pthread_condattr_init(&m_attr)==0);}
-            bool operator()(){return m_is_valid;}
-            bool set_monotonic(){return 0==pthread_condattr_setclock(&m_attr, CLOCK_MONOTONIC);}
-            pthread_condattr_t & attr(){return m_attr;}
+            cond_attr() {m_is_valid=(pthread_condattr_init(&m_attr)==0);}
+            bool operator()() {return m_is_valid;}
+            bool set_monotonic() {return 0==pthread_condattr_setclock(&m_attr, CLOCK_MONOTONIC);}
+            pthread_condattr_t & attr() {return m_attr;}
             ~cond_attr()
             {
-                if (!m_is_valid) return;
+                if (!m_is_valid)
+                    return;
                 m_is_valid=false;
                 pthread_condattr_destroy(&m_attr);
             }
@@ -36,9 +37,11 @@ namespace rx
         bool m_init()
         {
             cond_attr ca;
-            if (!ca()) return false;
-            //è¦æ±‚ä½¿ç”¨ç³»ç»Ÿæ»´ç­”ç›¸å¯¹æ—¶é—´è¿›è¡Œç­‰å¾…
-            if (!ca.set_monotonic()) return false;
+            if (!ca())
+                return false;
+            //ÒªÇóÊ¹ÓÃÏµÍ³µÎ´ğÏà¶ÔÊ±¼ä½øĞĞµÈ´ı
+            if (!ca.set_monotonic())
+                return false;
             return 0 == pthread_cond_init(&m_cond, &ca.attr());
         }
         //-----------------------------------------------------
@@ -53,9 +56,9 @@ namespace rx
             memset(&m_cond,0,sizeof(m_cond));
             m_init();
         }
-        ~cond_t(){m_uninit();}
+        ~cond_t() {m_uninit();}
         //-----------------------------------------------------
-        //å¯¹æ¡ä»¶å˜é‡è¿›è¡Œç­‰å¾…:é»˜è®¤æ— é™ç­‰å¾…(æ¯«ç§’)
+        //¶ÔÌõ¼ş±äÁ¿½øĞĞµÈ´ı:Ä¬ÈÏÎŞÏŞµÈ´ı(ºÁÃë)
         bool wait(locker_t &locker,int ms=-1)
         {
             if (ms==-1)
@@ -68,7 +71,7 @@ namespace rx
             }
         }
         //-----------------------------------------------------
-        //å¯¹æ¡ä»¶å˜é‡å‘é€é€šçŸ¥:æ˜¯å¦ä¸ºå¹¿æ’­é€šçŸ¥
+        //¶ÔÌõ¼ş±äÁ¿·¢ËÍÍ¨Öª:ÊÇ·ñÎª¹ã²¥Í¨Öª
         bool post(bool to_all=false)
         {
             if (to_all)
@@ -77,9 +80,9 @@ namespace rx
                 return 0==pthread_cond_signal(&m_cond);
         }
     };
-#elif RX_OS_WIN
+    #elif RX_OS_WIN
     //---------------------------------------------------------
-    //å¯¹æ¡ä»¶å˜é‡è¿›è¡ŒåŠŸèƒ½å°è£…
+    //¶ÔÌõ¼ş±äÁ¿½øĞĞ¹¦ÄÜ·â×°
     class cond_t
     {
         CONDITION_VARIABLE      m_cond;
@@ -91,7 +94,7 @@ namespace rx
             return true;
         }
         //-----------------------------------------------------
-        void m_uninit(){}
+        void m_uninit() {}
     public:
         //-----------------------------------------------------
         cond_t()
@@ -99,9 +102,9 @@ namespace rx
             memset(&m_cond,0,sizeof(m_cond));
             m_init();
         }
-        ~cond_t(){m_uninit();}
+        ~cond_t() {m_uninit();}
         //-----------------------------------------------------
-        //å¯¹æ¡ä»¶å˜é‡è¿›è¡Œç­‰å¾…:é»˜è®¤æ— é™ç­‰å¾…(æ¯«ç§’)
+        //¶ÔÌõ¼ş±äÁ¿½øĞĞµÈ´ı:Ä¬ÈÏÎŞÏŞµÈ´ı(ºÁÃë)
         bool wait(locker_t &locker,int ms=-1)
         {
             if (ms==-1)
@@ -110,7 +113,7 @@ namespace rx
                 return !!SleepConditionVariableCS(&m_cond,locker.handle(),ms);
         }
         //-----------------------------------------------------
-        //å¯¹æ¡ä»¶å˜é‡å‘é€é€šçŸ¥:æ˜¯å¦ä¸ºå¹¿æ’­é€šçŸ¥
+        //¶ÔÌõ¼ş±äÁ¿·¢ËÍÍ¨Öª:ÊÇ·ñÎª¹ã²¥Í¨Öª
         bool post(bool to_all=false)
         {
             if (to_all)
@@ -122,7 +125,7 @@ namespace rx
     };
 
 
-#endif
+    #endif
 
 }
 

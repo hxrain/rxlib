@@ -7,8 +7,8 @@
 namespace rx
 {
 //----------------------------------------------------------
-    struct rx_type_true_t{};
-    struct rx_type_false_t{};
+    struct rx_type_true_t {};
+    struct rx_type_false_t {};
 
     //类型检查模板,用于分配器检查构造函数类型
     template <class type>
@@ -186,97 +186,103 @@ namespace rx
     T=const C**     val_t=C*   ptr_t=C**  ref_t=C* &
     */
     template <class T>
-    struct rx_type_pick_t {
-      typedef T                          base_val_t;
-      typedef T*                         base_ptr_t;
-      typedef T&                         base_ref_t;
-      typedef T                          org_val_t;
-      typedef T*                         org_ptr_t;
-      typedef T&                         org_ref_t;
-      typedef const T                    const_val_t;
-      typedef const T*                   const_ptr_t;
-      typedef const T&                   const_ref_t;
-      typedef T                          not_const_t;
-      typedef const T                    const_t;
+    struct rx_type_pick_t
+    {
+        typedef T                          base_val_t;
+        typedef T*                         base_ptr_t;
+        typedef T&                         base_ref_t;
+        typedef T                          org_val_t;
+        typedef T*                         org_ptr_t;
+        typedef T&                         org_ref_t;
+        typedef const T                    const_val_t;
+        typedef const T*                   const_ptr_t;
+        typedef const T&                   const_ref_t;
+        typedef T                          not_const_t;
+        typedef const T                    const_t;
     };
 
 
     template <class T>
-    struct rx_type_pick_t<const T> {
-      typedef T                          base_val_t;
-      typedef T*                         base_ptr_t;
-      typedef T&                         base_ref_t;
-      typedef const T                    org_val_t;
-      typedef const T*                   org_ptr_t;
-      typedef const T&                   org_ref_t;
-      typedef const T                    const_val_t;
-      typedef const T*                   const_ptr_t;
-      typedef const T&                   const_ref_t;
-      typedef T                          not_const_t;
-      typedef const T                    const_t;
+    struct rx_type_pick_t<const T>
+    {
+        typedef T                          base_val_t;
+        typedef T*                         base_ptr_t;
+        typedef T&                         base_ref_t;
+        typedef const T                    org_val_t;
+        typedef const T*                   org_ptr_t;
+        typedef const T&                   org_ref_t;
+        typedef const T                    const_val_t;
+        typedef const T*                   const_ptr_t;
+        typedef const T&                   const_ref_t;
+        typedef T                          not_const_t;
+        typedef const T                    const_t;
     };
 
 
     template <class T>
-    struct rx_type_pick_t<T*> {
-      typedef T                          base_val_t;
-      typedef T*                         base_ptr_t;
-      typedef T&                         base_ref_t;
-      typedef T                          org_val_t;
-      typedef T*                         org_ptr_t;
-      typedef T&                         org_ref_t;
-      typedef const T                    const_val_t;
-      typedef const T*                   const_ptr_t;
-      typedef const T&                   const_ref_t;
-      typedef T*                         not_const_t;
-      typedef const T*                   const_t;
+    struct rx_type_pick_t<T*>
+    {
+        typedef T                          base_val_t;
+        typedef T*                         base_ptr_t;
+        typedef T&                         base_ref_t;
+        typedef T                          org_val_t;
+        typedef T*                         org_ptr_t;
+        typedef T&                         org_ref_t;
+        typedef const T                    const_val_t;
+        typedef const T*                   const_ptr_t;
+        typedef const T&                   const_ref_t;
+        typedef T*                         not_const_t;
+        typedef const T*                   const_t;
     };
 
 
     template <class T>
-    struct rx_type_pick_t<const T*> {
-      typedef T                          base_val_t;
-      typedef T*                         base_ptr_t;
-      typedef T&                         base_ref_t;
-      typedef const T                    org_val_t;
-      typedef const T*                   org_ptr_t;
-      typedef const T&                   org_ref_t;
-      typedef const T                    const_val_t;
-      typedef const T*                   const_ptr_t;
-      typedef const T&                   const_ref_t;
-      typedef T*                         not_const_t;
-      typedef const T*                   const_t;
+    struct rx_type_pick_t<const T*>
+    {
+        typedef T                          base_val_t;
+        typedef T*                         base_ptr_t;
+        typedef T&                         base_ref_t;
+        typedef const T                    org_val_t;
+        typedef const T*                   org_ptr_t;
+        typedef const T&                   org_ref_t;
+        typedef const T                    const_val_t;
+        typedef const T*                   const_ptr_t;
+        typedef const T&                   const_ref_t;
+        typedef T*                         not_const_t;
+        typedef const T*                   const_t;
     };
 
     template <class T>
-    struct rx_type_pick_t<T&> {
-      typedef T                          base_val_t;
-      typedef T*                         base_ptr_t;
-      typedef T&                         base_ref_t;
-      typedef T                          org_val_t;
-      typedef T*                         org_ptr_t;
-      typedef T&                         org_ref_t;
-      typedef const T                    const_val_t;
-      typedef const T*                   const_ptr_t;
-      typedef const T&                   const_ref_t;
-      typedef T&                         not_const_t;
-      typedef const T&                   const_t;
+    struct rx_type_pick_t<T&>
+    {
+        typedef T                          base_val_t;
+        typedef T*                         base_ptr_t;
+        typedef T&                         base_ref_t;
+        typedef T                          org_val_t;
+        typedef T*                         org_ptr_t;
+        typedef T&                         org_ref_t;
+        typedef const T                    const_val_t;
+        typedef const T*                   const_ptr_t;
+        typedef const T&                   const_ref_t;
+        typedef T&                         not_const_t;
+        typedef const T&                   const_t;
     };
 
 
     template <class T>
-    struct rx_type_pick_t<const T&> {
-      typedef T                          base_val_t;
-      typedef T*                         base_ptr_t;
-      typedef T&                         base_ref_t;
-      typedef const T                    org_val_t;
-      typedef const T*                   org_ptr_t;
-      typedef const T&                   org_ref_t;
-      typedef const T                    const_val_t;
-      typedef const T*                   const_ptr_t;
-      typedef const T&                   const_ref_t;
-      typedef T&                         not_const_t;
-      typedef const T&                   const_t;
+    struct rx_type_pick_t<const T&>
+    {
+        typedef T                          base_val_t;
+        typedef T*                         base_ptr_t;
+        typedef T&                         base_ref_t;
+        typedef const T                    org_val_t;
+        typedef const T*                   org_ptr_t;
+        typedef const T&                   org_ref_t;
+        typedef const T                    const_val_t;
+        typedef const T*                   const_ptr_t;
+        typedef const T&                   const_ref_t;
+        typedef T&                         not_const_t;
+        typedef const T&                   const_t;
     };
 
 }

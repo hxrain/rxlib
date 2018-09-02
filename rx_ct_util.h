@@ -19,43 +19,43 @@ namespace rx
         //--------------------------------------------------
         //根据类型信息,对一个数组中的所有元素逐一调用析构函数
         template <class T>	static inline void do_array_destroy(T,const uint32_t, const rx_type_true_t&) {}
-        template <class T>	static inline void do_array_destroy(T* Array, const uint32_t Count, const rx_type_false_t&){for (uint32_t i=0;i<Count;i++) OD(&Array[i]);}
+        template <class T>	static inline void do_array_destroy(T* Array, const uint32_t Count, const rx_type_false_t&) {for (uint32_t i=0; i<Count; i++) OD(&Array[i]);}
         //--------------------------------------------------
         //根据类型偏特化判断的数组构造函数
-        template <class T>  static inline void do_array_construct(T* p,const uint32_t Count,const rx_type_true_t&){}
-        template <class T>	static inline void do_array_construct(T* p,const uint32_t Count,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i);}
+        template <class T>  static inline void do_array_construct(T* p,const uint32_t Count,const rx_type_true_t&) {}
+        template <class T>	static inline void do_array_construct(T* p,const uint32_t Count,const rx_type_false_t&) {for(uint32_t i=0; i<Count; i++) OC(p+i);}
         template <class T,class PT1>
-                            static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i,P1);}
+        static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,const rx_type_false_t&) {for(uint32_t i=0; i<Count; i++) OC(p+i,P1);}
         template <class T,class PT1,class PT2>
-                            static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,PT2 &P2,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i,P1,P2);}
+        static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,PT2 &P2,const rx_type_false_t&) {for(uint32_t i=0; i<Count; i++) OC(p+i,P1,P2);}
         template <class T,class PT1,class PT2,class PT3>
-                            static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,PT2 &P2,PT3& P3,const rx_type_false_t&){for(uint32_t i=0;i<Count;i++) OC(p+i,P1,P2,P3);}
+        static inline void do_array_construct(T* p,const uint32_t Count,PT1& P1,PT2 &P2,PT3& P3,const rx_type_false_t&) {for(uint32_t i=0; i<Count; i++) OC(p+i,P1,P2,P3);}
     public:
         //--------------------------------------------------
         //进行对象构造
         template <class T>
-        static inline T* OC(T* O){return new (O) T;}
+        static inline T* OC(T* O) {return new (O) T;}
 
         template <class T, class PT1>
-        static inline T* OC(T* O, PT1& P1){return new(O)T(P1);}
+        static inline T* OC(T* O, PT1& P1) {return new(O)T(P1);}
         template <class T, class PT1>
-        static inline T* OC(T* O, const PT1& P1){return new(O)T(P1);}
+        static inline T* OC(T* O, const PT1& P1) {return new(O)T(P1);}
 
         template <class T, class PT1,class PT2>
-        static inline T* OC(T* O, PT1& P1,PT2& P2){return new (O) T(P1,P2);}
+        static inline T* OC(T* O, PT1& P1,PT2& P2) {return new (O) T(P1,P2);}
 
         template <class T, class PT1,class PT2,class PT3>
-        static inline T* OC(T* O, PT1& P1,PT2& P2,PT3& P3){return new (O) T(P1,P2,P3);}
+        static inline T* OC(T* O, PT1& P1,PT2& P2,PT3& P3) {return new (O) T(P1,P2,P3);}
 
         template <class T, class PT1,class PT2,class PT3,class PT4>
-        static inline T* OC(T* O, PT1& P1,PT2& P2,PT3& P3,PT4& P4){return new (O) T(P1,P2,P3,P4);}
+        static inline T* OC(T* O, PT1& P1,PT2& P2,PT3& P3,PT4& P4) {return new (O) T(P1,P2,P3,P4);}
 
         template <class T, class PT1,class PT2,class PT3,class PT4,class PT5>
-        static inline T* OC(T* O, PT1& P1,PT2& P2,PT3& P3,PT4& P4,PT5& P5){return new (O) T(P1,P2,P3,P4,P5);}
+        static inline T* OC(T* O, PT1& P1,PT2& P2,PT3& P3,PT4& P4,PT5& P5) {return new (O) T(P1,P2,P3,P4,P5);}
         //--------------------------------------------------
         //进行对象析构
         template <class T>
-        static inline void OD(T* O){O->~T();}
+        static inline void OD(T* O) {O->~T();}
 
 
         //--------------------------------------------------
@@ -212,27 +212,27 @@ namespace rx
     template<uint32_t Size,uint32_t AlignTo=4>
     struct size_align
     {
-        enum{result= (Size + AlignTo - 1) & ~(AlignTo - 1)};
+        enum {result= (Size + AlignTo - 1) & ~(AlignTo - 1)};
     };
     //将一个数字向上以AlignTo为边界进行对齐
-    inline uint32_t size_align_to(uint32_t Size,uint32_t AlignTo){return (Size + AlignTo - 1) & ~(AlignTo - 1);}
+    inline uint32_t size_align_to(uint32_t Size,uint32_t AlignTo) {return (Size + AlignTo - 1) & ~(AlignTo - 1);}
     //将一个数字向上以4为边界对齐
-    #define size_align4(S) ((S+3)& ~3)
+#define size_align4(S) ((S+3)& ~3)
     //将一个数字向上以8为边界对齐
-    #define size_align8(S) ((S+7)& ~7)
+#define size_align8(S) ((S+7)& ~7)
 
     //根据数据类型计算其尺寸并将其向上以4字节边界对齐
-    #define type_align4(T) size_align4(sizeof(T))
+#define type_align4(T) size_align4(sizeof(T))
     //根据数据类型计算其尺寸并将其向上以8字节边界对齐
-    #define type_align8(T) size_align8(sizeof(T))
+#define type_align8(T) size_align8(sizeof(T))
 
     //取一个结构体T的成员F的相对于结构体的偏移量
-    #define struct_offset(T,F) (uint32_t)(&((T*)0)->F)
+#define struct_offset(T,F) (uint32_t)(&((T*)0)->F)
     //得到结构体T中F1字段开始到F2之前字段的空间占用尺寸
-    #define field_size(T,F1,F2) ((struct_offset(T,F2))-(struct_offset(T,F1)))
+#define field_size(T,F1,F2) ((struct_offset(T,F2))-(struct_offset(T,F1)))
 
     //语法糖,禁止对象拷贝的快捷宏定义
-    #define dont_copy(CN) const CN& operator=(const CN&)
+#define dont_copy(CN) const CN& operator=(const CN&)
 
     //浮点数向上对齐获取整数
     inline uint32_t round_up(const double &num)

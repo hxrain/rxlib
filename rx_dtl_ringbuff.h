@@ -11,15 +11,15 @@ namespace rx
 {
     //-----------------------------------------------------
     //https://github.com/willemt/bipbuffer/blob/master/bipbuffer.c
-/*
-    bipbuffer通过将定长数组动态划分为A/B两段区域,赋予了环形缓冲区的直接数据读取并能力,而不必进行尾段回绕导致的缓冲区取数据拷贝动作.
-    从应用的角度看,数据的存入仍然需要memcpy,但取出操作不需要,代价是整体空间的利用率比真正的ringbuffer稍低,需更合理的预估数据长度.
-    要求:每次放入与取出数据的动作,都需要避免回绕并避免过量.
+    /*
+        bipbuffer通过将定长数组动态划分为A/B两段区域,赋予了环形缓冲区的直接数据读取并能力,而不必进行尾段回绕导致的缓冲区取数据拷贝动作.
+        从应用的角度看,数据的存入仍然需要memcpy,但取出操作不需要,代价是整体空间的利用率比真正的ringbuffer稍低,需更合理的预估数据长度.
+        要求:每次放入与取出数据的动作,都需要避免回绕并避免过量.
 
-    |{    B region      }     {     A region    }    |
-    |                   |     |                 |    |
- m_data               b_end a_start           a_end  m_capacity
-*/
+        |{    B region      }     {     A region    }    |
+        |                   |     |                 |    |
+     m_data               b_end a_start           a_end  m_capacity
+    */
     //-----------------------------------------------------
     //基于bipbuffer原理封装一个循环缓冲区功能对象
     class bipbuff_t
@@ -62,13 +62,13 @@ namespace rx
         uint32_t capacity() { return m_capacity; }
         //-------------------------------------------------
         //获取可直接读取的数据长度(或数据总长度)
-        uint32_t size(bool is_total=false) 
-        { 
+        uint32_t size(bool is_total=false)
+        {
             if (is_total)
                 return (a_end - a_start) + b_end;           //A区和B区的数据总长
             else
                 return (a_end - a_start);                   //当前可读点总是在A区的
-        }       
+        }
         //-------------------------------------------------
         //清空当前缓冲区
         void clear() { a_start = a_end = b_end = 0; b_inuse = 0; }
@@ -84,12 +84,14 @@ namespace rx
                 return false;                               //必须进行可用剩余空间的判断
 
             if (b_inuse)
-            {//B区被使用中,则直接将数据放在B区的尾部,B区增长
+            {
+                //B区被使用中,则直接将数据放在B区的尾部,B区增长
                 memcpy(m_data + b_end, data, size);
                 b_end += size;
             }
             else
-            {//B区没有被使用,则将数据放在A区的尾部,A区增长
+            {
+                //B区没有被使用,则将数据放在A区的尾部,A区增长
                 memcpy(m_data + a_end, data, size);
                 a_end += size;
                 try_switch_to_b();                          //判断是否应该切换到B区
@@ -117,9 +119,11 @@ namespace rx
             a_start += size;                                //提取模式,则移动A区的开始点
 
             if (a_start == a_end)
-            {//如果A区的数据被取空了
+            {
+                //如果A区的数据被取空了
                 if (b_inuse)
-                {//如果B区被使用中,则处理B区转A区的动作
+                {
+                    //如果B区被使用中,则处理B区转A区的动作
                     a_start = 0;
                     a_end = b_end;
                     b_end = b_inuse = 0;                    //关闭B区

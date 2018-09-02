@@ -15,7 +15,7 @@ namespace rx
     {
         hashfunc_t  m_func;
     public:
-        hashfunc_adaptor_t():m_func(NULL) {}
+        hashfunc_adaptor_t():m_func(rx_hash_murmur) {}
         hashfunc_t bind(hashfunc_t func) { hashfunc_t old = m_func; m_func = func; return old; }
         uint32_t operator()(const val_t& val)const { return m_func(val,sizeof(val)); }
     };

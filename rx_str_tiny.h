@@ -6,14 +6,14 @@
 
 namespace rx
 {
-#if RX_CC == RX_CC_VC
+    #if RX_CC == RX_CC_VC
 #pragma warning(disable:4200)
-#endif
+    #endif
 
-#if RX_CC == RX_CC_GCC||RX_CC_MINGW
+    #if RX_CC == RX_CC_GCC||RX_CC_MINGW
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
+    #endif
 
     //-----------------------------------------------------
     //封装一个简易的字符串功能,用于dtl容器内部的临时key字符串存储
@@ -43,7 +43,8 @@ namespace rx
             else
             {
                 //进行字符串的拷贝
-                if (!len) len = (uint32_t)st::strlen(str);
+                if (!len)
+                    len = (uint32_t)st::strlen(str);
                 m_length = Min(len, uint32_t(m_capacity - 1));
                 st::strncpy(m_string, str, m_length);
                 m_string[m_length] = 0;
@@ -53,7 +54,7 @@ namespace rx
         //-------------------------------------------------
         uint16_t length()const { return m_length; }
         const CT* c_str() const { return m_string; }
-        operator const CT* ()const{return m_string;}
+        operator const CT* ()const {return m_string;}
         //-------------------------------------------------
         bool operator <  (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) < 0;}
         bool operator <= (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) <= 0;}
@@ -70,13 +71,13 @@ namespace rx
         bool operator != (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) != 0;}
         //-------------------------------------------------
     };
-#if RX_CC == RX_CC_GCC||RX_CC_MINGW
+    #if RX_CC == RX_CC_GCC||RX_CC_MINGW
 #pragma GCC diagnostic pop
-#endif
+    #endif
 
-#if RX_CC == RX_CC_VC
+    #if RX_CC == RX_CC_VC
 #pragma warning(default:4200)
-#endif
+    #endif
 
     typedef tiny_string_head_t<char> tiny_string_head_ct;
     typedef tiny_string_head_t<wchar_t> tiny_string_head_wt;

@@ -32,7 +32,7 @@ namespace rx
             GUARD_T(m_lock, lock_t);
             m_base_pool.do_free(ptr, size);
         }
-        mem_allotter_base_t(mempool_t& pool):m_base_pool(pool){}
+        mem_allotter_base_t(mempool_t& pool):m_base_pool(pool) {}
     };
 
     //------------------------------------------------------
@@ -56,29 +56,30 @@ namespace rx
     //基于内存池的内存分配器容器
     template<class pool_t,class lock_t=null_lock_t>
     class mem_allotter_pool_t:public mem_allotter_base_t<lock_t>
-    {//描述默认的各种容器类型的内存分配器,无锁保护,单线程安全.
+    {
+        //描述默认的各种容器类型的内存分配器,无锁保护,单线程安全.
         pool_t      m_pool;
     public:
-        mem_allotter_pool_t():mem_allotter_base_t<lock_t>(m_pool){}
+        mem_allotter_pool_t():mem_allotter_base_t<lock_t>(m_pool) {}
     };
 
     //------------------------------------------------------
     //描述一个通用的内存分配器类型拼装宏
     //tname为最终的类型名;cfg_t为内存池参数配置;locl_t为锁类型;cntr_t为内存池容器类型;pool_t为内存池类型
-    #define desc_mem_allotter(tname,cfg_t,lock_t,cntr_t,pool_t) \
-        typedef mem_allotter_pool_t<cntr_t<pool_t<cfg_t>,cfg_t> ,lock_t>  tname
+#define desc_mem_allotter(tname,cfg_t,lock_t,cntr_t,pool_t) \
+    typedef mem_allotter_pool_t<cntr_t<pool_t<cfg_t>,cfg_t> ,lock_t>  tname
 
     //简化的内存分配器(线性递增)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
-    #define desc_mem_allotter_lin(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_lin_t,mempool_fixed_t)
+#define desc_mem_allotter_lin(tname,cfg_t,lock_t) \
+    desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_lin_t,mempool_fixed_t)
 
     //简化的内存分配器(指数倍增)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
-    #define desc_mem_allotter_pow2(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_pow2_t,mempool_fixed_t)
+#define desc_mem_allotter_pow2(tname,cfg_t,lock_t) \
+    desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_pow2_t,mempool_fixed_t)
 
     //简化的内存分配器(两级映射)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
-    #define desc_mem_allotter_tlmap(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_tlmap_t,mempool_fixed_t)
+#define desc_mem_allotter_tlmap(tname,cfg_t,lock_t) \
+    desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_tlmap_t,mempool_fixed_t)
 
     //------------------------------------------------------
     //描述默认的各种容器类型的内存分配器,无锁保护,单线程安全.
@@ -99,19 +100,19 @@ namespace rx
         return allotter;
     }
 }
-    //------------------------------------------------------
-    //描述全局使用的默认内存分配器语法糖
-    #define rx_alloc(size)          rx::global_mem_allotter().alloc((size))
-    #define rx_realloc(p,newsize)   rx::global_mem_allotter().realloc((p),(newsize))
-    #define rx_free(p)              rx::global_mem_allotter().free((p))
-    #define rx_new(T)               rx::global_mem_allotter().new0<T>()
-    #define rx_new1(T,P1)           rx::global_mem_allotter().new1<T>(P1)
-    #define rx_new2(T,P1,P2)        rx::global_mem_allotter().new2<T>(P1,P2)
-    #define rx_new3(T,P1,P2,P3)     rx::global_mem_allotter().new3<T>(P1,P2,P3)
-    #define rx_array(T,C)           rx::global_mem_allotter().new0<T>(C)
-    #define rx_array1(T,P1,C)       rx::global_mem_allotter().new1<T>(P1,C)
-    #define rx_array2(T,P1,P2,C)    rx::global_mem_allotter().new2<T>(P1,P2,C)
-    #define rx_array3(T,P1,P2,P3,C) rx::global_mem_allotter().new3<T>(P1,P2,P3,C)
-    #define rx_delete(P)            rx::global_mem_allotter().del((P))
+//------------------------------------------------------
+//描述全局使用的默认内存分配器语法糖
+#define rx_alloc(size)          rx::global_mem_allotter().alloc((size))
+#define rx_realloc(p,newsize)   rx::global_mem_allotter().realloc((p),(newsize))
+#define rx_free(p)              rx::global_mem_allotter().free((p))
+#define rx_new(T)               rx::global_mem_allotter().new0<T>()
+#define rx_new1(T,P1)           rx::global_mem_allotter().new1<T>(P1)
+#define rx_new2(T,P1,P2)        rx::global_mem_allotter().new2<T>(P1,P2)
+#define rx_new3(T,P1,P2,P3)     rx::global_mem_allotter().new3<T>(P1,P2,P3)
+#define rx_array(T,C)           rx::global_mem_allotter().new0<T>(C)
+#define rx_array1(T,P1,C)       rx::global_mem_allotter().new1<T>(P1,C)
+#define rx_array2(T,P1,P2,C)    rx::global_mem_allotter().new2<T>(P1,P2,C)
+#define rx_array3(T,P1,P2,P3,C) rx::global_mem_allotter().new3<T>(P1,P2,P3,C)
+#define rx_delete(P)            rx::global_mem_allotter().del((P))
 
 #endif

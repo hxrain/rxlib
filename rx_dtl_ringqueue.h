@@ -28,7 +28,7 @@ namespace rx
 
             volatile size_type tail;
             char padding2[CPU_CACHELINE_SIZE - sizeof(size_type)];
-        }pointing_t;
+        } pointing_t;
         //-------------------------------------------------
         pointing_t          m_pointing;                     //队列的头尾指示
 
@@ -64,7 +64,7 @@ namespace rx
         virtual ~ringqueue_t() {}
     public:
         //-------------------------------------------------
-        ringqueue_t():m_array(NULL), m_capacity(0), m_mask(0){}
+        ringqueue_t():m_array(NULL), m_capacity(0), m_mask(0) {}
         //-------------------------------------------------
         //获取队列长度,返回值
         size_type   size() const

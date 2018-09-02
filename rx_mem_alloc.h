@@ -20,9 +20,9 @@ namespace rx
             {
                 uint32_t item_count;                        //记录此内存块是否为数组,数组元素的数量
                 uint32_t node_mem_size;                     //此内存块的尺寸
-            }cookie_t;
+            } cookie_t;
             //存根结构的大小
-            enum{cookie_size=sizeof(cookie_t)};
+            enum {cookie_size=sizeof(cookie_t)};
 
             //---------------------------------------------
             //将附加信息放入cookie_t:Count=0代表alloc;1代表new对象;其他为new数组;node_mem_size代表本内存块的实际大小(>=4)
@@ -37,16 +37,16 @@ namespace rx
             {
                 return *(cookie_t*)P;
             }
-        }alloc_cookie_t;
+        } alloc_cookie_t;
 
         //-------------------------------------------------
         //对象与数组的分配构造基础语句,可复用.
-        #define __DESC_NEW_BASE__   \
-            uint32_t MemSize=0;     \
-            uint8_t *R=(uint8_t*)base_alloc(MemSize,sizeof(VT)*Count+alloc_cookie_t::cookie_size);\
-            if (R==NULL) return NULL;                                       \
-            alloc_cookie_t::set(R,Count,MemSize);                           \
-            VT* Ret=(VT*)(R+alloc_cookie_t::cookie_size);                   \
+#define __DESC_NEW_BASE__   \
+    uint32_t MemSize=0;     \
+    uint8_t *R=(uint8_t*)base_alloc(MemSize,sizeof(VT)*Count+alloc_cookie_t::cookie_size);\
+    if (R==NULL) return NULL;                                       \
+    alloc_cookie_t::set(R,Count,MemSize);                           \
+    VT* Ret=(VT*)(R+alloc_cookie_t::cookie_size);                   \
 
         mem_allotter_i& operator=(const mem_allotter_i&);
     public:
@@ -56,7 +56,8 @@ namespace rx
         {
             uint32_t MemSize=0;
             uint8_t *R=(uint8_t*)base_alloc(MemSize,Size+alloc_cookie_t::cookie_size);
-            if (R==NULL) return NULL;
+            if (R==NULL)
+                return NULL;
             alloc_cookie_t::set(R,0,MemSize);
             return (R+alloc_cookie_t::cookie_size);
         }
@@ -92,7 +93,8 @@ namespace rx
             //现在发现,原指针确实不够长了,需要申请新空间
             uint32_t MemSize=0;
             R=(uint8_t*)base_alloc(MemSize, NewSize+reserved);
-            if (R==NULL) return NULL;
+            if (R==NULL)
+                return NULL;
             alloc_cookie_t::set(R,0,MemSize);
 
             //拷贝原数据
@@ -152,11 +154,11 @@ namespace rx
             return true;
         }
         //-------------------------------------------------
-        template<class VT> bool _del(void* P){try{throw 1;}catch(...){} rx_show_msg("此函数专为型别匹配使用!不应该被调用!请检查代码错误");}
+        template<class VT> bool _del(void* P) {try {throw 1;} catch(...) {} rx_show_msg("此函数专为型别匹配使用!不应该被调用!请检查代码错误");}
         //-------------------------------------------------
-        virtual ~mem_allotter_i(){}
+        virtual ~mem_allotter_i() {}
     protected:
-        #undef __DESC_NEW_BASE__
+#undef __DESC_NEW_BASE__
         //-------------------------------------------------
         //子类需给出最原始的分配接口
         virtual void* base_alloc(uint32_t &bksize, uint32_t size)=0;

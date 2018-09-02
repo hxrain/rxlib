@@ -23,7 +23,7 @@ namespace rx
     public:
         //构造与赋值函数
         atomic_t(T v = 0) : m_value(v) {}
-        atomic_t(const atomic_t& a){ store(a);}
+        atomic_t(const atomic_t& a) { store(a);}
         //给当前原子变量设置值V
         void     store(T v)              { rx_atomic_store((vt*)&m_value, (vt)v); }
         //强制装载当前原子变量并返回当前值
@@ -48,18 +48,18 @@ namespace rx
         T        xor_op(T v)             { return rx_atomic_xor((vt*)&m_value, (vt)v); }
 
         //运算符重载
-                 operator T (void) const { return load(); }
-        atomic_t&  operator = (const atomic_t& a){store(a);return *this;}
+        operator T (void) const { return load(); }
+        atomic_t&  operator = (const atomic_t& a) {store(a); return *this;}
         atomic_t&  operator = (T v)        { store(v); return *this; }
         T        operator++ (int)        { return inc(); }
         T        operator-- (int)        { return dec(); }
-        T        operator++ (void)       { inc() ;return load(); }
-        T        operator-- (void)       { dec() ;return load(); }
-        T        operator+= (T v)        { add(v);return load(); }
-        T        operator-= (T v)        { sub(v);return load(); }
-        T        operator&= (T v)        { and_op(v);return load(); }
-        T        operator|= (T v)        { or_op (v);return load(); }
-        T        operator^= (T v)        { xor_op(v);return load(); }
+        T        operator++ (void)       { inc() ; return load(); }
+        T        operator-- (void)       { dec() ; return load(); }
+        T        operator+= (T v)        { add(v); return load(); }
+        T        operator-= (T v)        { sub(v); return load(); }
+        T        operator&= (T v)        { and_op(v); return load(); }
+        T        operator|= (T v)        { or_op (v); return load(); }
+        T        operator^= (T v)        { xor_op(v); return load(); }
     };
 
     //-----------------------------------------------------
@@ -75,9 +75,9 @@ namespace rx
         atomic_flag& operator= (const atomic_flag& a) { m_Flag.store(a); return *this; }
         atomic_flag& operator= (bool a) { m_Flag.store(a?1:0); return *this;}
         //标记清除
-        void        clear(){ m_Flag.store(0); }
+        void        clear() { m_Flag.store(0); }
         //标记置位且返回旧值
-        bool        test_and_set(){ return !!m_Flag.swap(1);}
+        bool        test_and_set() { return !!m_Flag.swap(1);}
         //获取当前标记的值
         operator bool(void) const { return !!m_Flag; }
     };

@@ -1,4 +1,4 @@
-ï»¿#ifndef _HX_TASK_DISP_H_
+#ifndef _HX_TASK_DISP_H_
 #define _HX_TASK_DISP_H_
 
 #include "rx_cc_macro.h"
@@ -8,7 +8,7 @@
 
 /*
 //---------------------------------------------------------
-//å¯¹ä»»åŠ¡è°ƒåº¦å™¨è¿›è¡Œæµ‹è¯•
+//¶ÔÈÎÎñµ÷¶ÈÆ÷½øĞĞ²âÊÔ
 class my_test_disp_task:public task_t
 {
 protected:
@@ -29,7 +29,7 @@ inline void test_my_disp_task()
     int ipt=1;
     while(ipt)
     {
-        printf("task_dispè¿›è¡Œæµ‹è¯•,è¯·é€‰æ‹©ä»¥ä¸‹æ“ä½œ:\n"
+        printf("task_disp½øĞĞ²âÊÔ,ÇëÑ¡ÔñÒÔÏÂ²Ù×÷:\n"
                "1 - push ;\n"
                "2 - stop ;\n");
         ipt=getchar();
@@ -50,84 +50,86 @@ inline void test_my_disp_task()
 namespace rx
 {
     //-----------------------------------------------------
-    //åŒæ­¥ä»»åŠ¡è°ƒåº¦å™¨(æ²¡æœ‰ç©ºé—²æ¶ˆè´¹è€…çš„æ—¶å€™,ç”Ÿäº§è€…ä¹Ÿä¼šè¢«é˜»å¡,é¿å…ä»»åŠ¡é˜Ÿåˆ—è¿‡é‡å †ç§¯)
-    //é…ç½®å¥½ä»»åŠ¡ç±»å‹,æ¨é€ä»»åŠ¡æ•°æ®å,å†…éƒ¨æ± å°±ä¼šå”¤é†’ä¸€ä¸ªçº¿ç¨‹å–å‡ºæ•°æ®å¹¶å¤„ç†
+    //Í¬²½ÈÎÎñµ÷¶ÈÆ÷(Ã»ÓĞ¿ÕÏĞÏû·ÑÕßµÄÊ±ºò,Éú²úÕßÒ²»á±»×èÈû,±ÜÃâÈÎÎñ¶ÓÁĞ¹ıÁ¿¶Ñ»ı)
+    //ÅäÖÃºÃÈÎÎñÀàĞÍ,ÍÆËÍÈÎÎñÊı¾İºó,ÄÚ²¿³Ø¾Í»á»½ĞÑÒ»¸öÏß³ÌÈ¡³öÊı¾İ²¢´¦Àí
     template<class task_class, uint32_t thread_count>
     class task_disp_t
     {
         //-------------------------------------------------
-        //å¤–éƒ¨ä»»åŠ¡ä»£ç†å°è£…,ç”¨äºå¤„ç†æ•°æ®é˜Ÿåˆ—ä¸é˜»å¡è°ƒåº¦
+        //Íâ²¿ÈÎÎñ´úÀí·â×°,ÓÃÓÚ´¦ÀíÊı¾İ¶ÓÁĞÓë×èÈûµ÷¶È
         class task_proxy_t :public task_class
         {
         protected:
             //---------------------------------------------
-            //çº¿ç¨‹ä»»åŠ¡å¯åŠ¨äº†
+            //Ïß³ÌÈÎÎñÆô¶¯ÁË
             virtual void on_begin(void* param)
             {
                 m_parent = static_cast<task_disp_t*>(param);
                 task_class::on_begin(m_parent->m_task_init_param);
             }
             //---------------------------------------------
-            //çº¿ç¨‹ä»»åŠ¡ä¸»å‡½æ•°ç»“æŸäº†
+            //Ïß³ÌÈÎÎñÖ÷º¯Êı½áÊøÁË
             virtual void on_end(void* param) { task_class::on_end(param); }
             //---------------------------------------------
-            //è¿›å…¥çº¿ç¨‹ä»»åŠ¡ä¸»å‡½æ•°
+            //½øÈëÏß³ÌÈÎÎñÖ÷º¯Êı
             virtual uint32_t on_run(void* param)
             {
                 while (m_parent->m_sem_work.take())
-                {//æœ¬ä»»åŠ¡è¢«æ­£ç¡®å”¤é†’,å¯ä»¥è¿›è¡Œä¸€æ¬¡å¤„ç†äº†
+                {
+                    //±¾ÈÎÎñ±»ÕıÈ·»½ĞÑ,¿ÉÒÔ½øĞĞÒ»´Î´¦ÀíÁË
                     if (task_class::need_break())
                         break;
 
                     void *data = NULL;
-                    {GUARD(m_parent->m_data_locker);
-                    //é”å®šé˜Ÿåˆ—åŒæ­¥é”,å¾—åˆ°é˜Ÿé¦–æ•°æ®
-                    rx_assert(m_parent->m_data_queue.size() != 0);
-                    if (m_parent->m_data_queue.size() == 0)
-                        continue;
-                    data = m_parent->m_data_queue.front();
-                    m_parent->m_data_queue.pop();
+                    {
+                        GUARD(m_parent->m_data_locker);
+                        //Ëø¶¨¶ÓÁĞÍ¬²½Ëø,µÃµ½¶ÓÊ×Êı¾İ
+                        rx_assert(m_parent->m_data_queue.size() != 0);
+                        if (m_parent->m_data_queue.size() == 0)
+                            continue;
+                        data = m_parent->m_data_queue.front();
+                        m_parent->m_data_queue.pop();
                     }
 
-                    //è¿›è¡ŒçœŸæ­£çš„æ•°æ®å¤„ç†ä»»åŠ¡
+                    //½øĞĞÕæÕıµÄÊı¾İ´¦ÀíÈÎÎñ
                     task_class::on_run(data);
 
-                    //ä»»åŠ¡å¤„ç†å®Œæˆå,é€šçŸ¥ç©ºé—²è®¡æ•°å™¨
+                    //ÈÎÎñ´¦ÀíÍê³Éºó,Í¨Öª¿ÕÏĞ¼ÆÊıÆ÷
                     m_parent->m_sem_idle.post();
                 }
                 return 0;
             }
             //---------------------------------------------
-            task_disp_t    *m_parent;                       //æŒ‡å‘è°ƒåº¦å™¨,è®¿é—®å…¬å…±å¯¹è±¡
+            task_disp_t    *m_parent;                       //Ö¸Ïòµ÷¶ÈÆ÷,·ÃÎÊ¹«¹²¶ÔÏó
         public:
             task_proxy_t() : m_parent(NULL) {}
         };
 
         //-------------------------------------------------
-        //å®šä¹‰ä»»åŠ¡ä¸çº¿ç¨‹å¯¹è±¡
+        //¶¨ÒåÈÎÎñÓëÏß³Ì¶ÔÏó
         typedef struct worker_t
         {
             task_proxy_t    task_proxy;
             thread_t        task_thread;
             worker_t() : task_thread(task_proxy) {}
-        }worker_t;
+        } worker_t;
 
         //-------------------------------------------------
         typedef std::queue<void*> data_queue_t;
 
         //-------------------------------------------------
-        worker_t        m_workers[thread_count];            //å®šä¹‰ä»»åŠ¡workeræ•°ç»„
-        semp_t          m_sem_idle;                         //ç©ºé—²ä»»åŠ¡è®¡æ•°å™¨
-        semp_t          m_sem_work;                         //å·¥ä½œä»»åŠ¡è®¡æ•°å™¨
-        data_queue_t    m_data_queue;                       //ä¼ é€’å·¥ä½œæ•°æ®çš„é˜Ÿåˆ—
-        locker_t        m_data_locker;                      //ä¼ é€’é˜Ÿåˆ—æ•°æ®ä½¿ç”¨çš„åŒæ­¥é”
-        void           *m_task_init_param;                  //ä»»åŠ¡åˆå§‹åŒ–å‚æ•°
+        worker_t        m_workers[thread_count];            //¶¨ÒåÈÎÎñworkerÊı×é
+        semp_t          m_sem_idle;                         //¿ÕÏĞÈÎÎñ¼ÆÊıÆ÷
+        semp_t          m_sem_work;                         //¹¤×÷ÈÎÎñ¼ÆÊıÆ÷
+        data_queue_t    m_data_queue;                       //´«µİ¹¤×÷Êı¾İµÄ¶ÓÁĞ
+        locker_t        m_data_locker;                      //´«µİ¶ÓÁĞÊı¾İÊ¹ÓÃµÄÍ¬²½Ëø
+        void           *m_task_init_param;                  //ÈÎÎñ³õÊ¼»¯²ÎÊı
     public:
         //-------------------------------------------------
         task_disp_t() :m_task_init_param(NULL) {}
         ~task_disp_t() { uninit(); }
         //-------------------------------------------------
-        //ä»»åŠ¡è°ƒåº¦å™¨è¿›è¡Œåˆå§‹åŒ–
+        //ÈÎÎñµ÷¶ÈÆ÷½øĞĞ³õÊ¼»¯
         bool init(void* init_param = NULL)
         {
             m_task_init_param = init_param;
@@ -146,40 +148,41 @@ namespace rx
             return true;
         }
         //-------------------------------------------------
-        //ä»»åŠ¡è°ƒåº¦å™¨è§£é™¤
+        //ÈÎÎñµ÷¶ÈÆ÷½â³ı
         void uninit()
         {
             for (uint32_t i = 0; i < thread_count; ++i)
-                m_workers[i].task_proxy.stop();             //ç»™æ‰€æœ‰çš„ä»»åŠ¡æ ‡è®°,å³å°†ç»“æŸ
+                m_workers[i].task_proxy.stop();             //¸øËùÓĞµÄÈÎÎñ±ê¼Ç,¼´½«½áÊø
 
             for (uint32_t i = 0; i < thread_count; ++i)
-                m_sem_work.post();                          //å¯¹å·¥ä½œè®¡æ•°å™¨è¿›è¡Œæäº¤,å”¤é†’æ‰€æœ‰çš„ä»»åŠ¡
+                m_sem_work.post();                          //¶Ô¹¤×÷¼ÆÊıÆ÷½øĞĞÌá½»,»½ĞÑËùÓĞµÄÈÎÎñ
 
             for (uint32_t i = 0; i < thread_count; ++i)
-                m_workers[i].task_thread.stop();            //ç­‰å¾…æ‰€æœ‰çš„å·¥ä½œçº¿ç¨‹ç»“æŸ
+                m_workers[i].task_thread.stop();            //µÈ´ıËùÓĞµÄ¹¤×÷Ïß³Ì½áÊø
 
-            m_sem_work.uninit();                            //è§£é™¤å·¥ä½œè®¡æ•°å™¨
-            m_sem_idle.uninit();                            //è§£é™¤ç©ºé—²è®¡æ•°å™¨
+            m_sem_work.uninit();                            //½â³ı¹¤×÷¼ÆÊıÆ÷
+            m_sem_idle.uninit();                            //½â³ı¿ÕÏĞ¼ÆÊıÆ÷
         }
         //-------------------------------------------------
-        //æ¨é€ä»»åŠ¡æ•°æ®,ç­‰å¾…è°ƒåº¦å¤„ç†
+        //ÍÆËÍÈÎÎñÊı¾İ,µÈ´ıµ÷¶È´¦Àí
         bool push(void* data, int wait_ms = -1)
         {
-            //å…ˆç­‰å¾…ç©ºé—²ä»»åŠ¡æ•°é‡,è¶…æ—¶æ²¡æœ‰å°±é€€å‡º
+            //ÏÈµÈ´ı¿ÕÏĞÈÎÎñÊıÁ¿,³¬Ê±Ã»ÓĞ¾ÍÍË³ö
             if (!m_sem_idle.take(wait_ms))
                 return false;
 
-            //å·¥ä½œå‚æ•°è¿›å…¥å¾…å¤„ç†é˜Ÿåˆ—,è¿›è¡Œé”åŒæ­¥
-            {GUARD(m_data_locker);
+            //¹¤×÷²ÎÊı½øÈë´ı´¦Àí¶ÓÁĞ,½øĞĞËøÍ¬²½
+            {
+                GUARD(m_data_locker);
                 m_data_queue.push(data);
             }
 
-            //å”¤é†’ä¸€ä¸ªå·¥ä½œä»»åŠ¡
+            //»½ĞÑÒ»¸ö¹¤×÷ÈÎÎñ
             return m_sem_work.post();
         }
         //-------------------------------------------------
-        //å°è¯•åœ¨uninitä¹‹åè·å–æœªæ¥å¾—åŠè¢«å¤„ç†çš„ä»»åŠ¡æ•°æ®
-        //è¿”å›å€¼:NULLæ²¡æœ‰äº†.å¦åˆ™ä¸ºä¹‹å‰pushçš„data.
+        //³¢ÊÔÔÚuninitÖ®ºó»ñÈ¡Î´À´µÃ¼°±»´¦ÀíµÄÈÎÎñÊı¾İ
+        //·µ»ØÖµ:NULLÃ»ÓĞÁË.·ñÔòÎªÖ®Ç°pushµÄdata.
         void *remain()
         {
             if (m_data_queue.size() == 0)

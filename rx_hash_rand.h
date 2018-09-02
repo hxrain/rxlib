@@ -13,11 +13,11 @@ namespace rx
     {
         rand_i& operator=(const rand_i&);
     protected:
-        virtual ~rand_i(){}
+        virtual ~rand_i() {}
     public:
         //-------------------------------------------------
         //设置该随机数发生器的种子
-        virtual void seed(uint32_t s){}
+        virtual void seed(uint32_t s) {}
         //-------------------------------------------------
         //得到uint32_t类型的随机数,结果范围在[Min,Max](默认为[0,(2^32)-1])
         virtual uint32_t get(uint32_t Max=0xfffffffe, uint32_t Min=0)=0;
@@ -30,9 +30,9 @@ namespace rx
         rand_hge_t& operator=(const rand_hge_t&);
         uint32_t  m_seed;
     public:
-        rand_hge_t(uint32_t s=0){seed(s);}
+        rand_hge_t(uint32_t s=0) {seed(s);}
         //初始化种子
-        virtual void seed(uint32_t s){m_seed=s;}
+        virtual void seed(uint32_t s) {m_seed=s;}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
         virtual uint32_t get(uint32_t Max=0xfffffffe, uint32_t Min=0)
         {
@@ -47,9 +47,9 @@ namespace rx
     {
         rand_hge_t& operator=(const rand_hge_t&);
     public:
-        rand_std_t(uint32_t s=0){seed(s);}
+        rand_std_t(uint32_t s=0) {seed(s);}
         //初始化种子
-        virtual void seed(uint32_t s){srand(s);}
+        virtual void seed(uint32_t s) {srand(s);}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
         virtual uint32_t get(uint32_t Max=0xfffffffe, uint32_t Min=0)
         {
@@ -65,7 +65,8 @@ namespace rx
         uint32_t  m_seed;
 
         static uint32_t hash(uint32_t x)
-        {//Avalanche score = 1.1875
+        {
+            //Avalanche score = 1.1875
             x = ~x;
             x ^= x << 16;
             x ^= x >> 1;
@@ -76,9 +77,9 @@ namespace rx
             return x;
         }
     public:
-        rand_skeeto_b32_t(uint32_t s=0){seed(s);}
+        rand_skeeto_b32_t(uint32_t s=0) {seed(s);}
         //初始化种子
-        virtual void seed(uint32_t s){m_seed=s;}
+        virtual void seed(uint32_t s) {m_seed=s;}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
         virtual uint32_t get(uint32_t Max=0xfffffffe, uint32_t Min=0)
         {
@@ -108,9 +109,9 @@ namespace rx
             return x;
         }
     public:
-        rand_skeeto_triple_t(uint32_t s=0){seed(s);}
+        rand_skeeto_triple_t(uint32_t s=0) {seed(s);}
         //初始化种子
-        virtual void seed(uint32_t s){m_seed=s;}
+        virtual void seed(uint32_t s) {m_seed=s;}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
         virtual uint32_t get(uint32_t Max=0xfffffffe, uint32_t Min=0)
         {
@@ -122,13 +123,13 @@ namespace rx
     //-----------------------------------------------------
     //方便快速使用随机数发生器的便捷函数
     template<class rnd_t>
-    rand_i& rnd(){static rnd_t rnd;return rnd;}
+    rand_i& rnd() {static rnd_t rnd; return rnd;}
 
 }
-    //语法糖,快速访问随机数发生器(不建议多线程直接并发使用,需建立自己的线程独立的随机数发生器)
-    #define rx_rnd_hge() rx::rnd<rx::rand_hge_t>()
-    #define rx_rnd_std() rx::rnd<rx::rand_std_t>()
-    #define rx_rnd_b32() rx::rnd<rx::rand_skeeto_b32_t>()
-    #define rx_rnd_t32() rx::rnd<rx::rand_skeeto_triple_t>()
+//语法糖,快速访问随机数发生器(不建议多线程直接并发使用,需建立自己的线程独立的随机数发生器)
+#define rx_rnd_hge() rx::rnd<rx::rand_hge_t>()
+#define rx_rnd_std() rx::rnd<rx::rand_std_t>()
+#define rx_rnd_b32() rx::rnd<rx::rand_skeeto_b32_t>()
+#define rx_rnd_t32() rx::rnd<rx::rand_skeeto_triple_t>()
 
 #endif

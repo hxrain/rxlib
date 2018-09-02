@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #if RX_OS==RX_OS_WIN||RX_OS_POSIX
-    #define RX_STR_USE_FILE 1
+#define RX_STR_USE_FILE 1
 #endif
 
 namespace rx
@@ -19,36 +19,36 @@ namespace rx
     template<> class sc<char>
     {
     public:
-        static const char* hex_upr(){return "0123456789ABCDEF";}
-        static const char* hex_lwr(){return "0123456789abcdef";}
-        static const char  hex_upr(uint32_t i){return "0123456789ABCDEF"[i];}
-        static const char  hex_lwr(uint32_t i){return "0123456789abcdef"[i];}
-        static const char  zero(){return '0';}
-        static const char  CR(){return '\r';}
-        static const char  LF(){return '\n';}
-        static const char  space(){return ' ';}
-        static const char  A(){return 'A';}
-        static const char  F(){return 'F';}
-        static const char  a(){return 'a';}
-        static const char  f(){return 'f';}
-        static const char  x(){return 'x';}
+        static const char* hex_upr() {return "0123456789ABCDEF";}
+        static const char* hex_lwr() {return "0123456789abcdef";}
+        static const char  hex_upr(uint32_t i) {return "0123456789ABCDEF"[i];}
+        static const char  hex_lwr(uint32_t i) {return "0123456789abcdef"[i];}
+        static const char  zero() {return '0';}
+        static const char  CR() {return '\r';}
+        static const char  LF() {return '\n';}
+        static const char  space() {return ' ';}
+        static const char  A() {return 'A';}
+        static const char  F() {return 'F';}
+        static const char  a() {return 'a';}
+        static const char  f() {return 'f';}
+        static const char  x() {return 'x';}
     };
     template<> class sc<wchar_t>
     {
     public:
-        static const wchar_t* hex_upr(){return L"0123456789ABCDEF";}
-        static const wchar_t* hex_lwr(){return L"0123456789abcdef";}
-        static const wchar_t  hex_upr(uint32_t i){return L"0123456789ABCDEF"[i];}
-        static const wchar_t  hex_lwr(uint32_t i){return L"0123456789abcdef"[i];}
-        static const wchar_t  zero(){return L'0';}
-        static const wchar_t  CR(){return L'\r';}
-        static const wchar_t  LF(){return L'\n';}
-        static const wchar_t  space(){return L' ';}
-        static const wchar_t  A(){return L'A';}
-        static const wchar_t  F(){return L'F';}
-        static const wchar_t  a(){return L'a';}
-        static const wchar_t  f(){return L'f';}
-        static const wchar_t  x(){return L'x';}
+        static const wchar_t* hex_upr() {return L"0123456789ABCDEF";}
+        static const wchar_t* hex_lwr() {return L"0123456789abcdef";}
+        static const wchar_t  hex_upr(uint32_t i) {return L"0123456789ABCDEF"[i];}
+        static const wchar_t  hex_lwr(uint32_t i) {return L"0123456789abcdef"[i];}
+        static const wchar_t  zero() {return L'0';}
+        static const wchar_t  CR() {return L'\r';}
+        static const wchar_t  LF() {return L'\n';}
+        static const wchar_t  space() {return L' ';}
+        static const wchar_t  A() {return L'A';}
+        static const wchar_t  F() {return L'F';}
+        static const wchar_t  a() {return L'a';}
+        static const wchar_t  f() {return L'f';}
+        static const wchar_t  x() {return L'x';}
     };
 
     //-----------------------------------------------------
@@ -58,20 +58,20 @@ namespace rx
     public:
         //-----------------------------------------------------
         //长度
-        static uint32_t         strlen(const char* Str){return (uint32_t)::strlen(Str);}
-        static uint32_t         strlen(const wchar_t* Str){return (uint32_t)::wcslen(Str);}
+        static uint32_t         strlen(const char* Str) {return (uint32_t)::strlen(Str);}
+        static uint32_t         strlen(const wchar_t* Str) {return (uint32_t)::wcslen(Str);}
 
         //拷贝
-        static char*            strcpy(char* dst,const char* src){return ::strcpy(dst,src);}
-        static wchar_t*         strcpy(wchar_t* dst,const wchar_t* src){return wcscpy(dst,src);}
+        static char*            strcpy(char* dst,const char* src) {return ::strcpy(dst,src);}
+        static wchar_t*         strcpy(wchar_t* dst,const wchar_t* src) {return wcscpy(dst,src);}
 
         //拼接
-        static char*            strcat(char* dst,const char* src){return ::strcat(dst,src);}
-        static wchar_t*         strcat(wchar_t* dst,const wchar_t* src){return wcscat(dst,src);}
+        static char*            strcat(char* dst,const char* src) {return ::strcat(dst,src);}
+        static wchar_t*         strcat(wchar_t* dst,const wchar_t* src) {return wcscat(dst,src);}
 
         //计数拷贝
-        static char*            strncpy(char* dst,const char* src,uint32_t len){return ::strncpy(dst,src,len);}
-        static wchar_t*         strncpy(wchar_t* dst,const wchar_t* src,uint32_t len){return ::wcsncpy(dst,src,len);}
+        static char*            strncpy(char* dst,const char* src,uint32_t len) {return ::strncpy(dst,src,len);}
+        static wchar_t*         strncpy(wchar_t* dst,const wchar_t* src,uint32_t len) {return ::wcsncpy(dst,src,len);}
 
         //尾部拷贝(取src的后n位)
         template<class CT>
@@ -79,145 +79,148 @@ namespace rx
         {
             if (!srclen)
                 srclen=strlen(src);
-            if (n>srclen) n=srclen;
+            if (n>srclen)
+                n=srclen;
             uint32_t P=n-srclen;
             return strncpy(dst,&src[P],n);
         }
 
         //比较,区分大小写
-        static int              strcmp(const char* dst,const char* src){return ::strcmp(dst,src);}
-        static int              strcmp(const wchar_t* dst,const wchar_t* src){return ::wcscmp(dst,src);}
+        static int              strcmp(const char* dst,const char* src) {return ::strcmp(dst,src);}
+        static int              strcmp(const wchar_t* dst,const wchar_t* src) {return ::wcscmp(dst,src);}
 
         //比较,不区分大小写
-#if RX_CC==RX_CC_VC
-        static int              stricmp(const char *s1, const char *s2){return ::_strcmpi(s1,s2);}
-#else
-        static int              stricmp(const char *s1, const char *s2){return ::strcmpi(s1,s2);}
-#endif
-        static int              stricmp(const wchar_t *s1, const wchar_t *s2){return ::_wcsicmp(s1,s2);}
+        #if RX_CC==RX_CC_VC
+        static int              stricmp(const char *s1, const char *s2) {return ::_strcmpi(s1,s2);}
+        #else
+        static int              stricmp(const char *s1, const char *s2) {return ::strcmpi(s1,s2);}
+        #endif
+        static int              stricmp(const wchar_t *s1, const wchar_t *s2) {return ::_wcsicmp(s1,s2);}
 
         //定长比较,区分大小写,规定最大长度
 
-        static int              strncmp(const char *s1, const char *s2, uint32_t  maxlen){return ::strncmp(s1,s2,maxlen);}
-        static int              strncmp(const wchar_t *s1, const wchar_t *s2, uint32_t  maxlen){return ::wcsncmp(s1,s2,maxlen);}
+        static int              strncmp(const char *s1, const char *s2, uint32_t  maxlen) {return ::strncmp(s1,s2,maxlen);}
+        static int              strncmp(const wchar_t *s1, const wchar_t *s2, uint32_t  maxlen) {return ::wcsncmp(s1,s2,maxlen);}
 
         //定长比较,不区分大小写,规定最大长度
-#if RX_CC==RX_CC_BCC
-        static int              strncmpi(const char *s1, const char *s2, uint32_t n){return ::strncmpi(s1,s2,n);}
-        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n){return ::wcsncmpi(s1,s2,n);}
-#else
-        static int              strncmpi(const char *s1, const char *s2, uint32_t n){return ::_strnicmp(s1,s2,n);}
-        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n){return ::_wcsnicmp(s1,s2,n);}
-#endif
+        #if RX_CC==RX_CC_BCC
+        static int              strncmpi(const char *s1, const char *s2, uint32_t n) {return ::strncmpi(s1,s2,n);}
+        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n) {return ::wcsncmpi(s1,s2,n);}
+        #else
+        static int              strncmpi(const char *s1, const char *s2, uint32_t n) {return ::_strnicmp(s1,s2,n);}
+        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n) {return ::_wcsnicmp(s1,s2,n);}
+        #endif
 
         //子串搜索
-        static char *           strstr(char *s1, const char *s2){return ::strstr(s1,s2);}
-        static wchar_t*         strstr(wchar_t *s1, const wchar_t *s2){return ::wcsstr(s1,s2);}
-        static const char *     strstr(const char *s1, const char *s2){return ::strstr(s1,s2);}
-        static const wchar_t*   strstr(const wchar_t *s1, const wchar_t *s2){return ::wcsstr(s1,s2);}
+        static char *           strstr(char *s1, const char *s2) {return ::strstr(s1,s2);}
+        static wchar_t*         strstr(wchar_t *s1, const wchar_t *s2) {return ::wcsstr(s1,s2);}
+        static const char *     strstr(const char *s1, const char *s2) {return ::strstr(s1,s2);}
+        static const wchar_t*   strstr(const wchar_t *s1, const wchar_t *s2) {return ::wcsstr(s1,s2);}
 
         //字符搜索
-        static char *           strchr(char *s, int c){return ::strchr(s,c);}
-        static wchar_t *        strchr(wchar_t *s, wchar_t c){ return ::wcschr(s, c); }
-        static const char *     strchr(const char *s, int c){return ::strchr(s,c);}
-        static const wchar_t *  strchr(const wchar_t *s, wchar_t c){ return ::wcschr(s, c); }
+        static char *           strchr(char *s, int c) {return ::strchr(s,c);}
+        static wchar_t *        strchr(wchar_t *s, wchar_t c) { return ::wcschr(s, c); }
+        static const char *     strchr(const char *s, int c) {return ::strchr(s,c);}
+        static const wchar_t *  strchr(const wchar_t *s, wchar_t c) { return ::wcschr(s, c); }
 
         //反向字符搜索
-        static char *           strrchr(char *s, int c){return ::strrchr(s,c);}
-        static wchar_t *        strrchr(wchar_t *s, int c){return ::wcsrchr(s,c);}
-        static const char *     strrchr(const char *s, int c){return ::strrchr(s,c);}
-        static const wchar_t *  strrchr(const wchar_t *s, int c){return ::wcsrchr(s,c);}
+        static char *           strrchr(char *s, int c) {return ::strrchr(s,c);}
+        static wchar_t *        strrchr(wchar_t *s, int c) {return ::wcsrchr(s,c);}
+        static const char *     strrchr(const char *s, int c) {return ::strrchr(s,c);}
+        static const wchar_t *  strrchr(const wchar_t *s, int c) {return ::wcsrchr(s,c);}
 
         //字符串转换为大写
 
-#if RX_CC==RX_CC_VC
-        static char *           strupr(char *s){return ::_strupr(s);}
-#else
-        static char *           strupr(char *s){return ::strupr(s);}
-#endif
-        static wchar_t *        strupr(wchar_t *s){return ::_wcsupr(s);}
+        #if RX_CC==RX_CC_VC
+        static char *           strupr(char *s) {return ::_strupr(s);}
+        #else
+        static char *           strupr(char *s) {return ::strupr(s);}
+        #endif
+        static wchar_t *        strupr(wchar_t *s) {return ::_wcsupr(s);}
 
         //字符串转换为小写
 
-#if RX_CC==RX_CC_VC
-        static char *           strlwr(char *s){return ::_strlwr(s);}
-#else
-        static char *           strlwr(char *s){return ::strlwr(s);}
-#endif
-        static wchar_t *        strlwr(wchar_t *s){return ::_wcslwr(s);}
+        #if RX_CC==RX_CC_VC
+        static char *           strlwr(char *s) {return ::_strlwr(s);}
+        #else
+        static char *           strlwr(char *s) {return ::strlwr(s);}
+        #endif
+        static wchar_t *        strlwr(wchar_t *s) {return ::_wcslwr(s);}
 
         //字符串转换扩展,直接拷贝到目标缓冲器
         template<class CT>
-        static CT *             strupr(const CT *s,CT* TmpBuf){strcpy(TmpBuf,s);return strupr(TmpBuf);}
+        static CT *             strupr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return strupr(TmpBuf);}
         template<class CT>
-        static CT *             strlwr(const CT *s,CT* TmpBuf){strcpy(TmpBuf,s);return strlwr(TmpBuf);}
+        static CT *             strlwr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return strlwr(TmpBuf);}
 
         //字符串转为无符号整数
-        static uint32_t         atoul(const char* s,int radix=0){return ::strtoul(s,NULL,radix);}
-        static uint32_t         atoul(const wchar_t* s,int radix=0){return ::wcstoul(s,NULL,radix);}
+        static uint32_t         atoul(const char* s,int radix=0) {return ::strtoul(s,NULL,radix);}
+        static uint32_t         atoul(const wchar_t* s,int radix=0) {return ::wcstoul(s,NULL,radix);}
         template<class CT>
-        static uint32_t         atoul(const CT* s,int radix,uint32_t DefVal){if (is_empty(s)) return DefVal;else return atoul(s,radix);}
+        static uint32_t         atoul(const CT* s,int radix,uint32_t DefVal) {if (is_empty(s)) return DefVal; else return atoul(s,radix);}
 
         //字符串转换为整数
-        static int              atoi(const char* s,int radix=0){return ::strtol(s,NULL,radix);}
-        static int              atoi(const wchar_t* s,int radix=0){return ::wcstol(s,NULL,radix);}
+        static int              atoi(const char* s,int radix=0) {return ::strtol(s,NULL,radix);}
+        static int              atoi(const wchar_t* s,int radix=0) {return ::wcstol(s,NULL,radix);}
         template<class CT>
-        static int              atoi(const CT* s,int radix,int DefVal){if (is_empty(s))return DefVal;else return atoi(s,radix);}
+        static int              atoi(const CT* s,int radix,int DefVal) {if (is_empty(s))return DefVal; else return atoi(s,radix);}
 
         //字符串转换为整数
-        static uint64_t         atoi64(const char* s){return ::_atoi64(s);}
-        static uint64_t         atoi64(const wchar_t* s){return ::_wtoi64(s);}
+        static uint64_t         atoi64(const char* s) {return ::_atoi64(s);}
+        static uint64_t         atoi64(const wchar_t* s) {return ::_wtoi64(s);}
 
         //字符串转换为浮点数
-        static double           atof(const char* s){return ::atof(s);}
-        static double           atof(const wchar_t* s){return ::_wtof(s);}
+        static double           atof(const char* s) {return ::atof(s);}
+        static double           atof(const wchar_t* s) {return ::_wtof(s);}
 
         //数字转换为字符串
 
-#if RX_CC==RX_CC_VC
-        static char *           itoa(int value, char *string, int radix=10){return ::_itoa(value,string,radix);}
-#else
-        static char *           itoa(int value, char *string, int radix=10){return ::itoa(value,string,radix);}
-#endif
-        static wchar_t *        itoa(int value, wchar_t *string, int radix=10){return ::_itow(value,string,radix);}
+        #if RX_CC==RX_CC_VC
+        static char *           itoa(int value, char *string, int radix=10) {return ::_itoa(value,string,radix);}
+        #else
+        static char *           itoa(int value, char *string, int radix=10) {return ::itoa(value,string,radix);}
+        #endif
+        static wchar_t *        itoa(int value, wchar_t *string, int radix=10) {return ::_itow(value,string,radix);}
 
-        static char *           itoa64(uint64_t value, char *string, int radix=10){return ::_i64toa(value,string,radix);}
-        static wchar_t *        itoa64(uint64_t value, wchar_t *string, int radix=10){return ::_i64tow(value,string,radix);}
+        static char *           itoa64(uint64_t value, char *string, int radix=10) {return ::_i64toa(value,string,radix);}
+        static wchar_t *        itoa64(uint64_t value, wchar_t *string, int radix=10) {return ::_i64tow(value,string,radix);}
 
 
-#if RX_CC==RX_CC_VC
-        static char *           ultoa(uint32_t value, char *string, int radix=10){return ::_ultoa(value,string,radix);}
-#else
-        static char *           ultoa(uint32_t value, char *string, int radix=10){return ::ultoa(value,string,radix);}
-#endif
-        static wchar_t *        ultoa(uint32_t value, wchar_t *string, int radix=10){return ::_ultow(value,string,radix);}
+        #if RX_CC==RX_CC_VC
+        static char *           ultoa(uint32_t value, char *string, int radix=10) {return ::_ultoa(value,string,radix);}
+        #else
+        static char *           ultoa(uint32_t value, char *string, int radix=10) {return ::ultoa(value,string,radix);}
+        #endif
+        static wchar_t *        ultoa(uint32_t value, wchar_t *string, int radix=10) {return ::_ultow(value,string,radix);}
 
         //语法糖,数字转为0x前缀的十六进制串
         template<class CT>
-        static CT*              itox(int value,CT* Buff){Buff[0]=sc<CT>::zero();Buff[1]=sc<CT>::x();itoa(value,&Buff[2],16);return Buff;}
+        static CT*              itox(int value,CT* Buff) {Buff[0]=sc<CT>::zero(); Buff[1]=sc<CT>::x(); itoa(value,&Buff[2],16); return Buff;}
         template<class CT>
-        static CT*              itox64(uint64_t value,CT* Buff){Buff[0]=sc<CT>::zero();Buff[1]=sc<CT>::x();itoa64(value,&Buff[2],16);return Buff;}
+        static CT*              itox64(uint64_t value,CT* Buff) {Buff[0]=sc<CT>::zero(); Buff[1]=sc<CT>::x(); itoa64(value,&Buff[2],16); return Buff;}
         template<class CT>
-        static CT*              ultox(uint32_t value,CT* Buff){Buff[0]=sc<CT>::zero();Buff[1]=sc<CT>::x();ultoa(value,&Buff[2],16);return Buff;}
+        static CT*              ultox(uint32_t value,CT* Buff) {Buff[0]=sc<CT>::zero(); Buff[1]=sc<CT>::x(); ultoa(value,&Buff[2],16); return Buff;}
 
         //浮点数转为字符串
-        static char*            ftoa(const double& f,char* string,const char* Fmt=NULL){if (!Fmt) Fmt="%.2f";sprintf(string,Fmt,f);return string;}
-        static wchar_t*         ftoa(const double& f,wchar_t* string,const wchar_t* Fmt=NULL){if (!Fmt) Fmt=L"%.2f";wprintf(string,Fmt,f);return string;}
+        static char*            ftoa(const double& f,char* string,const char* Fmt=NULL) {if (!Fmt) Fmt="%.2f"; sprintf(string,Fmt,f); return string;}
+        static wchar_t*         ftoa(const double& f,wchar_t* string,const wchar_t* Fmt=NULL) {if (!Fmt) Fmt=L"%.2f"; wprintf(string,Fmt,f); return string;}
 
         //判断是否为十进制数字字符
-        static bool             isnumber(char c){return c>='0'&&c<='9';}
-        static bool             isnumber(wchar_t c){return c>=L'0'&&c<=L'9';}
+        static bool             isnumber(char c) {return c>='0'&&c<='9';}
+        static bool             isnumber(wchar_t c) {return c>=L'0'&&c<=L'9';}
         template<class CT>
         static bool             isnumber(const CT* s)
         {
-            if (s==NULL) return false;
-            for(;*s;++s)
-                if (!isnumber(*s)) return false;
+            if (s==NULL)
+                return false;
+            for(; *s; ++s)
+                if (!isnumber(*s))
+                    return false;
             return true;
         }
         //判断是否为十进制数字和字母
-        static bool             isalnum(char c){return (c>='0'&&c<='9')||(c>='A'&&c<='Z')||(c>='a'&&c<='z');}
-        static bool             isalnum(wchar_t c){return (c>=L'0'&&c<=L'9')||(c>=L'A'&&c<=L'Z')||(c>=L'a'&&c<=L'z');}
+        static bool             isalnum(char c) {return (c>='0'&&c<='9')||(c>='A'&&c<='Z')||(c>='a'&&c<='z');}
+        static bool             isalnum(wchar_t c) {return (c>=L'0'&&c<=L'9')||(c>=L'A'&&c<=L'Z')||(c>=L'a'&&c<=L'z');}
 
         //字符串格式化
         //返回值:<0错误;>=0为输出内容长度
@@ -233,10 +236,10 @@ namespace rx
             va_start(ap, Fmt);
             return ::_vsnwprintf(Buf,BufSize,Fmt,ap);
         }
-        static int              vsnprintf(char * Buf,uint32_t BufSize, const char *Fmt,va_list arglist){return ::vsnprintf(Buf,BufSize,Fmt,arglist);}
-        static int              vsnprintf(wchar_t * Buf,uint32_t BufSize, const wchar_t *Fmt,va_list arglist){return ::_vsnwprintf(Buf,BufSize,Fmt,arglist);}
+        static int              vsnprintf(char * Buf,uint32_t BufSize, const char *Fmt,va_list arglist) {return ::vsnprintf(Buf,BufSize,Fmt,arglist);}
+        static int              vsnprintf(wchar_t * Buf,uint32_t BufSize, const wchar_t *Fmt,va_list arglist) {return ::_vsnwprintf(Buf,BufSize,Fmt,arglist);}
 
-#if RX_STR_USE_FILE
+        #if RX_STR_USE_FILE
         static int              fprintf(FILE *stream, const char *format,...)
         {
             va_list ap;
@@ -249,15 +252,16 @@ namespace rx
             va_start(ap, format);
             return vfwprintf(stream,format,ap);
         }
-        static int              vfprintf(FILE *stream, const char *format,va_list ap){return std::vfprintf(stream,format,ap);}
-        static int              vfprintf(FILE *stream, const wchar_t *format,va_list ap){return std::vfwprintf(stream,format,ap);}
-#endif
+        static int              vfprintf(FILE *stream, const char *format,va_list ap) {return std::vfprintf(stream,format,ap);}
+        static int              vfprintf(FILE *stream, const wchar_t *format,va_list ap) {return std::vfwprintf(stream,format,ap);}
+        #endif
         //-------------------------------------------------
         //语法糖,对输入S进行判断,如果是空值则返回给定的默认值
         template<class CT>
         static const CT* value(const CT* S,const CT* DefValue)
         {
-            if (is_empty(S)) return DefValue;
+            if (is_empty(S))
+                return DefValue;
             return S;
         }
         //-----------------------------------------------------
@@ -267,9 +271,11 @@ namespace rx
         static uint32_t strcat(CT *Dest,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
         {
             uint32_t DestLen=strlen(Dest);                  //计算得到目标现在已有的串长度
-            if (SrcLen==0) SrcLen=strlen(Src);              //计算得到原串现在已有的长度
+            if (SrcLen==0)
+                SrcLen=strlen(Src);              //计算得到原串现在已有的长度
             uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
-            if (SrcLen>DestRemainLen-1) return 0;           //空间不足,不能连接了
+            if (SrcLen>DestRemainLen-1)
+                return 0;           //空间不足,不能连接了
             strncpy(&Dest[DestLen],Src,SrcLen);             //拼接拷贝
             uint32_t NewLen=SrcLen+DestLen;                 //目标现在的长度
             Dest[NewLen]=0;                                 //确保目标正确结束
@@ -302,7 +308,8 @@ namespace rx
             uint32_t DestLen=strcpy(Dest,DestMaxSize,Src1);
             uint32_t Src2Len=strlen(Src2);                  //计算得到原串现在已有的长度
             uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
-            if (Src2Len>DestRemainLen-1) return 0;          //空间不足,不能连接了
+            if (Src2Len>DestRemainLen-1)
+                return 0;          //空间不足,不能连接了
             strncpy(&Dest[DestLen],Src2,Src2Len);           //拼接拷贝
             uint32_t NewLen=Src2Len+DestLen;                //目标现在的长度
             Dest[NewLen]=0;                                 //确保目标正确结束
@@ -314,9 +321,11 @@ namespace rx
         template<class CT>
         static uint32_t strcat(CT *Dest,uint32_t &DestLen,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
         {
-            if (SrcLen==0) SrcLen=strlen(Src);              //计算得到原串现在已有的长度
+            if (SrcLen==0)
+                SrcLen=strlen(Src);              //计算得到原串现在已有的长度
             uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
-            if (SrcLen>DestRemainLen-1) return 0;           //空间不足,不能连接了
+            if (SrcLen>DestRemainLen-1)
+                return 0;           //空间不足,不能连接了
             strncpy(&Dest[DestLen],Src,SrcLen);             //拼接拷贝
             DestLen+=SrcLen;                                //目标现在的长度
             Dest[DestLen]=0;                                //确保目标正确结束
@@ -326,7 +335,8 @@ namespace rx
         static uint32_t strcat(CT *Dest,uint32_t &DestLen,uint32_t DestMaxSize,CT Src)
         {
             uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
-            if (DestRemainLen<2)   return 0;                //空间不足,不能连接了
+            if (DestRemainLen<2)
+                return 0;                //空间不足,不能连接了
             Dest[DestLen]=Src;                              //拼接拷贝
             Dest[++DestLen]=0;                              //确保目标正确结束
             return DestLen;
@@ -342,14 +352,16 @@ namespace rx
 
             int DstLen = strlen(Dst);
             if (Dst[DstLen - 1] == SP)
-            {//目标已经是SP结束了
+            {
+                //目标已经是SP结束了
                 if (Src[0] == SP)
                     strcpy(&Dst[DstLen], &Src[1]);
                 else
                     strcpy(&Dst[DstLen], Src);
             }
             else
-            {//目标不是SP结束
+            {
+                //目标不是SP结束
                 if (Src[0] == SP)
                     strcpy(&Dst[DstLen], Src);
                 else
@@ -366,9 +378,11 @@ namespace rx
         static uint32_t strcpy(CT *Dest, uint32_t DestMaxSize, const CT* Src1, const CT* Src2,const CT SP)
         {
             uint32_t L1 = strcpy(Dest, DestMaxSize, Src1);
-            if (!L1) return 0;
+            if (!L1)
+                return 0;
             uint32_t L2 = strlen(Src2);
-            if (L1 + L2 > DestMaxSize) return 0;
+            if (L1 + L2 > DestMaxSize)
+                return 0;
             return strlen(strcat(Dest, Src2, SP));
         }
         //-----------------------------------------------------
@@ -379,8 +393,10 @@ namespace rx
         static uint32_t strcpy(CT* dst,uint32_t dstMaxSize,const CT* Src,uint32_t SrcLen=0)
         {
             dst[0]=0;
-            if (is_empty(Src)) return 0;
-            if (SrcLen==0) SrcLen=strlen(Src);
+            if (is_empty(Src))
+                return 0;
+            if (SrcLen==0)
+                SrcLen=strlen(Src);
             if (SrcLen>dstMaxSize-1)                        //总要保证缓冲区的最后要有一个0串结束符的位置
                 return 0;
             strncpy(dst,Src,SrcLen);
@@ -395,8 +411,10 @@ namespace rx
         static uint32_t strcpy2(CT* dst,uint32_t dstMaxSize,const CT* Src,uint32_t SrcLen=0)
         {
             dst[0]=0;
-            if (is_empty(Src)) return 0;
-            if (SrcLen==0) SrcLen=strlen(Src);
+            if (is_empty(Src))
+                return 0;
+            if (SrcLen==0)
+                SrcLen=strlen(Src);
             if (SrcLen>--dstMaxSize)
                 SrcLen=dstMaxSize;								//总要保证缓冲区的最后要有一个0串结束符的位置
             strncpy(dst,Src,SrcLen);
@@ -410,7 +428,8 @@ namespace rx
         template<class CT>
         static const uint32_t count(const CT *S,const CT Char)
         {
-            if (is_empty(S)) return 0;
+            if (is_empty(S))
+                return 0;
             uint32_t Ret=0;
             const CT *Pos=strchr(S,Char);
             while(Pos)
@@ -424,7 +443,8 @@ namespace rx
         template<class CT>
         static const uint32_t count(const CT *S,const CT* Str)
         {
-            if (is_empty(S)) return 0;
+            if (is_empty(S))
+                return 0;
             uint32_t Ret=0;
             const CT *Pos=strstr(S,Str);
             while(Pos)
@@ -441,7 +461,8 @@ namespace rx
         template<class CT>
         static int pos(const CT* Str,const CT *SubStr,uint32_t StartIdx=0)
         {
-            if (is_empty(Str)||StartIdx>=strlen(Str)) return -1;
+            if (is_empty(Str)||StartIdx>=strlen(Str))
+                return -1;
             const CT* StartStr=&Str[StartIdx];
             const CT* P=strstr(StartStr,SubStr);
             return (P==NULL?-1:P-Str);
@@ -459,7 +480,8 @@ namespace rx
             const CT *TP=src;
             uint32_t Alen=0;
             if (!is_empty(A))
-            {//有A串,那么就记录A串的长度,准备返回使用;查找A串的位置
+            {
+                //有A串,那么就记录A串的长度,准备返回使用;查找A串的位置
                 Alen=strlen(A);
                 TP=strstr(src,A);
                 if (TP!=NULL)
@@ -473,7 +495,8 @@ namespace rx
             if (!is_empty(B))
             {
                 TP=strstr(TP+Alen,B);                       //在A串出现的位置之后查找B串的位置
-                if (!TP) return -3;
+                if (!TP)
+                    return -3;
             }
             else
                 TP=src+srclen;                              //没有B串,那么就指向src的尾字符
@@ -489,7 +512,8 @@ namespace rx
         template<class CT>
         static bool pos(const CT* src,const CT* A,const CT* B,uint32_t &PA,uint32_t &PB)
         {
-            if (src==NULL) return false;
+            if (src==NULL)
+                return false;
             return pos(src,strlen(src),A,B,PA,PB)>=0;
         }
         //-----------------------------------------------------
@@ -524,16 +548,18 @@ namespace rx
         //-----------------------------------------------------
         //将src中AStr后面的内容放入结果
         template<class CT>
-        static uint32_t sub(const CT* src,const CT* AStr,CT* Result,uint32_t ResultMaxSize){return sub(src,AStr,NULL,Result,ResultMaxSize);}
+        static uint32_t sub(const CT* src,const CT* AStr,CT* Result,uint32_t ResultMaxSize) {return sub(src,AStr,NULL,Result,ResultMaxSize);}
         //-----------------------------------------------------
         //截取Str中从首部到SP分隔符之前的内容到Result,Str在截取后调整到SP之后
         //返回值:<0错误;>=0截取到的内容长度
         template<class CT>
         static int sub(CT* &Str,const CT SP,CT *Result,uint32_t ResultSize)
         {
-            if (!Str) return -1;
+            if (!Str)
+                return -1;
             CT* Pos=strchr(Str,SP);
-            if (!Pos) return -2;
+            if (!Pos)
+                return -2;
             uint32_t Len=uint32_t(Pos-Str);
             if (!Len)
             {
@@ -554,9 +580,11 @@ namespace rx
         template<class CT>
         static int sub(CT* &Str,const CT SP,uint32_t &Result,const uint32_t radix=10)
         {
-            if (!Str) return -1;
+            if (!Str)
+                return -1;
             CT* Pos=strchr(Str,SP);
-            if (!Pos) return -2;
+            if (!Pos)
+                return -2;
             *Pos=0;
 
             uint32_t Len=uint32_t(Pos-Str);
@@ -572,7 +600,8 @@ namespace rx
         static const CT* sub(const CT *S,const CT Char,CT* Result)
         {
             const CT* Ret=strchr(S,Char);
-            if (!Ret) return NULL;
+            if (!Ret)
+                return NULL;
             uint32_t len=Ret-S;
             strncpy(Result,S,len);
             Result[len]=0;
@@ -729,7 +758,8 @@ namespace rx
         static CT* hex(const uint8_t *bin, uint32_t size,CT *result,bool IsLower=false)
         {
             CT *Map=sc<CT>::hex_upr();
-            if (!IsLower) Map=sc<CT>::hex_lwr();
+            if (!IsLower)
+                Map=sc<CT>::hex_lwr();
 
             for (; size--; bin++)
             {
@@ -752,18 +782,22 @@ namespace rx
                 {
                     if (i%LineLength == 0)
                     {
-                        if (RL + 2 >= result_size) break;
+                        if (RL + 2 >= result_size)
+                            break;
                         result[RL++] = sc<CT>::CR();
                         result[RL++] = sc<CT>::LF();
                     }
                     else
                     {
-                        if (RL + 1 >= result_size) break;
+                        if (RL + 1 >= result_size)
+                            break;
                         result[RL++] = sc<CT>::space();
                     }
                 }
-                if (RL + 2 >= result_size) break;
-                hex2(bin[i], &result[RL]); RL += 2;
+                if (RL + 2 >= result_size)
+                    break;
+                hex2(bin[i], &result[RL]);
+                RL += 2;
             }
             result[RL] = 0;
             return i;
@@ -797,14 +831,16 @@ namespace rx
         template<class CT>
         static uint8_t* bin(const CT* Str,uint32_t StrLen,uint8_t* Data,uint32_t &DataSize)
         {
-            if (is_empty(Str)||Data==NULL) return NULL;
-            if (StrLen%2!=0||StrLen/2>DataSize) return NULL;
+            if (is_empty(Str)||Data==NULL)
+                return NULL;
+            if (StrLen%2!=0||StrLen/2>DataSize)
+                return NULL;
             DataSize=0;
-            for(uint32_t i=0;Str[i]&&i<StrLen;i+=2)
+            for(uint32_t i=0; Str[i]&&i<StrLen; i+=2)
                 Data[DataSize++]=byte(&Str[i]);
             return Data;
         }
-         template<class CT>
+        template<class CT>
         static uint8_t* bin(const CT* Str,uint32_t StrLen,uint8_t* Data,const uint32_t DataSize)
         {
             uint32_t DS=DataSize;
@@ -818,7 +854,8 @@ namespace rx
         template<class CT>
         static CT* replace(CT *Str,CT From,CT To)
         {
-            if (is_empty(Str)) return NULL;
+            if (is_empty(Str))
+                return NULL;
             CT* Ret=Str;
             while(Str=strchr(Str,From))
                 *Str++=To;
@@ -828,7 +865,8 @@ namespace rx
         template<class CT>
         static CT* replace(const CT *Str,CT* Buf,CT From, CT To)
         {
-            if (is_empty(Str)) return NULL;
+            if (is_empty(Str))
+                return NULL;
             while (*Str)
             {
                 if (*Str == From)
@@ -848,15 +886,18 @@ namespace rx
             const CT* Src=SrcStr;
             if (is_empty(Src)||is_empty(From)||!Dst)
                 return NULL;
-            if (!SrcLen) SrcLen=strlen(Src);
-            if (is_empty(To)) ToLen=0;
+            if (!SrcLen)
+                SrcLen=strlen(Src);
+            if (is_empty(To))
+                ToLen=0;
             const CT* Pos=strstr(Src,From);
             uint32_t DstLen=0;
             while(Pos)
             {
                 uint32_t SegLen=uint32_t(Pos-Src);          //当前目标前面的部分,需要放入结果缓冲区
 
-                if (DstLen+SegLen>=DstSize) return NULL;    //目标缓冲区不足,退出
+                if (DstLen+SegLen>=DstSize)
+                    return NULL;    //目标缓冲区不足,退出
                 strncpy(&Dst[DstLen],Src,SegLen);           //将当前段之前的部分拷贝到目标缓冲区
                 DstLen+=SegLen;                             //目标长度增加
 
@@ -893,11 +934,13 @@ namespace rx
         template<class CT>
         static bool isnumber_str(const CT* Str,uint32_t StrLen=0,bool IsHex=false)
         {
-            if (is_empty(Str)) return false;
-            if (!StrLen) StrLen=strlen(Str);
+            if (is_empty(Str))
+                return false;
+            if (!StrLen)
+                StrLen=strlen(Str);
             CT C;
 
-            for(uint32_t I=0;I<StrLen;I++)                  //对指定长度的串进行全遍历或遇到结束符
+            for(uint32_t I=0; I<StrLen; I++)                //对指定长度的串进行全遍历或遇到结束符
             {
                 C=Str[I];
                 if (C>=sc<CT>::zero()&&C<='9')              //是十进制数字,直接准备判断下一个

@@ -65,9 +65,9 @@ typedef struct rx_tdd_stat_t
         va_end(v);
     }
 
-    rx_tdd_stat_t():_total(0),_perform(0),_failed(0),_assert(0),head(0),tail(0),runed(0),out_fun(rx_tdd_out_fun){}
-    static rx_tdd_stat_t& get(){static rx_tdd_stat_t st;return st;}
-}rx_tdd_stat_t;
+    rx_tdd_stat_t():_total(0),_perform(0),_failed(0),_assert(0),head(0),tail(0),runed(0),out_fun(rx_tdd_out_fun) {}
+    static rx_tdd_stat_t& get() {static rx_tdd_stat_t st; return st;}
+} rx_tdd_stat_t;
 
 //---------------------------------------------------------
 //TDD的级别,定义时指定,运行时可选择运行某个级别之下的TDD
@@ -77,7 +77,7 @@ typedef enum rx_tdd_level
     tdd_level_std       = 1,                                //标准的tdd级别,稍稍占用一些时间,但会执行必要的用例
     tdd_level_slow      = 2,                                //很慢的tdd级别,非常占用时间,在进行完整的性能测试
     tdd_level_ui        = 3,                                //需要UI交互的级别,人员离开后会出现阻塞
-}rx_tdd_level;
+} rx_tdd_level;
 
 //---------------------------------------------------------
 //实现TDD用例的基类
@@ -95,11 +95,13 @@ class rx_tdd_t
     void m_bind(rx_tdd_stat_t &root)
     {
         if (root.head==0)
-        {//初始的时候，让TDD用例链表的头和尾都指向当前对象
+        {
+            //初始的时候，让TDD用例链表的头和尾都指向当前对象
             root.head=root.tail=this;
         }
         else
-        {//添加后续TDD用例对象的时候
+        {
+            //添加后续TDD用例对象的时候
             root.tail->m_next=this;                         //用例链表尾节点的后趋指向当前节点
             root.tail=this;                                 //用例链表的尾节点指向当前节点
         }
@@ -129,7 +131,10 @@ public:
         }
 
         rx_tdd_stat_t::get().out("RX TDD::{%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
-        try{on_exec();}
+        try
+        {
+            on_exec();
+        }
         catch(...)
         {
             rx_tdd_stat_t::get().out("RX TDD::<EXCEPTION> {%s} at <%s:%d> => throw exception!\r\n",m_tdd_name,m_file_name,m_line_no);
@@ -139,35 +144,36 @@ public:
     }
     //-----------------------------------------------------
     //内部断言，用于记录失败次数
-    void assert(bool v){assert(v,m_line_no,NULL);}
-    void assert(bool v,int _line_no){assert(v,_line_no,NULL);}
+    void assert(bool v) {assert(v,m_line_no,NULL);}
+    void assert(bool v,int _line_no) {assert(v,_line_no,NULL);}
     void assert(bool v,int _line_no,const char* msg,...)
     {
         rx_tdd_stat_t &s=rx_tdd_stat_t::get();
         ++s._assert;
-        if (v) return;
+        if (v)
+            return;
         ++s._failed;
 
-		s.out("RX TDD::<*FAIL*>         {%s} at <%s : %d>\r\n",m_tdd_name,m_file_name,_line_no);
-		if (msg&&msg[0])
-		{
-			s.out("    ");
-			va_list v;
-			va_start(v,msg);
-			s.out_fun(msg,v);
-			va_end(v);
-			s.out("\r\n");
-		}
+        s.out("RX TDD::<*FAIL*>         {%s} at <%s : %d>\r\n",m_tdd_name,m_file_name,_line_no);
+        if (msg&&msg[0])
+        {
+            s.out("    ");
+            va_list v;
+            va_start(v,msg);
+            s.out_fun(msg,v);
+            va_end(v);
+            s.out("\r\n");
+        }
 
-		if (m_wait_key)
-		{
+        if (m_wait_key)
+        {
             s.out("press enter key to continue...\r\n");
             getchar();
         }
     }
     //-----------------------------------------------------
     //出现错误的时候,是否提升进行UI等待确认
-    void enable_error_wait(bool v=true){m_wait_key=v;}
+    void enable_error_wait(bool v=true) {m_wait_key=v;}
 protected:
     //-----------------------------------------------------
     //子类用于执行具体的测试动作
@@ -190,10 +196,10 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
     s.out("RX TDD::END=================================\r\n");
 
     s.out(
-          "       OBJECT total <%4u> : perform <%4u>\r\n"
-          "       ASSERT total <%4u> : failed  <%4u>\r\n"
-          "RX TDD::COMPLETE============================\r\n",
-          s._total,s._perform,s._assert,s._failed);
+        "       OBJECT total <%4u> : perform <%4u>\r\n"
+        "       ASSERT total <%4u> : failed  <%4u>\r\n"
+        "RX TDD::COMPLETE============================\r\n",
+        s._total,s._perform,s._assert,s._failed);
 }
 
 //---------------------------------------------------------

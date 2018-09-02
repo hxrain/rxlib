@@ -19,7 +19,7 @@ namespace rx
         {
             uint32_t    state;                              //记录当前节点是否被使用,0未使用;1正常被使用;>1哈希冲突序数(比如3就是在冲突点后第三个位置)
             val_t       value;                              //哈希节点的value值
-        }node_t;
+        } node_t;
     private:
         node_t         *m_nodes;                            //节点数组
         uint32_t        m_using;                            //当前节点的数量
@@ -47,12 +47,13 @@ namespace rx
         template<class key_t>
         node_t *push(uint32_t hash_code,const key_t &value)
         {
-            for(uint32_t i=0;i<m_max_slot_size;++i)
+            for(uint32_t i=0; i<m_max_slot_size; ++i)
             {
                 uint32_t pos=(hash_code+i)%m_max_slot_size; //计算位置
                 node_t &node = m_nodes[pos];                //得到节点
                 if (!node.state)
-                {//该节点尚未使用,那么就直接使用
+                {
+                    //该节点尚未使用,那么就直接使用
                     node.state=i+1;                         //记录当前节点冲突顺序
                     m_collision+=i;                         //记录冲突总数
                     ++m_using;
@@ -71,7 +72,7 @@ namespace rx
         template<class key_t>
         node_t *find(uint32_t hash_code,const key_t &value) const
         {
-            for(uint32_t i=0;i<m_max_slot_size;++i)
+            for(uint32_t i=0; i<m_max_slot_size; ++i)
             {
                 uint32_t I=(hash_code+i)%m_max_slot_size;   //计算位置
                 node_t &node = m_nodes[I];                  //得到节点
@@ -127,8 +128,8 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        tiny_set_t(){m_base_sets.bind(m_nodes,max_set_size);}
-        virtual ~tiny_set_t(){clear();}
+        tiny_set_t() {m_base_sets.bind(m_nodes,max_set_size);}
+        virtual ~tiny_set_t() {clear();}
         //-------------------------------------------------
         //对外暴露hash函数包装对象,便于随时更换具体的哈希函数
         hash_t& hash_func() const { return m_hash_func; }
@@ -138,7 +139,8 @@ namespace rx
         {
             uint32_t hash_code = m_hash_func(val);
             node_t *node = m_base_sets.push(hash_code, val);
-            if (!node) return false;
+            if (!node)
+                return false;
             node->value = val;
             return true;
         }
@@ -156,7 +158,8 @@ namespace rx
         {
             uint32_t hash_code = m_hash_func(val);
             node_t *node = m_base_sets.find(hash_code, val);
-            if (!node) return false;
+            if (!node)
+                return false;
             node->value = 0;
             return m_base_sets.remove(node);
         }
@@ -179,12 +182,12 @@ namespace rx
         public:
             //---------------------------------------------
             iterator(const tiny_set_t &s, uint32_t pos) :m_set(s), m_pos(pos) {}
-            iterator(const iterator &i):m_set(i.m_set),m_pos(i.m_pos){}
+            iterator(const iterator &i):m_set(i.m_set),m_pos(i.m_pos) {}
             //---------------------------------------------
             bool operator==(const iterator &i)const { return &m_set == &i.m_set&&m_pos == i.m_pos; }
             bool operator!=(const iterator &i)const { return !(operator==(i));}
             //---------------------------------------------
-            iterator& operator=(iterator &i){m_set=i.m_set;m_pos=i.m_pos;return *this;}
+            iterator& operator=(iterator &i) {m_set=i.m_set; m_pos=i.m_pos; return *this;}
             //---------------------------------------------
             const val_t& operator*() const
             {
@@ -249,8 +252,8 @@ namespace rx
         {
             key_t   key;
             val_t   val;
-            bool operator==(const key_t& k){return key==k;}
-        }node_val_t;
+            bool operator==(const key_t& k) {return key==k;}
+        } node_val_t;
 
         typedef raw_hashtbl_t<node_val_t> baseset_t;
         typedef typename baseset_t::node_t node_t;
@@ -270,8 +273,8 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        tiny_hashtbl_t(){m_base_sets.bind(m_nodes,max_set_size);}
-        virtual ~tiny_hashtbl_t(){clear();}
+        tiny_hashtbl_t() {m_base_sets.bind(m_nodes,max_set_size);}
+        virtual ~tiny_hashtbl_t() {clear();}
         //-------------------------------------------------
         //对外暴露hash函数包装对象,便于随时更换具体的哈希函数
         hash_t& hash_func() const { return m_hash_func; }
@@ -281,7 +284,8 @@ namespace rx
         {
             uint32_t hash_code = m_hash_func(key);
             node_t *node = m_base_sets.push(hash_code, key);
-            if (!node) return false;
+            if (!node)
+                return false;
             node->value.key = key;
             node->value.val = val;
             return true;
@@ -300,7 +304,8 @@ namespace rx
         {
             uint32_t hash_code = m_hash_func(key);
             node_t *node = m_base_sets.find(hash_code, key);
-            if (!node) return false;
+            if (!node)
+                return false;
             node->value.key = 0;
             node->value.val = 0;
             return m_base_sets.remove(node);
@@ -324,12 +329,12 @@ namespace rx
         public:
             //---------------------------------------------
             iterator(const tiny_hashtbl_t &s, uint32_t pos) :m_set(s), m_pos(pos) {}
-            iterator(const iterator &i):m_set(i.m_set),m_pos(i.m_pos){}
+            iterator(const iterator &i):m_set(i.m_set),m_pos(i.m_pos) {}
             //---------------------------------------------
             bool operator==(const iterator &i)const { return &m_set == &i.m_set&&m_pos == i.m_pos; }
             bool operator!=(const iterator &i)const { return !(operator==(i));}
             //---------------------------------------------
-            iterator& operator=(iterator &i){m_set=i.m_set;m_pos=i.m_pos;return *this;}
+            iterator& operator=(iterator &i) {m_set=i.m_set; m_pos=i.m_pos; return *this;}
             //---------------------------------------------
             const val_t& operator*() const
             {
@@ -389,5 +394,5 @@ namespace rx
                 erase(i);
         }
     };
- }
+}
 #endif

@@ -1,4 +1,4 @@
-ï»¿#include "../ut_dtl_hashtbl_tiny.h"
+#include "../ut_dtl_hashtbl_tiny.h"
 #include "../../rx_dtl_hashtbl_tiny.h"
 #include "../../rx_raw_hashtbl_tiny.h"
 
@@ -79,11 +79,11 @@ using namespace std;
 
 int main()
 {
-    cout << "ä½ å¥½Hello world!\n" << rx_cc_desc() << endl << endl;
+    cout << "ÄãºÃHello world!\n" << rx_cc_desc() << endl << endl;
     rx_static_assert(1);
 
     rx_tdd_run(tdd_level_std);
 
-	getchar();
+    getchar();
     return 0;
 }

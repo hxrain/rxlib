@@ -1,4 +1,4 @@
-ï»¿#ifndef _RX_TDD_TICK_H_
+#ifndef _RX_TDD_TICK_H_
 #define _RX_TDD_TICK_H_
 
 #include "rx_cc_macro.h"
@@ -13,46 +13,54 @@
 namespace rx
 {
     //-----------------------------------------------------
-    //æ»´ç­”å¢é‡è®¡æ—¶å™¨,ç”¨äºè®°å½•ä»£ç æ®µæ‰§è¡Œç”¨æ—¶
+    //µÎ´ğÔöÁ¿¼ÆÊ±Æ÷,ÓÃÓÚ¼ÇÂ¼´úÂë¶ÎÖ´ĞĞÓÃÊ±
     template<class tick_type=rx_tick_us_t>
     class tdd_tick_t
     {
-        tick_type    m_tick_meter;                          //æ»´ç­”è®¡æ•°å™¨
-        uint64_t     m_begin_tick;                          //è®¡æ—¶å¼€å§‹çš„æœ€åˆæ—¶é—´
-        uint32_t     m_expend_limit;                        //æ˜¾ç¤ºè¾“å‡ºçš„ç”¨æ—¶ä¸‹é™
-        bool         m_enable;                              //æ˜¯å¦å¼€å¯è®¡æ—¶åŠŸèƒ½
-        const char*  m_msg_a;                               //æ‰“å°è¾“å‡ºä¸­,å‘ŠçŸ¥åŠŸèƒ½å¤§ç±»
-        const char*  m_msg_b;                               //æ‰“å°è¾“å‡ºä¸­,å‘ŠçŸ¥åŠŸèƒ½å°ç±»
-        uint32_t     m_tab_deep;                            //æ‰“å°è¾“å‡ºæ—¶,è¿›è¡Œhitå±‚æ¬¡åŒ–ç¼©è¿›æ·±åº¦å¤„ç†
+        tick_type    m_tick_meter;                          //µÎ´ğ¼ÆÊıÆ÷
+        uint64_t     m_begin_tick;                          //¼ÆÊ±¿ªÊ¼µÄ×î³õÊ±¼ä
+        uint32_t     m_expend_limit;                        //ÏÔÊ¾Êä³öµÄÓÃÊ±ÏÂÏŞ
+        bool         m_enable;                              //ÊÇ·ñ¿ªÆô¼ÆÊ±¹¦ÄÜ
+        const char*  m_msg_a;                               //´òÓ¡Êä³öÖĞ,¸æÖª¹¦ÄÜ´óÀà
+        const char*  m_msg_b;                               //´òÓ¡Êä³öÖĞ,¸æÖª¹¦ÄÜĞ¡Àà
+        uint32_t     m_tab_deep;                            //´òÓ¡Êä³öÊ±,½øĞĞhit²ã´Î»¯Ëõ½øÉî¶È´¦Àí
         const char*  m_file;
         uint32_t     m_lineno;
     public:
         //-------------------------------------------------
-        //æ„é€ å‡½æ•°,ä¼ å…¥æ—¶é—´æˆ³çš„é™å®šå€¼å’Œæ¶ˆæ¯æç¤º
+        //¹¹Ôìº¯Êı,´«ÈëÊ±¼ä´ÁµÄÏŞ¶¨ÖµºÍÏûÏ¢ÌáÊ¾
         tdd_tick_t(bool enable=true,uint32_t expend_limit=0,const char* msg_a=NULL,const char* msg_b=NULL,const char* file=NULL,int lineno=0)
         {
             begin(enable,expend_limit,msg_a,msg_b,file,lineno);
         }
         //-------------------------------------------------
-        //æ‰§è¡Œå¼€å§‹,è®°å½•å¼€å§‹æ—¶é—´ä¸ç›¸å…³å†…å®¹é¡¹
+        //Ö´ĞĞ¿ªÊ¼,¼ÇÂ¼¿ªÊ¼Ê±¼äÓëÏà¹ØÄÚÈİÏî
         void begin(bool enable=true,uint32_t expend_limit=0,const char* msg_a=NULL,const char* msg_b=NULL,const char* file=NULL,int lineno=0)
         {
             m_enable=enable;
-            if (!m_enable) return;
+            if (!m_enable)
+                return;
             m_begin_tick=m_tick_meter.update();
             m_expend_limit=expend_limit;
-            m_msg_a=msg_a;if (!m_msg_a) m_msg_a="";
-            m_msg_b=msg_b;if (!m_msg_b) m_msg_b="";
-            m_file=file;if (!m_file) m_file="";
+            m_msg_a=msg_a;
+            if (!m_msg_a)
+                m_msg_a="";
+            m_msg_b=msg_b;
+            if (!m_msg_b)
+                m_msg_b="";
+            m_file=file;
+            if (!m_file)
+                m_file="";
             m_lineno=lineno;
             m_tab_deep=0;
         }
-        uint32_t &tab_deep(){return m_tab_deep;}
+        uint32_t &tab_deep() {return m_tab_deep;}
         //-------------------------------------------------
-        //è¿›è¡Œè®¡æ—¶çš„ä¸­é—´åŠ¨ä½œ
+        //½øĞĞ¼ÆÊ±µÄÖĞ¼ä¶¯×÷
         void hit(const char* msg_c=NULL,const char* file=NULL,int lineno=0)
         {
-            if (!m_enable) return;
+            if (!m_enable)
+                return;
             uint64_t prv_tick=m_tick_meter.count();
             uint32_t dt=uint32_t(m_tick_meter.update()-prv_tick);
             if (dt<m_expend_limit)
@@ -70,10 +78,11 @@ namespace rx
             on_output(tmp);
         }
         //-------------------------------------------------
-        //æ‰§è¡Œç»“æŸ,è‡ªåŠ¨åˆ¤æ–­ç”¨æ—¶,å¹¶æ‰“å°è¾“å‡ºå†…å®¹
+        //Ö´ĞĞ½áÊø,×Ô¶¯ÅĞ¶ÏÓÃÊ±,²¢´òÓ¡Êä³öÄÚÈİ
         void end()
         {
-            if (!m_enable) return;
+            if (!m_enable)
+                return;
             uint32_t dt=uint32_t(m_tick_meter.update()-m_begin_tick);
             if (dt<m_expend_limit)
                 return;
@@ -84,17 +93,17 @@ namespace rx
             m_enable=false;
         }
         //-------------------------------------------------
-        //ææ„å‡½æ•°,è®¡ç®—å‰åæ—¶é—´æ˜¯å¦è¶…è¿‡äº†é™å®šå€¼
+        //Îö¹¹º¯Êı,¼ÆËãÇ°ºóÊ±¼äÊÇ·ñ³¬¹ıÁËÏŞ¶¨Öµ
         virtual ~tdd_tick_t()
         {
             end();
         }
     protected:
-        virtual void on_output(const char* str){printf(str);}
+        virtual void on_output(const char* str) {printf(str);}
     };
 
     //-----------------------------------------------------
-    //è¿›è¡Œæ»´ç­”è®¡æ—¶çš„tabæ·±åº¦ç®¡ç†,åŒæ—¶ç®€åŒ–è¾“å‡ºæ—¶çš„å‚æ•°æ•°é‡
+    //½øĞĞµÎ´ğ¼ÆÊ±µÄtabÉî¶È¹ÜÀí,Í¬Ê±¼ò»¯Êä³öÊ±µÄ²ÎÊıÊıÁ¿
     template<class tt=tdd_tick_t<> >
     class tdd_tick_guard_t
     {
@@ -112,23 +121,23 @@ namespace rx
 
             ++m_tdd_tick.tab_deep();
         }
-        ~tdd_tick_guard_t(){--m_tdd_tick.tab_deep();}
+        ~tdd_tick_guard_t() {--m_tdd_tick.tab_deep();}
     };
 }
 
-    //-----------------------------------------------------
-    #define tdd_tt_enable true                              //é»˜è®¤tddè®¡æ—¶æ˜¯å¦å¼€å¯
-    #define tdd_tt_limit 0                                  //é»˜è®¤tddè®¡æ—¶çš„è¶…æ—¶é™å®šå€¼
+//-----------------------------------------------------
+#define tdd_tt_enable true                              //Ä¬ÈÏtdd¼ÆÊ±ÊÇ·ñ¿ªÆô
+#define tdd_tt_limit 0                                  //Ä¬ÈÏtdd¼ÆÊ±µÄ³¬Ê±ÏŞ¶¨Öµ
 
-    //ç”¨æ¥å®šä¹‰ä¸€ä¸ªttæ»´ç­”è®¡æ—¶å¯¹è±¡,å¯ä»¥ç»™å‡ºå®Œæ•´çš„å‚æ•°
-    #define tdd_tt_desc(sym,msg_a,msg_b,limit) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,limit,msg_a,msg_b,__FILE__,__LINE__)
-    //ç”¨äºç®€åŒ–å®šä¹‰ä¸€ä¸ªttæ»´ç­”è®¡æ—¶å¯¹è±¡,ç”¨æ—¶é™åˆ¶ä½¿ç”¨é»˜è®¤å€¼
-    #define tdd_tt(sym,msg_a,msg_b) tdd_tt_desc(sym,msg_a,msg_b,tdd_tt_limit)
-    //ç”¨äºç®€åŒ–å®šä¹‰ä¸€ä¸ªttæ»´ç­”è®¡æ—¶å¯¹è±¡çš„ä¸­é—´å¯åµŒå¥—è®¡æ—¶åŠ¨ä½œ
-    #define _tdd_tt_hit(sym,dis,fmt,...) rx::tdd_tick_guard_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,fmt,##__VA_ARGS__)
-    //ä¸­é—´å®å®šä¹‰,ä¸ºäº†è¿›è¡Œdisçš„å±•å¼€è½¬æ¢
-    #define _tdd_tt_hit_(sym,dis,fmt,...) _tdd_tt_hit(sym,dis,fmt,##__VA_ARGS__)
-    //å®šä¹‰rx_tdd_rtlå®,ç”¨äºä¾¿æ·çš„å»ºç«‹ä¸€ä¸ªæŒ‡å®šåå­—å’Œè¿è¡Œçº§çš„æµ‹è¯•ç”¨ä¾‹
-    #define tdd_tt_hit(sym,fmt,...) _tdd_tt_hit_(sym,RX_CT_SYM(sym),fmt,##__VA_ARGS__)
+//ÓÃÀ´¶¨ÒåÒ»¸öttµÎ´ğ¼ÆÊ±¶ÔÏó,¿ÉÒÔ¸ø³öÍêÕûµÄ²ÎÊı
+#define tdd_tt_desc(sym,msg_a,msg_b,limit) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,limit,msg_a,msg_b,__FILE__,__LINE__)
+//ÓÃÓÚ¼ò»¯¶¨ÒåÒ»¸öttµÎ´ğ¼ÆÊ±¶ÔÏó,ÓÃÊ±ÏŞÖÆÊ¹ÓÃÄ¬ÈÏÖµ
+#define tdd_tt(sym,msg_a,msg_b) tdd_tt_desc(sym,msg_a,msg_b,tdd_tt_limit)
+//ÓÃÓÚ¼ò»¯¶¨ÒåÒ»¸öttµÎ´ğ¼ÆÊ±¶ÔÏóµÄÖĞ¼ä¿ÉÇ¶Ì×¼ÆÊ±¶¯×÷
+#define _tdd_tt_hit(sym,dis,fmt,...) rx::tdd_tick_guard_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,fmt,##__VA_ARGS__)
+//ÖĞ¼äºê¶¨Òå,ÎªÁË½øĞĞdisµÄÕ¹¿ª×ª»»
+#define _tdd_tt_hit_(sym,dis,fmt,...) _tdd_tt_hit(sym,dis,fmt,##__VA_ARGS__)
+//¶¨Òårx_tdd_rtlºê,ÓÃÓÚ±ã½İµÄ½¨Á¢Ò»¸öÖ¸¶¨Ãû×ÖºÍÔËĞĞ¼¶µÄ²âÊÔÓÃÀı
+#define tdd_tt_hit(sym,fmt,...) _tdd_tt_hit_(sym,RX_CT_SYM(sym),fmt,##__VA_ARGS__)
 
 #endif

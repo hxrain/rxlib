@@ -1,4 +1,4 @@
-ï»¿#ifndef _RX_OS_SEM_H_
+#ifndef _RX_OS_SEM_H_
 #define _RX_OS_SEM_H_
 
 #include "rx_cc_macro.h"
@@ -6,19 +6,19 @@
 #include <limits.h>
 
 #if RX_OS_POSIX
-    #include <pthread.h>
-    #include <semaphore.h>
-    #include <memory.h>
-    #include <errno.h>
-    //-lpthread
+#include <pthread.h>
+#include <semaphore.h>
+#include <memory.h>
+#include <errno.h>
+//-lpthread
 #endif
 
 
 namespace rx
 {
-#if RX_OS_POSIX
+    #if RX_OS_POSIX
     //---------------------------------------------------------
-    //å¯¹SEMæ——æ ‡/ä¿¡å·é‡è¿›è¡Œå¯¹è±¡åŒ–åŠŸèƒ½å°è£…
+    //¶ÔSEMÆì±ê/ĞÅºÅÁ¿½øĞĞ¶ÔÏó»¯¹¦ÄÜ·â×°
     class semp_t
     {
         sem_t   m_handle;
@@ -28,14 +28,14 @@ namespace rx
         semp_t(uint32_t init_value) { memset(&m_handle, 0, sizeof(m_handle)); init(init_value); }
         ~semp_t() { uninit(); }
         //-----------------------------------------------------
-        //åˆå§‹åŒ–æ——æ ‡,å‘ŠçŸ¥åˆå§‹å€¼
+        //³õÊ¼»¯Æì±ê,¸æÖª³õÊ¼Öµ
         bool init(uint32_t init_value = 0) { return 0 == sem_init(&m_handle, 0, init_value); }
         //-----------------------------------------------------
-        //è§£é™¤æ——æ ‡åˆå§‹åŒ–
+        //½â³ıÆì±ê³õÊ¼»¯
         void uninit() { sem_destroy(&m_handle); }
         //-----------------------------------------------------
-        //è·å–è®¡æ•°,å¯è¿›è¡Œè¶…æ—¶ç­‰å¾…(æ¨¡æ‹Ÿæ–¹å¼,ä¸å¤ªç²¾ç¡®,æ€§èƒ½ä¹Ÿè¾ƒä½)
-        //è¿”å›å€¼:æ˜¯å¦æ­£ç¡®å–å¾—äº†è®¡æ•°
+        //»ñÈ¡¼ÆÊı,¿É½øĞĞ³¬Ê±µÈ´ı(Ä£Äâ·½Ê½,²»Ì«¾«È·,ĞÔÄÜÒ²½ÏµÍ)
+        //·µ»ØÖµ:ÊÇ·ñÕıÈ·È¡µÃÁË¼ÆÊı
         bool take(int wait_ms = -1)
         {
             if (wait_ms == 0)
@@ -43,7 +43,8 @@ namespace rx
             else if (wait_ms == -1)
                 return 0 == sem_wait(&m_handle);
             else
-            {//ä½¿ç”¨åŸç”Ÿè¶…æ—¶ç­‰å¾…å®¹æ˜“è¢«ç³»ç»Ÿæ—¶é—´çš„è°ƒæ•´å¹²æ­».
+            {
+                //Ê¹ÓÃÔ­Éú³¬Ê±µÈ´ıÈİÒ×±»ÏµÍ³Ê±¼äµÄµ÷Õû¸ÉËÀ.
                 for (int i = 0; i < wait_ms; ++i)
                 {
                     if (0 == sem_trywait(&m_handle))
@@ -56,25 +57,25 @@ namespace rx
             }
         }
         //-----------------------------------------------------
-        //æäº¤è®¡æ•°,å¯è§£é™¤å¯¹æ–¹çš„ç­‰å¾…
+        //Ìá½»¼ÆÊı,¿É½â³ı¶Ô·½µÄµÈ´ı
         bool post()
         {
             return 0 == sem_post(&m_handle);
         }
     };
-#elif RX_OS_WIN
+    #elif RX_OS_WIN
     //---------------------------------------------------------
-    //å¯¹SEMæ——æ ‡/ä¿¡å·é‡è¿›è¡Œå¯¹è±¡åŒ–åŠŸèƒ½å°è£…
+    //¶ÔSEMÆì±ê/ĞÅºÅÁ¿½øĞĞ¶ÔÏó»¯¹¦ÄÜ·â×°
     class semp_t
     {
         HANDLE      m_handle;
     public:
         //-----------------------------------------------------
-        semp_t():m_handle(NULL){}
+        semp_t():m_handle(NULL) {}
         semp_t(uint32_t init_value) :m_handle(NULL) {init(init_value); }
         ~semp_t() { uninit(); }
         //-----------------------------------------------------
-        //åˆå§‹åŒ–æ——æ ‡,å‘ŠçŸ¥åˆå§‹å€¼
+        //³õÊ¼»¯Æì±ê,¸æÖª³õÊ¼Öµ
         bool init(uint32_t init_value = 0)
         {
             rx_assert(m_handle == NULL);
@@ -82,11 +83,11 @@ namespace rx
             return NULL != m_handle;
         }
         //-----------------------------------------------------
-        //è§£é™¤æ——æ ‡åˆå§‹åŒ–
+        //½â³ıÆì±ê³õÊ¼»¯
         void uninit() {CloseHandle(m_handle); m_handle= NULL;}
         //-----------------------------------------------------
-        //è·å–è®¡æ•°,å¯è¿›è¡Œè¶…æ—¶ç­‰å¾…
-        //è¿”å›å€¼:æ˜¯å¦æ­£ç¡®å–å¾—äº†è®¡æ•°
+        //»ñÈ¡¼ÆÊı,¿É½øĞĞ³¬Ê±µÈ´ı
+        //·µ»ØÖµ:ÊÇ·ñÕıÈ·È¡µÃÁË¼ÆÊı
         bool take(int wait_ms = -1)
         {
             if (wait_ms == 0)
@@ -97,12 +98,12 @@ namespace rx
                 return WAIT_OBJECT_0 == WaitForSingleObject(m_handle, wait_ms);
         }
         //-----------------------------------------------------
-        //æäº¤è®¡æ•°,å¯è§£é™¤å¯¹æ–¹çš„ç­‰å¾…
+        //Ìá½»¼ÆÊı,¿É½â³ı¶Ô·½µÄµÈ´ı
         bool post()
         {
             return !!ReleaseSemaphore(m_handle,1,NULL);
         }
     };
-#endif
+    #endif
 }
 #endif // _HX_SEM_H_
