@@ -8,13 +8,13 @@
 //---------------------------------------------------------
 inline void str_util_base_1(rx_tdd_t &rt)
 {
-    uint8_t tmp1[5],tmp2[6],tmp3[7];
-    rt.tdd_assert(rx::make_tiny_string(tmp1,sizeof(tmp1),"123")==0);
-    rt.tdd_assert(rx::make_tiny_string(tmp2, sizeof(tmp2), "123") == 1);
-    rt.tdd_assert(rx::make_tiny_string(tmp3, sizeof(tmp3), "123") == 2);
-    rx::tiny_string_head_ct &a=*(rx::tiny_string_head_ct *)tmp1;
-    rx::tiny_string_head_ct &b=*(rx::tiny_string_head_ct *)tmp2;
-    rx::tiny_string_head_ct &c=*(rx::tiny_string_head_ct *)tmp3;
+    uint8_t tmp1[1+sizeof(rx::tiny_string_head_ct)],tmp2[2+sizeof(rx::tiny_string_head_ct)],tmp3[3+sizeof(rx::tiny_string_head_ct)];
+    rx::tiny_string_head_ct &a=*rx::make_tiny_string(tmp1, sizeof(tmp1), "123");
+    rx::tiny_string_head_ct &b=*rx::make_tiny_string(tmp2, sizeof(tmp2), "123");
+    rx::tiny_string_head_ct &c=*rx::make_tiny_string(tmp3, sizeof(tmp3), "123");
+    rt.tdd_assert(a.length() == 0);
+    rt.tdd_assert(b.length() == 1);
+    rt.tdd_assert(c.length() == 2);
     rt.tdd_assert(a < b);
     rt.tdd_assert(b < c);
     rt.tdd_assert(b <= c);
@@ -31,27 +31,21 @@ typedef struct tmp_tiny_str_t
 {
     int a;
     rx::tiny_string_head_ct s;
-    tmp_tiny_str_t(uint16_t c,const char* s):s(c,s){}
+    tmp_tiny_str_t(uint16_t c,char* s):s(c,s){}
 }tmp_tiny_str_t;
 #pragma pack(pop)
 
 inline void str_util_base_2(rx_tdd_t &rt)
 {
-    uint8_t buff[16];
+    uint8_t buff[8+sizeof(tmp_tiny_str_t)];
     uint16_t cap=uint16_t(sizeof(buff)-sizeof(tmp_tiny_str_t));
-    rx::ct::OC<tmp_tiny_str_t>((tmp_tiny_str_t*)buff,cap,"haha");
+    char *strbuf=(char*)buff+sizeof(tmp_tiny_str_t);
+    tmp_tiny_str_t &t=*rx::ct::OC<tmp_tiny_str_t>((tmp_tiny_str_t*)buff,cap,strbuf);
 
-#if RX_CC == RX_CC_GCC||RX_CC_MINGW
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#endif
-    const tmp_tiny_str_t &t=reinterpret_cast<tmp_tiny_str_t&>(buff);
-#if RX_CC == RX_CC_GCC||RX_CC_MINGW
-    #pragma GCC diagnostic pop
-#endif
+    t.s.set("haha");
 
     rt.tdd_assert(t.s=="haha");
-    rt.tdd_assert(strcmp((char*)buff+8,"haha")==0);
+    rt.tdd_assert(strcmp((char*)buff+sizeof(tmp_tiny_str_t),"haha")==0);
 }
 //---------------------------------------------------------
 namespace rx
