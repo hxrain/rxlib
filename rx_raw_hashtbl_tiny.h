@@ -6,10 +6,17 @@
 
 namespace rx
 {
+    //简单哈希表使用的节点比较器
+    class raw_hashtbl_cmp
+    {
+    public:
+        template<class VT,class KT>
+        static bool equ(const VT &v,const KT &k){return v==k;}
+    };
     //-----------------------------------------------------
     //简单的定长槽位哈希表,使用开地址方式进行冲突处理,用于简单的哈希搜索管理器,自身不进行任何内存管理.
     //-----------------------------------------------------
-    template<class val_t>
+    template<class NVT,class vkcmp=raw_hashtbl_cmp>
     class raw_hashtbl_t
     {
     public:
@@ -18,7 +25,7 @@ namespace rx
         typedef struct node_t
         {
             uint32_t    state;                              //记录当前节点是否被使用,0未使用;1正常被使用;>1哈希冲突序数(比如3就是在冲突点后第三个位置)
-            val_t       value;                              //哈希节点的value值
+            NVT         value;                              //哈希节点的value值
         } node_t;
     private:
         node_t         *m_nodes;                            //节点数组
@@ -59,7 +66,7 @@ namespace rx
                     ++m_using;
                     return &node;
                 }
-                else if (node.value==value)
+                else if (vkcmp::equ(node.value,value))
                     return &node;                           //该节点已经被使用了,且value也是重复的,那么就直接给出吧
             }
 
@@ -79,7 +86,7 @@ namespace rx
                 if (!node.state)
                     return NULL;                            //直接就碰到空档了,不用继续了
 
-                if (node.value==value)
+                if (vkcmp::equ(node.value,value))
                     return &node;                           //顺延后找到了
             }
 
@@ -91,8 +98,8 @@ namespace rx
         {
             if (!node|| node->state==0)
                 return false;
-            node->state=0;
-            --m_using;
+            node->state=0;                                  //删除动作仅仅是打标记
+            --m_using;                                      //计数器递减
             return true;
         }
         //-------------------------------------------------
@@ -107,10 +114,10 @@ namespace rx
     //-----------------------------------------------------
     //基于原始哈希表封装的轻量级集合容器
     //-----------------------------------------------------
-    template<class val_t,uint32_t max_set_size,class hash_t>
+    template<class val_t,uint32_t max_set_size,class hash_t,class vkcmp=raw_hashtbl_cmp>
     class tiny_set_t
     {
-        typedef raw_hashtbl_t<val_t> baseset_t;
+        typedef raw_hashtbl_t<val_t,vkcmp> baseset_t;
         typedef typename baseset_t::node_t node_t;
 
         hash_t      m_hash_func;                            //值处理的哈希函数适配器对象
@@ -131,14 +138,22 @@ namespace rx
         tiny_set_t() {m_base_sets.bind(m_nodes,max_set_size);}
         virtual ~tiny_set_t() {clear();}
         //-------------------------------------------------
-        //对外暴露hash函数包装对象,便于随时更换具体的哈希函数
+        //对外暴露hash函数包装对象,便于在实例化后更换具体的哈希函数
         hash_t& hash_func() const { return m_hash_func; }
         //-------------------------------------------------
-        //在集合中插入元素
-        bool insert(const val_t &val)
+        //在集合中插入元素,原始动作,没有记录真正的值
+        node_t *insert_raw(const val_t &val)
         {
             uint32_t hash_code = m_hash_func(val);
             node_t *node = m_base_sets.push(hash_code, val);
+            if (!node)
+                return NULL;
+            return node;
+        }
+        //在集合中插入元素
+        bool insert(const val_t &val)
+        {
+            node_t *node=insert_raw(val);
             if (!node)
                 return false;
             node->value = val;
@@ -153,15 +168,23 @@ namespace rx
             return node!=NULL;
         }
         //-------------------------------------------------
-        //删除元素
-        bool erase(const val_t &val)
+        //删除元素(做节点删除标记,没有处理真正的值)
+        node_t* erase_raw(const val_t &val)
         {
             uint32_t hash_code = m_hash_func(val);
             node_t *node = m_base_sets.find(hash_code, val);
             if (!node)
+                return NULL;
+            m_base_sets.remove(node);
+            return node;
+        }
+        bool erase(const val_t &val)
+        {
+            node_t *node = erase_raw(val);
+            if (!node)
                 return false;
-            node->value = 0;
-            return m_base_sets.remove(node);
+            node->value = 0;                                //删除值的动作默认就是置零
+            return true;
         }
         //-------------------------------------------------
         //最大节点数量
@@ -248,20 +271,33 @@ namespace rx
     template<class key_t,class val_t,uint32_t max_set_size,class hash_t>
     class tiny_hashtbl_t
     {
+        //-------------------------------------------------
+        //哈希表节点的内部结构,真正进行key与value的持有
         typedef struct node_val_t
         {
             key_t   key;
             val_t   val;
-            bool operator==(const key_t& k) {return key==k;}
         } node_val_t;
 
-        typedef raw_hashtbl_t<node_val_t> baseset_t;
+        //-------------------------------------------------
+        //哈希表使用的节点比较器
+        class hashtbl_cmp
+        {
+        public:
+            template<class VT,class KT>
+            static bool equ(const VT &v,const KT &k){return v.key==k;}
+        };
+
+        //-------------------------------------------------
+        typedef raw_hashtbl_t<node_val_t,hashtbl_cmp> baseset_t;
         typedef typename baseset_t::node_t node_t;
 
+        //-------------------------------------------------
         hash_t      m_hash_func;                            //值处理的哈希函数适配器对象
         baseset_t   m_base_sets;                            //底层哈希功能封装
         node_t      m_nodes[max_set_size];                  //真实的哈希表节点数组空间
 
+        //-------------------------------------------------
         //尝试找到pos的下一个有效的位置
         uint32_t m_next(uint32_t pos) const
         {
@@ -276,40 +312,8 @@ namespace rx
         tiny_hashtbl_t() {m_base_sets.bind(m_nodes,max_set_size);}
         virtual ~tiny_hashtbl_t() {clear();}
         //-------------------------------------------------
-        //对外暴露hash函数包装对象,便于随时更换具体的哈希函数
+        //对外暴露hash函数包装对象,便于在实例化后更换具体的哈希函数
         hash_t& hash_func() const { return m_hash_func; }
-        //-------------------------------------------------
-        //在集合中插入元素
-        bool insert(const key_t &key,const val_t &val)
-        {
-            uint32_t hash_code = m_hash_func(key);
-            node_t *node = m_base_sets.push(hash_code, key);
-            if (!node)
-                return false;
-            node->value.key = key;
-            node->value.val = val;
-            return true;
-        }
-        //-------------------------------------------------
-        //查找元素是否存在
-        bool find(const key_t &key) const
-        {
-            uint32_t hash_code = m_hash_func(key);
-            node_t *node = m_base_sets.find(hash_code, key);
-            return node!=NULL;
-        }
-        //-------------------------------------------------
-        //删除元素
-        bool erase(const key_t &key)
-        {
-            uint32_t hash_code = m_hash_func(key);
-            node_t *node = m_base_sets.find(hash_code, key);
-            if (!node)
-                return false;
-            node->value.key = 0;
-            node->value.val = 0;
-            return m_base_sets.remove(node);
-        }
         //-------------------------------------------------
         //最大节点数量
         uint32_t capacity() const { return m_base_sets.capacity(); }
@@ -322,8 +326,8 @@ namespace rx
         //定义简单的只读迭代器
         class iterator
         {
-            const tiny_hashtbl_t &m_set;
-            uint32_t        m_pos;
+            const tiny_hashtbl_t   &m_set;
+            uint32_t                m_pos;
             friend class tiny_hashtbl_t;
 
         public:
@@ -336,25 +340,27 @@ namespace rx
             //---------------------------------------------
             iterator& operator=(iterator &i) {m_set=i.m_set; m_pos=i.m_pos; return *this;}
             //---------------------------------------------
+            //*提领运算符重载,用于获取当前节点的val值
             const val_t& operator*() const
             {
                 rx_assert(m_pos<max_set_size&&m_set.m_nodes[m_pos].state);
                 return m_set.m_nodes[m_pos].value.val;
             }
             //---------------------------------------------
-            const key_t& key() const
+            //()运算符重载,用于获取当前节点的key值
+            const key_t& operator()() const
             {
                 rx_assert(m_pos<max_set_size&&m_set.m_nodes[m_pos].state);
                 return m_set.m_nodes[m_pos].value.key;
             }
             //---------------------------------------------
+            //节点指向后移
             iterator& operator++()
             {
                 m_pos=m_set.m_next(m_pos);                  //尝试找到下一个有效的位置
                 return reinterpret_cast<iterator&>(*this);
             }
         };
-
         //-------------------------------------------------
         //准备遍历集合,返回遍历的初始位置
         iterator begin() const
@@ -371,19 +377,75 @@ namespace rx
         //返回遍历的结束位置
         iterator end() const { return iterator(*this, max_set_size); }
         //-------------------------------------------------
+        //在集合中插入元素
+        node_t* insert_raw(const key_t &key)
+        {
+            uint32_t hash_code = m_hash_func(key);
+            node_t *node = m_base_sets.push(hash_code, key);
+            if (!node)
+                return NULL;
+            return node;
+        }
+        bool insert(const key_t &key,const val_t &val)
+        {
+            node_t *node = insert_raw(key);
+            if (!node)
+                return false;
+            node->value.key = key;
+            node->value.val = val;
+            return true;
+        }
+        //-------------------------------------------------
+        //查找元素是否存在
+        bool find(const key_t &key) const
+        {
+            uint32_t hash_code = m_hash_func(key);
+            node_t *node = m_base_sets.find(hash_code, key);
+            return node!=NULL;
+        }
+        //-------------------------------------------------
+        //删除元素
+        node_t* erase_raw(const key_t &key)
+        {
+            uint32_t hash_code = m_hash_func(key);
+            node_t *node = m_base_sets.find(hash_code, key);
+            if (!node)
+                return NULL;
+            m_base_sets.remove(node);
+            return node;
+        }
+        bool erase(const key_t &key)
+        {
+            node_t *node = erase_raw( key);
+            if (!node)
+                return false;
+            node->value.key = 0;
+            node->value.val = 0;
+            return true;
+        }
+
+
+        //-------------------------------------------------
         //删除指定位置的元素
         //返回值:是否删除了当前值
-        bool erase(iterator &i)
+        node_t* erase_raw(iterator &i)
         {
             rx_assert(i.m_pos<max_set_size && &i.m_set==this);
             if (i.m_pos>=max_set_size || &i.m_set!=this)
-                return false;
+                return NULL;
 
             node_t &node = m_nodes[i.m_pos];
-            node.value.key = 0;
-            node.value.val = 0;
             m_base_sets.remove(&node);
             ++i;
+            return &node;
+        }
+        bool erase(iterator &i)
+        {
+            node_t *node = erase_raw(i);
+            if (!node)
+                return false;
+            node->value.key = 0;
+            node->value.val = 0;
             return true;
         }
         //-------------------------------------------------

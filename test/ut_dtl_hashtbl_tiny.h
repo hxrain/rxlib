@@ -9,15 +9,15 @@
 namespace rx
 {
     const uint32_t tmp_hashtbl_tiny_msize=7;
-    inline void raw_hashtbl_tinyset_base_loop1(rx_tdd_t &rt,const uint32_set_t<tmp_hashtbl_tiny_msize>& s)
+    inline void raw_hashtbl_tinyset_base_loop1(rx_tdd_t &rt,const tiny_set_uint32_t<tmp_hashtbl_tiny_msize>& s)
     {
-        uint32_set_t<tmp_hashtbl_tiny_msize>::iterator i= s.begin();
+        tiny_set_uint32_t<tmp_hashtbl_tiny_msize>::iterator i= s.begin();
         for(;i!=s.end();++i)
             rt.tdd_assert(*i!=0);
     }
     inline void raw_hashtbl_tinyset_base_1(rx_tdd_t &rt)
     {
-        uint32_set_t<tmp_hashtbl_tiny_msize> s;
+        tiny_set_uint32_t<tmp_hashtbl_tiny_msize> s;
         rt.tdd_assert(s.capacity() == tmp_hashtbl_tiny_msize);
         rt.tdd_assert(s.size() == 0);
         rt.tdd_assert(s.collision() == 0);
@@ -53,16 +53,16 @@ namespace rx
         rt.tdd_assert(!s.find(2));
     }
 
-    inline void raw_hashtbl_tinytbl_base_loop1(rx_tdd_t &rt,const uint32_hashtbl_t<tmp_hashtbl_tiny_msize>& s)
+    inline void raw_hashtbl_tinytbl_base_loop1(rx_tdd_t &rt,const tiny_hashtbl_uint32_t<tmp_hashtbl_tiny_msize>& s)
     {
-        uint32_hashtbl_t<tmp_hashtbl_tiny_msize>::iterator i= s.begin();
+        tiny_hashtbl_uint32_t<tmp_hashtbl_tiny_msize>::iterator i= s.begin();
         for(;i!=s.end();++i)
-            rt.tdd_assert(*i!=0&&i.key()+1==*i);
+            rt.tdd_assert(*i!=0&&i()+1==*i);
     }
 
     inline void raw_hashtbl_tinytbl_base_1(rx_tdd_t &rt)
     {
-        uint32_hashtbl_t<tmp_hashtbl_tiny_msize> s;
+        tiny_hashtbl_uint32_t<tmp_hashtbl_tiny_msize> s;
         rt.tdd_assert(s.capacity() == tmp_hashtbl_tiny_msize);
         rt.tdd_assert(s.size() == 0);
         rt.tdd_assert(s.collision() == 0);
