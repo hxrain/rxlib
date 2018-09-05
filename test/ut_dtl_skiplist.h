@@ -22,19 +22,27 @@ namespace rx
         sl.insert(2,vals[2]);
 
         sl_node_t *n=sl.find(3);
-        rt.tdd_assert(n&&n->key==3&&n->obj==vals[3]);
+        rt.tdd_assert(n&&n->key==3&&n->val==vals[3]);
 
         n=sl.find(8);
-        rt.tdd_assert(n&&n->key==8&&n->obj==vals[8]);
+        rt.tdd_assert(n&&n->key==8&&n->val==vals[8]);
 
         sl.print();
 
         n=sl.find(5);
-        rt.tdd_assert(n&&n->key==5&&n->obj==vals[5]);
-        sl.remove(5);
+        rt.tdd_assert(n&&n->key==5&&n->val==vals[5]);
+        rt.tdd_assert(sl.remove(5));
         n=sl.find(5);
         rt.tdd_assert(n==NULL);
-        sl.remove(1);
+        rt.tdd_assert(!sl.remove(1));
+        rt.tdd_assert(!sl.insert(3,vals[4]));
+
+        sl.print();
+        n=sl.find(3);
+        rt.tdd_assert(n&&n->key==3&&n->val==vals[3]);
+        n=sl.find(2);
+        rt.tdd_assert(n&&n->key==2&&n->val==vals[2]);
+
         sl.uninit();
     }
 }
