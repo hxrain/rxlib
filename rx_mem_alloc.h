@@ -41,12 +41,12 @@ namespace rx
 
         //-------------------------------------------------
         //对象与数组的分配构造基础语句,可复用.
-#define __DESC_NEW_BASE__   \
-    uint32_t MemSize=0;     \
-    uint8_t *R=(uint8_t*)base_alloc(MemSize,sizeof(VT)*Count+alloc_cookie_t::cookie_size);\
-    if (R==NULL) return NULL;                                       \
-    alloc_cookie_t::set(R,Count,MemSize);                           \
-    VT* Ret=(VT*)(R+alloc_cookie_t::cookie_size);                   \
+        #define __DESC_NEW_BASE__   \
+            uint32_t MemSize=0;     \
+            uint8_t *R=(uint8_t*)base_alloc(MemSize,sizeof(VT)*Count+alloc_cookie_t::cookie_size);\
+            if (R==NULL) return NULL;                                       \
+            alloc_cookie_t::set(R,Count,MemSize);                           \
+            VT* Ret=(VT*)(R+alloc_cookie_t::cookie_size);                   \
 
         mem_allotter_i& operator=(const mem_allotter_i&);
     public:

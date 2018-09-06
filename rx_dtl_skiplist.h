@@ -21,14 +21,14 @@ namespace rx
     #define MAX_LEVEL 4
 
     //---------------------------------------------------------
-    class raw_skiplist_t
+    class tmp_skiplist_t
     {
         uint32_t        m_levels;                           //当前已经使用的最高层数
         sl_node_t       *m_head;                            //指向头结点
 
         //-----------------------------------------------------
         //根据给定的层数动态创建节点,并记录key与val
-        static sl_node_t *create_node(uint32_t level, const key_t &key, const val_t& val)
+        static sl_node_t *m_make_node(uint32_t level, const key_t &key, const val_t& val)
         {
             sl_node_t *node = (sl_node_t *)malloc(sizeof(sl_node_t) + (level-1) * sizeof(sl_node_t *));
             node->val = val;
@@ -97,10 +97,10 @@ namespace rx
         }
     public:
         //-----------------------------------------------------
-        raw_skiplist_t()
+        tmp_skiplist_t()
         {
             m_levels = 1;                                   //跳表的初始层数只有1层
-            m_head = create_node(MAX_LEVEL, 0, 0);
+            m_head = m_make_node(MAX_LEVEL, 0, 0);
         }
 
         //-----------------------------------------------------
@@ -128,7 +128,7 @@ namespace rx
                 return false;                               //key已存在且不允许重复出现,则返回
 
             uint32_t level = random_level();                //生成一个随机的层数
-            sl_node_t *node = create_node(level, key, val); //创建含有这些层数的新节点
+            sl_node_t *node = m_make_node(level, key, val); //创建含有这些层数的新节点
             if (!node)
                 return false;
 

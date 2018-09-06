@@ -28,48 +28,52 @@ inline void rx_show_msg(const char* Msg,...)
     vsnprintf(Txt,sizeof(Txt), Msg, ap);
     va_end(ap);
 
-    #ifdef RX_IS_CONSOLE
-    printf("%s\r\n",Txt);
+    #if defined(RX_IS_CONSOLE) && RX_IS_CONSOLE
+        printf("%s\r\n",Txt);
     #elif RX_OS_WIN
-    MessageBoxA(NULL,Txt,"Message",MB_OK);
+        MessageBoxA(NULL,Txt,"Message",MB_OK);
     #else
-    printf("%s\r\n",Txt);
+        printf("%s\r\n",Txt);
     #endif
 }
 
-#if defined(RX_USE_ASSERT)
-static inline void _rx_assert(bool R,int LineNo,const char *File,const char *Msg,bool IsAlert=false)
+//---------------------------------------------------------
+//统一的断言判断处理函数
+inline void rx_assert_fun(bool R,int LineNo,const char *File,const char *Msg,bool IsAlert=false)
 {
     if (R)
         return;
-    char Buf[1024];
+
     const char* Tip=IsAlert?"debug":"assert";
     if (Msg==NULL||Msg[0]==0)
-        snprintf(Buf,sizeof(Buf),"file <%s>\r\nline <%d>\r\n%s!\r\n",File,LineNo,Tip);
+        rx_show_msg("file <%s>\r\nline <%d>\r\n%s!\r\n",File,LineNo,Tip);
     else
-        snprintf(Buf,sizeof(Buf),"file <%s>\r\nline <%d>\r\n%s!\r\ninfo <%s>",File,LineNo,Tip,Msg);
-    #ifdef WIN32
-    MessageBoxA(NULL,Buf,Tip,MB_OK);
-    R=R;
-    #else
-    printf("%s!%s\r\n按回车键继续\r\n",Tip,Buf);
-    getchar();
+        rx_show_msg("file <%s>\r\nline <%d>\r\n%s!\r\ninfo <%s>",File,LineNo,Tip,Msg);
+
+    #if RX_IS_CONSOLE
+        printf("按回车键继续\r\n");
+        getchar();
     #endif
+
+    R=!!R;                                                  //便于设置断点使用的临时语句.出现断言后在这里设置断点,然后再进行键盘动作即可.
 }
 
-#define rx_assert(R)            _rx_assert((R),__LINE__,__FILE__,"")
-#define rx_assert_msg(R,Msg)    _rx_assert((R),__LINE__,__FILE__,Msg)
-#define rx_alert(Msg)           _rx_assert(0,__LINE__,__FILE__,Msg,true)
-//检查结果,要求为真
-#define rx_check(R)             rx_assert(R)
+#if defined(RX_USE_ASSERT)
+    #define rx_assert(R)            rx_assert_fun((R),__LINE__,__FILE__,"")
+    #define rx_assert_msg(R,Msg)    rx_assert_fun((R),__LINE__,__FILE__,Msg)
+    #define rx_alert(Msg)           rx_assert_fun(false,__LINE__,__FILE__,Msg,true)
+    //检查结果,要求为真
+    #define rx_check(R)             rx_assert(R)
 #else
-static inline void _rx_assert() {}
-#define rx_assert(R)            _rx_assert()
-#define rx_assert_msg(R,Msg)    _rx_assert()
-#define rx_alert(Msg)           _rx_assert()
-//检查结果,为了执行检查表达式
-#define rx_check(R)             (R)
+    #define rx_assert(R)            {}
+    #define rx_assert_msg(R,Msg)    {}
+    #define rx_alert(Msg)           {}
+    //检查结果,为了执行检查表达式
+    #define rx_check(R)             (R)
 #endif
+
+//运行时失败提示
+#define rx_fail(R) rx_assert_fun((R),__LINE__,__FILE__,"RX RUNTIME FAIL CHECK!")
 
 //断言条件判断,如果C成立,则要求R也成立.
 #define rx_assert_if(C,R) rx_assert(((C)?(R):true))

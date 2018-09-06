@@ -6,6 +6,7 @@
 
 namespace rx
 {
+    //-----------------------------------------------------
     //简单哈希表使用的节点比较器
     class raw_hashtbl_cmp
     {
@@ -289,12 +290,12 @@ namespace rx
         };
 
         //-------------------------------------------------
-        typedef raw_hashtbl_t<node_val_t,hashtbl_cmp> baseset_t;
-        typedef typename baseset_t::node_t node_t;
+        typedef raw_hashtbl_t<node_val_t,hashtbl_cmp> raw_tbl_t;
+        typedef typename raw_tbl_t::node_t node_t;
 
         //-------------------------------------------------
         hash_t      m_hash_func;                            //值处理的哈希函数适配器对象
-        baseset_t   m_base_sets;                            //底层哈希功能封装
+        raw_tbl_t   m_base_sets;                            //底层哈希功能封装
         node_t      m_nodes[max_set_size];                  //真实的哈希表节点数组空间
 
         //-------------------------------------------------

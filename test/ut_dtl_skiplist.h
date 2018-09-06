@@ -14,7 +14,7 @@ namespace rx
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        raw_skiplist_t sl;
+        tmp_skiplist_t sl;
         sl.insert(3,vals[3]);
         sl.insert(8,vals[8]);
         sl.insert(5,vals[5]);
