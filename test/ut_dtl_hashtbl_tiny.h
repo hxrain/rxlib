@@ -3,21 +3,21 @@
 
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
-#include "../rx_raw_hashtbl_tiny.h"
+#include "../rx_raw_hashtbl.h"
 #include "../rx_dtl_hashtbl_tiny.h"
 
 namespace rx
 {
     const uint32_t tmp_hashtbl_tiny_msize=7;
-    inline void raw_hashtbl_tinyset_base_loop1(rx_tdd_t &rt,const tiny_set_uint32_t<tmp_hashtbl_tiny_msize>& s)
+    inline void raw_hashtbl_tinyset_base_loop1(rx_tdd_t &rt,const tiny_hashset_uint32_t<tmp_hashtbl_tiny_msize>& s)
     {
-        tiny_set_uint32_t<tmp_hashtbl_tiny_msize>::iterator i= s.begin();
+        tiny_hashset_uint32_t<tmp_hashtbl_tiny_msize>::iterator i= s.begin();
         for(;i!=s.end();++i)
             rt.tdd_assert(*i!=0);
     }
     inline void raw_hashtbl_tinyset_base_1(rx_tdd_t &rt)
     {
-        tiny_set_uint32_t<tmp_hashtbl_tiny_msize> s;
+        tiny_hashset_uint32_t<tmp_hashtbl_tiny_msize> s;
         rt.tdd_assert(s.capacity() == tmp_hashtbl_tiny_msize);
         rt.tdd_assert(s.size() == 0);
         rt.tdd_assert(s.collision() == 0);

@@ -5,7 +5,7 @@
 
 #include "../ut_dtl_hashtbl_tiny.h"
 #include "../../rx_dtl_hashtbl_tiny.h"
-#include "../../rx_raw_hashtbl_tiny.h"
+#include "../../rx_raw_hashtbl.h"
 
 #include "../ut_str_util.h"
 #include "../../rx_str_tiny.h"
