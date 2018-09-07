@@ -3,6 +3,9 @@
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
 
+//本文件封装了raw_stack_t与raw_queue_t,但都可以当做单向链表使用.
+//raw_queue_t维护了尾节点指针,所以可以直接访问最后的节点.
+
 namespace rx
 {
     /*
@@ -13,7 +16,7 @@ namespace rx
         }raw_stack_node_t;
     */
     //-----------------------------------------------------
-    //Raw Stack:原始的栈(或单向list),保持最简形式,不用管理内存
+    //Raw Stack:原始的栈(或单向list),保持最简形式,不管理内存
     //要求node_t节点类型中至少含有一个后趋指针next
     template<class node_t>
     class raw_stack_t
@@ -40,20 +43,20 @@ namespace rx
         }
         //-------------------------------------------------
         //查看栈顶(链表头)
-        node_t* peek() const {return (node_t*)m_head;}
+        node_t* head() const {return m_head;}
         //-------------------------------------------------
         //节点入栈(在头节点前插入,变成新的头)
-        void push(node_t *new_node)
+        void push_front(node_t *new_node)
         {
             new_node->next = m_head;
             m_head=new_node;
             ++m_count;
         }
-        void push(node_t &new_node) {push(&new_node);}
+        void push_front(node_t &new_node) {push_front(&new_node);}
         //-------------------------------------------------
         //弹出(头结点摘除,后趋变为新节点)
         //(不进行空栈检测,外面使用前需要进行检查)
-        node_t* pop()
+        node_t* pop_front()
         {
             rx_assert(m_count!=0);
             node_t *now_top=m_head;
@@ -66,11 +69,11 @@ namespace rx
 
     //-----------------------------------------------------
     //Raw List:原始的单向list(或queue),保持最简形式,不用管理内存
-    //要求node_t节点类型中至少含有一个后趋指针next
+    //要求node_t节点类型中需含有一个后趋指针next
     template<class node_t>
-    class raw_list_t
+    class raw_queue_t
     {
-        raw_list_t& operator=(const raw_list_t&);
+        raw_queue_t& operator=(const raw_queue_t&);
     private:
         node_t                 *m_head;	            //链表头指针
         node_t                 *m_tail;             //链表尾指针
@@ -78,7 +81,7 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造函数
-        raw_list_t():m_head(NULL),m_tail(NULL),m_count(0) {}
+        raw_queue_t():m_head(NULL),m_tail(NULL),m_count(0) {}
         //-------------------------------------------------
         //元素数量
         uint32_t size() const {return m_count;}
@@ -94,7 +97,8 @@ namespace rx
         }
         //-------------------------------------------------
         //查看链表头或尾
-        node_t* peek(bool is_tail=false) const {return is_tail?m_tail:(node_t*)m_head;}
+        node_t* head() const {return m_head;}
+        node_t* tail() const {return m_tail;}
         //-------------------------------------------------
         //节点挂入尾部(变成新的尾节点)
         void push_back(node_t *new_node)

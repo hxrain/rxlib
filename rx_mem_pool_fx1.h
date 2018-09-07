@@ -4,7 +4,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_mem_pool.h"
-#include "rx_raw_stack.h"
+#include "rx_raw_list.h"
 #include "rx_assert.h"
 
 
@@ -34,7 +34,7 @@ namespace rx
 
         //-------------------------------------------------
         raw_stack_t<mp_block_t>   m_free_blocks;            //可用内存块链表
-        raw_stack_t<mp_stripes_t> m_stripes;                //已经分配出的内存条链表
+        raw_stack_t<mp_stripes_t> m_used_stripes;           //已经分配出的内存条链表
 
         uint32_t         m_block_size;                      //每个内存块可用的空间尺寸,初始确定,不会再次改变
         uint32_t         m_per_stripe_blocks;               //每个内存条中的内存块数量,初始确定,不会再次改变
@@ -49,30 +49,30 @@ namespace rx
             rx_assert(new_stripe!=NULL);
             rx_static_assert(sizeof(mp_stripes_t)<=CT::MaxNodeSize);
 
-            mp_stripes_t *sp=m_stripes.peek();
+            mp_stripes_t *sp=m_used_stripes.head();
             if (!sp||sp->count==sp->total)
             {
                 //如果当期的内存条记录块不在或满了,则分配新内存块进行记录
                 sp=(mp_stripes_t*)base_alloc(unset,CT::MaxNodeSize);
                 rx_assert(sp!=NULL);
                 memset(sp,0,sizeof(mp_stripes_t));
-                m_stripes.push(sp);
+                m_used_stripes.push_front(sp);
             }
             sp->ptrs[sp->count++]=new_stripe;
 
             for(uint32_t i=0; i<m_per_stripe_blocks; i++)   //将新条中的各个新块放入自由块链
-                m_free_blocks.push((mp_block_t*)&new_stripe[i*m_block_size]);
+                m_free_blocks.push_front((mp_block_t*)&new_stripe[i*m_block_size]);
             return true;
         }
         //-------------------------------------------------
         //分配一块固定大小(NS)的内存块
         void* m_alloc_block()
         {
-            if (m_free_blocks.peek())
-                return m_free_blocks.pop();                 //直接从可用块链中获取一个块
+            if (m_free_blocks.head())
+                return m_free_blocks.pop_front();           //直接从可用块链中获取一个块
             if (!m_alloc_stripe())
-                return NULL;             //否则就新分配一批,分配失败说明物理内存不足
-            return (void*)m_free_blocks.pop();              //再次尝试从可用块链中获取一个块并返回
+                return NULL;                                //否则就新分配一批.分配失败说明物理内存不足
+            return (void*)m_free_blocks.pop_front();        //再次尝试从可用块链中获取一个块并返回
         }
         //-------------------------------------------------
         //清理函数,释放内部所有的内存条给物理池,将内部变为最初的样子,可以重新开始
@@ -80,9 +80,9 @@ namespace rx
         {
             m_free_blocks.pick();                           //清空自由块链
 
-            while(m_stripes.size())
+            while(m_used_stripes.size())
             {
-                mp_stripes_t *sp=m_stripes.pop();
+                mp_stripes_t *sp=m_used_stripes.pop_front();
                 for(uint32_t i=0; i<sp->count; ++i)
                     base_free(sp->ptrs[i]);
                 base_free(sp);
@@ -145,7 +145,7 @@ namespace rx
         {
             rx_assert(p!=NULL);
             rx_assert(unused == 0 || unused == m_block_size);
-            m_free_blocks.push((mp_block_t*)p);
+            m_free_blocks.push_front((mp_block_t*)p);
         }
     };
 }

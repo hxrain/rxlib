@@ -15,54 +15,54 @@ inline void test_raw_list_1(rx_tdd_t &rt)
 {
     tmp_raw_stack_node_t *node;
     tmp_raw_stack_node_t tmp[3];
-    rx::raw_list_t<tmp_raw_stack_node_t> list;
+    rx::raw_queue_t<tmp_raw_stack_node_t> list;
     for(int i=0;i<3;++i)
         tmp[i].tmp_value=i;
 
     rt.tdd_assert(list.size()==0);
-    rt.tdd_assert(list.peek()==NULL);
-    rt.tdd_assert(list.peek(true)==NULL);
+    rt.tdd_assert(list.head()==NULL);
+    rt.tdd_assert(list.tail()==NULL);
 
     list.push_back(tmp[0]);
     rt.tdd_assert(list.size()==1);
-    rt.tdd_assert(list.peek()==list.peek(true));
-    rt.tdd_assert(list.peek(true)->next==NULL);
-    rt.tdd_assert(list.peek(true)->tmp_value==0);
+    rt.tdd_assert(list.head()==list.tail());
+    rt.tdd_assert(list.tail()->next==NULL);
+    rt.tdd_assert(list.tail()->tmp_value==0);
 
     list.push_back(tmp[1]);
     rt.tdd_assert(list.size()==2);
-    rt.tdd_assert(list.peek()!=list.peek(true));
-    rt.tdd_assert(list.peek()->next==list.peek(true));
-    rt.tdd_assert(list.peek(true)->next==NULL);
-    rt.tdd_assert(list.peek(true)->tmp_value==1);
+    rt.tdd_assert(list.head()!=list.tail());
+    rt.tdd_assert(list.head()->next==list.tail());
+    rt.tdd_assert(list.tail()->next==NULL);
+    rt.tdd_assert(list.tail()->tmp_value==1);
 
     list.push_front(tmp[2]);
     rt.tdd_assert(list.size()==3);
-    rt.tdd_assert(list.peek()!=list.peek(true));
-    rt.tdd_assert(list.peek()->next->next==list.peek(true));
-    rt.tdd_assert(list.peek(true)->next==NULL);
-    rt.tdd_assert(list.peek()->tmp_value==2);
+    rt.tdd_assert(list.head()!=list.tail());
+    rt.tdd_assert(list.head()->next->next==list.tail());
+    rt.tdd_assert(list.tail()->next==NULL);
+    rt.tdd_assert(list.head()->tmp_value==2);
 
     node=list.pop_front();
     rt.tdd_assert(node->tmp_value==2);
     rt.tdd_assert(list.size()==2);
-    rt.tdd_assert(list.peek()->next==list.peek(true));
-    rt.tdd_assert(list.peek(true)->next==NULL);
-    rt.tdd_assert(list.peek()->tmp_value==0);
+    rt.tdd_assert(list.head()->next==list.tail());
+    rt.tdd_assert(list.tail()->next==NULL);
+    rt.tdd_assert(list.head()->tmp_value==0);
 
     node=list.pop_front();
     rt.tdd_assert(node->tmp_value==0);
     rt.tdd_assert(list.size()==1);
-    rt.tdd_assert(list.peek()==list.peek(true));
-    rt.tdd_assert(list.peek(true)->next==NULL);
-    rt.tdd_assert(list.peek()->tmp_value==1);
+    rt.tdd_assert(list.head()==list.tail());
+    rt.tdd_assert(list.tail()->next==NULL);
+    rt.tdd_assert(list.head()->tmp_value==1);
 
     node=list.pop_front();
     rt.tdd_assert(node->tmp_value==1);
     rt.tdd_assert(list.size()==0);
-    rt.tdd_assert(list.peek()==list.peek(true));
-    rt.tdd_assert(list.peek(true)==NULL);
-    rt.tdd_assert(list.peek()==NULL);
+    rt.tdd_assert(list.head()==list.tail());
+    rt.tdd_assert(list.tail()==NULL);
+    rt.tdd_assert(list.head()==NULL);
 
 }
 //---------------------------------------------------------
@@ -75,28 +75,28 @@ inline void test_raw_stack_1(rx_tdd_t &rt)
         tmp[i].tmp_value=i;
 
     rt.tdd_assert(stack.size()==0);
-    rt.tdd_assert(stack.peek()==NULL);
+    rt.tdd_assert(stack.head()==NULL);
 
-    stack.push(tmp[0]);
+    stack.push_front(tmp[0]);
     rt.tdd_assert(stack.size()==1);
-    rt.tdd_assert(stack.peek()!=NULL);
-    rt.tdd_assert(stack.peek()->next==NULL);
-    rt.tdd_assert(stack.peek()->tmp_value==0);
+    rt.tdd_assert(stack.head()!=NULL);
+    rt.tdd_assert(stack.head()->next==NULL);
+    rt.tdd_assert(stack.head()->tmp_value==0);
 
-    stack.push(tmp[1]);
+    stack.push_front(tmp[1]);
     rt.tdd_assert(stack.size()==2);
-    rt.tdd_assert(stack.peek()->next==&tmp[0]);
-    rt.tdd_assert(stack.peek()->tmp_value==1);
+    rt.tdd_assert(stack.head()->next==&tmp[0]);
+    rt.tdd_assert(stack.head()->tmp_value==1);
 
-    node=stack.pop();
+    node=stack.pop_front();
     rt.tdd_assert(node->tmp_value==1);
     rt.tdd_assert(stack.size()==1);
-    rt.tdd_assert(stack.peek()->next==NULL);
+    rt.tdd_assert(stack.head()->next==NULL);
 
-    node=stack.pop();
+    node=stack.pop_front();
     rt.tdd_assert(node->tmp_value==0);
     rt.tdd_assert(stack.size()==0);
-    rt.tdd_assert(stack.peek()==NULL);
+    rt.tdd_assert(stack.head()==NULL);
 
 }
 //---------------------------------------------------------

@@ -51,7 +51,7 @@
 
 #include "../ut_mem_pool.h"
 #include "../../rx_mem_pool_fx1.h"
-#include "../../rx_raw_stack.h"
+#include "../../rx_raw_list.h"
 #include "../../rx_mem_pool.h"
 
 
