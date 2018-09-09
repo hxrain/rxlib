@@ -7,7 +7,7 @@
 
 namespace rx
 {
-
+    /*
     //原始跳表的节点类型(示例:key与val可以是任意名字,val也可以不存在,只要对外接口语义正确即可)
     template<class key_t,class val_t>
     struct raw_skiplist_node_t
@@ -29,7 +29,7 @@ namespace rx
         val_t  val;
         struct raw_skiplist_node_t *next[1];                //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
     };
-
+    */
 
     //---------------------------------------------------------
     //定义原始的跳表容器基类
@@ -94,14 +94,26 @@ namespace rx
             for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
             {//从最高层逐层降级查找,就是skiplist的算法精髓核心
                 while (node->next[lvl] &&                   //如果当前节点有后趋
-                        node_t::cmp(*node->next[lvl],key)<0) //并且当前节点的后趋小于key(说明key还应该往后放)
-                    node = node->next[lvl];                 //则当前节点后移,准备继续查找
+                       node_t::cmp(*node->next[lvl],key)<0) //并且当前节点的后趋小于key(说明key还应该往后放)
+                       node = node->next[lvl];              //则当前节点后移,准备继续查找
                 update[lvl] = node;                         //当前层查找结束了,记录当前节点为指定key位置的前趋
             }
             return node;
         }
-
-
+        //查找指定节点n在每层对应的前趋,并记到update中
+        //返回值:n对应的最底层的前趋节点
+        node_t *m_find_prv(const node_t *n, node_t **update)
+        {
+            node_t  *node = m_head;                         //从头节点开始向后查找
+            for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
+            {//从最高层逐层降级查找,就是skiplist的算法精髓核心
+                while (node->next[lvl] &&                   //如果当前节点有后趋
+                       node->next[lvl]!=n)                  //并且当前节点的后趋不是n(说明n还应该往后放)
+                       node = node->next[lvl];              //则当前节点后移,准备继续查找
+                update[lvl] = node;                         //当前层查找结束了,记录当前节点为指定key位置的前趋
+            }
+            return node;
+        }
     public:
         //-----------------------------------------------------
         raw_skiplist_t(mem_allotter_i &ma,rand_i &rnd):m_mem(ma),m_rnd(rnd)
@@ -183,6 +195,24 @@ namespace rx
             return false;
         }
 
+        bool earse(node_t *n)
+        {
+            node_t *update[MAX_LEVEL];                      //用于临时记录当前节点操作时,对应的各层前趋节点
+            node_t *node = m_find_prv(n,update)->next[0];   //查找指定节点n对应的各层前趋,并尝试得到对应的节点
+            if (node == n)
+            {//如果对应节点存在且相同,则说明找到了此节点
+                m_pick(node, update);                       //摘除指定的节点(进行节点各层前趋的调整)
+                if (node==m_tail)
+                    m_tail=update[0];                       //如果删除的节点就是尾节点,则尾节点指向其前趋
+                ct::OD(node);                               //节点析构
+                m_mem.free(node);                           //节点内存释放
+                --m_count;                                  //跳表计数减少
+                rx_assert_if(m_count==0,m_tail==NULL);
+                rx_assert_if(m_count!=0,m_tail!=NULL);
+                return true;
+            }
+            return false;
+        }
         //-----------------------------------------------------
         //查找指定key对应的节点
         template<class key_t>

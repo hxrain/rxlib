@@ -10,17 +10,34 @@
 namespace rx
 {
     //-----------------------------------------------------
+    //基础的哈希函数功能封装
+    class tiny_hash_fun
+    {
+    public:
+        template<class KT>
+        static uint32_t hash(const KT &k){return rx_hash_murmur(&k,sizeof(k));}
+
+        static uint32_t hash(const uint32_t &k){return rx_hash_skeeto_triple(k);}
+    };
+
+    //-----------------------------------------------------
     //简单哈希集使用的节点比较器
-    template<class hashfun_t>
-    class tiny_hashset_cmp
+    class tiny_hashset_cmp:public tiny_hash_fun
     {
     public:
         template<class NVT,class KT>
         static bool equ(const NVT &n,const KT &k){return n==k;}
-
-        template<class KT>
-        static uint32_t hash(const KT &k){return hashfun_t::hash(k);}
     };
+
+    //-----------------------------------------------------
+    //简单哈希表使用的节点比较器
+    class tiny_hashtbl_cmp:public tiny_hash_fun
+    {
+    public:
+        template<class NVT,class KT>
+        static bool equ(const NVT &n,const KT &k){return n.key==k;}
+    };
+
     //-----------------------------------------------------
     //基于原始哈希表封装的轻量级集合容器
     //-----------------------------------------------------
@@ -33,11 +50,17 @@ namespace rx
         baseset_t   m_basetbl;                              //底层哈希功能封装
         node_t      m_nodes[max_set_size];                  //真实的哈希表节点数组空间
 
-    public:
         //-------------------------------------------------
-        //构造的时候绑定节点空间
-        tiny_hashset_t() {m_basetbl.bind(m_nodes,max_set_size);}
-        virtual ~tiny_hashset_t() {clear();}
+        //删除元素(做节点删除标记,没有处理真正的值)
+        node_t* erase_raw(const val_t &val)
+        {
+            uint32_t hash_code = vkcmp::hash(val);
+            node_t *node = m_basetbl.find(hash_code, val);
+            if (!node)
+                return NULL;
+            m_basetbl.remove(node);
+            return node;
+        }
         //-------------------------------------------------
         //在集合中插入元素,原始动作,没有记录真正的值
         node_t *insert_raw(const val_t &val)
@@ -48,6 +71,12 @@ namespace rx
                 return NULL;
             return node;
         }
+    public:
+        //-------------------------------------------------
+        //构造的时候绑定节点空间
+        tiny_hashset_t() {m_basetbl.bind(m_nodes,max_set_size);}
+        virtual ~tiny_hashset_t() {clear();}
+        //-------------------------------------------------
         //在集合中插入元素并赋值构造
         bool insert(const val_t &val)
         {
@@ -66,16 +95,6 @@ namespace rx
             return node!=NULL;
         }
         //-------------------------------------------------
-        //删除元素(做节点删除标记,没有处理真正的值)
-        node_t* erase_raw(const val_t &val)
-        {
-            uint32_t hash_code = vkcmp::hash(val);
-            node_t *node = m_basetbl.find(hash_code, val);
-            if (!node)
-                return NULL;
-            m_basetbl.remove(node);
-            return node;
-        }
         //删除元素并默认析构
         bool erase(const val_t &val)
         {
@@ -155,18 +174,6 @@ namespace rx
     };
 
     //-----------------------------------------------------
-    //简单哈希表使用的节点比较器
-    template<class hashfun_t>
-    class tiny_hashtbl_cmp
-    {
-    public:
-        template<class NVT,class KT>
-        static bool equ(const NVT &n,const KT &k){return n.key==k;}
-
-        template<class KT>
-        static uint32_t hash(const KT &k){return hashfun_t::hash(k);}
-    };
-    //-----------------------------------------------------
     //基于原始哈希表封装的轻量级哈希表容器
     //-----------------------------------------------------
     template<class key_t,class val_t,uint32_t max_set_size,class vkcmp>
@@ -240,13 +247,13 @@ namespace rx
             }
         };
         //-------------------------------------------------
-        //准备遍历集合,返回遍历的初始位置
+        //准备遍历哈希表,返回遍历的初始位置
         iterator begin() const {return iterator(*this, m_basetbl.next(-1));}
         //-------------------------------------------------
         //返回遍历的结束位置
         iterator end() const { return iterator(*this, max_set_size); }
         //-------------------------------------------------
-        //在集合中插入元素
+        //在哈希表中插入元素
         node_t* insert_raw(const key_t &key)
         {
             uint32_t hash_code = vkcmp::hash(key);
@@ -326,38 +333,17 @@ namespace rx
         }
     };
 
-
-
     //-----------------------------------------------------
-    //简单哈希表的哈希函数适配器(默认的通用型)
-    template<class val_t>
-    class hashfunc_adaptor_t
-    {
-    public:
-        //对给定的值进行真正的哈希值计算
-        static uint32_t hash(const val_t& val) { return rx_hash_murmur(val,sizeof(val)); }
-    };
-    //-----------------------------------------------------
-    //简单哈希表的哈希函数适配器(针对整型数的偏特化版本)
-    template<>
-    class hashfunc_adaptor_t<uint32_t>
-    {
-    public:
-        //进行整数哈希值的计算
-        static uint32_t hash(const uint32_t& val) { return rx_hash_skeeto_triple(val); }
-    };
-
-    //-----------------------------------------------------
-    //进行key类型/value类型/hash函数适配器的组装后,得到最终便于使用的哈希表类型.
+    //进行key类型/value类型/cmp比较器的组装后,得到最终便于使用的哈希表类型.
     //下面用uint32_t进行两个示范类的预定义
     //-----------------------------------------------------
     //uint32_t类型的轻量级集合
     template<uint32_t max_set_size>
-    class tiny_hashset_uint32_t :public tiny_hashset_t<uint32_t, max_set_size, tiny_hashset_cmp<hashfunc_adaptor_t<uint32_t> > > {};
+    class tiny_hashset_uint32_t :public tiny_hashset_t<uint32_t, max_set_size, tiny_hashset_cmp > {};
 
     //uint32_t(key/value)类型的轻量级哈希表
     template<uint32_t max_set_size,class val_t=uint32_t>
-    class tiny_hashtbl_uint32_t :public tiny_hashtbl_t<uint32_t,val_t, max_set_size, tiny_hashtbl_cmp<hashfunc_adaptor_t<uint32_t> > > {};
+    class tiny_hashtbl_uint32_t :public tiny_hashtbl_t<uint32_t,val_t, max_set_size, tiny_hashtbl_cmp > {};
 }
 
 #endif
