@@ -56,16 +56,6 @@ namespace rx
             return node;
         }
         //-----------------------------------------------------
-        //生成一个随机的层数:>=1;<=最大层数
-        uint32_t m_rand_lvl()
-        {
-            uint32_t level = 1;
-            while ((m_rnd.get() & 1) && (level < MAX_LEVEL)) //随机数发生器遇到连续的奇数时,则层级持续增加
-                ++level;
-            return level;
-        }
-
-        //-----------------------------------------------------
         //摘除指定的节点,并更新其前趋节点的后趋指向
         void m_pick(node_t *node, node_t **update)
         {
@@ -131,7 +121,7 @@ namespace rx
         {
             node_t *update[MAX_LEVEL];                      //用于临时记录当前节点操作中,对应的各层前趋节点
             node_t *prv=m_find_prv(key,update)->next[0];    //查找指定key对应的各层前趋,并尝试得到已经存在的key节点
-            
+
             if (prv&&node_t::cmp(*prv,key)==0)
             {
                 duplication=true;                           //告知key已存在
@@ -188,7 +178,7 @@ namespace rx
         template<class key_t>
         node_t *find(const key_t &key) const
         {
-            
+
             for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
             {//从高层向底层逐层查找
                 node_t *node = m_head->next[lvl];           //从首节点开始遍历
