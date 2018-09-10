@@ -3,10 +3,11 @@
 
 #include "rx_cc_macro.h"
 #include "rx_mem_alloc.h"
-#include "rx_hash_rand.h"
 
 namespace rx
 {
+    //是否开启原始跳表的调试打印功能
+    #define RX_RAW_SKIPLIST_DEBUG_PRINT 1
     /*
     //原始跳表的节点类型(示例:key与val可以是任意名字,val也可以不存在,只要对外接口语义正确即可)
     template<class key_t,class val_t>
@@ -41,7 +42,6 @@ namespace rx
         node_t         *m_head;                             //指向头结点
         node_t         *m_tail;                             //指向尾节点
         mem_allotter_i &m_mem;                              //内存分配器接口
-        rand_i         &m_rnd;                              //随机数发生器接口
         //-----------------------------------------------------
         //根据给定的层数与扩展尺寸,动态创建节点
         node_t *m_make_node(uint32_t level, uint32_t ext_size)
@@ -100,23 +100,9 @@ namespace rx
             }
             return node;
         }
-        //查找指定节点n在每层对应的前趋,并记到update中
-        //返回值:n对应的最底层的前趋节点
-        node_t *m_find_prv(const node_t *n, node_t **update)
-        {
-            node_t  *node = m_head;                         //从头节点开始向后查找
-            for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
-            {//从最高层逐层降级查找,就是skiplist的算法精髓核心
-                while (node->next[lvl] &&                   //如果当前节点有后趋
-                       node->next[lvl]!=n)                  //并且当前节点的后趋不是n(说明n还应该往后放)
-                       node = node->next[lvl];              //则当前节点后移,准备继续查找
-                update[lvl] = node;                         //当前层查找结束了,记录当前节点为指定key位置的前趋
-            }
-            return node;
-        }
     public:
         //-----------------------------------------------------
-        raw_skiplist_t(mem_allotter_i &ma,rand_i &rnd):m_mem(ma),m_rnd(rnd)
+        raw_skiplist_t(mem_allotter_i &ma):m_mem(ma)
         {
             m_levels = 1;                                   //跳表的初始层数只有1层(索引为0的基础层)
             m_head = m_make_node(MAX_LEVEL,0);              //头结点只分配内存,不构造
@@ -127,37 +113,40 @@ namespace rx
         virtual ~raw_skiplist_t()
         {
             clear();
-            m_mem.free(m_head);                              //释放头结点内存,不析构
+            m_mem.free(m_head);                             //释放头结点内存,不析构
         }
         //-----------------------------------------------------
         //当前跳表中的节点数量
-        uint32_t size(){return m_count;}
+        uint32_t size() const {return m_count;}
         //当前跳表的最大层数
-        uint32_t levels(){return m_levels;}
+        uint32_t levels() const {return m_levels;}
         //获取当前跳表的头与尾节点
-        node_t* head(){return m_head->next[0];}
-        node_t* tail(){return m_tail;}
+        node_t* head() const {return m_head->next[0];}
+        node_t* tail() const {return m_tail;}
         //-----------------------------------------------------
-        //插入指定的key对应的节点;需要获知本节点的层数level,用于跳过指定的内存位置
-        //返回的节点指针如果不为空,则需要进行节点的构造初始化(key与val的真正初始化)
+        //插入指定的key对应的节点(key不可重复,否则会返回之前存在的节点指针);需给定本节点的层数level;给定扩展的内存尺寸ext_size;
+        //返回的节点指针如果不为空,且duplication重复指示为假,则可以进行节点的构造初始化(key与val的真正初始化)
         template<class key_t>
-        node_t *insert_raw(const key_t &key,uint32_t ext_size,uint32_t &level,bool duplication=false)
+        node_t *insert_raw(const key_t &key,bool &duplication,uint32_t ext_size,const uint32_t level)
         {
             node_t *update[MAX_LEVEL];                      //用于临时记录当前节点操作中,对应的各层前趋节点
-            node_t *prv=m_find_prv(key,update)->next[0];    //查找指定key对应的各层前趋
+            node_t *prv=m_find_prv(key,update)->next[0];    //查找指定key对应的各层前趋,并尝试得到已经存在的key节点
+            
+            if (prv&&node_t::cmp(*prv,key)==0)
+            {
+                duplication=true;                           //告知key已存在
+                return prv;                                 //直接返回
+            }
 
-            if (prv&&node_t::cmp(*prv,key)==0&&!duplication)
-                return NULL;                                //key已存在且不允许重复出现,则返回
-
-            level = m_rand_lvl();                           //生成一个随机的层数
-            node_t *node = m_make_node(level,ext_size);     //创建含有这些层数的新节点
+            duplication=false;
+            node_t *node = m_make_node(level,ext_size);     //创建含有指定层数的新节点
             if (!node)
                 return NULL;
 
             if (level > m_levels)
-            {//如果新节点的层数大于原有层数,则填充新层的前趋为头结点
+            {//如果新节点的层数大于原有层数
                 for (uint32_t lvl = m_levels; lvl < level; ++lvl)
-                    update[lvl] = m_head;
+                    update[lvl] = m_head;                   //则填充新增层的前趋为头结点
                 m_levels = level;                           //更新最大层高
             }
 
@@ -194,33 +183,15 @@ namespace rx
             }
             return false;
         }
-
-        bool earse(node_t *n)
-        {
-            node_t *update[MAX_LEVEL];                      //用于临时记录当前节点操作时,对应的各层前趋节点
-            node_t *node = m_find_prv(n,update)->next[0];   //查找指定节点n对应的各层前趋,并尝试得到对应的节点
-            if (node == n)
-            {//如果对应节点存在且相同,则说明找到了此节点
-                m_pick(node, update);                       //摘除指定的节点(进行节点各层前趋的调整)
-                if (node==m_tail)
-                    m_tail=update[0];                       //如果删除的节点就是尾节点,则尾节点指向其前趋
-                ct::OD(node);                               //节点析构
-                m_mem.free(node);                           //节点内存释放
-                --m_count;                                  //跳表计数减少
-                rx_assert_if(m_count==0,m_tail==NULL);
-                rx_assert_if(m_count!=0,m_tail!=NULL);
-                return true;
-            }
-            return false;
-        }
         //-----------------------------------------------------
         //查找指定key对应的节点
         template<class key_t>
         node_t *find(const key_t &key) const
         {
-            node_t *node = m_head->next[0];                 //从首节点开始遍历
+            
             for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
             {//从高层向底层逐层查找
+                node_t *node = m_head->next[lvl];           //从首节点开始遍历
                 while (node != NULL)
                 {//进行节点的比较
                     int cv=node_t::cmp(*node,key);          //进行节点与key的比较
@@ -255,6 +226,25 @@ namespace rx
             m_count=0;
             m_tail=NULL;
         }
+
+#if RX_RAW_SKIPLIST_DEBUG_PRINT
+        void print()
+        {
+            for (uint32_t lvl = 0; lvl < MAX_LEVEL; lvl++)
+            {
+                node_t *node = m_head->next[lvl];
+                printf("Level[%d]:", lvl);
+
+                while (node)
+                {
+                    printf("%d -> ", node->key);
+                    node = node->next[lvl];
+                }
+                printf("\n");
+            }
+        }
+#endif
+
     };
 
 

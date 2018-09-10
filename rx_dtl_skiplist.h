@@ -3,6 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_mem_alloc.h"
+#include "rx_mem_alloc_cntr.h"
 #include "rx_hash_rand.h"
 #include "rx_raw_skiplist.h"
 
@@ -58,24 +59,45 @@ namespace rx
     };
 
     //-----------------------------------------------------
+    //进行跳表层级随机数生成器的封装
+    template<class rnd_t=rand_skeeto_triple_t,uint32_t MAX_LEVEL=8>
+    class tiny_skiplist_rnd_level
+    {
+        rnd_t   m_rnd;
+    public:
+        void seed(uint32_t s){m_rnd.seed(s);}
+        //-----------------------------------------------------
+        //生成一个随机的层数:>=1;<=最大层数
+        uint32_t make()
+        {
+            uint32_t level = 1;
+            while ((m_rnd.get() & 1) && (level < MAX_LEVEL)) //随机数发生器遇到连续的奇数时,则层级持续增加
+                ++level;
+            return level;
+        }
+    };
+
+    //-----------------------------------------------------
     //封装基于跳表的基础集合容器类
     //-----------------------------------------------------
-    template<class key_t,uint32_t MAX_LEVEL=LOG2<256>::result>
+    template<class key_t,uint32_t MAX_LEVEL=LOG2<256>::result,class rnd_t=rand_skeeto_triple_t>
     class tiny_skipset_t
     {
-        typedef tiny_skipset_node_t<key_t>          node_t;
-        typedef raw_skiplist_t<node_t,MAX_LEVEL>    skiplist_t;
-        rand_skeeto_triple_t    m_rnd;
-        skiplist_t              m_list;
+        typedef tiny_skipset_node_t<key_t>          sk_node_t;
+        typedef raw_skiplist_t<sk_node_t,MAX_LEVEL> skiplist_t;
+        tiny_skiplist_rnd_level<rnd_t,MAX_LEVEL>    m_rnd_level;
+        skiplist_t                                  m_list;
     public:
+        typedef sk_node_t node_t;
         //-------------------------------------------------
-        tiny_skipset_t(mem_allotter_i &ma):m_list(ma,m_rnd){}
+        tiny_skipset_t(mem_allotter_i &ma,uint32_t seed=1):m_list(ma){m_rnd_level.seed(seed);}
+        tiny_skipset_t(uint32_t seed=1):m_list(global_mem_allotter()){m_rnd_level.seed(seed);}
         virtual ~tiny_skipset_t() {clear();}
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
         {
-            node_t  *m_node;
+            const node_t  *m_node;
             friend class tiny_skipset_t;
         public:
             //---------------------------------------------
@@ -97,15 +119,19 @@ namespace rx
         };
         //-------------------------------------------------
         //在集合中插入元素并赋值构造
+        //返回值:<0-内存不足;0-值重复;>0-成功
         template<class val_t>
-        bool insert(const val_t &val,bool duplication=false)
+        int insert(const val_t &val)
         {
-            uint32_t level=0;
-            node_t *node=m_list.insert_raw(val,node_t::ext_size(val),level,duplication);
+            uint32_t level=m_rnd_level.make();
+            bool duplication=false;
+            node_t *node=m_list.insert_raw(val,duplication,node_t::ext_size(val),level);
+            if (duplication)
+                return 0;
             if (!node)
-                return false;
+                return -1;
             node->OC(level,val);
-            return true;
+            return 1;
         }
         //-------------------------------------------------
         //查找元素是否存在
@@ -125,7 +151,7 @@ namespace rx
         iterator end() const { return iterator(NULL); }
         //-------------------------------------------------
         //获取集合的尾节点迭代器(可用于快速获取尾节点的值)
-        iterator rend() const { return iterator(m_list.tail()); }
+        iterator rbegin() const { return iterator(m_list.tail()); }
         //-------------------------------------------------
         //删除指定位置的元素
         //返回值:是否删除了当前值
@@ -135,29 +161,37 @@ namespace rx
             if (i.m_node==NULL)
                 return false;
 
-            bool rc=m_list.earse(i.m_node);
+            bool rc=m_list.earse(i.m_node->key);
             ++i;
             return rc;
         }
         //-------------------------------------------------
+        #if RX_RAW_SKIPLIST_DEBUG_PRINT
+        void print(){m_list.print();}
+        #endif
+        //-------------------------------------------------
         //清空全部的元素
         void clear(){m_list.clear();}
     };
+    //语法糖,直接定义一个便于使用的小层高整数跳表集合
+    typedef tiny_skipset_t<uint32_t> tiny_skipset_uint32_t;
 
     //---------------------------------------------------------
     //封装跳表基础容器类
     //---------------------------------------------------------
-    template<class key_t,class val_t,uint32_t MAX_LEVEL=LOG2<256>::result>
+    template<class key_t,class val_t,uint32_t MAX_LEVEL=LOG2<256>::result,class rnd_t=rand_skeeto_triple_t>
     class tiny_skiplist_t
     {
-        typedef tiny_skiplist_node_t<key_t,val_t>   node_t;
-        typedef raw_skiplist_t<node_t,MAX_LEVEL>    skiplist_t;
-        rand_skeeto_triple_t    m_rnd;
-        skiplist_t              m_list;
+        typedef tiny_skiplist_node_t<key_t,val_t>   sk_node_t;
+        typedef raw_skiplist_t<sk_node_t,MAX_LEVEL> skiplist_t;
+        tiny_skiplist_rnd_level<rnd_t,MAX_LEVEL>    m_rnd_level;
+        skiplist_t                                  m_list;
     public:
+        typedef sk_node_t node_t;
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        tiny_skiplist_t(mem_allotter_i &ma):m_list(ma,m_rnd){}
+        tiny_skiplist_t(mem_allotter_i &ma,uint32_t seed=1):m_list(ma){m_rnd_level.seed(seed);}
+        tiny_skiplist_t(uint32_t seed=1):m_list(global_mem_allotter()){m_rnd_level.seed(seed);}
         virtual ~tiny_skiplist_t() {clear();}
         //-------------------------------------------------
         //已经使用的节点数量
@@ -167,7 +201,7 @@ namespace rx
         //定义简单的只读迭代器
         class iterator
         {
-            node_t  *m_node;
+            const node_t  *m_node;
             friend class tiny_skiplist_t;
         public:
             //---------------------------------------------
@@ -192,20 +226,24 @@ namespace rx
         };
         //-------------------------------------------------
         //在跳表中插入元素并赋值构造
+        //返回值:<0-内存不足;0-值重复;>0-成功
         template<class KT>
-        bool insert(const KT &key,const val_t &val,bool duplication=false)
+        int insert(const KT &key,const val_t &val)
         {
-            uint32_t level=0;
-            node_t *node=m_list.insert_raw(key,node_t::ext_size(key,val),level,duplication);
+            uint32_t level=m_rnd_level.make();
+            bool duplication=false;
+            node_t *node=m_list.insert_raw(key,duplication,node_t::ext_size(key,val),level);
+            if (duplication)
+                return 0;
             if (!node)
-                return false;
+                return -1;
             node->OC(level,key,val);
-            return true;
+            return 1;
         }
         //-------------------------------------------------
         //查找元素是否存在
         template<class KT>
-        bool find(const KT &key) const {return m_list.find(key)!=NULL;}
+        node_t* find(const KT &key) const {return m_list.find(key);}
         //-------------------------------------------------
         //删除元素并默认析构
         template<class KT>
@@ -218,7 +256,7 @@ namespace rx
         iterator end() const { return iterator(NULL); }
         //-------------------------------------------------
         //获取跳表的尾节点迭代器(可用于快速获取尾节点的值)
-        iterator rend() const { return iterator(m_list.tail()); }
+        iterator rbegin() const { return iterator(m_list.tail()); }
         //-------------------------------------------------
         //删除指定位置的元素
         //返回值:是否删除了当前值
@@ -228,15 +266,21 @@ namespace rx
             if (i.m_node==NULL)
                 return false;
 
-            bool rc=m_list.earse(i.m_node);
+            bool rc=m_list.earse(i.m_node.key);
             ++i;
             return rc;
         }
+        //-------------------------------------------------
+        #if RX_RAW_SKIPLIST_DEBUG_PRINT
+        void print(){m_list.print();}
+        #endif
         //-------------------------------------------------
         //清空全部的元素
         void clear(){m_list.clear();}
     };
 
+    //语法糖,直接定义一个便于使用的小层高整数跳表
+    typedef tiny_skiplist_t<uint32_t,uint32_t> tiny_skiplist_uint32_t;
 }
 
 #endif
