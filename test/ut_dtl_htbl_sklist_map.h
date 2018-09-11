@@ -103,7 +103,7 @@ namespace rx
         cntr_t *cntr=create_skiplist();
         for(uint32_t mi=0;mi<MaxSize;++mi)
             insert(cntr,mi,(int*)&mi);
-        //cntr.print();
+        //print(cntr);
 
         rand_skeeto_triple_t rnd;
         for(uint32_t li=0;li<LoopCount;++li)

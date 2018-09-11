@@ -193,15 +193,28 @@ namespace rx
             //    }
             //}
 
-            for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
-            {//从高层向底层逐层查找
-                node_t *node = m_head->next[lvl];           //从首节点开始遍历
-                int rc;
-                while (node&&(rc=node_t::cmp(*node,key))<0) //进行节点与key的比较
-                    node = node->next[lvl];                 //节点小于key,需要继续向后遍历
-                if (node&&rc==0)                            //本层遍历结束的时候判断是否找到了
-                    return node;
+            //for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
+            //{//从高层向底层逐层查找
+            //    node_t *node = m_head->next[lvl];           //从首节点开始遍历
+            //    int rc;
+            //    while (node&&(rc=node_t::cmp(*node,key))<0) //进行节点与key的比较
+            //        node = node->next[lvl];                 //节点小于key,需要继续向后遍历
+            //    if (node&&rc==0)                            //本层遍历结束的时候判断是否找到了
+            //        return node;
+            //}
+
+            node_t *nd = m_head;
+            for (int i = m_levels - 1; i >= 0; i--) {
+                while (nd->next[i] != NULL) {
+                    if (nd->next[i]->key < key) 
+                        nd = nd->next[i];
+                    else if (nd->next[i]->key == key)
+                        return nd->next[i];
+                    else
+                        break;
+                }
             }
+
             return NULL;                                    //全部层级遍历完成,确实没找到
         }
 

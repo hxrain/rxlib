@@ -145,12 +145,12 @@ void print(skiplist *sl)
 	node *nd;
 	int i;
 
-	for (i = 0; i <= MAX_LEVEL; i++) {
+	for (i = 0; i < MAX_LEVEL; i++) {
 		nd = sl->head->forward[i];
 		printf("Level[%d]:", i);
 
 		while (nd) {
-			printf("%d -> ", nd->key);
+			printf("%d->", nd->key);
 			nd = nd->forward[i];
 		}
 		printf("\n");
