@@ -22,7 +22,8 @@ namespace rx
 
     //-----------------------------------------------------
     //简单哈希集使用的节点比较器
-    class tiny_hashset_cmp:public tiny_hash_fun
+    template<class hash_t=tiny_hash_fun>
+    class tiny_hashset_cmp:public hash_t
     {
     public:
         template<class NVT,class KT>
@@ -31,7 +32,8 @@ namespace rx
 
     //-----------------------------------------------------
     //简单哈希表使用的节点比较器
-    class tiny_hashtbl_cmp:public tiny_hash_fun
+    template<class hash_t=tiny_hash_fun>
+    class tiny_hashtbl_cmp:public hash_t
     {
     public:
         template<class NVT,class KT>
@@ -55,7 +57,8 @@ namespace rx
         node_t* erase_raw(const val_t &val)
         {
             uint32_t hash_code = vkcmp::hash(val);
-            node_t *node = m_basetbl.find(hash_code, val);
+            uint32_t pos;
+            node_t *node = m_basetbl.find(hash_code, val,pos);
             if (!node)
                 return NULL;
             m_basetbl.remove(node);
@@ -91,7 +94,8 @@ namespace rx
         bool find(const val_t &val) const
         {
             uint32_t hash_code = vkcmp::hash(val);
-            node_t *node = m_basetbl.find(hash_code, val);
+            uint32_t pos;
+            node_t *node = m_basetbl.find(hash_code, val,pos);
             return node!=NULL;
         }
         //-------------------------------------------------
@@ -274,18 +278,22 @@ namespace rx
         }
         //-------------------------------------------------
         //查找元素是否存在
-        bool find(const key_t &key) const
+        iterator find(const key_t &key) const
         {
             uint32_t hash_code = vkcmp::hash(key);
-            node_t *node = m_basetbl.find(hash_code, key);
-            return node!=NULL;
+            uint32_t pos;
+            node_t *node = m_basetbl.find(hash_code, key,pos);
+            if (!node)
+                return end();
+            return iterator(*this,pos);
         }
         //-------------------------------------------------
         //删除元素
         node_t* erase_raw(const key_t &key)
         {
             uint32_t hash_code = vkcmp::hash(key);
-            node_t *node = m_basetbl.find(hash_code, key);
+            uint32_t pos;
+            node_t *node = m_basetbl.find(hash_code, key,pos);
             if (!node)
                 return NULL;
             m_basetbl.remove(node);
@@ -338,12 +346,12 @@ namespace rx
     //下面用uint32_t进行两个示范类的预定义
     //-----------------------------------------------------
     //uint32_t类型的轻量级集合
-    template<uint32_t max_set_size>
-    class tiny_hashset_uint32_t :public tiny_hashset_t<uint32_t, max_set_size, tiny_hashset_cmp > {};
+    template<uint32_t max_set_size,class hash_t=tiny_hash_fun>
+    class tiny_hashset_uint32_t :public tiny_hashset_t<uint32_t, max_set_size, tiny_hashset_cmp<hash_t> > {};
 
     //uint32_t(key/value)类型的轻量级哈希表
-    template<uint32_t max_set_size,class val_t=uint32_t>
-    class tiny_hashtbl_uint32_t :public tiny_hashtbl_t<uint32_t,val_t, max_set_size, tiny_hashtbl_cmp > {};
+    template<uint32_t max_set_size,class val_t=uint32_t,class hash_t=tiny_hash_fun>
+    class tiny_hashtbl_uint32_t :public tiny_hashtbl_t<uint32_t,val_t, max_set_size, tiny_hashtbl_cmp<hash_t> > {};
 }
 
 #endif
