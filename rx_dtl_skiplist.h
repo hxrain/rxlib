@@ -6,6 +6,7 @@
 #include "rx_mem_alloc_cntr.h"
 #include "rx_hash_rand.h"
 #include "rx_raw_skiplist.h"
+#include <time.h>
 
 namespace rx
 {
@@ -60,27 +61,35 @@ namespace rx
 
     //-----------------------------------------------------
     //进行跳表层级随机数生成器的封装
-    template<class rnd_t=rand_skeeto_triple_t,uint32_t MAX_LEVEL=8>
+    template<class rnd_t,uint32_t MAX_LEVEL>
     class tiny_skiplist_rnd_level
     {
         rnd_t   m_rnd;
     public:
-        void seed(uint32_t s){m_rnd.seed(s);}
+        void seed(uint32_t s)
+        {
+            if (s<=1) s=(uint32_t)time(NULL);
+            m_rnd.seed(s);
+        }
         //-----------------------------------------------------
         //生成一个随机的层数:>=1;<=最大层数
         uint32_t make()
         {
-            uint32_t level = 1;
-            while ((m_rnd.get() & 1) && (level < MAX_LEVEL)) //随机数发生器遇到连续的奇数时,则层级持续增加
-                ++level;
-            return level;
+            uint32_t rc=1;
+            while(rc<MAX_LEVEL&&(m_rnd.get()%0xFFFF)<(0xFFFF>>2))   //随机概率连续小于x%则层高增加(相当于1/x%叉树)
+                ++rc;
+            rx_assert(rc<=MAX_LEVEL);
+            return rc;
         }
     };
+    //typedef rand_skiplist_t tiny_skiplist_rnd_t;
+    typedef  rand_skiplist_t tiny_skiplist_rnd_t;
+
 
     //-----------------------------------------------------
     //封装基于跳表的基础集合容器类
     //-----------------------------------------------------
-    template<class key_t,uint32_t MAX_LEVEL=LOG2<256>::result,class rnd_t=rand_skeeto_triple_t>
+    template<class key_t,uint32_t MAX_LEVEL,class rnd_t=tiny_skiplist_rnd_t>
     class tiny_skipset_t
     {
         typedef tiny_skipset_node_t<key_t>          sk_node_t;
@@ -174,12 +183,12 @@ namespace rx
         void clear(){m_list.clear();}
     };
     //语法糖,直接定义一个便于使用的小层高整数跳表集合
-    typedef tiny_skipset_t<uint32_t> tiny_skipset_uint32_t;
+    typedef tiny_skipset_t<uint32_t,8> tiny_skipset_uint32_t;
 
     //---------------------------------------------------------
     //封装跳表基础容器类
     //---------------------------------------------------------
-    template<class key_t,class val_t,uint32_t MAX_LEVEL=LOG2<256>::result,class rnd_t=rand_skeeto_triple_t>
+    template<class key_t,class val_t,uint32_t MAX_LEVEL,class rnd_t=tiny_skiplist_rnd_t>
     class tiny_skiplist_t
     {
         typedef tiny_skiplist_node_t<key_t,val_t>   sk_node_t;
@@ -280,7 +289,7 @@ namespace rx
     };
 
     //语法糖,直接定义一个便于使用的小层高整数跳表
-    typedef tiny_skiplist_t<uint32_t,uint32_t> tiny_skiplist_uint32_t;
+    typedef tiny_skiplist_t<uint32_t,uint32_t,8> tiny_skiplist_uint32_t;
 }
 
 #endif
