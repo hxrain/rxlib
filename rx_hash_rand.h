@@ -119,7 +119,37 @@ namespace rx
             return Min+m_seed%(Max-Min+1);
         }
     };
+    //-----------------------------------------------------
+    //参照redis/skiplist随机数算法
+    class rand_skiplist_t:public rand_i
+    {
+        rand_hge_t& operator=(const rand_hge_t&);
+        uint32_t  m_seed;
+        static const uint32_t M = 2147483647L;     // 2^31-1
+        static const uint64_t A = 16807;           // bits 14, 8, 7, 5, 2, 1, 0
 
+        static uint32_t hash(uint32_t x)
+        {
+            uint64_t product = x * A;
+            // Compute (product % M) using the fact that ((x << 31) % M) == x.
+            x = static_cast<uint32_t>((product >> 31) + (product & M));
+            // The first reduction may overflow by 1 bit, so we may need to
+            // repeat.  mod == M is not possible; using > allows the faster
+            // sign-bit-based test.
+            if (x > M) x -= M;
+            return x;
+        }
+    public:
+        rand_skiplist_t(uint32_t s=0) {seed(s);}
+        //初始化种子
+        virtual void seed(uint32_t s) {m_seed=(s+1)&M;}
+        //生成随机数,[Min,Max](默认为[0,(2^31)-1])
+        virtual uint32_t get(uint32_t Max=0x7ffffffe, uint32_t Min=0)
+        {
+            m_seed=hash(m_seed);
+            return Min+m_seed%(Max-Min+1);
+        }
+    };
     //-----------------------------------------------------
     //方便快速使用随机数发生器的便捷函数
     template<class rnd_t>

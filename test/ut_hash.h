@@ -67,7 +67,7 @@ inline uint32_t tmp_test_stdrand(uint32_t x)
     return rand();
 }
 //---------------------------------------------------------
-rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
+rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
 {
     uint32_t seed = (uint32_t)time(NULL);
 
@@ -75,6 +75,7 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
     rx_hash_int_base_2<rx::rand_hge_t>(seed,"rand_hge",*this);
     rx_hash_int_base_2<rx::rand_skeeto_b32_t>(seed,"rand_skeeto_b",*this);
     rx_hash_int_base_2<rx::rand_skeeto_triple_t>(seed,"rand_skeeto_triple",*this);
+    rx_hash_int_base_2<rx::rand_skiplist_t>(seed,"rand_skiplist_t",*this);
 
     for(int i=0;i<IHT_Count;++i)
         rx_hash_int_base_1(seed,rx_int_hash32_name((rx_int_hash32_type)i),rx_int_hash32((rx_int_hash32_type)i),*this);
