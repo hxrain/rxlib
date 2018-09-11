@@ -133,6 +133,8 @@ namespace rx
 #define tdd_tt_desc(sym,msg_a,msg_b,limit) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,limit,msg_a,msg_b,__FILE__,__LINE__)
 //用于简化定义一个tt滴答计时对象,用时限制使用默认值
 #define tdd_tt(sym,msg_a,msg_b) tdd_tt_desc(sym,msg_a,msg_b,tdd_tt_limit)
+#define tt(msg_a) tdd_tt(tt,msg_a,"")
+
 //用于简化定义一个tt滴答计时对象的中间可嵌套计时动作
 #define _tdd_tt_hit(sym,dis,fmt,...) rx::tdd_tick_guard_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,fmt,##__VA_ARGS__)
 //中间宏定义,为了进行dis的展开转换
