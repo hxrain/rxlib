@@ -89,13 +89,13 @@ namespace rx
 
         raw_hashtbl_tinytbl_base_loop1(rt,s);
 
-        rt.tdd_assert(s.find(4));
-        rt.tdd_assert(s.find(2))
+        rt.tdd_assert(s.find(4)!=s.end());
+        rt.tdd_assert(s.find(2)!=s.end())
             ;
         rt.tdd_assert(s.erase(2));
         rt.tdd_assert(s.size() == 3);
         rt.tdd_assert(s.collision() == 0);
-        rt.tdd_assert(!s.find(2));
+        rt.tdd_assert(s.find(2)==s.end());
     }
 }
 
