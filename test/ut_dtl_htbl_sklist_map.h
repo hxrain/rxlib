@@ -13,48 +13,62 @@
 namespace rx
 {
     //-----------------------------------------------------
-    template<uint32_t MaxSize, uint32_t LoopCount>
+    template<uint32_t TestCount,uint32_t MaxSize, uint32_t LoopCount>
     inline void ut_tiny_hashtbl_loop_1(rx_tdd_t &rt)
     {
+        //tdd_tt(tiny_hashtbl,"","");
+        for (uint32_t tl = 0; tl < TestCount; ++tl)
+        {
 
+        }
     }
 
     //-----------------------------------------------------
-    template<uint32_t MaxSize, uint32_t LoopCount>
+    template<uint32_t TestCount, uint32_t MaxSize, uint32_t LoopCount>
     inline void ut_tiny_skiplist_loop_1(rx_tdd_t &rt)
     {
+        //tdd_tt(tiny_skiplist, "", "");
+        for (uint32_t tl = 0; tl < TestCount; ++tl)
+        {
 
+        }
     }
 
     //-----------------------------------------------------
-    template<uint32_t MaxSize, uint32_t LoopCount>
+    template<uint32_t TestCount, uint32_t MaxSize, uint32_t LoopCount>
     inline void ut_tiny_map_loop_1(rx_tdd_t &rt)
     {
+        //tdd_tt(tiny_stdmap, "", "");
+        for (uint32_t tl = 0; tl < TestCount; ++tl)
+        {
 
+        }
     }
 }
 
+//---------------------------------------------------------
 rx_tdd(htbl_sklist_map_loop)
 {
-    rx::ut_tiny_hashtbl_loop_1  <100,50000>(*this);
-    rx::ut_tiny_skiplist_loop_1 <100, 50000>(*this);
-    rx::ut_tiny_map_loop_1      <100, 50000>(*this);
+    rx::ut_tiny_hashtbl_loop_1  <100, 100, 50000>(*this);
+    rx::ut_tiny_skiplist_loop_1 <100, 100, 50000>(*this);
+    rx::ut_tiny_map_loop_1      <100, 100, 50000>(*this);
 
-    rx::ut_tiny_hashtbl_loop_1  <1000, 50000>(*this);
-    rx::ut_tiny_skiplist_loop_1 <1000, 50000>(*this);
-    rx::ut_tiny_map_loop_1      <1000, 50000>(*this);
+    rx::ut_tiny_hashtbl_loop_1  <100, 1000, 50000>(*this);
+    rx::ut_tiny_skiplist_loop_1 <100, 1000, 50000>(*this);
+    rx::ut_tiny_map_loop_1      <100, 1000, 50000>(*this);
 
 }
 
+//---------------------------------------------------------
 rx_tdd_rtl(htbl_sklist_map_loop, tdd_level_slow)
 {
-    rx::ut_tiny_hashtbl_loop_1  <10000, 5000000>(*this);
-    rx::ut_tiny_skiplist_loop_1 <10000, 5000000>(*this);
-    rx::ut_tiny_map_loop_1      <10000, 5000000>(*this);
+    rx::ut_tiny_hashtbl_loop_1  <1000, 10000, 5000000>(*this);
+    rx::ut_tiny_skiplist_loop_1 <1000, 10000, 5000000>(*this);
+    rx::ut_tiny_map_loop_1      <1000, 10000, 5000000>(*this);
 
-    rx::ut_tiny_hashtbl_loop_1  <100000, 5000000>(*this);
-    rx::ut_tiny_skiplist_loop_1 <100000, 5000000>(*this);
-    rx::ut_tiny_map_loop_1      <100000, 5000000>(*this);
+    rx::ut_tiny_hashtbl_loop_1  <1000, 100000, 5000000>(*this);
+    rx::ut_tiny_skiplist_loop_1 <1000, 100000, 5000000>(*this);
+    rx::ut_tiny_map_loop_1      <1000, 100000, 5000000>(*this);
 
 }
 
