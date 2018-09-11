@@ -70,7 +70,7 @@ namespace rx
         //搜索节点
         //返回值:NULL未找到;其他成功
         template<class key_t>
-        node_t *find(uint32_t hash_code,const key_t &value) const
+        node_t *find(uint32_t hash_code,const key_t &value,uint32_t &pos) const
         {
             for(uint32_t i=0; i<m_max_slot_size; ++i)
             {
@@ -80,7 +80,10 @@ namespace rx
                     return NULL;                            //直接就碰到空档了,不用继续了
 
                 if (vkcmp::equ(node.value,value))
+                {
+                    pos=I;
                     return &node;                           //顺延后找到了
+                }
             }
 
             return NULL;                                    //转了一圈没找到!

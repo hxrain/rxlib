@@ -178,20 +178,29 @@ namespace rx
         template<class key_t>
         node_t *find(const key_t &key) const
         {
+            //for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
+            //{//从高层向底层逐层查找
+            //    node_t *node = m_head->next[lvl];           //从首节点开始遍历
+            //    while (node != NULL)
+            //    {//进行节点的比较
+            //        int cv=node_t::cmp(*node,key);          //进行节点与key的比较
+            //        if (cv<0)
+            //            node = node->next[lvl];             //节点小于key,需要继续向后遍历
+            //        else if (cv==0)
+            //            return node;                        //key相同,找到了.
+            //        else
+            //            break;                              //节点大于key说明本层查不到,准备降层吧
+            //    }
+            //}
 
             for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
             {//从高层向底层逐层查找
                 node_t *node = m_head->next[lvl];           //从首节点开始遍历
-                while (node != NULL)
-                {//进行节点的比较
-                    int cv=node_t::cmp(*node,key);          //进行节点与key的比较
-                    if (cv<0)
-                        node = node->next[lvl];             //节点小于key,需要继续向后遍历
-                    else if (cv==0)
-                        return node;                        //key相同,找到了.
-                    else
-                        break;                              //节点大于key说明本层查不到,准备降层吧
-                }
+                int rc;
+                while (node&&(rc=node_t::cmp(*node,key))<0) //进行节点与key的比较
+                    node = node->next[lvl];                 //节点小于key,需要继续向后遍历
+                if (node&&rc==0)                            //本层遍历结束的时候判断是否找到了
+                    return node;
             }
             return NULL;                                    //全部层级遍历完成,确实没找到
         }
@@ -227,7 +236,7 @@ namespace rx
 
                 while (node)
                 {
-                    printf("%d -> ", node->key);
+                    printf("%3d->", node->key);
                     node = node->next[lvl];
                 }
                 printf("\n");
