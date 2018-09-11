@@ -67,7 +67,7 @@ inline uint32_t tmp_test_stdrand(uint32_t x)
     return rand();
 }
 //---------------------------------------------------------
-rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
+rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
 {
     uint32_t seed = (uint32_t)time(NULL);
 

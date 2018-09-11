@@ -10,6 +10,9 @@
 #include "../rx_tdd_tick.h"
 #include <map>
 
+#include "skiplist.h"
+#include "skiplist.c"
+
 //本文件进行tiny_hashtbl/tiny_skiplist/std::map的性能对比
 //分为三个方面:初始构造;查询;销毁.
 namespace rx
@@ -39,7 +42,7 @@ namespace rx
             {
                 uint32_t i=rnd.get(MaxSize-1);
                 typename cntr_t::iterator I=cntr.find(i);
-                rx_check(I!=cntr.end()&&*I==mi);
+                rx_check(I!=cntr.end()&&*I==i);
             }
         }
         tdd_tt_hit(tt,"FIND/LOOP(TestCount=%u,MaxSize=%u,LoopCount=%u)",TestCount,MaxSize,LoopCount);
@@ -78,7 +81,7 @@ namespace rx
             {
                 uint32_t i=rnd.get(MaxSize-1);
                 cntr_t::iterator I=cntr.find(i);
-                rx_check(I!=cntr.end()&&*I==mi);
+                rx_check(I!=cntr.end()&&*I==i);
             }
         }
         tdd_tt_hit(tt,"FIND/LOOP(TestCount=%u,MaxSize=%u,LoopCount=%u)",TestCount,MaxSize,LoopCount);
@@ -89,6 +92,31 @@ namespace rx
                 rx_check(I!=cntr.end());
         }
         tdd_tt_hit(tt,"FOR/LOOP(TestCount=%u,MaxSize=%u,LoopCount=%u)",TestCount,MaxSize,LoopCount);
+    }
+    //-----------------------------------------------------
+    template<uint32_t TestCount, uint32_t MaxSize, uint32_t LoopCount>
+    inline void ut_tiny_skiplist_loop_0(rx_tdd_t &rt)
+    {
+        typedef skiplist cntr_t;
+        tt("tiny_skiplist_0");
+
+        cntr_t *cntr=create_skiplist();
+        for(uint32_t mi=0;mi<MaxSize;++mi)
+            insert(cntr,mi,(int*)&mi);
+        //cntr.print();
+
+        rand_skeeto_triple_t rnd;
+        for(uint32_t li=0;li<LoopCount;++li)
+        {
+            for(uint32_t mi=0;mi<MaxSize;++mi)
+            {
+                uint32_t i=rnd.get(MaxSize-1);
+                node *n=find(cntr,i);
+                rx_check(n!=NULL&&n->key==i);
+            }
+        }
+        tdd_tt_hit(tt,"FIND/LOOP(TestCount=%u,MaxSize=%u,LoopCount=%u)",TestCount,MaxSize,LoopCount);
+        free_skiplist(cntr);
     }
 
     //-----------------------------------------------------
@@ -116,7 +144,7 @@ namespace rx
             {
                 uint32_t i=rnd.get(MaxSize-1);
                 cntr_t::iterator I=cntr.find(i);
-                rx_check(I!=cntr.end()&&I->second==mi);
+                rx_check(I!=cntr.end()&&I->second==i);
             }
         }
         tdd_tt_hit(tt,"FIND/LOOP(TestCount=%u,MaxSize=%u,LoopCount=%u)",TestCount,MaxSize,LoopCount);
@@ -134,6 +162,7 @@ namespace rx
 rx_tdd(htbl_sklist_map_loop)
 {
     const uint32_t TestCount=500,LoopCount=500,MaxSize=1000;
+    rx::ut_tiny_skiplist_loop_0 <TestCount, MaxSize, LoopCount>(*this);
     rx::ut_tiny_hashtbl_loop_1  <TestCount, MaxSize, LoopCount>(*this);
     rx::ut_tiny_skiplist_loop_1 <TestCount, MaxSize, LoopCount>(*this);
     rx::ut_tiny_map_loop_1      <TestCount, MaxSize, LoopCount>(*this);
