@@ -106,7 +106,7 @@ namespace rx
         //插入位槽冲突总数
         uint32_t collision() const { return m_collision; }
         //-------------------------------------------------
-        //尝试找到pos的下一个有效的位置(跳过中间未被使用的部分)
+        //尝试找到pos节点后的下一个被使用的节点(跳过中间未被使用的部分)
         uint32_t next(uint32_t pos) const
         {
             while (++pos < m_max_slot_size)

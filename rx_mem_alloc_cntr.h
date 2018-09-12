@@ -22,16 +22,8 @@ namespace rx
         mempool_t  &m_base_pool;
         lock_t     m_lock;
         //-------------------------------------------------
-        virtual void* base_alloc(uint32_t &bksize,uint32_t size)
-        {
-            GUARD_T(m_lock, lock_t);
-            return m_base_pool.do_alloc(bksize,size);
-        }
-        virtual void base_free(void* ptr, uint32_t size)
-        {
-            GUARD_T(m_lock, lock_t);
-            m_base_pool.do_free(ptr, size);
-        }
+        virtual void* base_alloc(uint32_t &bksize,uint32_t size){GUARD_T(m_lock, lock_t);return m_base_pool.do_alloc(bksize,size);}
+        virtual void base_free(void* ptr, uint32_t size){GUARD_T(m_lock, lock_t);m_base_pool.do_free(ptr, size);}
         mem_allotter_base_t(mempool_t& pool):m_base_pool(pool) {}
     };
 
@@ -41,15 +33,8 @@ namespace rx
     {
     protected:
         //-------------------------------------------------
-        virtual void* base_alloc(uint32_t &bksize,uint32_t size)
-        {
-            bksize=size;
-            return mempool_std_t::do_alloc(size);
-        }
-        virtual void base_free(void* ptr, uint32_t size)
-        {
-            mempool_std_t::do_free(ptr, size);
-        }
+        virtual void* base_alloc(uint32_t &bksize,uint32_t size){bksize=size;return mempool_std_t::do_alloc(size);}
+        virtual void base_free(void* ptr, uint32_t size){mempool_std_t::do_free(ptr, size);}
     };
 
     //------------------------------------------------------

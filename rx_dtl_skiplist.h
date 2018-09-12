@@ -76,7 +76,7 @@ namespace rx
         uint32_t make()
         {
             uint32_t rc=1;
-            while(rc<MAX_LEVEL&&(m_rnd.get()%0xFFFF)<(0xFFFF>>2))   //随机概率连续小于25%则层高增加(相当于4叉树)
+            while(rc<MAX_LEVEL&&(m_rnd.get()&0xFFFFFF)<(0xFFFFFF>>2))   //随机概率连续小于25%则层高增加(相当于4叉树)
                 ++rc;
             rx_assert(rc<=MAX_LEVEL);
             return rc;
