@@ -7,7 +7,7 @@
 namespace rx
 {
     //是否开启原始跳表的调试打印功能
-    #define RX_RAW_SKIPLIST_DEBUG_PRINT 1
+    #define RX_RAW_SKIPLIST_DEBUG_PRINT 0
     /*
     //原始跳表的节点类型(示例:key与val可以是任意名字,val也可以不存在,只要对外接口语义正确即可)
     template<class key_t,class val_t>
@@ -34,7 +34,7 @@ namespace rx
 
     //---------------------------------------------------------
     //定义原始的跳表容器基类
-    template<class node_t,uint32_t MAX_LEVEL=LOG2<256>::result>
+    template<class node_t,uint32_t MAX_LEVEL>
     class raw_skiplist_t
     {
         uint32_t        m_count;                            //内部节点数量
@@ -178,43 +178,20 @@ namespace rx
         template<class key_t>
         node_t *find(const key_t &key) const
         {
-            //for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
-            //{//从高层向底层逐层查找
-            //    node_t *node = m_head->next[lvl];           //从首节点开始遍历
-            //    while (node != NULL)
-            //    {//进行节点的比较
-            //        int cv=node_t::cmp(*node,key);          //进行节点与key的比较
-            //        if (cv<0)
-            //            node = node->next[lvl];             //节点小于key,需要继续向后遍历
-            //        else if (cv==0)
-            //            return node;                        //key相同,找到了.
-            //        else
-            //            break;                              //节点大于key说明本层查不到,准备降层吧
-            //    }
-            //}
-
-            //for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
-            //{//从高层向底层逐层查找
-            //    node_t *node = m_head->next[lvl];           //从首节点开始遍历
-            //    int rc;
-            //    while (node&&(rc=node_t::cmp(*node,key))<0) //进行节点与key的比较
-            //        node = node->next[lvl];                 //节点小于key,需要继续向后遍历
-            //    if (node&&rc==0)                            //本层遍历结束的时候判断是否找到了
-            //        return node;
-            //}
-
-            node_t *nd = m_head;
-            for (int i = m_levels - 1; i >= 0; i--) {
-                while (nd->next[i] != NULL) {
-                    if (nd->next[i]->key < key) 
-                        nd = nd->next[i];
-                    else if (nd->next[i]->key == key)
-                        return nd->next[i];
+            node_t *node = m_head;                          //从首节点开始遍历
+            for (int32_t lvl = m_levels - 1; lvl >= 0; --lvl)
+            {//从高层向底层逐层查找
+                while (node->next[lvl] != NULL)
+                {//进行节点的比较
+                    int cv=node_t::cmp(*node->next[lvl],key);//进行节点与key的比较
+                    if (cv<0)
+                        node = node->next[lvl];             //节点小于key,需要继续向后遍历
+                    else if (cv==0)
+                        return node->next[lvl];             //key相同,找到了.
                     else
-                        break;
+                        break;                              //节点大于key说明本层查不到,准备降层吧
                 }
             }
-
             return NULL;                                    //全部层级遍历完成,确实没找到
         }
 
@@ -242,7 +219,7 @@ namespace rx
 #if RX_RAW_SKIPLIST_DEBUG_PRINT
         void print()
         {
-            for (uint32_t lvl = 0; lvl < MAX_LEVEL; lvl++)
+            for (uint32_t lvl = 0; lvl < m_levels; lvl++)
             {
                 node_t *node = m_head->next[lvl];
                 printf("Level[%d]:", lvl);
@@ -252,7 +229,7 @@ namespace rx
                     printf("%3d->", node->key);
                     node = node->next[lvl];
                 }
-                printf("\n");
+                printf("\n\n");
             }
         }
 #endif

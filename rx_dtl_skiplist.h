@@ -76,14 +76,15 @@ namespace rx
         uint32_t make()
         {
             uint32_t rc=1;
-            while(rc<MAX_LEVEL&&(m_rnd.get()%0xFFFF)<(0xFFFF>>2))   //随机概率连续小于x%则层高增加(相当于1/x%叉树)
+            while(rc<MAX_LEVEL&&(m_rnd.get()%0xFFFF)<(0xFFFF>>2))   //随机概率连续小于25%则层高增加(相当于4叉树)
                 ++rc;
             rx_assert(rc<=MAX_LEVEL);
             return rc;
         }
     };
-    //typedef rand_skiplist_t tiny_skiplist_rnd_t;
-    typedef  rand_skiplist_t tiny_skiplist_rnd_t;
+
+    //统一指定一下跳表使用的随机数发生器类型
+    typedef rand_skiplist_t tiny_skiplist_rnd_t;
 
 
     //-----------------------------------------------------
@@ -183,7 +184,7 @@ namespace rx
         void clear(){m_list.clear();}
     };
     //语法糖,直接定义一个便于使用的小层高整数跳表集合
-    typedef tiny_skipset_t<uint32_t,8> tiny_skipset_uint32_t;
+    typedef tiny_skipset_t<uint32_t,32> tiny_skipset_uint32_t;
 
     //---------------------------------------------------------
     //封装跳表基础容器类
@@ -289,7 +290,7 @@ namespace rx
     };
 
     //语法糖,直接定义一个便于使用的小层高整数跳表
-    typedef tiny_skiplist_t<uint32_t,uint32_t,8> tiny_skiplist_uint32_t;
+    typedef tiny_skiplist_t<uint32_t,uint32_t,32> tiny_skiplist_uint32_t;
 }
 
 #endif

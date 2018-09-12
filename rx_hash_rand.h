@@ -150,8 +150,10 @@ namespace rx
             return Min+m_seed%(Max-Min+1);
         }
     };
+
+
     //-----------------------------------------------------
-    //方便快速使用随机数发生器的便捷函数
+    //方便快速使用随机数发生器的便捷函数(单线程安全)
     template<class rnd_t>
     rand_i& rnd() {static rnd_t rnd; return rnd;}
 

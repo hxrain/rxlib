@@ -10,14 +10,13 @@
 #include "../rx_tdd_tick.h"
 #include <map>
 
-#include "skiplist.h"
-#include "skiplist.c"
 
 //本文件进行tiny_hashtbl/tiny_skiplist/std::map的性能对比
 //分为三个方面:初始构造;查询;销毁.
 namespace rx
 {
     //-----------------------------------------------------
+    //定长hash表的性能测试
     template<uint32_t TestCount,uint32_t MaxSize, uint32_t LoopCount>
     inline void ut_tiny_hashtbl_loop_1(rx_tdd_t &rt)
     {
@@ -56,6 +55,7 @@ namespace rx
     }
 
     //-----------------------------------------------------
+    //变长跳表的性能测试
     template<uint32_t TestCount, uint32_t MaxSize, uint32_t LoopCount>
     inline void ut_tiny_skiplist_loop_1(rx_tdd_t &rt)
     {
@@ -72,7 +72,10 @@ namespace rx
         cntr_t cntr;
         for(uint32_t mi=0;mi<MaxSize;++mi)
             cntr.insert(mi,mi);
-        //cntr.print();
+
+        #if RX_RAW_SKIPLIST_DEBUG_PRINT
+        cntr.print();
+        #endif
 
         rand_skeeto_triple_t rnd;
         for(uint32_t li=0;li<LoopCount;++li)
@@ -93,33 +96,9 @@ namespace rx
         }
         tdd_tt_hit(tt,"FOR/LOOP(TestCount=%u,MaxSize=%u,LoopCount=%u)",TestCount,MaxSize,LoopCount);
     }
-    //-----------------------------------------------------
-    template<uint32_t TestCount, uint32_t MaxSize, uint32_t LoopCount>
-    inline void ut_tiny_skiplist_loop_0(rx_tdd_t &rt)
-    {
-        typedef skiplist cntr_t;
-        tt("tiny_skiplist_0");
-
-        cntr_t *cntr=create_skiplist();
-        for(uint32_t mi=0;mi<MaxSize;++mi)
-            insert(cntr,mi,(int*)&mi);
-        //print(cntr);
-
-        rand_skeeto_triple_t rnd;
-        for(uint32_t li=0;li<LoopCount;++li)
-        {
-            for(uint32_t mi=0;mi<MaxSize;++mi)
-            {
-                uint32_t i=rnd.get(MaxSize-1);
-                node *n=find(cntr,i);
-                rx_check(n!=NULL&&n->key==i);
-            }
-        }
-        tdd_tt_hit(tt,"FIND/LOOP(TestCount=%u,MaxSize=%u,LoopCount=%u)",TestCount,MaxSize,LoopCount);
-        free_skiplist(cntr);
-    }
 
     //-----------------------------------------------------
+    //标准std::map的性能测试,用于对比
     template<uint32_t TestCount, uint32_t MaxSize, uint32_t LoopCount>
     inline void ut_tiny_map_loop_1(rx_tdd_t &rt)
     {
@@ -162,14 +141,13 @@ namespace rx
 rx_tdd(htbl_sklist_map_loop)
 {
     const uint32_t TestCount=500,LoopCount=500,MaxSize=1000;
-    rx::ut_tiny_skiplist_loop_0 <TestCount, MaxSize, LoopCount>(*this);
     rx::ut_tiny_hashtbl_loop_1  <TestCount, MaxSize, LoopCount>(*this);
     rx::ut_tiny_skiplist_loop_1 <TestCount, MaxSize, LoopCount>(*this);
     rx::ut_tiny_map_loop_1      <TestCount, MaxSize, LoopCount>(*this);
 
-    //rx::ut_tiny_hashtbl_loop_1  <TestCount, MaxSize*10, LoopCount>(*this);
-    //rx::ut_tiny_skiplist_loop_1 <TestCount, MaxSize*10, LoopCount>(*this);
-    //rx::ut_tiny_map_loop_1      <TestCount, MaxSize*10, LoopCount>(*this);
+    rx::ut_tiny_hashtbl_loop_1  <TestCount, MaxSize*5, LoopCount>(*this);
+    rx::ut_tiny_skiplist_loop_1 <TestCount, MaxSize*5, LoopCount>(*this);
+    rx::ut_tiny_map_loop_1      <TestCount, MaxSize*5, LoopCount>(*this);
 
 }
 
