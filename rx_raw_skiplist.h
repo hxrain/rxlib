@@ -9,26 +9,28 @@ namespace rx
     //是否开启原始跳表的调试打印功能
     #define RX_RAW_SKIPLIST_DEBUG_PRINT 0
     /*
-    //原始跳表的节点类型(示例:key与val可以是任意名字,val也可以不存在,只要对外接口语义正确即可)
-    template<class key_t,class val_t>
-    struct raw_skiplist_node_t
+    //原始跳表的节点类型(示例,只要对外接口语义正确即可)
+    template<class key_t>
+    struct tiny_skipset_node_t
     {
+        //-------------------------------------------------
         //比较节点与给定key的大小
         //返回值:n<key为<0;n==key为0;n>key为>0
         template<class KT>
-        static int cmp(const raw_skiplist_node_t &n,const KT &key){return n.key-key;}
+        static int cmp(const tiny_skipset_node_t &n,const KT &key){return n.key-key;}
         //-------------------------------------------------
         //计算key需要的扩展尺寸
         template<class KT>
         static int ext_size(const KT &k){return 0;}
-        //-------------------------------------------------
-        //计算key与value需要的扩展尺寸
-        template<class KT,class VT>
-        static int ext_size(const KT &k,const VT &v){return 0;}
 
+        //-------------------------------------------------
+        //进行定向构造并初始化
+        template<class val_t>
+        void OC(uint32_t level,val_t &val,uint32_t es){ct::OC(&key,val);}
+        //-------------------------------------------------
+        typedef key_t node_key_t;
         key_t  key;
-        val_t  val;
-        struct raw_skiplist_node_t *next[1];                //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
+        struct tiny_skipset_node_t *next[1];                //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
     };
     */
 

@@ -8,7 +8,6 @@ namespace rx
 {
     //-----------------------------------------------------
     //封装一个简易的字符串功能,用于dtl容器内部的临时key字符串存储
-    //!!!必须注意!!!:在本对象实例的后部,留出足够长度的m_capacity空间.
     template<class CT=char>
     struct tiny_string_head_t
     {
@@ -22,6 +21,7 @@ namespace rx
         CT         *m_string;                               //字符串缓冲器指针.
     public:
         tiny_string_head_t(uint32_t cap, CT* buff) :m_capacity(cap),m_length(0),m_string(buff){}
+        tiny_string_head_t() :m_capacity(0),m_length(0),m_string(){}
         //-------------------------------------------------
         //使用给定的字符串进行赋值
         //返回值:真正拷贝的串尺寸.
@@ -44,25 +44,26 @@ namespace rx
                 return m_length;
             }
         }
+        uint32_t bind(CT* buff,uint32_t cap,const CT* str,uint32_t len = 0){m_string=buff;m_capacity=cap;return set(str,len);}
         //-------------------------------------------------
         uint32_t capacity()const { return m_capacity; }
         uint32_t length()const { return m_length; }
         const CT* c_str() const { return m_string; }
         operator const CT* ()const {return m_string;}
         //-------------------------------------------------
-        bool operator <  (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) < 0;}
-        bool operator <= (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) <= 0;}
-        bool operator == (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) == 0;}
-        bool operator >  (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) > 0;}
-        bool operator >= (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) >= 0;}
-        bool operator != (const tiny_string_head_t& str) const {return strcmp(m_string, str.m_string) != 0;}
+        bool operator <  (const tiny_string_head_t& str) const {return st::strcmp(m_string, str.m_string) < 0;}
+        bool operator <= (const tiny_string_head_t& str) const {return st::strcmp(m_string, str.m_string) <= 0;}
+        bool operator == (const tiny_string_head_t& str) const {return st::strcmp(m_string, str.m_string) == 0;}
+        bool operator >  (const tiny_string_head_t& str) const {return st::strcmp(m_string, str.m_string) > 0;}
+        bool operator >= (const tiny_string_head_t& str) const {return st::strcmp(m_string, str.m_string) >= 0;}
+        bool operator != (const tiny_string_head_t& str) const {return st::strcmp(m_string, str.m_string) != 0;}
         //-------------------------------------------------
-        bool operator <  (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) < 0;}
-        bool operator <= (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) <= 0;}
-        bool operator == (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) == 0;}
-        bool operator >  (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) > 0;}
-        bool operator >= (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) >= 0;}
-        bool operator != (const CT *str) const {return strcmp(m_string, (is_empty(str)?"":str)) != 0;}
+        bool operator <  (const CT *str) const {return st::strcmp(m_string, (is_empty(str)?sc<CT>::empty():str)) < 0;}
+        bool operator <= (const CT *str) const {return st::strcmp(m_string, (is_empty(str)?sc<CT>::empty():str)) <= 0;}
+        bool operator == (const CT *str) const {return st::strcmp(m_string, (is_empty(str)?sc<CT>::empty():str)) == 0;}
+        bool operator >  (const CT *str) const {return st::strcmp(m_string, (is_empty(str)?sc<CT>::empty():str)) > 0;}
+        bool operator >= (const CT *str) const {return st::strcmp(m_string, (is_empty(str)?sc<CT>::empty():str)) >= 0;}
+        bool operator != (const CT *str) const {return st::strcmp(m_string, (is_empty(str)?sc<CT>::empty():str)) != 0;}
         //-------------------------------------------------
     };
 
@@ -86,6 +87,24 @@ namespace rx
         s->set(str,len);
         return s;
     }
+
+    //-----------------------------------------------------
+    //数字转为字符串的工具对象
+    template<class CT>
+    class n2str
+    {
+        CT  m_str[32];
+    public:
+        n2str(){m_str[0]=0;}
+        n2str(uint32_t n,uint32_t r=10){st::ultoa(n,m_str,r);}
+        n2str(int64_t n,uint32_t r=10){st::itoa64(n,m_str,r);}
+        operator CT* ()const {return m_str;}
+        operator const CT* ()const {return m_str;}
+        const CT* operator()(uint32_t n,uint32_t r=10){st::ultoa(n,m_str,r);return m_str;}
+        const CT* operator()(int64_t n,uint32_t r=10){st::itoa64(n,m_str,r);return m_str;}
+    };
+    typedef n2str<char> n2s;
+    typedef n2str<wchar_t> n2w;
 }
 
 

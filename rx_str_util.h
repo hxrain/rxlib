@@ -4,8 +4,9 @@
 #include "rx_cc_macro.h"
 #include "rx_ct_util.h"
 #include "rx_assert.h"
-#include "stdlib.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #if RX_OS==RX_OS_WIN||RX_OS_POSIX
 #define RX_STR_USE_FILE 1
@@ -24,6 +25,7 @@ namespace rx
         static const char  hex_upr(uint32_t i) {return "0123456789ABCDEF"[i];}
         static const char  hex_lwr(uint32_t i) {return "0123456789abcdef"[i];}
         static const char  zero() {return '0';}
+        static const char* empty() {return "";}
         static const char  CR() {return '\r';}
         static const char  LF() {return '\n';}
         static const char  space() {return ' ';}
@@ -41,6 +43,7 @@ namespace rx
         static const wchar_t  hex_upr(uint32_t i) {return L"0123456789ABCDEF"[i];}
         static const wchar_t  hex_lwr(uint32_t i) {return L"0123456789abcdef"[i];}
         static const wchar_t  zero() {return L'0';}
+        static const wchar_t* empty() {return L"";}
         static const wchar_t  CR() {return L'\r';}
         static const wchar_t  LF() {return L'\n';}
         static const wchar_t  space() {return L' ';}
@@ -90,10 +93,10 @@ namespace rx
         static int              strcmp(const wchar_t* dst,const wchar_t* src) {return ::wcscmp(dst,src);}
 
         //比较,不区分大小写
-        #if RX_CC==RX_CC_VC
-        static int              stricmp(const char *s1, const char *s2) {return ::_strcmpi(s1,s2);}
-        #else
+        #if RX_CC==RX_CC_BCC
         static int              stricmp(const char *s1, const char *s2) {return ::strcmpi(s1,s2);}
+        #else
+        static int              stricmp(const char *s1, const char *s2) {return ::_strcmpi(s1,s2);}
         #endif
         static int              stricmp(const wchar_t *s1, const wchar_t *s2) {return ::_wcsicmp(s1,s2);}
 
@@ -131,19 +134,19 @@ namespace rx
 
         //字符串转换为大写
 
-        #if RX_CC==RX_CC_VC
-        static char *           strupr(char *s) {return ::_strupr(s);}
-        #else
+        #if RX_CC==RX_CC_BCC
         static char *           strupr(char *s) {return ::strupr(s);}
+        #else
+        static char *           strupr(char *s) {return ::_strupr(s);}
         #endif
         static wchar_t *        strupr(wchar_t *s) {return ::_wcsupr(s);}
 
         //字符串转换为小写
 
-        #if RX_CC==RX_CC_VC
-        static char *           strlwr(char *s) {return ::_strlwr(s);}
-        #else
+        #if RX_CC==RX_CC_BCC
         static char *           strlwr(char *s) {return ::strlwr(s);}
+        #else
+        static char *           strlwr(char *s) {return ::_strlwr(s);}
         #endif
         static wchar_t *        strlwr(wchar_t *s) {return ::_wcslwr(s);}
 
@@ -175,21 +178,21 @@ namespace rx
 
         //数字转换为字符串
 
-        #if RX_CC==RX_CC_VC
-        static char *           itoa(int value, char *string, int radix=10) {return ::_itoa(value,string,radix);}
-        #else
+        #if RX_CC==RX_CC_BCC
         static char *           itoa(int value, char *string, int radix=10) {return ::itoa(value,string,radix);}
+        #else
+        static char *           itoa(int value, char *string, int radix=10) {return ::_itoa(value,string,radix);}
         #endif
         static wchar_t *        itoa(int value, wchar_t *string, int radix=10) {return ::_itow(value,string,radix);}
 
-        static char *           itoa64(uint64_t value, char *string, int radix=10) {return ::_i64toa(value,string,radix);}
-        static wchar_t *        itoa64(uint64_t value, wchar_t *string, int radix=10) {return ::_i64tow(value,string,radix);}
+        static char *           itoa64(int64_t value, char *string, int radix=10) {return ::_i64toa(value,string,radix);}
+        static wchar_t *        itoa64(int64_t value, wchar_t *string, int radix=10) {return ::_i64tow(value,string,radix);}
 
 
-        #if RX_CC==RX_CC_VC
-        static char *           ultoa(uint32_t value, char *string, int radix=10) {return ::_ultoa(value,string,radix);}
-        #else
+        #if RX_CC==RX_CC_BCC
         static char *           ultoa(uint32_t value, char *string, int radix=10) {return ::ultoa(value,string,radix);}
+        #else
+        static char *           ultoa(uint32_t value, char *string, int radix=10) {return ::_ultoa(value,string,radix);}
         #endif
         static wchar_t *        ultoa(uint32_t value, wchar_t *string, int radix=10) {return ::_ultow(value,string,radix);}
 
