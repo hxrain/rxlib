@@ -76,7 +76,7 @@ namespace rx
         //比较节点与给定key的大小
         //返回值:n<key为<0;n==key为0;n>key为>0
         template<class KT>
-        static int cmp(const tiny_skipset_node_t &n,const KT &key){return n.key-key;}
+        static int cmp(const tiny_skipset_node_t &n,const KT &key){return n.key==key?0:(n.key<key?-1:1);}
         //-------------------------------------------------
         //计算key需要的扩展尺寸
         template<class KT>
@@ -222,6 +222,7 @@ namespace rx
 
     //语法糖,定义一个便于使用的整数跳表集合
     typedef tiny_skipset_t<uint32_t,32> tiny_skipset_uint32_t;
+    typedef tiny_skipset_t<int32_t,32> tiny_skipset_int32_t;
     //语法糖,定义一个便于使用的const char*串跳表集合
     typedef tiny_skipset_t<const char*,32> tiny_skipset_cstr_t;
     //语法糖,定义一个便于使用的const wchar_t*串跳表集合
@@ -239,9 +240,8 @@ namespace rx
         //比较节点与给定key的大小
         //返回值:n<key为<0;n==key为0;n>key为>0
         template<class KT>
-        static int cmp(const tiny_skiplist_node_t &n,const KT &key){return int(n.key-key);}
-        template<class CT>
-        static int cmp(const tiny_skiplist_node_t &n,const CT* key){return st::strcmp(n.key.c_str(),key);}
+        static int cmp(const tiny_skiplist_node_t &n,const KT &key){return n.key==key?0:(n.key<key?-1:1);}
+
         //-------------------------------------------------
         //计算key需要的扩展尺寸
         template<class KT,class VT>
@@ -397,6 +397,7 @@ namespace rx
 
     //语法糖,定义一个便于使用的整数跳表
     typedef tiny_skiplist_t<uint32_t,uint32_t,32> tiny_skiplist_uint32_t;
+    typedef tiny_skiplist_t<int32_t,uint32_t,32> tiny_skiplist_int32_t;
     //语法糖,定义一个便于使用的const char*为key的整数跳表
     typedef tiny_skiplist_t<const char*,uint32_t,32> tiny_skiplist_cstr_uint32_t;
     //语法糖,定义一个便于使用的const wchar_t*为key的整数跳表

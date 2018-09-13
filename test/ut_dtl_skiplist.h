@@ -18,38 +18,38 @@ namespace rx
         tiny_skiplist_uint32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
-        sl.insert(3,vals[3]);
+        sl.insert((uint32_t)3,vals[3]);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==3);
         rt.tdd_assert(*sl.rbegin()==3);
         rt.tdd_assert(sl.rbegin()()==3);
-        sl.insert(8,vals[8]);
+        sl.insert((uint32_t)8,vals[8]);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==3);
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==8);
         rt.tdd_assert(sl.size()==2);
-        sl.insert(5,vals[5]);
+        sl.insert((uint32_t)5,vals[5]);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==3);
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==8);
-        sl.insert(7,vals[7]);
+        sl.insert((uint32_t)7,vals[7]);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==3);
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==8);
-        sl.insert(2,vals[2]);
+        sl.insert((uint32_t)2,vals[2]);
         rt.tdd_assert(*sl.begin()==2);
         rt.tdd_assert(sl.begin()()==2);
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==8);
         rt.tdd_assert(sl.size()==5);
 
-        tiny_skiplist_uint32_t::node_t *n=sl.find(3);
+        tiny_skiplist_uint32_t::node_t *n=sl.find((uint32_t)3);
         rt.tdd_assert(n&&n->key==3&&n->val==vals[3]);
 
-        n=sl.find(8);
+        n=sl.find((uint32_t)8);
         rt.tdd_assert(n&&n->key==8&&n->val==vals[8]);
 
         //-------------------------------------------------
@@ -58,21 +58,21 @@ namespace rx
         #endif
         //-------------------------------------------------
 
-        n=sl.find(5);
+        n=sl.find((uint32_t)5);
         rt.tdd_assert(n&&n->key==5&&n->val==vals[5]);
-        rt.tdd_assert(sl.erase(5));
+        rt.tdd_assert(sl.erase((uint32_t)5));
         rt.tdd_assert(*sl.begin()==2);
         rt.tdd_assert(sl.begin()()==2);
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==8);
-        n=sl.find(5);
+        n=sl.find((uint32_t)5);
         rt.tdd_assert(n==NULL);
-        rt.tdd_assert(!sl.erase(1));
-        rt.tdd_assert(!sl.insert(3,vals[4]));
+        rt.tdd_assert(!sl.erase((uint32_t)1));
+        rt.tdd_assert(!sl.insert((uint32_t)3,vals[4]));
 
-        n=sl.find(3);
+        n=sl.find((uint32_t)3);
         rt.tdd_assert(n&&n->key==3&&n->val==vals[3]);
-        n=sl.find(2);
+        n=sl.find((uint32_t)2);
         rt.tdd_assert(n&&n->key==2&&n->val==vals[2]);
 
         sl.clear();
@@ -224,7 +224,7 @@ namespace rx
     //-----------------------------------------------------
     inline void test_skipset_base_1(rx_tdd_t &rt)
     {
-        tiny_skipset_uint32_t sl;
+        tiny_skipset_int32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
         
