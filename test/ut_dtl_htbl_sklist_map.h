@@ -137,7 +137,7 @@ namespace rx
     }
 }
 
-
+//---------------------------------------------------------
 template<uint32_t MaxSize, uint32_t LoopCount,class cntr_t>
 inline void ut_list_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* msgb)
 {
@@ -162,6 +162,7 @@ inline void ut_list_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* msgb)
     tdd_tt_hit(tt,"FOR(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
 }
 
+//---------------------------------------------------------
 template<uint32_t MaxSize, uint32_t LoopCount,class cntr_t>
 inline void ut_list_cntr_loop_2(rx_tdd_t &rt,const char* msga,const char* msgb)
 {
@@ -187,6 +188,7 @@ inline void ut_list_cntr_loop_2(rx_tdd_t &rt,const char* msga,const char* msgb)
     tdd_tt_hit(tt,"FOR(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
 }
 
+//---------------------------------------------------------
 //用于抹平不同容器迭代器对于val访问的差异而临时使用的val比较器
 class tmp_cmp
 {
@@ -199,6 +201,7 @@ public:
     static bool equ(const std::map<std::string,uint32_t>::iterator& I,const vt& v){return I->second==v;}
 };
 
+//---------------------------------------------------------
 //用于抹平std::map的insert接口语义的差异而临时定义的map包装类
 template<class key_t>
 class stdmap:public std::map<key_t,uint32_t>
@@ -223,13 +226,15 @@ rx_tdd(htbl_sklist_map_loop)
     ut_list_cntr_loop_1<MaxSize, LoopCount,std::list<uint32_t> >(*this,"    std::list","int");
     ut_list_cntr_loop_2<MaxSize, LoopCount,std::list<std::string> >(*this,"    std::list","string");
 
+    printf("\n");
     rx::ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*1.3)>,tmp_cmp>(*this, " tiny_hashtbl","int/int");
     rx::ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<uint32_t, uint32_t>,tmp_cmp>(*this, "tiny_skiplist", "int/int");
     rx::ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp >(*this,"     std::map","int/int");
 
+    printf("\n");
+    rx::ut_tiny_map_cntr_loop_2 <MaxSize, LoopCount, stdmap<std::string>,tmp_cmp>(*this,"     std::map","std::string/int");
     rx::ut_tiny_map_cntr_loop_2 <MaxSize, LoopCount, rx::tiny_skiplist_t<const char*,uint32_t>,tmp_cmp>(*this,"tiny_skiplist", "const char*/int");
     rx::ut_tiny_map_cntr_loop_2 <MaxSize, LoopCount, rx::tiny_skiplist_t<std::string,uint32_t>,tmp_cmp>(*this,"tiny_skiplist", "std::string/int");
-    rx::ut_tiny_map_cntr_loop_2 <MaxSize, LoopCount, stdmap<std::string>,tmp_cmp>(*this,"     std::map","std::string/int");
 }
 
 rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_std)
@@ -237,13 +242,15 @@ rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_std)
     const uint32_t LoopCount=500,MaxSize=100000;
     ut_list_cntr_loop_1<MaxSize, LoopCount,std::list<uint32_t> >(*this,"    std::list","int");
     ut_list_cntr_loop_2<MaxSize, LoopCount,std::list<std::string> >(*this,"    std::list","string");
-
+    
+    printf("\n");
     rx::ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<uint32_t, uint32_t>,tmp_cmp>(*this, "tiny_skiplist", "int/int");
     rx::ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp>(*this,"     std::map","int/int");
 
+    printf("\n");
+    rx::ut_tiny_map_cntr_loop_2 <MaxSize, LoopCount, stdmap<std::string>,tmp_cmp>(*this,"     std::map","std::string/int");
     rx::ut_tiny_map_cntr_loop_2 <MaxSize, LoopCount, rx::tiny_skiplist_t<const char*,uint32_t>,tmp_cmp>(*this,"tiny_skiplist", "const char*/int");
     rx::ut_tiny_map_cntr_loop_2 <MaxSize, LoopCount, rx::tiny_skiplist_t<std::string,uint32_t>,tmp_cmp>(*this,"tiny_skiplist", "std::string/int");
-    rx::ut_tiny_map_cntr_loop_2 <MaxSize, LoopCount, stdmap<std::string>,tmp_cmp>(*this,"     std::map","std::string/int");
 }
 
 #endif

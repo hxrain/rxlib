@@ -48,7 +48,8 @@ namespace rx
         //根据给定的层数与扩展尺寸,动态创建节点
         node_t *m_make_node(uint32_t level, uint32_t ext_size)
         {
-            node_t *node = (node_t *)m_mem.alloc(sizeof(node_t) + (level-1) * sizeof(node_t *)+ext_size);
+            uint32_t size=sizeof(node_t) + (level-1) * sizeof(node_t *)+ext_size;
+            node_t *node = (node_t *)m_mem.alloc(size);
             if (!node) return NULL;
 
             //新节点所有层的后趋,初始都为NULL

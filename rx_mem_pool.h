@@ -134,7 +134,7 @@ namespace rx
     //默认配置
     //内存池最小对齐尺寸和最小分配节点尺寸
 #ifndef RX_MEMCFG_MinNode
-    #define RX_MEMCFG_MinNode 64
+    #define RX_MEMCFG_MinNode 32
 #endif
 
     //内存池最大分配节点尺寸
