@@ -239,7 +239,7 @@ namespace rx
         //比较节点与给定key的大小
         //返回值:n<key为<0;n==key为0;n>key为>0
         template<class KT>
-        static int cmp(const tiny_skiplist_node_t &n,const KT &key){return n.key-key;}
+        static int cmp(const tiny_skiplist_node_t &n,const KT &key){return int(n.key-key);}
         template<class CT>
         static int cmp(const tiny_skiplist_node_t &n,const CT* key){return st::strcmp(n.key.c_str(),key);}
         //-------------------------------------------------

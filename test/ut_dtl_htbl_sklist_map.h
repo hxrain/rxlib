@@ -54,7 +54,52 @@ namespace rx
         }
         tdd_tt_hit(tt,"FOR/LOOP(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
     }
+    //-----------------------------------------------------
+    //map容器的性能对比测试用例
+    template<uint32_t MaxSize, uint32_t LoopCount,class cntr_t>
+    inline void ut_tiny_map_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* msgb)
+    {
+        tdd_tt(tt, msga, msgb);
+        for (uint32_t tl = 0; tl < LoopCount; ++tl)
+        {
+            cntr_t cntr;
+            for (uint32_t mi = 0; mi<MaxSize; ++mi)
+                cntr.insert(mi, mi);
+        }
+        tdd_tt_hit(tt, "MAKE/CLEAN(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
 
+        cntr_t cntr;
+        for (uint32_t mi = 0; mi<MaxSize; ++mi)
+            cntr.insert(rx_hash_skeeto_triple(mi), mi);
+        
+        rt.tdd_assert(cntr.size()==MaxSize);
+
+        uint64_t rc = 0;
+        uint64_t ec = 0;
+        for (uint32_t li = 0; li<LoopCount; ++li)
+        {
+            for (uint32_t mi = 0; mi<MaxSize; ++mi)
+            {
+                typename cntr_t::iterator I = cntr.find(rx_hash_skeeto_triple(mi));
+                if (I != cntr.end() && *I == mi)
+                    ++rc;
+                else
+                    ++ec;
+            }
+        }
+        rt.tdd_assert(rc == LoopCount*MaxSize);
+        tdd_tt_hit(tt, "FIND/LOOP(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
+
+        rc = 0;
+        for (uint32_t li = 0; li<LoopCount; ++li)
+        {
+            for (typename cntr_t::iterator I = cntr.begin(); I != cntr.end(); ++I)
+                if (I != cntr.end())
+                    ++rc;
+        }
+        rt.tdd_assert(rc == LoopCount*MaxSize);
+        tdd_tt_hit(tt, "FOR/LOOP(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
+    }
     //-----------------------------------------------------
     //变长跳表的性能测试
     template<uint32_t MaxSize, uint32_t LoopCount>
@@ -149,31 +194,37 @@ namespace rx
         {
             cntr_t cntr;
             for(uint32_t mi=0;mi<MaxSize;++mi)
-                cntr.insert(ns(mi),mi);
+                cntr.insert(ns(rx_hash_skeeto_triple(mi)),mi);
         }
         tdd_tt_hit(tt,"MAKE/CLEAN(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
 
         cntr_t cntr;
         for(uint32_t mi=0;mi<MaxSize;++mi)
-            cntr.insert(ns(mi),mi);
+            cntr.insert(ns(rx_hash_skeeto_triple(mi)),mi);
 
         rand_skeeto_triple_t rnd;
+        uint64_t rc = 0;
         for(uint32_t li=0;li<LoopCount;++li)
         {
             for(uint32_t mi=0;mi<MaxSize;++mi)
             {
                 uint32_t i=rnd.get(MaxSize-1);
-                cntr_t::iterator I=cntr.find(ns(i));
-                rx_check(I!=cntr.end()&&*I==i);
+                cntr_t::iterator I=cntr.find(ns(rx_hash_skeeto_triple(i)));
+                if (I != cntr.end() && *I == i)
+                    rc++;
             }
         }
+        rt.tdd_assert(rc== LoopCount*MaxSize);
         tdd_tt_hit(tt,"FIND/LOOP(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
 
+        rc = 0;
         for(uint32_t li=0;li<LoopCount;++li)
         {
-            for(typename cntr_t::iterator I=cntr.begin();I!=cntr.end();++I)
-                rx_check(I!=cntr.end());
+            for (typename cntr_t::iterator I = cntr.begin(); I != cntr.end(); ++I)
+                if (I != cntr.end())
+                    ++rc;
         }
+        rt.tdd_assert(rc == LoopCount*MaxSize);
         tdd_tt_hit(tt,"FOR/LOOP(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
     }
     //-----------------------------------------------------
@@ -188,13 +239,13 @@ namespace rx
         {
             cntr_t cntr;
             for(uint32_t mi=0;mi<MaxSize;++mi)
-                cntr.insert(ns(mi),mi);
+                cntr.insert(ns(rx_hash_skeeto_triple(mi)),mi);
         }
         tdd_tt_hit(tt,"MAKE/CLEAN(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
 
         cntr_t cntr;
         for(uint32_t mi=0;mi<MaxSize;++mi)
-            cntr.insert(ns(mi),mi);
+            cntr.insert(ns(rx_hash_skeeto_triple(mi)),mi);
 
         rand_skeeto_triple_t rnd;
         for(uint32_t li=0;li<LoopCount;++li)
@@ -202,7 +253,7 @@ namespace rx
             for(uint32_t mi=0;mi<MaxSize;++mi)
             {
                 uint32_t i=rnd.get(MaxSize-1);
-                cntr_t::iterator I=cntr.find(ns(i));
+                cntr_t::iterator I=cntr.find(ns(rx_hash_skeeto_triple(i)));
                 rx_check(I!=cntr.end()&&*I==i);
             }
         }
@@ -228,13 +279,13 @@ namespace rx
         {
             cntr_t cntr;
             for(uint32_t mi=0;mi<MaxSize;++mi)
-                cntr[ns(mi)]=mi;
+                cntr[ns(rx_hash_skeeto_triple(mi))]=mi;
         }
         tdd_tt_hit(tt,"MAKE/CLEAN(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
 
         cntr_t cntr;
         for(uint32_t mi=0;mi<MaxSize;++mi)
-            cntr[ns(mi)]=mi;
+            cntr[ns(rx_hash_skeeto_triple(mi))]=mi;
 
         rand_skeeto_triple_t rnd;
         for(uint32_t li=0;li<LoopCount;++li)
@@ -242,7 +293,7 @@ namespace rx
             for(uint32_t mi=0;mi<MaxSize;++mi)
             {
                 uint32_t i=rnd.get(MaxSize-1);
-                cntr_t::iterator I=cntr.find(ns(i));
+                cntr_t::iterator I=cntr.find(ns(rx_hash_skeeto_triple(i)));
                 rx_check(I!=cntr.end()&&I->second==i);
             }
         }
@@ -262,8 +313,8 @@ rx_tdd(htbl_sklist_map_loop)
 {
     const uint32_t LoopCount=100,MaxSize=1000;
     
-    rx::ut_tiny_hashtbl_loop_1  <MaxSize, LoopCount>(*this);
-    rx::ut_tiny_skiplist_loop_1 <MaxSize, LoopCount>(*this);
+    rx::ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*1.3)> >(*this, " tiny_hashtbl","int/int");
+    rx::ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<uint32_t, uint32_t> >(*this, "tiny_skiplist", "int/int");
     rx::ut_tiny_map_loop_1      <MaxSize, LoopCount>(*this);
     
     rx::ut_tiny_skiplist_loop_2 <MaxSize, LoopCount>(*this);
@@ -271,7 +322,7 @@ rx_tdd(htbl_sklist_map_loop)
     rx::ut_tiny_map_loop_2      <MaxSize, LoopCount>(*this);
 }
 
-rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_slow)
+rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_std)
 {
     const uint32_t LoopCount=500,MaxSize=100000;
 
