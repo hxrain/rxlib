@@ -163,7 +163,8 @@ public:
         ut_list_cntr_loop_1<MaxSize, LoopCount,std::list<std::string>,tmp_cmp::key_op_uint_hash_str >(rt,"    std::list","string");
 
         printf("\n");
-        ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*1.3)>,tmp_cmp,tmp_cmp::key_op_uint>(rt, " tiny_hashtbl","int/int");
+        ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*2.3)>,tmp_cmp,tmp_cmp::key_op_uint>(rt, " tiny_hashtbl","int/int");
+        ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashlist_uint32_t<uint32_t(MaxSize*2.3)>,tmp_cmp,tmp_cmp::key_op_uint>(rt, " tiny_hashlist","int/int");
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<uint32_t, uint32_t>,tmp_cmp,tmp_cmp::key_op_uint>(rt, "tiny_skiplist", "int/int");
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp,tmp_cmp::key_op_uint >(rt,"     std::map","int/int");
 
@@ -182,7 +183,7 @@ public:
 //---------------------------------------------------------
 rx_tdd(htbl_sklist_map_loop)
 {
-    map_cnrt_test<1000,1000>::test(*this);
+    map_cnrt_test<1000,2000>::test(*this);
 }
 
 rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_slow)

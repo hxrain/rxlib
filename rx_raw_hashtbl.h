@@ -45,11 +45,11 @@ namespace rx
         //添加节点
         //返回值:NULL失败;其他成功.
         template<class key_t>
-        node_t *push(uint32_t hash_code,const key_t &value)
+        node_t *push(uint32_t hash_code,const key_t &value,uint32_t &pos)
         {
             for(uint32_t i=0; i<m_max_slot_size; ++i)
             {
-                uint32_t pos=(hash_code+i)%m_max_slot_size; //计算位置
+                pos=(hash_code+i)%m_max_slot_size;          //计算位置
                 node_t &node = m_nodes[pos];                //得到节点
                 if (!node.state)
                 {
@@ -63,6 +63,7 @@ namespace rx
                     return &node;                           //该节点已经被使用了,且value也是重复的,那么就直接给出吧
             }
 
+            pos=-1;
             return NULL;                                    //转了一圈没地方了!
         }
 
