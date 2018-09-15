@@ -5,7 +5,7 @@
 #include "rx_mem_alloc.h"
 #include "rx_mem_alloc_cntr.h"
 #include "rx_hash_rand.h"
-#include "rx_raw_skiplist.h"
+#include "rx_dtl_skiplist_raw.h"
 #include <time.h>
 #include "rx_str_tiny.h"
 

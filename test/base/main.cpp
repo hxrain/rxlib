@@ -1,12 +1,12 @@
 #include "../ut_dtl_htbl_sklist_map.h"
 
-#include "../../rx_raw_skiplist.h"
+#include "../../rx_dtl_skiplist_raw.h"
 #include "../ut_dtl_skiplist.h"
 #include "../../rx_dtl_skiplist.h"
 
 #include "../ut_dtl_hashtbl_tiny.h"
 #include "../../rx_dtl_hashtbl_tiny.h"
-#include "../../rx_raw_hashtbl.h"
+#include "../../rx_dtl_hashtbl_raw.h"
 
 #include "../ut_str_util.h"
 #include "../../rx_str_tiny.h"
@@ -52,7 +52,7 @@
 
 #include "../ut_mem_pool.h"
 #include "../../rx_mem_pool_fx1.h"
-#include "../../rx_raw_list.h"
+#include "../../rx_dtl_list_raw.h"
 #include "../../rx_mem_pool.h"
 
 

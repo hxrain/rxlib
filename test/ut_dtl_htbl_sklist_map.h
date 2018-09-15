@@ -3,9 +3,9 @@
 
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
-#include "../rx_raw_skiplist.h"
+#include "../rx_dtl_skiplist_raw.h"
 #include "../rx_dtl_skiplist.h"
-#include "../rx_raw_hashtbl.h"
+#include "../rx_dtl_hashtbl_raw.h"
 #include "../rx_dtl_hashtbl_tiny.h"
 #include "../rx_tdd_tick.h"
 #include <map>
@@ -192,7 +192,7 @@ rx_tdd(htbl_sklist_map_loop)
     map_cnrt_test<1000,2000>::test(*this);
 }
 
-rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_slow)
+rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_std)
 {
     map_cnrt_test<500,100000,false>::test(*this);
 }

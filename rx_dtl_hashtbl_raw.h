@@ -41,6 +41,7 @@ namespace rx
             m_collision=0;
             return true;
         }
+        node_t *node(uint32_t idx)const { return &m_nodes[idx]; }
         //-------------------------------------------------
         //添加节点
         //返回值:NULL失败;其他成功.

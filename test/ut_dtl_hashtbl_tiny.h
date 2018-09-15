@@ -3,7 +3,7 @@
 
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
-#include "../rx_raw_hashtbl.h"
+#include "../rx_dtl_hashtbl_raw.h"
 #include "../rx_dtl_hashtbl_tiny.h"
 
 namespace rx
@@ -16,7 +16,7 @@ namespace rx
     template<class cntr_t>
     inline void raw_tinyhashset_base_loop1(rx_tdd_t &rt,const cntr_t& s)
     {
-        for(cntr_t::iterator i= s.begin();i!=s.end();++i)
+        for(typename cntr_t::iterator i= s.begin();i!=s.end();++i)
             rt.tdd_assert(*i!=0);
     }
     inline void raw_tinyhashset_base_1(rx_tdd_t &rt)
@@ -63,7 +63,7 @@ namespace rx
     template<class cntr_t>
     inline void raw_tinyhashtbl_base_loop1(rx_tdd_t &rt,const cntr_t& s)
     {
-        for(cntr_t::iterator i= s.begin();i!=s.end();++i)
+        for(typename cntr_t::iterator i= s.begin();i!=s.end();++i)
             rt.tdd_assert(*i!=0&&i()+1==*i);
     }
 

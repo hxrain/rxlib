@@ -4,7 +4,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_mem_pool.h"
-#include "rx_raw_list.h"
+#include "rx_dtl_list_raw.h"
 #include "rx_assert.h"
 
 
