@@ -152,7 +152,7 @@ public:
 
 //---------------------------------------------------------
 //最终进行对比测试的功能封装
-template<uint32_t LoopCount,uint32_t MaxSize>
+template<uint32_t LoopCount,uint32_t MaxSize,bool test_hashtbl=true>
 class map_cnrt_test
 {
 public:
@@ -163,13 +163,19 @@ public:
         ut_list_cntr_loop_1<MaxSize, LoopCount,std::list<std::string>,tmp_cmp::key_op_uint_hash_str >(rt,"    std::list","string");
 
         printf("\n");
-        ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*2.3)>,tmp_cmp,tmp_cmp::key_op_uint>(rt, " tiny_hashtbl","int/int");
-        ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashlist_uint32_t<uint32_t(MaxSize*2.3)>,tmp_cmp,tmp_cmp::key_op_uint>(rt, " tiny_hashlist","int/int");
+        if (test_hashtbl)
+        {
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint>(rt, " tiny_hashtbl", "int/int");
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashlist_uint32_t<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint>(rt, " tiny_hashlist", "int/int");
+        }
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<uint32_t, uint32_t>,tmp_cmp,tmp_cmp::key_op_uint>(rt, "tiny_skiplist", "int/int");
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp,tmp_cmp::key_op_uint >(rt,"     std::map","int/int");
 
         printf("\n");
-        ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*1.3)>,tmp_cmp,tmp_cmp::key_op_uint_hash>(rt, " tiny_hashtbl","hash(int)/int");
+        if (test_hashtbl)
+        {
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*1.3)>, tmp_cmp, tmp_cmp::key_op_uint_hash>(rt, " tiny_hashtbl", "hash(int)/int");
+        }
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<uint32_t, uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash>(rt, "tiny_skiplist", "hash(int)/int");
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash >(rt,"     std::map","hash(int)/int");
 
@@ -188,7 +194,7 @@ rx_tdd(htbl_sklist_map_loop)
 
 rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_slow)
 {
-    map_cnrt_test<500,100000>::test(*this);
+    map_cnrt_test<500,100000,false>::test(*this);
 }
 
 #endif
