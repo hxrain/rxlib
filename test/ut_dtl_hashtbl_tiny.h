@@ -21,7 +21,7 @@ namespace rx
     }
     inline void raw_tinyhashset_base_1(rx_tdd_t &rt)
     {
-        typedef tiny_hashset_uint32_t<tmp_hashtbl_tiny_msize> cntr_t;
+        typedef tiny_hashset_t<tmp_hashtbl_tiny_msize,int32_t> cntr_t;
         cntr_t s;
         rt.tdd_assert(s.capacity() == tmp_hashtbl_tiny_msize);
         rt.tdd_assert(s.size() == 0);
@@ -50,8 +50,7 @@ namespace rx
         raw_tinyhashset_base_loop1(rt,s);
 
         rt.tdd_assert(s.find(4));
-        rt.tdd_assert(s.find(2))
-            ;
+        rt.tdd_assert(s.find(2));
         rt.tdd_assert(s.erase(2));
         rt.tdd_assert(s.size() == 3);
         rt.tdd_assert(s.collision() == 0);
@@ -64,12 +63,12 @@ namespace rx
     inline void raw_tinyhashtbl_base_loop1(rx_tdd_t &rt,const cntr_t& s)
     {
         for(typename cntr_t::iterator i= s.begin();i!=s.end();++i)
-            rt.tdd_assert(*i!=0&&i()+1==*i);
+            rt.tdd_assert(*i!=0&&(i()+1)==*i);
     }
 
     inline void raw_tinyhashtbl_base_1(rx_tdd_t &rt)
     {
-        typedef tiny_hashtbl_uint32_t<tmp_hashtbl_tiny_msize> cntr_t;
+        typedef tiny_hashtbl_t<tmp_hashtbl_tiny_msize,int,int> cntr_t;
         cntr_t s;
         rt.tdd_assert(s.capacity() == tmp_hashtbl_tiny_msize);
         rt.tdd_assert(s.size() == 0);
@@ -110,7 +109,7 @@ namespace rx
     //¹şÏ£Á´±í»ù´¡²âÊÔ
     inline void raw_tinyhashlist_base_1(rx_tdd_t &rt)
     {
-        typedef tiny_hashlist_uint32_t<tmp_hashtbl_tiny_msize> cntr_t;
+        typedef tiny_hashlist_t<tmp_hashtbl_tiny_msize,int,int> cntr_t;
         cntr_t s;
 
         rt.tdd_assert(s.capacity() == tmp_hashtbl_tiny_msize);

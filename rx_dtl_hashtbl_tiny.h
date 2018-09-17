@@ -43,7 +43,7 @@
     template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
     class tiny_hashtbl_st;
 
-    //key为uint32_t类型的轻量级哈希链表(默认val也为uint32_t)
+    //默认key为uint32_t类型的轻量级哈希链表(默认val也为uint32_t)
     template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
     class tiny_hashlist_t;
 
