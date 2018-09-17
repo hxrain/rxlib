@@ -37,7 +37,6 @@ inline void ut_tiny_map_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* ms
         cntr.insert(key_op::key(mi), mi);
 
     rt.tdd_assert(cntr.size()==MaxSize);
-    tdd_tt_hit(tt, "BEGIN(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
 
     //测试3:对容器进行查找
     uint64_t rc = 0;
@@ -73,7 +72,6 @@ inline void ut_tiny_map_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* ms
         if (I != cntr.end())
             ++rc;
     rt.tdd_assert(rc == MaxSize);
-    tdd_tt_hit(tt,"FOR(MaxSize=%u)",MaxSize);
 }
 
 
@@ -165,8 +163,8 @@ public:
         printf("\n");
         if (test_hashtbl)
         {
-            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint>(rt, " tiny_hashtbl", "int/int");
-            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashlist_uint32_t<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint>(rt, " tiny_hashlist", "int/int");
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_t<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint>(rt, " tiny_hashtbl", "int/int");
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashlist_t<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint>(rt, "tiny_hashlist", "int/int");
         }
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<uint32_t, uint32_t>,tmp_cmp,tmp_cmp::key_op_uint>(rt, "tiny_skiplist", "int/int");
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp,tmp_cmp::key_op_uint >(rt,"     std::map","int/int");
@@ -174,15 +172,21 @@ public:
         printf("\n");
         if (test_hashtbl)
         {
-            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_uint32_t<uint32_t(MaxSize*1.3)>, tmp_cmp, tmp_cmp::key_op_uint_hash>(rt, " tiny_hashtbl", "hash(int)/int");
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_t<uint32_t(MaxSize*1.3),uint32_t>, tmp_cmp, tmp_cmp::key_op_uint_hash>(rt, " tiny_hashtbl", "hash(int)/int");
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashlist_t<uint32_t(MaxSize*1.3),uint32_t>, tmp_cmp, tmp_cmp::key_op_uint_hash>(rt, "tiny_hashlist","hash(int)/int");
         }
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<uint32_t, uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash>(rt, "tiny_skiplist", "hash(int)/int");
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash >(rt,"     std::map","hash(int)/int");
-
+        
         printf("\n");
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<std::string>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"     std::map","std::string(hash(int)/int");
-        ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<const char*,uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"tiny_skiplist", "const char*(hash(int))/int");
+        ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<const char*,uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"tiny_skiplist", "tinystr(hash(int))/int");
         ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_skiplist_t<std::string,uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"tiny_skiplist", "std::string(hash(int))/int");
+        if (test_hashtbl)
+        {
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_st<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint_hash_str>(rt, " tiny_hashtbl", "tinystr/int");
+            ut_tiny_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashlist_st<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint_hash_str>(rt, "tiny_hashlist", "tinystr/int");
+        }
     }
 };
 
@@ -192,7 +196,7 @@ rx_tdd(htbl_sklist_map_loop)
     map_cnrt_test<1000,2000>::test(*this);
 }
 
-rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_std)
+rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_slow)
 {
     map_cnrt_test<500,100000,false>::test(*this);
 }

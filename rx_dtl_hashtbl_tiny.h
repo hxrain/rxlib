@@ -7,12 +7,83 @@
 #include "rx_hash_int.h"
 #include "rx_ct_util.h"
 
+/*
+    //hash集比较器
+    class hashset_cmp_t;
+    //hash表比较器
+    class hashtbl_cmp_t;
+
+    //hash集基类,可快速检索(内部没有容器空间)
+    template<class val_t,class cmp_t=hashset_cmp_t>
+    class hashset_base_t;
+
+    //hash表基类,可快速检索访问(内部没有容器空间)
+    template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
+    class hashtbl_base_t;
+
+    //hash链基类,可快速检索访问且快速遍历(内部没有容器空间)
+    template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
+    class hashlist_base_t;
+*/
+
+/*在上述三种基础容器的基础上,进行便捷功能封装的语法糖容器
+    //默认为uin32_t类型的hash集合
+    template<uint32_t max_node_count,class key_t=uint32_t>
+    class tiny_hashset_t;
+
+    //节点为tiny_string类型的轻量级集合
+    template<uint32_t max_node_count,uint16_t max_str_size=12,class CT=char>
+    class tiny_hashset_st;
+
+    //默认key为uint32_t类型的轻量级哈希表(默认val也为uint32_t)
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
+    class tiny_hashtbl_t;
+
+    //key为tiny_string类型的轻量级哈希表(默认val为uint32_t)
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
+    class tiny_hashtbl_st;
+
+    //key为uint32_t类型的轻量级哈希链表(默认val也为uint32_t)
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
+    class tiny_hashlist_t;
+
+    //key为tiny_string类型的轻量级哈希链表(默认val为uint32_t)
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
+    class tiny_hashlist_st;
+*/
+
 namespace rx
 {
     //-----------------------------------------------------
+    //进行key类型/value类型/cmp比较器的组装后,得到最终便于使用的哈希表类型
+    //-----------------------------------------------------
+    //简单哈希集使用的节点比较器
+    class hashset_cmp_t
+    {
+    public:
+        template<class NVT, class KT>
+        static bool equ(const NVT &n, const KT &k) { return n == k; }
+
+        template<class KT>
+        static uint32_t hash(const KT &k) { return rx_hash_murmur(&k, sizeof(k)); }
+        static uint32_t hash(const char *k) { return rx_hash_murmur(k,st::strlen(k)); }
+        static uint32_t hash(const wchar_t *k) { return rx_hash_murmur(k, st::strlen(k)); }
+        static uint32_t hash(const uint32_t &k) { return rx_hash_skeeto_triple(k); }
+        static uint32_t hash(const int32_t &k) { return rx_hash_skeeto_triple(k); }
+    };
+    //简单哈希表使用的节点比较器
+    class hashtbl_cmp_t:public hashset_cmp_t
+    {
+    public:
+        //对节点比较函数进行覆盖,需要真正使用节点中的key字段与给定的k值进行比较
+        template<class NVT, class KT>
+        static bool equ(const NVT &n, const KT &k) { return n.key == k; }
+    };
+
+    //-----------------------------------------------------
     //基于原始哈希表封装的轻量级集合容器
     //-----------------------------------------------------
-    template<class val_t,class cmp_t>
+    template<class val_t,class cmp_t=hashset_cmp_t>
     class hashset_base_t
     {
     protected:
@@ -23,7 +94,8 @@ namespace rx
 
         //-------------------------------------------------
         //删除元素(做节点删除标记,没有处理真正的值)
-        node_t* erase_raw(const val_t &val)
+        template<class VT>
+        node_t* erase_raw(const VT &val)
         {
             uint32_t hash_code = cmp_t::hash(val);
             uint32_t pos;
@@ -35,7 +107,8 @@ namespace rx
         }
         //-------------------------------------------------
         //在集合中插入元素,原始动作,没有记录真正的值
-        node_t *insert_raw(const val_t &val)
+        template<class VT>
+        node_t *insert_raw(const VT &val)
         {
             uint32_t pos;
             uint32_t hash_code = cmp_t::hash(val);
@@ -51,7 +124,8 @@ namespace rx
         virtual ~hashset_base_t() {clear();}
         //-------------------------------------------------
         //在集合中插入元素并赋值构造
-        bool insert(const val_t &val)
+        template<class VT>
+        bool insert(const VT &val)
         {
             node_t *node=insert_raw(val);
             if (!node)
@@ -61,7 +135,8 @@ namespace rx
         }
         //-------------------------------------------------
         //查找元素是否存在
-        bool find(const val_t &val) const
+        template<class VT>
+        bool find(const VT &val) const
         {
             uint32_t hash_code = cmp_t::hash(val);
             uint32_t pos;
@@ -70,7 +145,8 @@ namespace rx
         }
         //-------------------------------------------------
         //删除元素并默认析构
-        bool erase(const val_t &val)
+        template<class VT>
+        bool erase(const VT &val)
         {
             node_t *node = erase_raw(val);
             if (!node)
@@ -151,7 +227,7 @@ namespace rx
     //-----------------------------------------------------
     //基于原始哈希表封装的轻量级哈希表容器
     //-----------------------------------------------------
-    template<class key_t,class val_t,class cmp_t>
+    template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
     class hashtbl_base_t
     {
     protected:
@@ -229,7 +305,8 @@ namespace rx
         iterator end() const { return iterator(*this, m_basetbl.capacity()); }
         //-------------------------------------------------
         //在哈希表中插入元素
-        node_t* insert_raw(const key_t &key)
+        template<class KT>
+        node_t* insert_raw(const KT &key)
         {
             uint32_t pos;
             uint32_t hash_code = cmp_t::hash(key);
@@ -239,7 +316,8 @@ namespace rx
             return node;
         }
         //插入元素并进行赋值构造
-        bool insert(const key_t &key,const val_t &val)
+        template<class KT>
+        bool insert(const KT &key,const val_t &val)
         {
             node_t *node = insert_raw(key);
             if (!node)
@@ -250,7 +328,8 @@ namespace rx
         }
         //-------------------------------------------------
         //查找元素是否存在
-        iterator find(const key_t &key) const
+        template<class KT>
+        iterator find(const KT &key) const
         {
             uint32_t hash_code = cmp_t::hash(key);
             uint32_t pos;
@@ -262,7 +341,8 @@ namespace rx
         //-------------------------------------------------
         //标记删除指定的元素
         //返回值:待删除的节点
-        node_t* erase_raw(const key_t &key)
+        template<class KT>
+        node_t* erase_raw(const KT &key)
         {
             uint32_t hash_code = cmp_t::hash(key);
             uint32_t pos;
@@ -273,7 +353,8 @@ namespace rx
             return node;
         }
         //删除指定的key对应的节点
-        bool erase(const key_t &key)
+        template<class KT>
+        bool erase(const KT &key)
         {
             node_t *node = erase_raw( key);
             if (!node)
@@ -320,7 +401,7 @@ namespace rx
     //基于原始哈希表封装的轻量级哈希链表容器(可以快速检索并按照插入顺序快速遍历)
     //最后插入的节点是尾节点;删除的节点进行前后趋调整;
     //-----------------------------------------------------
-    template<class key_t,class val_t,class cmp_t>
+    template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
     class hashlist_base_t
     {
     protected:
@@ -403,7 +484,8 @@ namespace rx
         iterator end() const { return iterator(*this, nil_pos); }
         //-------------------------------------------------
         //在哈希表中插入元素
-        node_t* insert_raw(const key_t &key)
+        template<class KT>
+        node_t* insert_raw(const KT &key)
         {
             uint32_t pos;
             uint32_t hash_code = cmp_t::hash(key);
@@ -425,7 +507,8 @@ namespace rx
             return node;
         }
         //插入元素并进行赋值构造
-        bool insert(const key_t &key,const val_t &val)
+        template<class KT>
+        bool insert(const KT &key,const val_t &val)
         {
             node_t *node = insert_raw(key);
             if (!node)
@@ -436,7 +519,8 @@ namespace rx
         }
         //-------------------------------------------------
         //查找元素是否存在
-        iterator find(const key_t &key) const
+        template<class KT>
+        iterator find(const KT &key) const
         {
             uint32_t hash_code = cmp_t::hash(key);
             uint32_t pos;
@@ -448,7 +532,8 @@ namespace rx
         //-------------------------------------------------
         //标记删除元素
         //返回值:待删除的节点
-        node_t* erase_raw(const key_t &key)
+        template<class KT>
+        node_t* erase_raw(const KT &key)
         {
             uint32_t hash_code = cmp_t::hash(key);
             uint32_t pos;
@@ -472,7 +557,8 @@ namespace rx
             return node;
         }
         //删除指定key对应的节点
-        bool erase(const key_t &key)
+        template<class KT>
+        bool erase(const KT &key)
         {
             node_t *node = erase_raw( key);
             if (!node)
@@ -529,68 +615,79 @@ namespace rx
         }
     };
 
-    //-----------------------------------------------------
-    //进行key类型/value类型/cmp比较器的组装后,得到最终便于使用的哈希表类型
-    //-----------------------------------------------------
-    //简单哈希集使用的节点比较器
-    class hashset_cmp_t
-    {
-    public:
-        template<class NVT, class KT>
-        static bool equ(const NVT &n, const KT &k) { return n == k; }
-
-        template<class KT>
-        static uint32_t hash(const KT &k) { return rx_hash_murmur(&k, sizeof(k)); }
-        static uint32_t hash(const char *k) { return rx_hash_murmur(k,st::strlen(k)); }
-        static uint32_t hash(const wchar_t *k) { return rx_hash_murmur(k, st::strlen(k)); }
-        static uint32_t hash(const uint32_t &k) { return rx_hash_skeeto_triple(k); }
-    };
-    //简单哈希表使用的节点比较器
-    class hashtbl_cmp_t:public hashset_cmp_t
-    {
-    public:
-        //对节点比较函数进行覆盖,需要真正使用节点中的key字段与给定的k值进行比较
-        template<class NVT, class KT>
-        static bool equ(const NVT &n, const KT &k) { return n.key == k; }
-    };
 
 
     //-----------------------------------------------------
-    //节点为uint32_t类型的轻量级集合
+    //默认节点为uint32_t类型的轻量级集合
     //-----------------------------------------------------
-    template<uint32_t max_node_count>
-    class tiny_hashset_uint32_t :public hashset_base_t<uint32_t, hashset_cmp_t >
+    template<uint32_t max_node_count,class key_t=uint32_t>
+    class tiny_hashset_t :public hashset_base_t<key_t, hashset_cmp_t >
     {
-        typedef hashset_base_t<uint32_t, hashset_cmp_t > super_t;
+        typedef hashset_base_t<key_t, hashset_cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
-        tiny_hashset_uint32_t():hashset_base_t(m_nodes, max_node_count){}
+        tiny_hashset_t():super_t(m_nodes, max_node_count){}
+    };
+
+    //-----------------------------------------------------
+    //节点为tiny_string类型的轻量级集合
+    //-----------------------------------------------------
+    template<uint32_t max_node_count,uint16_t max_str_size=12,class CT=char>
+    class tiny_hashset_st :public hashset_base_t<tiny_string_head_t<CT,max_str_size>, hashset_cmp_t >
+    {
+        typedef hashset_base_t<tiny_string_head_t<CT,max_str_size>, hashset_cmp_t > super_t;
+        typename super_t::node_t    m_nodes[max_node_count];
+    public:
+        tiny_hashset_st():super_t(m_nodes, max_node_count){}
     };
 
     //-----------------------------------------------------
     //key为uint32_t类型的轻量级哈希表(默认val也为uint32_t)
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class val_t=uint32_t>
-    class tiny_hashtbl_uint32_t :public hashtbl_base_t<uint32_t,val_t, hashtbl_cmp_t >
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
+    class tiny_hashtbl_t :public hashtbl_base_t<key_t,val_t, hashtbl_cmp_t >
     {
-        typedef hashtbl_base_t<uint32_t, val_t, hashtbl_cmp_t > super_t;
+        typedef hashtbl_base_t<key_t, val_t, hashtbl_cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
-        tiny_hashtbl_uint32_t():super_t(m_nodes, max_node_count) {}
+        tiny_hashtbl_t():super_t(m_nodes, max_node_count) {}
+    };
+
+    //-----------------------------------------------------
+    //key为tiny_string类型的轻量级哈希表(默认val为uint32_t)
+    //-----------------------------------------------------
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
+    class tiny_hashtbl_st :public hashtbl_base_t<tiny_string_head_t<CT,max_str_size>,val_t, hashtbl_cmp_t >
+    {
+        typedef hashtbl_base_t<tiny_string_head_t<CT,max_str_size>, val_t, hashtbl_cmp_t > super_t;
+        typename super_t::node_t    m_nodes[max_node_count];
+    public:
+        tiny_hashtbl_st():super_t(m_nodes, max_node_count) {}
     };
 
     //-----------------------------------------------------
     //key为uint32_t类型的轻量级哈希链表(默认val也为uint32_t)
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class val_t=uint32_t>
-    class tiny_hashlist_uint32_t :public hashlist_base_t<uint32_t,val_t, hashtbl_cmp_t >
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
+    class tiny_hashlist_t :public hashlist_base_t<key_t,val_t, hashtbl_cmp_t >
     {
-        typedef hashlist_base_t<uint32_t, val_t, hashtbl_cmp_t > super_t;
+        typedef hashlist_base_t<key_t, val_t, hashtbl_cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
-        tiny_hashlist_uint32_t():super_t(m_nodes, max_node_count) {}
+        tiny_hashlist_t():super_t(m_nodes, max_node_count) {}
     };
 
+    //-----------------------------------------------------
+    //key为tiny_string类型的轻量级哈希链表(默认val为uint32_t)
+    //-----------------------------------------------------
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
+    class tiny_hashlist_st :public hashlist_base_t<tiny_string_head_t<CT,max_str_size>,val_t, hashtbl_cmp_t >
+    {
+        typedef hashlist_base_t<tiny_string_head_t<CT,max_str_size>, val_t, hashtbl_cmp_t > super_t;
+        typename super_t::node_t    m_nodes[max_node_count];
+    public:
+        tiny_hashlist_st():super_t(m_nodes, max_node_count) {}
+    };
 }
 
 #endif
