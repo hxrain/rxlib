@@ -244,12 +244,12 @@ namespace rx
     };
 
     //语法糖,定义一个便于使用的整数跳表集合
-    typedef skipset_t<uint32_t,32> skipset_uint32_t;
-    typedef skipset_t<int32_t,32> skipset_int32_t;
+    typedef skipset_t<uint32_t,32>          skipset_uint32_t;
+    typedef skipset_t<int32_t,32>           skipset_int32_t;
     //语法糖,定义一个便于使用的const char*串跳表集合
-    typedef skipset_t<const char*,32> skipset_cstr_t;
+    typedef skipset_t<const char*,32>       skipset_cstr_t;
     //语法糖,定义一个便于使用的const wchar_t*串跳表集合
-    typedef skipset_t<const wchar_t*,32> skipset_wstr_t;
+    typedef skipset_t<const wchar_t*,32>    skipset_wstr_t;
 
 
 
