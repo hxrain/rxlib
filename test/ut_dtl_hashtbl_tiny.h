@@ -74,23 +74,23 @@ namespace rx
         rt.tdd_assert(s.size() == 0);
         rt.tdd_assert(s.collision() == 0);
 
-        rt.tdd_assert(s.insert(1,2));
+        rt.tdd_assert(s.insert(1,2)!=s.end());
         rt.tdd_assert(s.size() == 1);
         rt.tdd_assert(s.collision() == 0);
 
-        rt.tdd_assert(s.insert(1,2));
+        rt.tdd_assert(s.insert(1,2) != s.end());
         rt.tdd_assert(s.size() == 1);
         rt.tdd_assert(s.collision() == 0);
 
-        rt.tdd_assert(s.insert(2,3));
+        rt.tdd_assert(s.insert(2,3) != s.end());
         rt.tdd_assert(s.size() == 2);
         rt.tdd_assert(s.collision() == 0);
 
-        rt.tdd_assert(s.insert(3,4));
+        rt.tdd_assert(s.insert(3,4) != s.end());
         rt.tdd_assert(s.size() == 3);
         rt.tdd_assert(s.collision() == 0);
 
-        rt.tdd_assert(s.insert(4,5));
+        rt.tdd_assert(s.insert(4,5) != s.end());
         rt.tdd_assert(s.size() == 4);
         rt.tdd_assert(s.collision() == 0);
 
@@ -117,32 +117,32 @@ namespace rx
         rt.tdd_assert(s.collision() == 0);
         rt.tdd_assert(s.begin()==s.end());
 
-        rt.tdd_assert(s.insert(1,2));
+        rt.tdd_assert(s.insert(1,2) != s.end());
         rt.tdd_assert(s.size() == 1);
         rt.tdd_assert(s.collision() == 0);
         rt.tdd_assert(s.begin()()==1);
         rt.tdd_assert(s.rbegin()()==1);
         rt.tdd_assert(s.begin()!=s.end());
 
-        rt.tdd_assert(s.insert(1,2));
+        rt.tdd_assert(s.insert(1,2) != s.end());
         rt.tdd_assert(s.size() == 1);
         rt.tdd_assert(s.collision() == 0);
 
-        rt.tdd_assert(s.insert(2,3));
+        rt.tdd_assert(s.insert(2,3) != s.end());
         rt.tdd_assert(s.size() == 2);
         rt.tdd_assert(s.collision() == 0);
         rt.tdd_assert(s.begin()()==1);
         rt.tdd_assert(s.rbegin()()==2);
         rt.tdd_assert(s.begin()!=s.end());
 
-        rt.tdd_assert(s.insert(3,4));
+        rt.tdd_assert(s.insert(3,4) != s.end());
         rt.tdd_assert(s.size() == 3);
         rt.tdd_assert(s.collision() == 0);
         rt.tdd_assert(s.begin()()==1);
         rt.tdd_assert(s.rbegin()()==3);
         rt.tdd_assert(s.begin()!=s.end());
 
-        rt.tdd_assert(s.insert(4,5));
+        rt.tdd_assert(s.insert(4,5) != s.end());
         rt.tdd_assert(s.size() == 4);
         rt.tdd_assert(s.collision() == 0);
         rt.tdd_assert(s.begin()()==1);

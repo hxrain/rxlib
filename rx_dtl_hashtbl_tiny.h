@@ -304,27 +304,25 @@ namespace rx
         //返回遍历的结束位置
         iterator end() const { return iterator(*this, m_basetbl.capacity()); }
         //-------------------------------------------------
-        //在哈希表中插入元素
+        //在哈希表中插入元素,原始动作,不构造,不赋值.
+        //返回值:插入的节点指针,告知是否成功
         template<class KT>
-        node_t* insert_raw(const KT &key)
+        node_t *insert_raw(const KT &key, uint32_t &pos)
         {
-            uint32_t pos;
             uint32_t hash_code = cmp_t::hash(key);
-            node_t *node = m_basetbl.push(hash_code, key,pos);
-            if (!node)
-                return NULL;
-            return node;
+            return m_basetbl.push(hash_code, key,pos);
         }
         //插入元素并进行赋值构造
         template<class KT>
-        bool insert(const KT &key,const val_t &val)
+        iterator insert(const KT &key,const val_t &val)
         {
-            node_t *node = insert_raw(key);
-            if (!node)
-                return false;
+            uint32_t pos;
+            node_t *node=insert_raw(key,pos);
+            if (node==NULL)
+                return end();
             ct::OC(&node->value.key,key);
             ct::OC(&node->value.val,val);
-            return true;
+            return iterator(*this, pos);
         }
         //-------------------------------------------------
         //查找元素是否存在
@@ -365,8 +363,8 @@ namespace rx
         }
 
         //-------------------------------------------------
-        //标记删除指定位置的元素
-        //返回值:是否删除了当前值
+        //标记删除指定的元素
+        //返回值:是否删除了当前值(删除成功时,迭代器i后移)
         node_t* erase_raw(iterator &i)
         {
             rx_assert(i.m_pos<m_basetbl.capacity() && &i.m_parent==this);
@@ -379,6 +377,7 @@ namespace rx
             return &node;
         }
         //删除指定迭代器对应的节点
+        //返回值:是否删除了当前值(删除成功时,迭代器i后移)
         bool erase(iterator &i)
         {
             node_t *node = erase_raw(i);
@@ -483,11 +482,11 @@ namespace rx
         //返回遍历的结束位置
         iterator end() const { return iterator(*this, nil_pos); }
         //-------------------------------------------------
-        //在哈希表中插入元素
+        //在哈希表中插入元素,原始动作,不构造不赋值.
+        //返回值:节点指针,告知是否插入成功
         template<class KT>
-        node_t* insert_raw(const KT &key)
+        node_t *insert_raw(const KT &key, uint32_t &pos)
         {
-            uint32_t pos;
             uint32_t hash_code = cmp_t::hash(key);
             node_t *node = m_basetbl.push(hash_code, key,pos);
             if (!node)
@@ -508,14 +507,15 @@ namespace rx
         }
         //插入元素并进行赋值构造
         template<class KT>
-        bool insert(const KT &key,const val_t &val)
+        iterator insert(const KT &key,const val_t &val)
         {
-            node_t *node = insert_raw(key);
-            if (!node)
-                return false;
+            uint32_t pos;
+            node_t *node = insert_raw(key, pos);
+            if (node==NULL)
+                return end();
             ct::OC(&node->value.key,key);
             ct::OC(&node->value.val,val);
-            return true;
+            return iterator(*this, pos);
         }
         //-------------------------------------------------
         //查找元素是否存在
