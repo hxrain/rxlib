@@ -1,3 +1,4 @@
+#include "../../rx_dtl_list.h"
 #include "../ut_dtl_htbl_sklist_map.h"
 
 #include "../../rx_dtl_skiplist_raw.h"

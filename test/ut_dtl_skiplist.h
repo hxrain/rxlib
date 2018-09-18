@@ -15,7 +15,7 @@ namespace rx
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        tiny_skiplist_uint32_t sl;
+        skiplist_uint32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
         sl.insert((uint32_t)3,vals[3]);
@@ -46,7 +46,7 @@ namespace rx
         rt.tdd_assert(sl.rbegin()()==8);
         rt.tdd_assert(sl.size()==5);
 
-        tiny_skiplist_uint32_t::node_t *n=sl.find((uint32_t)3);
+        skiplist_uint32_t::node_t *n=sl.find((uint32_t)3);
         rt.tdd_assert(n&&n->key==3&&n->val==vals[3]);
 
         n=sl.find((uint32_t)8);
@@ -86,7 +86,7 @@ namespace rx
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        tiny_skiplist_cstr_uint32_t sl;
+        skiplist_cstr_uint32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -122,7 +122,7 @@ namespace rx
         rt.tdd_assert(sl.rbegin()()=="8");
         rt.tdd_assert(sl.size()==5);
 
-        tiny_skiplist_cstr_uint32_t::node_t *n=sl.find("3");
+        skiplist_cstr_uint32_t::node_t *n=sl.find("3");
         rt.tdd_assert(n&&n->key=="3"&&n->val==vals[3]);
 
         n=sl.find("8");
@@ -157,7 +157,7 @@ namespace rx
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        tiny_skiplist_wstr_uint32_t sl;
+        skiplist_wstr_uint32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -193,7 +193,7 @@ namespace rx
         rt.tdd_assert(sl.rbegin()()==L"8");
         rt.tdd_assert(sl.size()==5);
 
-        tiny_skiplist_wstr_uint32_t::node_t *n=sl.find(L"3");
+        skiplist_wstr_uint32_t::node_t *n=sl.find(L"3");
         rt.tdd_assert(n&&n->key==L"3"&&n->val==vals[3]);
 
         n=sl.find(L"8");
@@ -224,7 +224,7 @@ namespace rx
     //-----------------------------------------------------
     inline void test_skipset_base_1(rx_tdd_t &rt)
     {
-        tiny_skipset_int32_t sl;
+        skipset_int32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
         
@@ -276,7 +276,7 @@ namespace rx
     //-----------------------------------------------------
     inline void test_skipset_base_1c(rx_tdd_t &rt)
     {
-        tiny_skipset_cstr_t sl;
+        skipset_cstr_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -324,7 +324,7 @@ namespace rx
     //-----------------------------------------------------
     inline void test_skipset_base_1w(rx_tdd_t &rt)
     {
-        tiny_skipset_wstr_t sl;
+        skipset_wstr_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
