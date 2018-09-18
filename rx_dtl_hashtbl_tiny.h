@@ -161,7 +161,8 @@ namespace rx
         uint32_t size() const { return m_basetbl.size(); }
         //插入位槽冲突总数
         uint32_t collision() const { return m_basetbl.collision(); }
-
+        //根据给定的索引位置直接访问对应的值
+        const val_t& at(uint32_t pos)const { return m_basetbl.node(pos)->value; }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -192,6 +193,8 @@ namespace rx
                 m_pos=m_parent.m_basetbl.next(m_pos);        //尝试找到下一个有效的位置
                 return reinterpret_cast<iterator&>(*this);
             }
+            //获取当前迭代器在容器中对应的位置索引
+            uint32_t pos() const { return m_pos; }
         };
 
         //-------------------------------------------------
@@ -230,7 +233,7 @@ namespace rx
     template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
     class hashtbl_base_t
     {
-    protected:
+    public:
         //-------------------------------------------------
         //哈希表节点的内部结构,真正进行key与value的持有
         typedef struct node_val_t
@@ -242,7 +245,7 @@ namespace rx
         //-------------------------------------------------
         typedef raw_hashtbl_t<node_val_t,cmp_t> raw_tbl_t;
         typedef typename raw_tbl_t::node_t node_t;
-
+    protected:
         //-------------------------------------------------
         raw_tbl_t   m_basetbl;                              //底层哈希功能封装
     public:
@@ -257,7 +260,8 @@ namespace rx
         uint32_t size() const { return m_basetbl.size(); }
         //插入位槽冲突总数
         uint32_t collision() const { return m_basetbl.collision(); }
-
+        //根据给定的索引位置直接访问对应的节点内容
+        const node_val_t& at(uint32_t pos)const { return m_basetbl.node(pos)->value; }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -289,6 +293,8 @@ namespace rx
                 rx_assert(m_pos<m_parent.m_basetbl.capacity()&&m_parent.m_basetbl.node(m_pos)->state);
                 return m_parent.m_basetbl.node(m_pos)->value.key;
             }
+            //获取当前迭代器在容器中对应的位置索引
+            uint32_t pos() const { return m_pos; }
             //---------------------------------------------
             //节点指向后移(前置运算符模式,未提供后置模式)
             iterator& operator++()
@@ -403,7 +409,7 @@ namespace rx
     template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
     class hashlist_base_t
     {
-    protected:
+    public:
         //-------------------------------------------------
         //哈希表节点的内部结构,真正进行key与value的持有
         typedef struct node_val_t
@@ -417,6 +423,8 @@ namespace rx
         //-------------------------------------------------
         typedef raw_hashtbl_t<node_val_t,cmp_t> raw_tbl_t;
         typedef typename raw_tbl_t::node_t node_t;
+
+    protected:
         static const uint32_t nil_pos=-1;                   //定义无效节点位置
         uint32_t    m_head;                                 //记录头结点位置
         uint32_t    m_last;                                 //记录最后节点的位置
@@ -434,7 +442,8 @@ namespace rx
         uint32_t size() const { return m_basetbl.size(); }
         //插入位槽冲突总数
         uint32_t collision() const { return m_basetbl.collision(); }
-
+        //根据给定的索引位置直接访问对应的节点内容
+        const node_val_t& at(uint32_t pos)const { return m_basetbl.node(pos)->value; }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -465,6 +474,8 @@ namespace rx
                 rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->state);
                 return m_parent.m_basetbl.node(m_pos)->value.key;
             }
+            //获取当前迭代器在容器中对应的位置索引
+            uint32_t pos() const { return m_pos; }
             //---------------------------------------------
             //节点指向后移(前置运算符模式,未提供后置模式)
             iterator& operator++()
