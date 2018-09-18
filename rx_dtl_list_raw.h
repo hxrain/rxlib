@@ -3,17 +3,40 @@
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
 
-//本文件封装了raw_stack_t与raw_queue_t,但都可以当做单向链表使用.
-//raw_queue_t维护了尾节点指针,所以可以直接访问最后的节点.
+/**本文件封装了链表基础容器的核心功能
 
+    //-----------------------------------------------------
+    //使用此原始stack的时候,应该构造如下的节点类型
+    typedef struct raw_stack_node_t
+    {
+        struct raw_stack_node_t* volatile next;	            //节点的后趋
+    }raw_stack_node_t;
+
+    //单向链表或栈容器.
+    template<class node_t>
+    class raw_stack_t;
+
+    //单向链表或队列容器,维护了尾节点指针,可以直接访问最后的节点.
+    template<class node_t>
+    class raw_queue_t;
+
+    //-----------------------------------------------------
+    //使用此原始list的时候,应该构造如下的节点类型
+    typedef struct raw_list_node_t
+    {
+        struct raw_list_node_t* volatile prev;	            //节点的前趋
+        struct raw_list_node_t* volatile next;	            //节点的后趋
+    }raw_list_node_t;
+
+    //完整的实现了双向链表的功能
+    template<class node_t>
+    class raw_list_t;
+
+**/
 namespace rx
 {
     /*
-        //使用此原始stack(或list)的时候,应该构造如下的节点类型
-        typedef struct raw_stack_node_t
-    	{
-    		struct raw_stack_node_t* volatile next;	            //节点的后趋
-        }raw_stack_node_t;
+
     */
     //-----------------------------------------------------
     //Raw Stack:原始的栈(或单向list),保持最简形式,不管理内存
@@ -133,6 +156,145 @@ namespace rx
             --m_count==0?m_tail=NULL:0;                     //链表为空的时候,尾节点也置空
             rx_assert_if(m_count==0,m_tail==NULL&&m_head==NULL);
             return now_top;
+        }
+    };
+
+    //-----------------------------------------------------
+    //原始的双向链表实现,内部不进行内存管理
+    //节点类型必须含有prev和next指针.
+    template<class node_t>
+    class raw_list_t
+    {
+        raw_list_t& operator=(const raw_list_t&);
+    private:
+        node_t                 *m_head;	            //链表头指针
+        node_t                 *m_tail;             //链表尾指针
+        uint32_t	            m_count;            //链表长度
+    public:
+        //-------------------------------------------------
+        //构造函数
+        raw_list_t():m_head(NULL),m_tail(NULL),m_count(0) {}
+        //-------------------------------------------------
+        //元素数量
+        uint32_t size() const {return m_count;}
+        //-------------------------------------------------
+        //查看链表头或尾
+        node_t* head() const {return m_head;}
+        node_t* tail() const {return m_tail;}
+        //-------------------------------------------------
+        //节点挂入尾部(变成新的尾节点)
+        void push_back(node_t *new_node)
+        {
+            rx_assert(new_node!=NULL);
+            new_node->next = NULL;                          //新节点后趋为空
+            if (m_tail)
+                m_tail->next=new_node;                      //将新节点挂接到尾节点的后趋;
+            else
+                m_head=new_node;                            //空链表时关联头结点为新节点
+            new_node->prev=m_tail;                          //新节点的前趋指向原来的尾节点
+            m_tail=new_node;                                //尾节点指向新节点
+            ++m_count;
+        }
+        void push_back(node_t &new_node) {push_back(&new_node);}
+        //-------------------------------------------------
+        //将新节点new_node挂接到指定节点prev的后面
+        void push_back(const node_t *prev,node_t *new_node)
+        {
+            rx_assert(new_node!=NULL&&prev!=NULL);
+            new_node->next = prev->next;                    //新节点后趋指向前置节点的后趋
+            new_node->prev = prev;                          //新节点的前趋指向前置节点
+            prev->next=new_node;                            //前置节点的后趋指向新节点
+            if (prev==m_tail)
+                m_tail=new_node;                            //如果前置节点就是尾节点,则尾节点指向新节点
+            ++m_count;
+        }
+        //-------------------------------------------------
+        //节点挂入头部(变成新的头节点)
+        void push_front(node_t *new_node)
+        {
+            rx_assert(new_node!=NULL);
+            new_node->prev=NULL;                            //新节点的前趋为空
+            if (m_head)
+                m_head->prev=new_node;                      //将新节点挂接到头节点的前趋
+            else
+                m_tail=new_node;                            //空链表时关联尾节点为新节点
+            new_node->next=m_head;                          //新节点的后趋指向原来的头结点
+            m_head=new_node;                                //原来的头结点指向新节点
+            ++m_count;
+        }
+        void push_front(node_t &new_node) {push_front(&new_node);}
+        //-------------------------------------------------
+        //将新节点new_node挂接到指定节点next的前面
+        void push_front(const node_t *next,node_t *new_node)
+        {
+            rx_assert(new_node!=NULL&&next!=NULL);
+            new_node->next = next;                          //新节点后趋指向后置节点
+            new_node->prev = next->prev;                    //新节点的前趋指向后置节点的前趋
+            next->prev=new_node;                            //后置节点的前趋指向新节点
+            if (next==m_head)
+                m_head=new_node;                            //如果前置节点就是尾节点,则尾节点指向新节点
+            ++m_count;
+        }
+        //-------------------------------------------------
+        //摘除尾部的节点
+        //返回值:摘除的节点
+        node_t* pop_back()
+        {
+            rx_assert(m_count!=0);
+            node_t *node=m_tail;                            //记录原来的尾结点,准备返回
+            m_tail=m_tail->prev;                            //尾结点指向其前趋
+            if (--m_count==0)
+                m_head=NULL;                                //链表为空的时候,头节点也置空
+            else
+                m_tail->next=NULL;                          //链表非空的时候,尾节点的后趋置空
+            rx_assert_if(m_count==0,m_tail==NULL&&m_head==NULL);
+            return node;
+        }
+        //-------------------------------------------------
+        //摘除头部的节点
+        //返回值:摘除的节点
+        node_t* pop_front()
+        {
+            rx_assert(m_count!=0);
+            node_t *node=m_head;                            //记录原来的头结点,准备返回
+            m_head=m_head->next;                            //头结点指向其后趋
+            if (--m_count==0)
+                m_tail=NULL;                                //链表为空的时候,尾节点也置空
+            else
+                m_head->prev=NULL;                          //链表非空的时候,头节点的前趋置空
+            rx_assert_if(m_count==0,m_tail==NULL&&m_head==NULL);
+            return node;
+        }
+        //-------------------------------------------------
+        //将指定的节点从链表中摘除
+        //返回指定节点的后趋
+        node_t *pick(node_t *node)
+        {
+            rx_assert(m_count!=0&&node!=NULL);
+            --m_count;
+            node_t *prev=node->prev;                        //获取指定节点的前趋
+            node_t *next=node->next;                        //获取指定节点的后趋
+            if (prev)
+                prev->next=next;                            //如果其前趋存在,则其前趋的后趋指向其后趋
+            if (next)
+                next->prev=prev;                            //如果其后趋存在,则其后趋的前趋指向其前趋
+
+            if (node==m_head)
+                m_head=next;                                //如果指定节点就是头结点,则头结点指向其后趋
+            if (node==m_tail)
+                m_tail=prev;                                //如果指定节点就是尾节点,则尾节点指向其前趋
+            return next;
+        }
+        //-------------------------------------------------
+        //将元素全部摘除
+        //返回链表头节点
+        node_t* pick()
+        {
+            node_t *node=m_head;
+            m_head=NULL;
+            m_tail=NULL;
+            m_count=0;
+            return node;
         }
     };
 }
