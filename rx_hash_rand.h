@@ -158,49 +158,54 @@ namespace rx
     {
     public:
         //-------------------------------------------------
-        //计算在时间t的范围内,发生n次事件的概率;lambda为事件发生的平均频率.
-        static double pobability(uint32_t n, uint32_t t = 1, double lambda = 1.0)
+        //计算在时间t的范围内,发生n次事件的概率;lambda为事件发生的平均频率(平均数).
+        static double pobability(uint8_t n, double lambda = 1.0, uint32_t t = 1)
         {
-            return pow(lambda*t, n) * pow(MATH_E, -lambda*t) / factorial(n);
+            return pow(lambda*t, (int)n) * exp(-lambda*t) / factorial(n);
         }
         //-------------------------------------------------
         //计算在时间t的范围内,发生<=n次事件的累积概率;lambda为事件发生的平均频率;with_zero告知是否累计0次对应的概率.
-        static double cumulative(uint32_t n, uint32_t t = 1, double lambda = 1.0,bool with_zero=false)
+        static double cumulative(uint8_t n, double lambda = 1.0,uint32_t t = 1, bool with_zero=false)
         {
-            double e = pow(MATH_E, (double)-lambda*t);
+            double e = exp(-lambda*t);
             double sum = 0.0;
-            for(uint32_t i = with_zero||n==0 ? 0 : 1;i<=n;++i)
-                sum += pow(lambda*t, i) / factorial(i);
+            for(uint32_t i = (with_zero||n==0) ? 0 : 1;i<=n;++i)
+                sum += pow(lambda*t, (int)i) / factorial(i);
             return e * sum;
         }
     };
 
     //-----------------------------------------------------
-    //基于泊松分布的随机数生成器
+    //基于泊松分布的随机数生成器(lambda为事件发生的平均频率或期待的平均数)
     template<class rnd_t>
     class rand_poisson_t :public rand_i
     {
         rand_poisson_t& operator=(const rand_poisson_t&);
         rnd_t   m_rnd;
-        double  m_rate;
+        double  m_lambda;
     public:
-        rand_poisson_t(uint32_t s = 0 , uint32_t n=1, double lambda = 1.0, uint32_t t = 1) { seed(s,n,lambda,t); }
+        rand_poisson_t(uint32_t s = 0 , double lambda = 10) { seed(s,lambda); }
         //-------------------------------------------------
-        //初始化种子并设置概率分布参数(在时间t的范围内,最多发生n次事件的概率;lambda为事件发生的平均频率)
-        virtual void seed(uint32_t s, uint32_t n = 1, double lambda = 1.0, uint32_t t = 1)
+        //初始化种子并设置概率分布参数(在单位时间内,lambda为事件发生的平均频率或平均数)
+        virtual void seed(uint32_t s, double lambda = 1.0)
         { 
             m_rnd.seed(s);
-            m_rate = p_poisson_t::cumulative(n, t, lambda); //使用累积概率
+            m_lambda = -lambda;
         }
         //-------------------------------------------------
-        //生成随机数,范围在[Min,Max](默认为[0,(2^31)-1])
+        //生成泊松分布随机数(在单位时间内事件发生的次数),范围在[Min,Max](默认为[0,(2^31)-1])
         virtual uint32_t get(uint32_t Max = 0x7ffffffe, uint32_t Min = 0)
         {
-            uint32_t rc = 0;
-            uint32_t limit = (uint32_t)(Max * m_rate);
-            while (m_rnd.get(Max, 0) <= limit && rc<Max)
-                ++rc;
-            return Min + rc % (Max - Min + 1);
+            uint32_t k = -1;
+            double p=0;
+            
+            do
+            {
+                ++k;
+                p+=log(m_rnd.get(1000000, 1)/1000000.0);    //随机数范围要在(0,1]之间(不能等于0),否则log运算出错.
+            }
+            while (p >= m_lambda && k<Max);
+            return Min + k % (Max - Min + 1);
         }
     };
     typedef rand_poisson_t<rand_skiplist_t> rand_poisson_skt;

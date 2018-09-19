@@ -206,10 +206,11 @@ namespace rx
     template<>class POW2<31> { public:enum { result = 0x80000000 }; };
 
     //-----------------------------------------------------
-    //计算指定n的阶乘
-    inline uint64_t factorial(uint32_t n)
+    //计算指定n的阶乘(n<=170)
+    inline double factorial(uint8_t n)
     {
-        uint64_t result = 1;
+        if (n>170) n=170;
+        double result = 1;
         while (n > 1)
             result *= n--;
         return result;

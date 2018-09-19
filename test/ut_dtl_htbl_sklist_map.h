@@ -193,7 +193,7 @@ public:
 //---------------------------------------------------------
 rx_tdd(htbl_sklist_map_loop)
 {
-    map_cnrt_test<1000,2000>::test(*this);
+    map_cnrt_test<100,200>::test(*this);
 }
 
 rx_tdd_rtl(htbl_sklist_map_loop,tdd_level_slow)

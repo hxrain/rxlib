@@ -94,21 +94,23 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
     rx_tiny_prime(0);
     rx_tiny_fibonacci(0);
 
-    double tmp = rx::p_poisson_t::pobability(0,2,3);  //= 0.0024787521766663594
+    double tmp = rx::p_poisson_t::pobability(0,3,2);  //= 0.0024787521766663594
     assert(abs(tmp - 0.0024787521766663594)<0.0001);
 
-    rx::rand_poisson_skt prnd((uint32_t)time(NULL));
-    const int pn_size = 128;
+    double lambda=10;
+    rx::rand_poisson_skt prnd((uint32_t)time(NULL),lambda);
+    const int pn_size = 1280;
     uint32_t sum=0;
     for (int i = 0; i < pn_size; ++i)
     {
         uint32_t p = prnd.get();
         sum += p;
-        if (i && i % 16 == 0) printf("\n");
-        printf("%2u ", p);
+        //if (i && i % 16 == 0) printf("\n");
+        //printf("%3u ", p);
         
     }
-    printf("\navg:%u\n",sum/ pn_size);
+    printf("rand_poisson_skt(lanmbda=%.1f),avg=%.4f;loop=%u\n",lambda,sum/(double)pn_size,pn_size);
+    assert(abs(lambda-sum/(double)pn_size)<1);
 }
 
 #endif
