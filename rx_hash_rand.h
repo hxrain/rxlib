@@ -2,11 +2,12 @@
 #define _RX_HASH_RAND_H_
 
 #include "rx_cc_macro.h"
+#include "rx_ct_util.h"
 #include <stdlib.h>
+#include <math.h>
 
 namespace rx
 {
-
     //-----------------------------------------------------
     //随机数发生器接口
     class rand_i
@@ -45,7 +46,7 @@ namespace rx
     //封装std随机数算法
     class rand_std_t:public rand_i
     {
-        rand_hge_t& operator=(const rand_hge_t&);
+        rand_std_t& operator=(const rand_std_t&);
     public:
         rand_std_t(uint32_t s=0) {seed(s);}
         //初始化种子
@@ -61,7 +62,7 @@ namespace rx
     //参照skeeto的hash随机数算法(b)
     class rand_skeeto_b32_t:public rand_i
     {
-        rand_hge_t& operator=(const rand_hge_t&);
+        rand_skeeto_b32_t& operator=(const rand_skeeto_b32_t&);
         uint32_t  m_seed;
 
         static uint32_t hash(uint32_t x)
@@ -92,7 +93,7 @@ namespace rx
     //参照skeeto的hash随机数算法(triple)
     class rand_skeeto_triple_t:public rand_i
     {
-        rand_hge_t& operator=(const rand_hge_t&);
+        rand_skeeto_triple_t& operator=(const rand_skeeto_triple_t&);
         uint32_t  m_seed;
 
         //进行过统计验证的哈希函数(exact bias: 0.020829410544597495)
@@ -123,7 +124,7 @@ namespace rx
     //参照redis/skiplist随机数算法
     class rand_skiplist_t:public rand_i
     {
-        rand_hge_t& operator=(const rand_hge_t&);
+        rand_skiplist_t& operator=(const rand_skiplist_t&);
         uint32_t  m_seed;
         static const uint32_t M = 2147483647L;     // 2^31-1
         static const uint64_t A = 16807;           // bits 14, 8, 7, 5, 2, 1, 0
@@ -151,11 +152,64 @@ namespace rx
         }
     };
 
+    //-----------------------------------------------------
+    /*泊松分布的概率公式:  P(N(t) = n) = (((L*t)^n)*e^-(L*t))/n!
+    */
+    class p_poisson_t
+    {
+    public:
+        //-------------------------------------------------
+        //计算在时间t的范围内,发生n次事件的概率;lambda为事件发生的平均频率.
+        static double pobability(uint32_t n, uint32_t t = 1, double lambda = 1.0)
+        {
+            return pow(lambda*t, n) * pow(MATH_E, -lambda*t) / factorial(n);
+        }
+        //-------------------------------------------------
+        //计算在时间t的范围内,发生<=n次事件的累积概率;lambda为事件发生的平均频率.
+        static double cumulative(uint32_t n, uint32_t t = 1, double lambda = 1.0)
+        {
+            double e = pow(MATH_E, (double)-lambda*t);
+            double sum = 0.0;
+            for(uint32_t i=0;i<=n;++i)
+                sum += pow(lambda*t, i) / factorial(i);
+            return e * sum;
+        }
+    };
+
+    //-----------------------------------------------------
+    //基于泊松分布的随机数生成器
+    template<class rnd_t>
+    class rand_poisson_t :public rand_i
+    {
+        rand_poisson_t& operator=(const rand_poisson_t&);
+        rnd_t   m_rnd;
+        double  m_rate;
+    public:
+        rand_poisson_t(uint32_t s = 0 , uint32_t n=1, double lambda = 1.0, uint32_t t = 1) { seed(s,n,lambda,t); }
+        //初始化种子并设置概率分布参数(在时间t的范围内,最多发生n次事件的概率;lambda为事件发生的平均频率)
+        virtual void seed(uint32_t s, uint32_t n = 1, double lambda = 1.0, uint32_t t = 1)
+        { 
+            m_rnd.seed(s);
+            m_rate = p_poisson_t::cumulative(n, t, lambda); //使用累积概率
+        }
+        //生成随机数,范围在[Min,Max](默认为[0,(2^31)-1])
+        virtual uint32_t get(uint32_t Max = 0x7ffffffe, uint32_t Min = 0)
+        {
+            uint32_t rc = 0;
+            uint32_t limit = (uint32_t)(Max * m_rate);
+            while (m_rnd.get(Max, 0) <= limit && rc<Max)
+                ++rc;
+            return Min + rc % (Max - Min + 1);
+        }
+    };
+    typedef rand_poisson_t<rand_skiplist_t> rand_poisson_skt;
+
+
 
     //-----------------------------------------------------
     //方便快速使用随机数发生器的便捷函数(单线程安全)
     template<class rnd_t>
-    rand_i& rnd() {static rnd_t rnd; return rnd;}
+    rand_i& rnd() {static rnd_t rd; return rd;}
 
 }
 //语法糖,快速访问随机数发生器(不建议多线程直接并发使用,需建立自己的线程独立的随机数发生器)

@@ -205,6 +205,15 @@ namespace rx
     template<>class POW2<30> { public:enum { result = 0x40000000 }; };
     template<>class POW2<31> { public:enum { result = 0x80000000 }; };
 
+    //-----------------------------------------------------
+    //计算指定n的阶乘
+    inline uint64_t factorial(uint32_t n)
+    {
+        uint64_t result = 1;
+        while (n > 1)
+            result *= n--;
+        return result;
+    }
     //=====================================================
     //尺寸向上对齐处理
     //=====================================================

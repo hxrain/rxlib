@@ -84,6 +84,7 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
 
     rx_rnd_b32().seed(seed);
     rx_rnd_b32().get();
+
 }
 
 rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
@@ -92,6 +93,22 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
     hf(0);
     rx_tiny_prime(0);
     rx_tiny_fibonacci(0);
+
+    double tmp = rx::p_poisson_t::pobability(0,2,3);  //= 0.0024787521766663594
+    assert(abs(tmp - 0.0024787521766663594)<0.0001);
+
+    rx::rand_poisson_skt prnd((uint32_t)time(NULL));
+    const int pn_size = 128;
+    uint32_t sum=0;
+    for (int i = 0; i < pn_size; ++i)
+    {
+        uint32_t p = prnd.get();
+        sum += p;
+        if (i && i % 16 == 0) printf("\n");
+        printf("%2u ", p);
+        
+    }
+    printf("\navg:%u\n",sum/ pn_size);
 }
 
 #endif

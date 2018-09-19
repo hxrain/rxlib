@@ -33,6 +33,13 @@ rx_tdd(tmp_obj)
     assert(rx::Min(5,8,3)==3);
     assert(rx::Max(5,8,3)==8);
     //assert(0);
+
+    assert(rx::factorial(0) == 1);
+    assert(rx::factorial(1) == 1);
+    assert(rx::factorial(2) == 2);
+    assert(rx::factorial(3) == 6);
+    assert(rx::factorial(4) == 24);
+    assert(rx::factorial(5) == 120);
 }
 
 
