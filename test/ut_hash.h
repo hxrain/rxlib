@@ -87,6 +87,29 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
 
 }
 
+//---------------------------------------------------------
+inline void test_poisson_rnd(rx_tdd_t &rt,uint32_t seed,double lambda=100,int pn_size = 1280,bool is_print=false)
+{
+    rx::rand_poisson_skt prnd(seed,lambda);
+    uint32_t sum=0;
+    for (int i = 0; i < pn_size; ++i)
+    {
+        uint32_t p = prnd.get();
+        sum += p;
+        if (is_print)
+        {
+            if (i && i % 16 == 0) 
+                printf("\n");
+            printf("%3u ", p);
+        }
+    }
+    double avg=sum/(double)pn_size;
+    double err=abs(lambda-avg)/pn_size;
+    printf("TEST :: rand_poisson_skt(lambda=%.1f),avg=%.4f;loop=%u;e=%.5f\n",lambda,avg,pn_size,err);
+    rt.tdd_assert(err<0.0007);          //验证过的均值,与实际期待均值间的偏差,小于此比例(万分之七).
+
+}
+//---------------------------------------------------------
 rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
 {
     rx_int_hash32_t hf=rx_int_hash32_skeeto3s(0);
@@ -97,20 +120,8 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
     double tmp = rx::p_poisson_t::pobability(0,3,2);  //= 0.0024787521766663594
     assert(abs(tmp - 0.0024787521766663594)<0.0001);
 
-    double lambda=10;
-    rx::rand_poisson_skt prnd((uint32_t)time(NULL),lambda);
-    const int pn_size = 1280;
-    uint32_t sum=0;
-    for (int i = 0; i < pn_size; ++i)
-    {
-        uint32_t p = prnd.get();
-        sum += p;
-        //if (i && i % 16 == 0) printf("\n");
-        //printf("%3u ", p);
-        
-    }
-    printf("rand_poisson_skt(lanmbda=%.1f),avg=%.4f;loop=%u\n",lambda,sum/(double)pn_size,pn_size);
-    assert(abs(lambda-sum/(double)pn_size)<1);
+    for(int i=0;i<10;++i)
+        test_poisson_rnd(*this,(uint32_t)time(NULL)+i);
 }
 
 #endif
