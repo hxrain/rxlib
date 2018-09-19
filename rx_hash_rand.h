@@ -153,8 +153,7 @@ namespace rx
     };
 
     //-----------------------------------------------------
-    /*泊松分布的概率公式:  P(N(t) = n) = (((L*t)^n)*e^-(L*t))/n!
-    */
+    //泊松分布的概率公式:  P(N(t) = n) = (((L*t)^n)*e^-(L*t))/n!
     class p_poisson_t
     {
     public:
@@ -165,12 +164,12 @@ namespace rx
             return pow(lambda*t, n) * pow(MATH_E, -lambda*t) / factorial(n);
         }
         //-------------------------------------------------
-        //计算在时间t的范围内,发生<=n次事件的累积概率;lambda为事件发生的平均频率.
-        static double cumulative(uint32_t n, uint32_t t = 1, double lambda = 1.0)
+        //计算在时间t的范围内,发生<=n次事件的累积概率;lambda为事件发生的平均频率;with_zero告知是否累计0次对应的概率.
+        static double cumulative(uint32_t n, uint32_t t = 1, double lambda = 1.0,bool with_zero=false)
         {
             double e = pow(MATH_E, (double)-lambda*t);
             double sum = 0.0;
-            for(uint32_t i=0;i<=n;++i)
+            for(uint32_t i = with_zero||n==0 ? 0 : 1;i<=n;++i)
                 sum += pow(lambda*t, i) / factorial(i);
             return e * sum;
         }
@@ -186,12 +185,14 @@ namespace rx
         double  m_rate;
     public:
         rand_poisson_t(uint32_t s = 0 , uint32_t n=1, double lambda = 1.0, uint32_t t = 1) { seed(s,n,lambda,t); }
+        //-------------------------------------------------
         //初始化种子并设置概率分布参数(在时间t的范围内,最多发生n次事件的概率;lambda为事件发生的平均频率)
         virtual void seed(uint32_t s, uint32_t n = 1, double lambda = 1.0, uint32_t t = 1)
         { 
             m_rnd.seed(s);
             m_rate = p_poisson_t::cumulative(n, t, lambda); //使用累积概率
         }
+        //-------------------------------------------------
         //生成随机数,范围在[Min,Max](默认为[0,(2^31)-1])
         virtual uint32_t get(uint32_t Max = 0x7ffffffe, uint32_t Min = 0)
         {
@@ -203,8 +204,6 @@ namespace rx
         }
     };
     typedef rand_poisson_t<rand_skiplist_t> rand_poisson_skt;
-
-
 
     //-----------------------------------------------------
     //方便快速使用随机数发生器的便捷函数(单线程安全)
