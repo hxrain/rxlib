@@ -39,7 +39,7 @@
 namespace rx
 {
     //统一指定一下跳表使用的随机数发生器类型
-    typedef rand_skiplist_t skiplist_rnd_t;
+    typedef rand_skl_t skiplist_rnd_t;
 
     //-----------------------------------------------------
     //进行跳表层级随机数生成器的封装

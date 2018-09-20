@@ -122,12 +122,12 @@ public:
     class key_op_uint_hash
     {
     public:
-        static uint32_t key(uint32_t i){return rx_hash_skeeto_triple(i);}
+        static uint32_t key(uint32_t i){return rx_hash_skeeto_3s(i);}
     };
     class key_op_uint_hash_str
     {
     public:
-        static const char* key(uint32_t i){static rx::n2s ns;return ns(rx_hash_skeeto_triple(i));}
+        static const char* key(uint32_t i){static rx::n2s ns;return ns(rx_hash_skeeto_3s(i));}
     };
 };
 

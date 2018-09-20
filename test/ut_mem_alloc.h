@@ -30,7 +30,7 @@ public:
         tdd_tt_hit(tt,"tmp1");
         tdd_tt_hit(tt,"tmp2");
         ptr_t   ptr_array[array_size];
-        rx::rand_skeeto_b32_t rnd;
+        rx::rand_skeeto_bsa_t rnd;
         ma_t ma;
         rnd.seed(seed);
 

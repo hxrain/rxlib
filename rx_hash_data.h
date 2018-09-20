@@ -475,11 +475,11 @@ static const rx_data_hash32_t rx_data_hash32_funcs[]=
     rx_hash_mosquito,
     rx_hash_fast32
 };
-const uint32_t rx_data_hash32_funcs_count=DHT_Count;
+const uint32_t rx_data_hash32_funcs_count = sizeof(rx_data_hash32_funcs) / sizeof(rx_data_hash32_funcs[0]);
 //根据哈希函数类型获取对应的哈希函数
 inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type=rx_data_hash32_type(rx_data_hash32_funcs_count-1))
 {
-    rx_static_assert(sizeof(rx_data_hash32_funcs)/sizeof(rx_data_hash32_funcs[0])==rx_data_hash32_funcs_count);
+    rx_static_assert(DHT_Count == rx_data_hash32_funcs_count);
     return rx_data_hash32_funcs[(uint32_t)type>=rx_data_hash32_funcs_count?rx_data_hash32_funcs_count-1:type];
 }
 //根据哈希函数类型计算给定数据的哈希码
@@ -522,21 +522,17 @@ static const rx_data_hash32_t rx_data_hash32s_funcs[]=
     rx_data_hash32<rx_hash_bobj         >,
     rx_data_hash32<rx_hash_murmur3      >,
     rx_data_hash32<rx_hash_mosquito     >,
-    rx_data_hash32<rx_hash_skeeto_a     >,
-    rx_data_hash32<rx_hash_skeeto_b     >,
-    rx_data_hash32<rx_hash_skeeto_c     >,
-    rx_data_hash32<rx_hash_skeeto_d     >,
-    rx_data_hash32<rx_hash_skeeto_e     >,
-    rx_data_hash32<rx_hash_skeeto_e_r   >,
-    rx_data_hash32<rx_hash_skeeto_f     >,
-    rx_data_hash32<rx_hash_skeeto_g     >,
-    rx_data_hash32<rx_hash_skeeto_triple_r>,
-    rx_data_hash32<rx_hash_skeeto_triple>,
+    rx_data_hash32<rx_hash_skeeto_bsa   >,
+    rx_data_hash32<rx_hash_skeeto_2sa   >,
+    rx_data_hash32<rx_hash_skeeto_3sa   >,
+    rx_data_hash32<rx_hash_skeeto_3sb   >,
+    rx_data_hash32<rx_hash_skeeto_3s    >,
+    rx_data_hash32<rx_hash_skeeto_3sr   >
 };
-const uint32_t rx_data_hash32s_count=IHT_Count;
+const uint32_t rx_data_hash32s_count = sizeof(rx_data_hash32s_funcs) / sizeof(rx_data_hash32s_funcs[0]);
 inline rx_data_hash32_t rx_data_hash32s(const uint32_t idx=rx_data_hash32s_count-1)
 {
-    rx_static_assert(rx_data_hash32s_count==sizeof(rx_data_hash32s_funcs)/sizeof(rx_data_hash32s_funcs[0]));
+    rx_static_assert(rx_data_hash32s_count == IHT_Count);
     return rx_data_hash32s_funcs[idx>=rx_data_hash32s_count?rx_data_hash32s_count-1:idx];
 }
 

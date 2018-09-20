@@ -60,9 +60,9 @@ namespace rx
 
     //-----------------------------------------------------
     //参照skeeto的hash随机数算法(b)
-    class rand_skeeto_b32_t:public rand_i
+    class rand_skeeto_bsa_t:public rand_i
     {
-        rand_skeeto_b32_t& operator=(const rand_skeeto_b32_t&);
+        rand_skeeto_bsa_t& operator=(const rand_skeeto_bsa_t&);
         uint32_t  m_seed;
 
         static uint32_t hash(uint32_t x)
@@ -78,7 +78,7 @@ namespace rx
             return x;
         }
     public:
-        rand_skeeto_b32_t(uint32_t s=0) {seed(s);}
+        rand_skeeto_bsa_t(uint32_t s=0) {seed(s);}
         //初始化种子
         virtual void seed(uint32_t s) {m_seed=s;}
         //生成随机数,[Min,Max](默认为[0,(2^32)-1])
@@ -122,9 +122,9 @@ namespace rx
     };
     //-----------------------------------------------------
     //参照redis/skiplist随机数算法
-    class rand_skiplist_t:public rand_i
+    class rand_skl_t:public rand_i
     {
-        rand_skiplist_t& operator=(const rand_skiplist_t&);
+        rand_skl_t& operator=(const rand_skl_t&);
         uint32_t  m_seed;
         static const uint32_t M = 2147483647L;     // 2^31-1
         static const uint64_t A = 16807;           // bits 14, 8, 7, 5, 2, 1, 0
@@ -141,7 +141,7 @@ namespace rx
             return x;
         }
     public:
-        rand_skiplist_t(uint32_t s=0) {seed(s);}
+        rand_skl_t(uint32_t s=0) {seed(s);}
         //初始化种子
         virtual void seed(uint32_t s) {m_seed=(s+1)&M;}
         //生成随机数,[Min,Max](默认为[0,(2^31)-1])
@@ -208,7 +208,8 @@ namespace rx
             return Min + k % (Max - Min + 1);
         }
     };
-    typedef rand_poisson_t<rand_skiplist_t> rand_poisson_skt;
+    //便于使用的泊松分布随机数发生器类别
+    typedef rand_poisson_t<rand_skl_t> rand_poisson_skt;
 
     //-----------------------------------------------------
     //方便快速使用随机数发生器的便捷函数(单线程安全)
@@ -219,7 +220,8 @@ namespace rx
 //语法糖,快速访问随机数发生器(不建议多线程直接并发使用,需建立自己的线程独立的随机数发生器)
 #define rx_rnd_hge() rx::rnd<rx::rand_hge_t>()
 #define rx_rnd_std() rx::rnd<rx::rand_std_t>()
-#define rx_rnd_b32() rx::rnd<rx::rand_skeeto_b32_t>()
+#define rx_rnd_b32() rx::rnd<rx::rand_skeeto_bsa_t>()
 #define rx_rnd_t32() rx::rnd<rx::rand_skeeto_triple_t>()
+#define rx_rnd_p32() rx::rnd<rx::rand_poisson_skt>()
 
 #endif

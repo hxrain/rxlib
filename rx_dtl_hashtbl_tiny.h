@@ -68,8 +68,8 @@ namespace rx
         static uint32_t hash(const KT &k) { return rx_hash_murmur(&k, sizeof(k)); }
         static uint32_t hash(const char *k) { return rx_hash_murmur(k,st::strlen(k)); }
         static uint32_t hash(const wchar_t *k) { return rx_hash_murmur(k, st::strlen(k)); }
-        static uint32_t hash(const uint32_t &k) { return rx_hash_skeeto_triple(k); }
-        static uint32_t hash(const int32_t &k) { return rx_hash_skeeto_triple(k); }
+        static uint32_t hash(const uint32_t &k) { return rx_hash_skeeto_3s(k); }
+        static uint32_t hash(const int32_t &k) { return rx_hash_skeeto_3s(k); }
     };
     //简单哈希表使用的节点比较器
     class hashtbl_cmp_t:public hashset_cmp_t
