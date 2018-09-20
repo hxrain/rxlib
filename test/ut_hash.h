@@ -9,10 +9,11 @@
 #include <math.h>
 
 //---------------------------------------------------------
+template<uint32_t loop=100000>
 inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_int_hash32_t hash,rx_tdd_t &rt)
 {
     const uint32_t array_size = 1000;
-    const uint32_t loop_count = array_size*100000;
+    const uint32_t loop_count = array_size*loop;
 
     uint32_t count_array[array_size];
     memset(count_array,0,sizeof(count_array));
@@ -35,11 +36,11 @@ inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_int_hash32
     printf("hash  <%30s> sdv = %.4f\n", hash_name, sqrt((double)variance / array_size));
 }
 //---------------------------------------------------------
-template<class rnd_t>
+template<class rnd_t, uint32_t loop = 100000>
 inline void rx_hash_int_base_2(uint32_t seed,const char* hash_name,rx_tdd_t &rt)
 {
     const uint32_t array_size = 1000;
-    const uint32_t loop_count = array_size*100000;
+    const uint32_t loop_count = array_size*loop;
     rnd_t rnd(seed);
 
     uint32_t count_array[array_size];
@@ -89,30 +90,38 @@ inline void test_poisson_rnd(rx_tdd_t &rt, uint32_t seed, double lambda = 100, i
     rt.tdd_assert(err<0.0007);          //验证过的均值,与实际期待均值间的偏差,小于此比例(万分之七).
 
 }
+
 //---------------------------------------------------------
-rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
+template<uint32_t loop>
+inline void test_rnd_sdv(rx_tdd_t &rt,uint32_t seed)
 {
-    uint32_t seed = (uint32_t)time(NULL);
+    rx_hash_int_base_2<rx::rand_std_t,loop>(seed, "rand_std", rt);
+    rx_hash_int_base_2<rx::rand_hge_t, loop>(seed, "rand_hge", rt);
+    rx_hash_int_base_2<rx::rand_skeeto_bsa_t, loop>(seed, "rand_skeeto_bsa", rt);
+    rx_hash_int_base_2<rx::rand_skeeto_triple_t, loop>(seed, "rand_skeeto_triple", rt);
+    rx_hash_int_base_2<rx::rand_skl_t, loop>(seed, "rand_skl_t", rt);
 
-    rx_hash_int_base_2<rx::rand_std_t>(seed,"rand_std",*this);
-    rx_hash_int_base_2<rx::rand_hge_t>(seed,"rand_hge",*this);
-    rx_hash_int_base_2<rx::rand_skeeto_bsa_t>(seed,"rand_skeeto_bsa",*this);
-    rx_hash_int_base_2<rx::rand_skeeto_triple_t>(seed,"rand_skeeto_triple",*this);
-    rx_hash_int_base_2<rx::rand_skl_t>(seed,"rand_skl_t",*this);
-
-    for(int i=0;i<IHT_Count;++i)
-        rx_hash_int_base_1(seed,rx_int_hash32_name((rx_int_hash32_type)i),rx_int_hash32((rx_int_hash32_type)i),*this);
+    for (int i = 0; i<IHT_Count; ++i)
+        rx_hash_int_base_1<loop>(seed, rx_int_hash32_name((rx_int_hash32_type)i), rx_int_hash32((rx_int_hash32_type)i), rt);
     srand(seed);
-    rx_hash_int_base_1(seed,"std::rand", tmp_test_stdrand,*this);
+    rx_hash_int_base_1<loop>(seed, "std::rand", tmp_test_stdrand, rt);
 
     rx_rnd_b32().seed(seed);
     rx_rnd_b32().get();
-
+}
+//---------------------------------------------------------
+rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
+{
+    uint32_t seed = (uint32_t)time(NULL);
+    test_rnd_sdv<10000>(*this,seed);
 }
 
 //---------------------------------------------------------
 rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
 {
+    uint32_t seed = (uint32_t)time(NULL);
+    test_rnd_sdv<100>(*this, seed);
+
     rx_int_hash32_t hf=rx_int_hash32_skeeto3s(0);
     hf(0);
     rx_tiny_prime(0);
