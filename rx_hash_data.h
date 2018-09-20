@@ -522,6 +522,7 @@ static const rx_data_hash32_t rx_data_hash32s_funcs[]=
     rx_data_hash32<rx_hash_bobj         >,
     rx_data_hash32<rx_hash_murmur3      >,
     rx_data_hash32<rx_hash_mosquito     >,
+    rx_data_hash32<rx_hash_skl          >,
     rx_data_hash32<rx_hash_skeeto_bsa   >,
     rx_data_hash32<rx_hash_skeeto_2sa   >,
     rx_data_hash32<rx_hash_skeeto_3sa   >,

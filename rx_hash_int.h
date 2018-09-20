@@ -133,6 +133,18 @@ inline uint32_t rx_hash_mosquito(uint32_t x)
 }
 
 //-----------------------------------------------------
+//redis/skiplist random hash function.结果范围在[0,2^31-1]
+inline uint32_t rx_hash_skl(uint32_t x)
+{
+    static const uint32_t M = 2147483647L;     // 2^31-1
+    static const uint64_t A = 16807;           // bits 14, 8, 7, 5, 2, 1, 0
+
+    uint64_t product = x * A;
+    x = uint32_t((product >> 31) + (product & M));
+    return (x > M) ? (x - M) : x;
+}
+
+//-----------------------------------------------------
 //https://github.com/skeeto/hash-prospector
 //进行过雪崩系数验证的哈希函数(Avalanche score = 1.1875)
 inline uint32_t rx_hash_skeeto_bsa(uint32_t x)
@@ -220,6 +232,7 @@ typedef enum rx_int_hash32_type
     IHT_bobj,
     IHT_murmur3,
     IHT_mosquito,
+    IHT_skl,
     IHT_skeeto_bsa,
     IHT_skeeto_2sa,
     IHT_skeeto_3sa,
@@ -244,6 +257,8 @@ inline const char* rx_int_hash32_name(rx_int_hash32_type Type)
             return "IntHash::murmur3";
         case IHT_mosquito:
             return "IntHash::mosquito";
+        case IHT_skl:
+            return "IntHash::skl";
         case IHT_skeeto_bsa:
             return "IntHash::skeeto_bsa";
         case IHT_skeeto_2sa:
@@ -269,6 +284,7 @@ static const rx_int_hash32_t rx_int_hash32_funcs[] =
     rx_hash_bobj,
     rx_hash_murmur3,
     rx_hash_mosquito,
+    rx_hash_skl,
     rx_hash_skeeto_bsa,
     rx_hash_skeeto_2sa,
     rx_hash_skeeto_3sa,

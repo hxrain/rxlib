@@ -84,7 +84,7 @@ inline void test_poisson_rnd(rx_tdd_t &rt, uint32_t seed, double lambda = 100, i
         }
     }
     double avg = sum / (double)pn_size;
-    double err = abs(lambda - avg) / pn_size;
+    double err = fabs(lambda - avg) / pn_size;
     printf("TEST :: rand_poisson_skt(lambda=%.1f),avg=%.4f;loop=%u;err=%.4f%%\n", lambda, avg, pn_size, err * 100);
     rt.tdd_assert(err<0.0007);          //验证过的均值,与实际期待均值间的偏差,小于此比例(万分之七).
 
@@ -119,7 +119,7 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
     rx_tiny_fibonacci(0);
 
     double tmp = rx::p_poisson_t::pobability(0,3,2);  //= 0.0024787521766663594
-    assert(abs(tmp - 0.0024787521766663594)<0.0001);
+    assert(fabs(tmp - 0.0024787521766663594)<0.0001);
 
     for(int i=0;i<10;++i)
         test_poisson_rnd(*this,(uint32_t)time(NULL)+i);
