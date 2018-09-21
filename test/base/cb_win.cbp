@@ -34,9 +34,19 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-flto" />
+			<Add option="-Wfatal-errors" />
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-fno-rtti" />
 		</Compiler>
+		<Linker>
+			<Add option="-flto" />
+			<Add option="-s" />
+			<Add option="-static-libstdc++" />
+			<Add option="-static-libgcc" />
+			<Add option="-static" />
+		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

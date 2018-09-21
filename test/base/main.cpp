@@ -1,9 +1,10 @@
 #include "../../rx_dtl_list.h"
 #include "../ut_dtl_htbl_sklist_map.h"
 
-#include "../../rx_dtl_skiplist_raw.h"
+
 #include "../ut_dtl_skiplist.h"
 #include "../../rx_dtl_skiplist.h"
+#include "../../rx_dtl_skiplist_raw.h"
 
 #include "../ut_dtl_hashtbl_tiny.h"
 #include "../../rx_dtl_hashtbl_tiny.h"

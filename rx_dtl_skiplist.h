@@ -95,7 +95,7 @@ namespace rx
             node_key_t  key;
             struct skipset_node_t *next[1];                //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
         };
-
+        //-------------------------------------------------
         //对于skipset的const char*/const wchar_t*类型的key进行偏特化,内部统一进行内存分配与key内容记录
         //对于char*/wchar_t*的key类型,扔保留原始key指针类型
         template<typename dummy_t>
@@ -123,7 +123,7 @@ namespace rx
             node_key_t  key;
             struct skipset_node_t *next[1];                //跳表实现的关键:分层的节点后趋数组,必须放在节点的最后,用于弹性扩展访问
         };
-
+        //-------------------------------------------------
         template<typename dummy_t>
         struct skipset_node_t<const wchar_t*,dummy_t >
         {
@@ -151,15 +151,16 @@ namespace rx
         };
 
         //-------------------------------------------------
-        typedef skipset_node_t<key_t,void>          sk_node_t;
-        typedef raw_skiplist_t<sk_node_t,MAX_LEVEL> sk_list_t;
-        skiplist_rnd_level<rnd_t,MAX_LEVEL>         m_rnd_level;
-        sk_list_t                                   m_list;
+        typedef skipset_node_t<key_t,void>          sk_node_t;      //定义最终使用的基础原始调整容器节点
+        typedef raw_skiplist_t<sk_node_t,MAX_LEVEL> sk_list_t;      //定义最终使用的基础原始跳表容器类型
+        //-------------------------------------------------
+        skiplist_rnd_level<rnd_t,MAX_LEVEL>         m_rnd_level;    //随机层高生成器
+        sk_list_t                                   m_raw_list;     //原始的跳表容器
     public:
         typedef sk_node_t node_t;
         //-------------------------------------------------
-        skipset_t(mem_allotter_i &ma,uint32_t seed=1):m_list(ma){m_rnd_level.seed(seed);}
-        skipset_t(uint32_t seed=1):m_list(global_mem_allotter()){m_rnd_level.seed(seed);}
+        skipset_t(mem_allotter_i &ma,uint32_t seed=1):m_raw_list(ma){m_rnd_level.seed(seed);}
+        skipset_t(uint32_t seed=1):m_raw_list(global_mem_allotter()){m_rnd_level.seed(seed);}
         virtual ~skipset_t() {clear();}
         //-------------------------------------------------
         //定义简单的只读迭代器
@@ -194,7 +195,7 @@ namespace rx
             uint32_t level=m_rnd_level.make();
             bool duplication=false;
             uint32_t es=node_t::ext_size(val);
-            node_t *node=m_list.insert_raw(val,duplication,es,level);
+            node_t *node=m_raw_list.insert_raw(val,duplication,es,level);
             if (duplication)
                 return 0;
             if (!node)
@@ -205,22 +206,22 @@ namespace rx
         //-------------------------------------------------
         //查找元素是否存在
         template<class val_t>
-        bool find(const val_t &val) const {return m_list.find(val)!=NULL;}
+        bool find(const val_t &val) const {return m_raw_list.find(val)!=NULL;}
         //-------------------------------------------------
         //删除元素并默认析构
         template<class val_t>
-        bool erase(const val_t &val) {return m_list.earse(val);}
+        bool erase(const val_t &val) {return m_raw_list.earse(val);}
         //已经使用的节点数量
-        uint32_t size() const { return m_list.size(); }
+        uint32_t size() const { return m_raw_list.size(); }
         //-------------------------------------------------
         //准备遍历集合,返回遍历的初始位置
-        iterator begin() const{return iterator(m_list.head());}
+        iterator begin() const{return iterator(m_raw_list.head());}
         //-------------------------------------------------
         //返回遍历的结束位置
         iterator end() const { return iterator(NULL); }
         //-------------------------------------------------
         //获取集合的尾节点迭代器(可用于快速获取尾节点的值)
-        iterator rbegin() const { return iterator(m_list.tail()); }
+        iterator rbegin() const { return iterator(m_raw_list.tail()); }
         //-------------------------------------------------
         //删除指定位置的元素
         //返回值:是否删除了当前值
@@ -230,17 +231,17 @@ namespace rx
             if (i.m_node==NULL)
                 return false;
 
-            bool rc=m_list.earse(i.m_node->key);
+            bool rc=m_raw_list.earse(i.m_node->key);
             ++i;
             return rc;
         }
         //-------------------------------------------------
         #if RX_RAW_SKIPLIST_DEBUG_PRINT
-        void print(){m_list.print();}
+        void print(){m_raw_list.print();}
         #endif
         //-------------------------------------------------
         //清空全部的元素
-        void clear(){m_list.clear();}
+        void clear(){m_raw_list.clear();}
     };
 
     //语法糖,定义一个便于使用的整数跳表集合
@@ -288,7 +289,7 @@ namespace rx
             node_val_t  val;
             struct skiplist_node_t *next[1];               //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
         };
-
+        //-------------------------------------------------
         //基于skiplist的跳表容器节点类型
         //进行了key类型的const char*偏特化处理,可以进行内部持久化;
         template<class vt>
@@ -320,7 +321,7 @@ namespace rx
             node_val_t  val;
             struct skiplist_node_t *next[1];               //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
         };
-
+        //-------------------------------------------------
         template<class vt>
         struct skiplist_node_t<const char*,vt>
         {
@@ -352,20 +353,21 @@ namespace rx
         };
 
         //-------------------------------------------------
-        typedef skiplist_node_t<key_t,val_t>        sk_node_t;
-        typedef raw_skiplist_t<sk_node_t,MAX_LEVEL> sk_list_t;
-        skiplist_rnd_level<rnd_t,MAX_LEVEL>         m_rnd_level;
-        sk_list_t                                   m_list;
+        typedef skiplist_node_t<key_t,val_t>        sk_node_t;  //定义最终使用的原始跳表节点类型
+        typedef raw_skiplist_t<sk_node_t,MAX_LEVEL> sk_list_t;  //定义最终使用的原始跳表容器类型
+        //-------------------------------------------------
+        skiplist_rnd_level<rnd_t,MAX_LEVEL>         m_rnd_level;//随机层数生成器
+        sk_list_t                                   m_raw_list; //最终使用的底层原始跳表容器
     public:
         typedef sk_node_t node_t;
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        skiplist_t(mem_allotter_i &ma,uint32_t seed=1):m_list(ma){m_rnd_level.seed(seed);}
-        skiplist_t(uint32_t seed=1):m_list(global_mem_allotter()){m_rnd_level.seed(seed);}
+        skiplist_t(mem_allotter_i &ma,uint32_t seed=1):m_raw_list(ma){m_rnd_level.seed(seed);}
+        skiplist_t(uint32_t seed=1):m_raw_list(global_mem_allotter()){m_rnd_level.seed(seed);}
         virtual ~skiplist_t() {clear();}
         //-------------------------------------------------
         //已经使用的节点数量
-        uint32_t size() const { return m_list.size(); }
+        uint32_t size() const { return m_raw_list.size(); }
 
         //-------------------------------------------------
         //定义简单的只读迭代器
@@ -403,7 +405,7 @@ namespace rx
             uint32_t level=m_rnd_level.make();
             bool duplication=false;
             uint32_t es1=0,es2=0;
-            node_t *node=m_list.insert_raw(key,duplication,node_t::ext_size(key,val,es1,es2),level);
+            node_t *node=m_raw_list.insert_raw(key,duplication,node_t::ext_size(key,val,es1,es2),level);
             if (duplication)
                 return 0;
             if (!node)
@@ -414,20 +416,20 @@ namespace rx
         //-------------------------------------------------
         //查找元素是否存在
         template<class KT>
-        node_t* find(const KT &key) const {return m_list.find(key);}
+        node_t* find(const KT &key) const {return m_raw_list.find(key);}
         //-------------------------------------------------
         //删除元素并默认析构
         template<class KT>
-        bool erase(const KT &key) {return m_list.earse(key);}
+        bool erase(const KT &key) {return m_raw_list.earse(key);}
         //-------------------------------------------------
         //准备遍历跳表,返回遍历的初始位置
-        iterator begin() const{return iterator(m_list.head());}
+        iterator begin() const{return iterator(m_raw_list.head());}
         //-------------------------------------------------
         //返回遍历的结束位置
         iterator end() const { return iterator(NULL); }
         //-------------------------------------------------
         //获取跳表的尾节点迭代器(可用于快速获取尾节点的值)
-        iterator rbegin() const { return iterator(m_list.tail()); }
+        iterator rbegin() const { return iterator(m_raw_list.tail()); }
         //-------------------------------------------------
         //删除指定位置的元素
         //返回值:是否删除了当前值
@@ -437,17 +439,17 @@ namespace rx
             if (i.m_node==NULL)
                 return false;
 
-            bool rc=m_list.earse(i.m_node.key);
+            bool rc=m_raw_list.earse(i.m_node.key);
             ++i;
             return rc;
         }
         //-------------------------------------------------
         #if RX_RAW_SKIPLIST_DEBUG_PRINT
-        void print(){m_list.print();}
+        void print(){m_raw_list.print();}
         #endif
         //-------------------------------------------------
         //清空全部的元素
-        void clear(){m_list.clear();}
+        void clear(){m_raw_list.clear();}
     };
 
     //语法糖,定义一个便于使用的整数跳表
