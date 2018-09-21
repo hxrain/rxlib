@@ -91,7 +91,7 @@ namespace rx
         void        clear() { m_pointing.head = 0; m_pointing.tail = 0; }
         //-------------------------------------------------
         //数据入队,返回值告知是否成功
-        bool push(item_type data)
+        bool push_back(item_type data)
         {
             GUARD_T(m_locker, locker_t);                    //进行锁定
 
@@ -108,7 +108,7 @@ namespace rx
         }
         //-------------------------------------------------
         //数据出队,返回值NULL说明队列是空的
-        item_type *pop(bool is_peek=false)
+        item_type *pop_front(bool is_peek=false)
         {
             GUARD_T(m_locker, locker_t);                    //进行锁定
 

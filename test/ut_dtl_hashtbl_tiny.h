@@ -107,9 +107,9 @@ namespace rx
 
     //-----------------------------------------------------
     //¹şÏ£Á´±í»ù´¡²âÊÔ
-    inline void raw_tinyhashlist_base_1(rx_tdd_t &rt)
+    inline void raw_tinyhashlink_base_1(rx_tdd_t &rt)
     {
-        typedef tiny_hashlist_t<tmp_hashtbl_tiny_msize,int,int> cntr_t;
+        typedef tiny_hashlink_t<tmp_hashtbl_tiny_msize,int,int> cntr_t;
         cntr_t s;
 
         rt.tdd_assert(s.capacity() == tmp_hashtbl_tiny_msize);
@@ -194,7 +194,7 @@ rx_tdd(hashtbl_tiny_base)
 {
     rx::raw_tinyhashset_base_1(*this);
     rx::raw_tinyhashtbl_base_1(*this);
-    rx::raw_tinyhashlist_base_1(*this);
+    rx::raw_tinyhashlink_base_1(*this);
 }
 
 

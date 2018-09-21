@@ -23,7 +23,7 @@
 
     //hash链基类,可快速检索访问且快速遍历(内部没有容器空间)
     template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
-    class hashlist_base_t;
+    class hashlink_base_t;
 */
 
 /*在上述三种基础容器的基础上,进行便捷功能封装的语法糖容器
@@ -45,11 +45,11 @@
 
     //默认key为uint32_t类型的轻量级哈希链表(默认val也为uint32_t)
     template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
-    class tiny_hashlist_t;
+    class tiny_hashlink_t;
 
     //key为tiny_string类型的轻量级哈希链表(默认val为uint32_t)
     template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
-    class tiny_hashlist_st;
+    class tiny_hashlink_st;
 */
 
 namespace rx
@@ -407,7 +407,7 @@ namespace rx
     //最后插入的节点是尾节点;删除的节点进行前后趋调整;
     //-----------------------------------------------------
     template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
-    class hashlist_base_t
+    class hashlink_base_t
     {
     public:
         //-------------------------------------------------
@@ -433,8 +433,8 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        hashlist_base_t(node_t *nodes, uint32_t max_node_count):m_head(nil_pos),m_last(nil_pos) {m_basetbl.bind(nodes,max_node_count);}
-        virtual ~hashlist_base_t() {clear();}
+        hashlink_base_t(node_t *nodes, uint32_t max_node_count):m_head(nil_pos),m_last(nil_pos) {m_basetbl.bind(nodes,max_node_count);}
+        virtual ~hashlink_base_t() {clear();}
         //-------------------------------------------------
         //最大节点数量
         uint32_t capacity() const { return m_basetbl.capacity(); }
@@ -448,12 +448,12 @@ namespace rx
         //定义简单的只读迭代器
         class iterator
         {
-            const hashlist_base_t   &m_parent;
+            const hashlink_base_t   &m_parent;
             uint32_t                m_pos;
-            friend class hashlist_base_t;
+            friend class hashlink_base_t;
         public:
             //---------------------------------------------
-            iterator(const hashlist_base_t &s, uint32_t pos) :m_parent(s), m_pos(pos) {}
+            iterator(const hashlink_base_t &s, uint32_t pos) :m_parent(s), m_pos(pos) {}
             iterator(const iterator &i):m_parent(i.m_parent),m_pos(i.m_pos) {}
             //---------------------------------------------
             bool operator==(const iterator &i)const { return &m_parent == &i.m_parent&&m_pos == i.m_pos; }
@@ -680,24 +680,24 @@ namespace rx
     //key为uint32_t类型的轻量级哈希链表(默认val也为uint32_t)
     //-----------------------------------------------------
     template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
-    class tiny_hashlist_t :public hashlist_base_t<key_t,val_t, hashtbl_cmp_t >
+    class tiny_hashlink_t :public hashlink_base_t<key_t,val_t, hashtbl_cmp_t >
     {
-        typedef hashlist_base_t<key_t, val_t, hashtbl_cmp_t > super_t;
+        typedef hashlink_base_t<key_t, val_t, hashtbl_cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
-        tiny_hashlist_t():super_t(m_nodes, max_node_count) {}
+        tiny_hashlink_t():super_t(m_nodes, max_node_count) {}
     };
 
     //-----------------------------------------------------
     //key为tiny_string类型的轻量级哈希链表(默认val为uint32_t)
     //-----------------------------------------------------
     template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
-    class tiny_hashlist_st :public hashlist_base_t<tiny_string_head_t<CT,max_str_size>,val_t, hashtbl_cmp_t >
+    class tiny_hashlink_st :public hashlink_base_t<tiny_string_head_t<CT,max_str_size>,val_t, hashtbl_cmp_t >
     {
-        typedef hashlist_base_t<tiny_string_head_t<CT,max_str_size>, val_t, hashtbl_cmp_t > super_t;
+        typedef hashlink_base_t<tiny_string_head_t<CT,max_str_size>, val_t, hashtbl_cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
-        tiny_hashlist_st():super_t(m_nodes, max_node_count) {}
+        tiny_hashlink_st():super_t(m_nodes, max_node_count) {}
     };
 }
 

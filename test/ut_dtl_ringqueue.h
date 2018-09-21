@@ -16,88 +16,88 @@ namespace rx
         ringqueue_t rq;
 
         rt.tdd_assert(rq.capacity() == 128);
-        rt.tdd_assert(rq.pop() == NULL);
-        rt.tdd_assert(rq.push(1));
+        rt.tdd_assert(rq.pop_front() == NULL);
+        rt.tdd_assert(rq.push_back(1));
         rt.tdd_assert(rq.size() == 1);
-        rt.tdd_assert(rq.pop() != NULL);
+        rt.tdd_assert(rq.pop_front() != NULL);
         rt.tdd_assert(rq.size() == 0);
-        rt.tdd_assert(rq.pop() == NULL);
+        rt.tdd_assert(rq.pop_front() == NULL);
 
         for (int i = 1; i <= 127; ++i)
         {
-            rt.tdd_assert(rq.push(i));
+            rt.tdd_assert(rq.push_back(i));
             rt.tdd_assert(rq.size() == i);
         }
 
-        rt.tdd_assert(rq.push(255));
+        rt.tdd_assert(rq.push_back(255));
         rt.tdd_assert(rq.size() == 128);
 
-        rt.tdd_assert(rq.pop() != NULL);
+        rt.tdd_assert(rq.pop_front() != NULL);
         rt.tdd_assert(rq.size() == 127);
 
-        rt.tdd_assert(rq.push(255));
+        rt.tdd_assert(rq.push_back(255));
         rt.tdd_assert(rq.size() == 128);
 
-        rt.tdd_assert(!rq.push(255));
+        rt.tdd_assert(!rq.push_back(255));
         rt.tdd_assert(rq.size() == 128);
 
         for (int i = 1; i <= 128; ++i)
         {
-            rt.tdd_assert(rq.pop()!=NULL);
+            rt.tdd_assert(rq.pop_front()!=NULL);
             rt.tdd_assert(rq.size() == 128-i);
         }
 
         rt.tdd_assert(rq.size() == 0);
-        rt.tdd_assert(rq.pop() == NULL);
+        rt.tdd_assert(rq.pop_front() == NULL);
 
         for (int i = 1; i <= 125; ++i)
         {
-            rt.tdd_assert(rq.push(i));
+            rt.tdd_assert(rq.push_back(i));
             rt.tdd_assert(rq.size() == i);
         }
 
-        rt.tdd_assert(rq.push(126));
+        rt.tdd_assert(rq.push_back(126));
         rt.tdd_assert(rq.size() == 126);
 
-        rt.tdd_assert(rq.push(127));
+        rt.tdd_assert(rq.push_back(127));
         rt.tdd_assert(rq.size() == 127);
 
-        rt.tdd_assert(rq.push(255));
+        rt.tdd_assert(rq.push_back(255));
         rt.tdd_assert(rq.size() == 128);
 
-        rt.tdd_assert(!rq.push(255));
+        rt.tdd_assert(!rq.push_back(255));
         rt.tdd_assert(rq.size() == 128);
 
-        rt.tdd_assert(rq.pop() != NULL);
+        rt.tdd_assert(rq.pop_front() != NULL);
         rt.tdd_assert(rq.size() == 127);
 
-        rt.tdd_assert(rq.push(255));
+        rt.tdd_assert(rq.push_back(255));
         rt.tdd_assert(rq.size() == 128);
 
-        rt.tdd_assert(!rq.push(255));
+        rt.tdd_assert(!rq.push_back(255));
         rt.tdd_assert(rq.size() == 128);
 
         for (int i = 1; i <= 128; ++i)
         {
-            rt.tdd_assert(rq.pop() != NULL);
+            rt.tdd_assert(rq.pop_front() != NULL);
             rt.tdd_assert(rq.size() == 128 - i);
         }
 
         rt.tdd_assert(rq.size() == 0);
-        rt.tdd_assert(rq.pop() == NULL);
+        rt.tdd_assert(rq.pop_front() == NULL);
 
         for (int i = 1; i <= 128; ++i)
         {
-            rt.tdd_assert(rq.push(i));
+            rt.tdd_assert(rq.push_back(i));
             rt.tdd_assert(rq.size() == i);
         }
 
-        rt.tdd_assert(!rq.push(255));
+        rt.tdd_assert(!rq.push_back(255));
         rt.tdd_assert(rq.size() == 128);
 
         for (int i = 1; i <= 128; ++i)
         {
-            rt.tdd_assert(rq.pop() != NULL);
+            rt.tdd_assert(rq.pop_front() != NULL);
             rt.tdd_assert(rq.size() == 128 - i);
         }
 
@@ -109,28 +109,28 @@ namespace rx
         ringqueue_t rq;
 
         rt.tdd_assert(rq.capacity() == 256);
-        rt.tdd_assert(rq.pop() == NULL);
-        rt.tdd_assert(rq.push(1));
+        rt.tdd_assert(rq.pop_front() == NULL);
+        rt.tdd_assert(rq.push_back(1));
         rt.tdd_assert(rq.size()==1);
-        rt.tdd_assert(rq.pop()!=NULL);
+        rt.tdd_assert(rq.pop_front()!=NULL);
         rt.tdd_assert(rq.size() == 0);
-        rt.tdd_assert(rq.pop() == NULL);
+        rt.tdd_assert(rq.pop_front() == NULL);
 
         for (uint32_t i = 1; i <= 255; ++i)
         {
-            rt.tdd_assert(rq.push(i));
+            rt.tdd_assert(rq.push_back(i));
             rt.tdd_assert(rq.size() == i);
         }
-        rt.tdd_assert(rq.push(255));
+        rt.tdd_assert(rq.push_back(255));
         rt.tdd_assert(rq.size() == 256);
 
-        rt.tdd_assert(rq.pop() != NULL);
+        rt.tdd_assert(rq.pop_front() != NULL);
         rt.tdd_assert(rq.size() == 255);
 
-        rt.tdd_assert(rq.push(255));
+        rt.tdd_assert(rq.push_back(255));
         rt.tdd_assert(rq.size() == 256);
 
-        rt.tdd_assert(!rq.push(255));
+        rt.tdd_assert(!rq.push_back(255));
         rt.tdd_assert(rq.size() == 256);
     }
 
@@ -144,17 +144,17 @@ namespace rx
 
         for (uint32_t lc = 0; lc < tt; ++lc)
         {
-            uint32_t is_push = rand()&1;
+            uint32_t is_push_back = rand()&1;
             uint32_t op_count =3+ rand() % 80;
             tc += op_count;
-            if (is_push)
+            if (is_push_back)
             {
                 for (uint32_t op = 0; op < op_count; ++op)
                 {
                     if (rq.size() == rq.capacity())
-                        rt.tdd_assert(!rq.push(op));
+                        rt.tdd_assert(!rq.push_back(op));
                     else
-                        rt.tdd_assert(rq.push(op));
+                        rt.tdd_assert(rq.push_back(op));
                 }
             }
             else
@@ -162,9 +162,9 @@ namespace rx
                 for (uint32_t op = 0; op < op_count; ++op)
                 {
                     if (rq.size() == 0)
-                        rt.tdd_assert(rq.pop()==NULL);
+                        rt.tdd_assert(rq.pop_front()==NULL);
                     else
-                        rt.tdd_assert(rq.pop()!=NULL);
+                        rt.tdd_assert(rq.pop_front()!=NULL);
                 }
             }
 
