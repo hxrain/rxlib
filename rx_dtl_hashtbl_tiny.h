@@ -179,7 +179,7 @@ namespace rx
             bool operator==(const iterator &i)const { return &m_parent == &i.m_parent&&m_pos == i.m_pos; }
             bool operator!=(const iterator &i)const { return !(operator==(i));}
             //---------------------------------------------
-            iterator& operator=(iterator &i) {m_parent=i.m_parent; m_pos=i.m_pos; return *this;}
+            iterator& operator=(const iterator &i) {m_parent=i.m_parent; m_pos=i.m_pos; return *this;}
             //---------------------------------------------
             const val_t& operator*() const
             {
@@ -278,7 +278,7 @@ namespace rx
             bool operator==(const iterator &i)const { return &m_parent == &i.m_parent&&m_pos == i.m_pos; }
             bool operator!=(const iterator &i)const { return !(operator==(i));}
             //---------------------------------------------
-            iterator& operator=(iterator &i) {m_parent=i.m_parent; m_pos=i.m_pos; return *this;}
+            iterator& operator=(const iterator &i) {m_parent=i.m_parent; m_pos=i.m_pos; return *this;}
             //---------------------------------------------
             //*提领运算符重载,用于获取当前节点的val值
             const val_t& operator*() const
@@ -459,7 +459,7 @@ namespace rx
             bool operator==(const iterator &i)const { return &m_parent == &i.m_parent&&m_pos == i.m_pos; }
             bool operator!=(const iterator &i)const { return !(operator==(i));}
             //---------------------------------------------
-            iterator& operator=(iterator &i) {m_parent=i.m_parent; m_pos=i.m_pos; return *this;}
+            iterator& operator=(const iterator &i) {m_parent=i.m_parent; m_pos=i.m_pos; return *this;}
             //---------------------------------------------
             //*提领运算符重载,用于获取当前节点的val值
             const val_t& operator*() const

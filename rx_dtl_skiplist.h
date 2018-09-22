@@ -170,13 +170,14 @@ namespace rx
             friend class skipset_t;
         public:
             //---------------------------------------------
+            iterator() :m_node(NULL) {}
             iterator(const node_t *node) :m_node(node) {}
             iterator(const iterator &i):m_node(i.m_node){}
             //---------------------------------------------
             bool operator==(const iterator &i)const { return m_node == i.m_node; }
             bool operator!=(const iterator &i)const { return !(operator==(i));}
             //---------------------------------------------
-            iterator& operator=(iterator &i) {m_node=i.m_node; return *this;}
+            iterator& operator=(const iterator &i) {m_node=i.m_node; return *this;}
             //---------------------------------------------
             const typename node_t::node_key_t& operator*() const {return m_node->key;}
             //---------------------------------------------
@@ -377,13 +378,14 @@ namespace rx
             friend class skiplist_t;
         public:
             //---------------------------------------------
+            iterator() :m_node(NULL) {}
             iterator(const node_t *node) :m_node(node) {}
             iterator(const iterator &i):m_node(i.m_node){}
             //---------------------------------------------
             bool operator==(const iterator &i)const { return m_node == i.m_node; }
             bool operator!=(const iterator &i)const { return !(operator==(i));}
             //---------------------------------------------
-            iterator& operator=(iterator &i) {m_node=i.m_node; return *this;}
+            iterator& operator=(const iterator &i) {m_node=i.m_node; return *this;}
             //---------------------------------------------
             //* 运算符重载,用于获取当前节点的val值
             const typename node_t::node_val_t& operator* () const {return m_node->val;}

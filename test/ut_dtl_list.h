@@ -2,7 +2,7 @@
 #define _RX_UT_DTL_LIST_H_
 
 #include "../rx_tdd.h"
-#include "../../rx_dtl_list.h"
+#include "../rx_dtl_list.h"
 
 //---------------------------------------------------------
 //进行容器的遍历,同时对比给定的数组元素内容
@@ -10,7 +10,7 @@ template<class ct,class vt>
 inline void test_dtl_list_loop_test_1(rx_tdd_t &rt,const ct &s,vt* arr,uint32_t count,bool asc=true,uint32_t asc_offset=0)
 {
     rt.tdd_assert(s.size()==count);
-    ct::iterator I=s.begin();
+    typename ct::iterator I=s.begin();
     if (asc)
     {
         for(uint32_t i=asc_offset;I!=s.end();++i,++I)
@@ -109,14 +109,14 @@ inline void test_dtl_list_base_1(rx_tdd_t &rt)
     typedef tst_list_pop<ct,popfront> ot;
     typedef tst_list_last<ct,isback> lt;
 
-    dv::val_t tst_arr[10];
+    typename dv::val_t tst_arr[10];
     uint32_t count=0;
     ct s;
     rt.tdd_assert(s.size()==0);
     rt.tdd_assert(s.begin()==s.end());
 
     tst_arr[count]=dv::val(1);
-    ct::iterator I;
+    typename ct::iterator I;
     I=pt::push(s,tst_arr[count++]);
     rt.tdd_assert(I==lt::last(s));
     rt.tdd_assert(s.size()==count);
