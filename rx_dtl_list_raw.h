@@ -131,10 +131,11 @@ namespace rx
         //节点挂入尾部(变成新的尾节点)
         void push_back(node_t *new_node)
         {
-            tail()->next = new_node;                        //尾节点的后趋指向新节点
+            m_origin.tail->next = new_node;                 //尾节点的后趋指向新节点
             new_node->next = (node_t*)&m_origin;            //新节点后趋指向原点
             m_origin.tail = new_node;                       //尾指针指向新节点
-            ++m_count;
+            if (++m_count==1)
+                m_origin.next=new_node;                     //最初容器为空时则头指针指向最新节点
         }
         void push_back(node_t &new_node) {push_back(&new_node);}
         //-------------------------------------------------

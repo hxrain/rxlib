@@ -11,58 +11,58 @@ typedef struct tmp_raw_stack_node_t
 }tmp_raw_stack_node_t;
 
 //---------------------------------------------------------
-inline void test_raw_list_1(rx_tdd_t &rt)
+inline void test_raw_queue_1(rx_tdd_t &rt)
 {
     tmp_raw_stack_node_t *node;
     tmp_raw_stack_node_t tmp[3];
-    rx::raw_queue_t<tmp_raw_stack_node_t> list;
+    rx::raw_queue_t<tmp_raw_stack_node_t> s;
     for(int i=0;i<3;++i)
         tmp[i].tmp_value=i;
 
-    rt.tdd_assert(list.size()==0);
-    rt.tdd_assert(list.head()==NULL);
-    rt.tdd_assert(list.tail()==NULL);
+    rt.tdd_assert(s.size()==0);
+    rt.tdd_assert(s.head()==s.origin());
+    rt.tdd_assert(s.tail()==s.origin());
 
-    list.push_back(tmp[0]);
-    rt.tdd_assert(list.size()==1);
-    rt.tdd_assert(list.head()==list.tail());
-    rt.tdd_assert(list.tail()->next==NULL);
-    rt.tdd_assert(list.tail()->tmp_value==0);
+    s.push_back(tmp[0]);
+    rt.tdd_assert(s.size()==1);
+    rt.tdd_assert(s.head()==s.tail());
+    rt.tdd_assert(s.tail()->next==s.origin());
+    rt.tdd_assert(s.tail()->tmp_value==0);
 
-    list.push_back(tmp[1]);
-    rt.tdd_assert(list.size()==2);
-    rt.tdd_assert(list.head()!=list.tail());
-    rt.tdd_assert(list.head()->next==list.tail());
-    rt.tdd_assert(list.tail()->next==NULL);
-    rt.tdd_assert(list.tail()->tmp_value==1);
+    s.push_back(tmp[1]);
+    rt.tdd_assert(s.size()==2);
+    rt.tdd_assert(s.head()!=s.tail());
+    rt.tdd_assert(s.head()->next==s.tail());
+    rt.tdd_assert(s.tail()->next==s.origin());
+    rt.tdd_assert(s.tail()->tmp_value==1);
 
-    list.push_front(tmp[2]);
-    rt.tdd_assert(list.size()==3);
-    rt.tdd_assert(list.head()!=list.tail());
-    rt.tdd_assert(list.head()->next->next==list.tail());
-    rt.tdd_assert(list.tail()->next==NULL);
-    rt.tdd_assert(list.head()->tmp_value==2);
+    s.push_front(tmp[2]);
+    rt.tdd_assert(s.size()==3);
+    rt.tdd_assert(s.head()!=s.tail());
+    rt.tdd_assert(s.head()->next->next==s.tail());
+    rt.tdd_assert(s.tail()->next==s.origin());
+    rt.tdd_assert(s.head()->tmp_value==2);
 
-    node=list.pop_front();
+    node=s.pop_front();
     rt.tdd_assert(node->tmp_value==2);
-    rt.tdd_assert(list.size()==2);
-    rt.tdd_assert(list.head()->next==list.tail());
-    rt.tdd_assert(list.tail()->next==NULL);
-    rt.tdd_assert(list.head()->tmp_value==0);
+    rt.tdd_assert(s.size()==2);
+    rt.tdd_assert(s.head()->next==s.tail());
+    rt.tdd_assert(s.tail()->next==s.origin());
+    rt.tdd_assert(s.head()->tmp_value==0);
 
-    node=list.pop_front();
+    node=s.pop_front();
     rt.tdd_assert(node->tmp_value==0);
-    rt.tdd_assert(list.size()==1);
-    rt.tdd_assert(list.head()==list.tail());
-    rt.tdd_assert(list.tail()->next==NULL);
-    rt.tdd_assert(list.head()->tmp_value==1);
+    rt.tdd_assert(s.size()==1);
+    rt.tdd_assert(s.head()==s.tail());
+    rt.tdd_assert(s.tail()->next==s.origin());
+    rt.tdd_assert(s.head()->tmp_value==1);
 
-    node=list.pop_front();
+    node=s.pop_front();
     rt.tdd_assert(node->tmp_value==1);
-    rt.tdd_assert(list.size()==0);
-    rt.tdd_assert(list.head()==list.tail());
-    rt.tdd_assert(list.tail()==NULL);
-    rt.tdd_assert(list.head()==NULL);
+    rt.tdd_assert(s.size()==0);
+    rt.tdd_assert(s.head()==s.tail());
+    rt.tdd_assert(s.tail()==s.origin());
+    rt.tdd_assert(s.head()==s.origin());
 
 }
 //---------------------------------------------------------
@@ -121,7 +121,7 @@ void test_mem_pool_base(rx_tdd_t &rt)
 
 rx_tdd(test_raw_list_stack)
 {
-    test_raw_list_1(*this);
+    test_raw_queue_1(*this);
     test_raw_stack_1(*this);
 }
 

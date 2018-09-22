@@ -41,7 +41,12 @@ namespace rx
             template<class KT> static int ext_size(const KT &data){return st::strlen(data)+1;}
             //---------------------------------------------
             //进行定向构造并初始化
-            template<class val_t> void OC(val_t &val,void* ext_buff,uint32_t ext_size){ct::OC(&data,ext_size,ext_buff);data.set(val);}
+            template<class val_t> void OC(val_t &val,void* ext_buff,uint32_t ext_size)
+            {
+                char *buf=(char*)ext_buff;
+                ct::OC(&data,ext_size,buf);
+                data.set(val);
+            }
         };
 
         //-------------------------------------------------
@@ -56,7 +61,12 @@ namespace rx
             template<class KT> static int ext_size(const KT &data){return st::strlen(data)+1;}
             //---------------------------------------------
             //进行定向构造并初始化
-            template<class val_t> void OC(val_t &val,void* ext_buff,uint32_t ext_size){ct::OC(&data,ext_size,ext_buff);data.set(val);}
+            template<class val_t> void OC(val_t &val,void* ext_buff,uint32_t ext_size)
+            {
+                wchar_t *buf=(wchar_t*)ext_buff;
+                ct::OC(&data,ext_size,buf);
+                data.set(val);
+            }
         };
 
         //-------------------------------------------------
@@ -114,9 +124,10 @@ namespace rx
         iterator push_front(const dt &data)
         {
             uint32_t es=node_t::ext_size(data);
-            node_t *node=m_mem.alloc(es+sizeof(node_t));
+            node_t *node=(node_t *)m_mem.alloc(es+sizeof(node_t));
             if (!node) return iterator(NULL);
-            node->OC(data,(uint8_t*)node+sizeof(node_t),es);
+            m_stack.push_front(node);
+            node->OC(data,((uint8_t*)node+sizeof(node_t)),es);
             return iterator(node);
         }
         //-------------------------------------------------
