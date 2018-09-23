@@ -204,8 +204,8 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
 
 //---------------------------------------------------------
 //定义便捷宏,方便输出调用者的行号
-#define tdd_assert(v) assert(v,__LINE__)
-#define msg_assert(v,msg,...) assert(v,__LINE__,msg,##__VA_ARGS__)
+#define tdd_assert(v) assert((v),__LINE__)
+#define msg_assert(v,msg,...) assert((v),__LINE__,msg,##__VA_ARGS__)
 
 //---------------------------------------------------------
 //定义rx_tdd宏,并指定运行级别,用于便捷的建立一个指定名字的测试用例

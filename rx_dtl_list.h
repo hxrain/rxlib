@@ -7,6 +7,36 @@
 #include "rx_mem_alloc_cntr.h"
 #include "rx_str_tiny.h"
 
+/*
+    //-----------------------------------------------------
+    //简单的栈容器(或单向链表,头部访问)定义
+    template<class DT>
+    class stack_t;
+
+    //语法糖,定义一个便于使用的整数栈
+    typedef stack_t<uint32_t>        stack_uint32_t;
+    typedef stack_t<int32_t>         stack_int32_t;
+    //语法糖,定义一个便于使用的const char*内容持有栈
+    typedef stack_t<const char*>     stack_cstr_t;
+    //语法糖,定义一个便于使用的const wchar_t*内容持有栈
+    typedef stack_t<const wchar_t*>  stack_wstr_t;
+
+    //-----------------------------------------------------
+    //简单的队列容器(或单向链表,头尾快速访问)定义
+    template<class DT>
+    class queue_t;
+
+    //语法糖,定义一个便于使用的整数队列
+    typedef queue_t<uint32_t>        queue_uint32_t;
+    typedef queue_t<int32_t>         queue_int32_t;
+    //语法糖,定义一个便于使用的const char*内容持有队列
+    typedef queue_t<const char*>     queue_cstr_t;
+    //语法糖,定义一个便于使用的const wchar_t*内容持有队列
+    typedef queue_t<const wchar_t*>  queue_wstr_t;
+
+
+*/
+
 namespace rx
 {
     //-----------------------------------------------------
@@ -201,7 +231,7 @@ namespace rx
             }
         };
         //-------------------------------------------------
-        //查看栈顶;返回遍历的初始位置
+        //查看队首;返回遍历的初始位置
         iterator begin() const {return iterator(m_cntr.head());}
         //-------------------------------------------------
         //返回遍历的结束位置
@@ -213,7 +243,7 @@ namespace rx
         //释放全部节点
         void clear() {while(pop_front());}
         //-------------------------------------------------
-        //栈内元素数量
+        //内部元素数量
         uint32_t size() const {return m_cntr.size();}
         //-------------------------------------------------
         //数据入队(队尾),返回最新节点.
@@ -252,12 +282,12 @@ namespace rx
         }
     };
 
-    //语法糖,定义一个便于使用的整数栈
+    //语法糖,定义一个便于使用的整数队列
     typedef queue_t<uint32_t>        queue_uint32_t;
     typedef queue_t<int32_t>         queue_int32_t;
-    //语法糖,定义一个便于使用的const char*内容持有栈
+    //语法糖,定义一个便于使用的const char*内容持有队列
     typedef queue_t<const char*>     queue_cstr_t;
-    //语法糖,定义一个便于使用的const wchar_t*内容持有栈
+    //语法糖,定义一个便于使用的const wchar_t*内容持有队列
     typedef queue_t<const wchar_t*>  queue_wstr_t;
 
 }

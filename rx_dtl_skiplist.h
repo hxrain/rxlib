@@ -11,7 +11,7 @@
 
 /*本单元封装实现了基于原始跳表的跳表集与跳表容器.
     //-----------------------------------------------------
-    //跳表集容器
+    //基于跳表的集合容器
     template<class key_t,uint32_t MAX_LEVEL,class rnd_t=skiplist_rnd_t>
     class skipset_t;
 
