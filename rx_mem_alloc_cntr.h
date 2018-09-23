@@ -33,8 +33,8 @@ namespace rx
     {
     protected:
         //-------------------------------------------------
-        virtual void* base_alloc(uint32_t &bksize,uint32_t size){bksize=size;return mempool_std_t::do_alloc(size);}
-        virtual void base_free(void* ptr, uint32_t size){mempool_std_t::do_free(ptr, size);}
+        virtual void* base_alloc(uint32_t &bksize,uint32_t size){bksize=size;return ::malloc(size);}
+        virtual void base_free(void* ptr, uint32_t size){::free(ptr);}
     };
 
     //------------------------------------------------------
@@ -81,7 +81,7 @@ namespace rx
     //定义默认的全局使用的内存分配器
     inline mem_allotter_i& global_mem_allotter()
     {
-        static mem_allotter_tlmap_slt allotter;
+        static mem_allotter_pow2_slt allotter;
         return allotter;
     }
 }
