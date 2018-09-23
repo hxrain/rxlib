@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <wchar.h>
+#include <stdarg.h>
 
 #if RX_OS==RX_OS_WIN||RX_OS_POSIX
 #define RX_STR_USE_FILE 1
@@ -31,9 +33,11 @@ namespace rx
         static const char  space() {return ' ';}
         static const char  A() {return 'A';}
         static const char  F() {return 'F';}
+        static const char  Z() {return 'Z';}
         static const char  a() {return 'a';}
         static const char  f() {return 'f';}
         static const char  x() {return 'x';}
+        static const char  z() {return 'z';}
     };
     template<> class sc<wchar_t>
     {
@@ -49,9 +53,11 @@ namespace rx
         static const wchar_t  space() {return L' ';}
         static const wchar_t  A() {return L'A';}
         static const wchar_t  F() {return L'F';}
+        static const wchar_t  Z() {return L'Z';}
         static const wchar_t  a() {return L'a';}
         static const wchar_t  f() {return L'f';}
         static const wchar_t  x() {return L'x';}
+        static const wchar_t  z() {return L'z';}
     };
 
     //-----------------------------------------------------
@@ -95,11 +101,16 @@ namespace rx
         //比较,不区分大小写
         #if RX_CC==RX_CC_BCC
         static int              stricmp(const char *s1, const char *s2) {return ::strcmpi(s1,s2);}
+        #elif RX_CC==RX_CC_GCC
+        static int              stricmp(const char *s1, const char *s2) {return ::strcasecmp(s1,s2);}
         #else
         static int              stricmp(const char *s1, const char *s2) {return ::_strcmpi(s1,s2);}
         #endif
+        #if RX_CC==RX_CC_GCC
+        static int              stricmp(const wchar_t *s1, const wchar_t *s2) {return ::wcscasecmp(s1,s2);}
+        #else
         static int              stricmp(const wchar_t *s1, const wchar_t *s2) {return ::_wcsicmp(s1,s2);}
-
+        #endif
         //定长比较,区分大小写,规定最大长度
 
         static int              strncmp(const char *s1, const char *s2, uint32_t  maxlen) {return ::strncmp(s1,s2,maxlen);}
@@ -109,6 +120,9 @@ namespace rx
         #if RX_CC==RX_CC_BCC
         static int              strncmpi(const char *s1, const char *s2, uint32_t n) {return ::strncmpi(s1,s2,n);}
         static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n) {return ::wcsncmpi(s1,s2,n);}
+        #elif RX_CC==RX_CC_GCC
+        static int              strncmpi(const char *s1, const char *s2, uint32_t n) {return ::strncasecmp(s1,s2,n);}
+        static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n) {return ::wcsncasecmp(s1,s2,n);}
         #else
         static int              strncmpi(const char *s1, const char *s2, uint32_t n) {return ::_strnicmp(s1,s2,n);}
         static int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n) {return ::_wcsnicmp(s1,s2,n);}
@@ -133,22 +147,27 @@ namespace rx
         static const wchar_t *  strrchr(const wchar_t *s, int c) {return ::wcsrchr(s,c);}
 
         //字符串转换为大写
+        template<class CT>  CT *strupr(CT *str)
+        {
+            for(CT* s=str;*s;++s)
+            {
+                if(*s >= sc<CT>::a() && *s <= sc<CT>::z())
+                    *s -= sc<CT>::a()-sc<CT>::A();
+            }
+            return str;
+        }
 
-        #if RX_CC==RX_CC_BCC
-        static char *           strupr(char *s) {return ::strupr(s);}
-        #else
-        static char *           strupr(char *s) {return ::_strupr(s);}
-        #endif
-        static wchar_t *        strupr(wchar_t *s) {return ::_wcsupr(s);}
 
         //字符串转换为小写
-
-        #if RX_CC==RX_CC_BCC
-        static char *           strlwr(char *s) {return ::strlwr(s);}
-        #else
-        static char *           strlwr(char *s) {return ::_strlwr(s);}
-        #endif
-        static wchar_t *        strlwr(wchar_t *s) {return ::_wcslwr(s);}
+        template<class CT>  CT *strlwr(CT *str)
+        {
+            for(CT* s=str;*s;++s)
+            {
+                if(*s >= sc<CT>::A() && *s <= sc<CT>::Z())
+                    *s += sc<CT>::a()-sc<CT>::A();
+            }
+            return str;
+        }
 
         //字符串转换扩展,直接拷贝到目标缓冲器
         template<class CT>
@@ -168,33 +187,95 @@ namespace rx
         template<class CT>
         static int              atoi(const CT* s,int radix,int DefVal) {if (is_empty(s))return DefVal; else return atoi(s,radix);}
 
+        #if RX_CC==RX_CC_GCC
+        //字符串转换为整数
+        static uint64_t         atoi64(const char* s) {return ::strtoll(s,NULL,10);}
+        static uint64_t         atoi64(const wchar_t* s) {return ::wcstoll(s,NULL,10);}
+        #else
         //字符串转换为整数
         static uint64_t         atoi64(const char* s) {return ::_atoi64(s);}
         static uint64_t         atoi64(const wchar_t* s) {return ::_wtoi64(s);}
+        #endif
 
         //字符串转换为浮点数
         static double           atof(const char* s) {return ::atof(s);}
-        static double           atof(const wchar_t* s) {return ::_wtof(s);}
+        static double           atof(const wchar_t* s) {return ::wcstod(s,NULL);}
 
         //数字转换为字符串
 
         #if RX_CC==RX_CC_BCC
         static char *           itoa(int value, char *string, int radix=10) {return ::itoa(value,string,radix);}
+        #elif RX_CC==RX_CC_GCC
+        static char *           itoa(int value, char *string, int radix=10)
+        {
+            const char* fmt="%d";
+            if (radix==16) fmt="%x";
+            sprintf(string,fmt,value);
+            return string;
+        }
         #else
         static char *           itoa(int value, char *string, int radix=10) {return ::_itoa(value,string,radix);}
         #endif
-        static wchar_t *        itoa(int value, wchar_t *string, int radix=10) {return ::_itow(value,string,radix);}
 
+        #if RX_CC==RX_CC_GCC
+        static wchar_t *           itoa(int value, wchar_t *string, int radix=10)
+        {
+            const wchar_t* fmt=L"%d";
+            if (radix==16) fmt=L"%x";
+            wprintf(string,fmt,value);
+            return string;
+        }
+        #else
+        static wchar_t *        itoa(int value, wchar_t *string, int radix=10) {return ::_itow(value,string,radix);}
+        #endif
+
+
+        #if RX_CC==RX_CC_GCC
+        static char *           itoa64(int value, char *string, int radix=10)
+        {
+            const char* fmt="%lld";
+            if (radix==16) fmt="%llx";
+            sprintf(string,fmt,value);
+            return string;
+        }
+        static wchar_t *           itoa64(int value, wchar_t *string, int radix=10)
+        {
+            const wchar_t* fmt=L"%lld";
+            if (radix==16) fmt=L"%llx";
+            wprintf(string,fmt,value);
+            return string;
+        }
+        #else
         static char *           itoa64(int64_t value, char *string, int radix=10) {return ::_i64toa(value,string,radix);}
         static wchar_t *        itoa64(int64_t value, wchar_t *string, int radix=10) {return ::_i64tow(value,string,radix);}
+        #endif
 
 
         #if RX_CC==RX_CC_BCC
         static char *           ultoa(uint32_t value, char *string, int radix=10) {return ::ultoa(value,string,radix);}
+        #elif RX_CC==RX_CC_GCC
+        static char *           ultoa(uint32_t value, char *string, int radix=10)
+        {
+            const char* fmt="%u";
+            if (radix==16) fmt="%x";
+            sprintf(string,fmt,value);
+            return string;
+        }
         #else
         static char *           ultoa(uint32_t value, char *string, int radix=10) {return ::_ultoa(value,string,radix);}
         #endif
+
+        #if RX_CC==RX_CC_GCC
+        static wchar_t *        ultoa(uint32_t value, wchar_t *string, int radix=10)
+        {
+            const wchar_t* fmt=L"%u";
+            if (radix==16) fmt=L"%x";
+            wprintf(string,fmt,value);
+            return string;
+        }
+        #else
         static wchar_t *        ultoa(uint32_t value, wchar_t *string, int radix=10) {return ::_ultow(value,string,radix);}
+        #endif
 
         //语法糖,数字转为0x前缀的十六进制串
         template<class CT>
@@ -237,10 +318,10 @@ namespace rx
         {
             va_list ap;
             va_start(ap, Fmt);
-            return ::_vsnwprintf(Buf,BufSize,Fmt,ap);
+            return ::vswprintf(Buf,BufSize,Fmt,ap);
         }
         static int              vsnprintf(char * Buf,uint32_t BufSize, const char *Fmt,va_list arglist) {return ::vsnprintf(Buf,BufSize,Fmt,arglist);}
-        static int              vsnprintf(wchar_t * Buf,uint32_t BufSize, const wchar_t *Fmt,va_list arglist) {return ::_vsnwprintf(Buf,BufSize,Fmt,arglist);}
+        static int              vsnprintf(wchar_t * Buf,uint32_t BufSize, const wchar_t *Fmt,va_list arglist) {return ::vswprintf(Buf,BufSize,Fmt,arglist);}
 
         #if RX_STR_USE_FILE
         static int              fprintf(FILE *stream, const char *format,...)
@@ -255,8 +336,8 @@ namespace rx
             va_start(ap, format);
             return vfwprintf(stream,format,ap);
         }
-        static int              vfprintf(FILE *stream, const char *format,va_list ap) {return std::vfprintf(stream,format,ap);}
-        static int              vfprintf(FILE *stream, const wchar_t *format,va_list ap) {return std::vfwprintf(stream,format,ap);}
+        static int              vfprintf(FILE *stream, const char *format,va_list ap) {return ::vfprintf(stream,format,ap);}
+        static int              vfprintf(FILE *stream, const wchar_t *format,va_list ap) {return ::vfwprintf(stream,format,ap);}
         #endif
         //-------------------------------------------------
         //语法糖,对输入S进行判断,如果是空值则返回给定的默认值
