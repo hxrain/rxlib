@@ -133,8 +133,8 @@ namespace rx
             template<class KT>
             static int cmp(const skipset_node_t &n,const KT &key){return st::strcmp(n.key.c_str(),key);}
             //---------------------------------------------
-            //计算key需要的扩展尺寸
-            static int ext_size(const wchar_t* k){return st::strlen(k)+1;}
+            //计算key需要的扩展尺寸(w串占用空间比c串大一倍)
+            static int ext_size(const wchar_t* k){return (st::strlen(k)+1)<<1;}
 
             //---------------------------------------------
             //进行定向构造并初始化
@@ -142,7 +142,8 @@ namespace rx
             void OC(uint32_t level,val_t &val,uint32_t es)
             {
                 ct::OC(&key);
-                key.bind((wchar_t*)&next[level],es,val,es-1);
+                uint32_t cap=(es>>1);
+                key.bind((wchar_t*)&next[level],cap,val,cap-1);
             }
             //---------------------------------------------
             typedef tiny_string_head_t<wchar_t> node_key_t;
@@ -304,7 +305,7 @@ namespace rx
             //---------------------------------------------
             //计算key需要的扩展尺寸
             template<class KT,class VT>
-            static uint32_t ext_size(const KT &k,const VT& v,uint32_t &es1,uint32_t &es2){es1=st::strlen(k)+1;return es1;}
+            static uint32_t ext_size(const KT &k,const VT& v,uint32_t &es1,uint32_t &es2){es1=(st::strlen(k)+1)<<1;return es1;}
 
             //---------------------------------------------
             //进行定向构造并初始化
@@ -313,7 +314,8 @@ namespace rx
             {
                 ct::OC(&key);
                 ct::OC(&val,v);
-                key.bind((wchar_t*)&next[level],es1,k,es1-1);
+                uint32_t cap=(es1>>1);
+                key.bind((wchar_t*)&next[level],cap,k,cap-1);
             }
             //---------------------------------------------
             typedef tiny_string_head_t<wchar_t> node_key_t;//对节点内部真正的key与val的类型进行定义
