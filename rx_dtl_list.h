@@ -99,15 +99,16 @@ namespace rx
             struct raw_node_t* volatile next;	            //节点的后趋
             node_data_t  data;
             //---------------------------------------------
-            //计算data需要的扩展尺寸
-            template<class KT> static int ext_size(const KT &data){return st::strlen(data)+1;}
+            //计算data需要的扩展尺寸(是串长度+1的2倍)
+            template<class KT> static int ext_size(const KT &data){return (st::strlen(data)+1)<<1;}
             //---------------------------------------------
             //进行定向构造并初始化
             template<class val_t> void OC(val_t &val,void* ext_buff,uint32_t ext_size)
             {
                 wchar_t *buf=(wchar_t*)ext_buff;
-                ct::OC(&data,ext_size,buf);
-                data.set(val,ext_size-1);
+                uint32_t cap=(ext_size>>1);
+                ct::OC(&data,cap,buf);
+                data.set(val,cap-1);
             }
         };
     public:
@@ -355,14 +356,15 @@ namespace rx
             node_data_t  data;
             //---------------------------------------------
             //计算data需要的扩展尺寸
-            template<class KT> static int ext_size(const KT &data){return st::strlen(data)+1;}
+            template<class KT> static int ext_size(const KT &data){return (st::strlen(data)+1)<<1;}
             //---------------------------------------------
             //进行定向构造并初始化
             template<class val_t> void OC(val_t &val,void* ext_buff,uint32_t ext_size)
             {
                 wchar_t *buf=(wchar_t*)ext_buff;
-                ct::OC(&data,ext_size,buf);
-                data.set(val,ext_size-1);
+                uint32_t cap=(ext_size>>1);
+                ct::OC(&data,cap,buf);
+                data.set(val,cap-1);
             }
         };
     public:
