@@ -74,7 +74,7 @@ namespace rx
             tab_str[tab_deep]=0;
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:hit:%s (%.1f)ms {%s} : (%s:%u).\n",m_msg_a,tab_str,dt / 1000.0,msg_c,file,lineno);
+            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:hit:%s (%.1f)ms {%s} : (%s:%u).",m_msg_a,tab_str,dt / 1000.0,msg_c,file,lineno);
             on_output(tmp);
         }
         //-------------------------------------------------
@@ -88,7 +88,7 @@ namespace rx
                 return;
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:all: (%.1f)ms {%s} : (%s:%u).\n",m_msg_a,dt/1000.0,m_msg_b,m_file,m_lineno);
+            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:all: (%.1f)ms {%s} : (%s:%u).",m_msg_a,dt/1000.0,m_msg_b,m_file,m_lineno);
             on_output(tmp);
             m_enable=false;
         }
@@ -99,7 +99,7 @@ namespace rx
             end();
         }
     protected:
-        virtual void on_output(const char* str) {printf(str);}
+        virtual void on_output(const char* str) {puts(str);}
     };
 
     //-----------------------------------------------------
