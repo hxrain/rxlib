@@ -144,7 +144,7 @@ namespace rx
         {
             new_node->next= m_origin.next;                  //新节点的后趋指向原点的后趋
             m_origin.next = new_node;                       //原点的后趋指向新节点
-            if (++m_count==1) 
+            if (++m_count==1)
                 m_origin.tail = new_node;                   //最初容器为空时则尾指针指向最新节点
         }
         void push_front(node_t &new_node) {push_front(&new_node);}
@@ -176,10 +176,10 @@ namespace rx
         {
             node_t             *prev;	                    //原点的前趋,指向尾节点
             node_t             *next;                       //原点的后趋,指向头结点
-            void reset() 
-            { 
-                prev = (node_t*)this; 
-                next = (node_t*)this; 
+            void reset()
+            {
+                prev = (node_t*)this;
+                next = (node_t*)this;
             }
         }origin_t;
 
