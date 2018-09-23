@@ -95,7 +95,7 @@ namespace rx
         rt.tdd_assert(sl.begin()()=="3");
         rt.tdd_assert(*sl.rbegin()==3);
         rt.tdd_assert(sl.rbegin()()=="3");
-        
+
         rt.tdd_assert(sl.insert("8",vals[8])>0);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()=="3");
@@ -166,7 +166,7 @@ namespace rx
         rt.tdd_assert(sl.begin()()==L"3");
         rt.tdd_assert(*sl.rbegin()==3);
         rt.tdd_assert(sl.rbegin()()==L"3");
-        
+
         rt.tdd_assert(sl.insert(L"8",vals[8])>0);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==L"3");
@@ -227,20 +227,20 @@ namespace rx
         skipset_int32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
-        
+
         rt.tdd_assert(sl.insert(3)>0);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(*sl.rbegin()==3);
-        
+
         rt.tdd_assert(sl.insert(8)>0);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.size()==2);
-        
+
         rt.tdd_assert(sl.insert(5)>0);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(*sl.rbegin()==8);
-        
+
         rt.tdd_assert(sl.insert(7)>0);
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(*sl.rbegin()==8);
@@ -366,12 +366,45 @@ namespace rx
 
         sl.clear();
     }
+    inline void test_skipset_base_2w(rx_tdd_t &rt)
+    {
+        skipset_wstr_t sl;
+        rt.tdd_assert(sl.begin()==sl.end());
+        rt.tdd_assert(sl.rbegin()==sl.end());
+
+        rt.tdd_assert(sl.insert(L"3")>0);
+        rt.tdd_assert(*sl.begin()==L"3");
+        rt.tdd_assert(*sl.rbegin()==L"3");
+
+        rt.tdd_assert(sl.insert(L"8")>0);
+        rt.tdd_assert(*sl.begin()==L"3");
+        rt.tdd_assert(*sl.rbegin()==L"8");
+        rt.tdd_assert(sl.size()==2);
+
+        rt.tdd_assert(sl.insert(L"5")>0);
+        rt.tdd_assert(*sl.begin()==L"3");
+        rt.tdd_assert(*sl.rbegin()==L"8");
+
+        rt.tdd_assert(sl.erase(L"5"));
+        rt.tdd_assert(*sl.begin()==L"3");
+        rt.tdd_assert(*sl.rbegin()==L"8");
+        rt.tdd_assert(!sl.find(L"5"));
+        rt.tdd_assert(!sl.erase(L"1"));
+        rt.tdd_assert(!sl.insert(L"3"));
+
+        rt.tdd_assert(sl.find(L"3"));
+        rt.tdd_assert(!sl.find(L"2"));
+
+        sl.clear();
+    }
 }
 
 
 
 rx_tdd(skiplist_base)
 {
+    rx::test_skipset_base_2w(*this);
+
     rx::test_skipset_base_1(*this);
     rx::test_skipset_base_1c(*this);
     rx::test_skipset_base_1w(*this);

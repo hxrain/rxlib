@@ -22,10 +22,16 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-Wfatal-errors" />
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 			<Add option="-D_CONSOLE=1" />
+			<Add option="-DRX_CC_DEBUG=1" />
+			<Add option="-DRX_USE_ASSERT=1" />
 		</Compiler>
+		<Linker>
+			<Add library="pthread" />
+		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
