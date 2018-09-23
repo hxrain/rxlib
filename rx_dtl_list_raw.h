@@ -176,7 +176,11 @@ namespace rx
         {
             node_t             *prev;	                    //原点的前趋,指向尾节点
             node_t             *next;                       //原点的后趋,指向头结点
-            void reset() { tail = (node_t*)this; next = (node_t*)this; }
+            void reset() 
+            { 
+                prev = (node_t*)this; 
+                next = (node_t*)this; 
+            }
         }origin_t;
 
         //-------------------------------------------------
@@ -188,12 +192,13 @@ namespace rx
         template<class na_t,class nb_t,class nc_t>
         static void join(na_t *node,nb_t *prev,nc_t *next)
         {
-            next->prev = node;
-            node->next = next;
-            node->prev = prev;
-            prev->next = node;
+            next->prev = (node_t*)node;
+            node->next = (node_t*)next;
+            node->prev = (node_t*)prev;
+            prev->next = (node_t*)node;
         }
 
+        //-------------------------------------------------
         //摘除prev与next之间的那个节点
         template<class na_t, class nb_t>
         static void pick(na_t *prev, nb_t *next)
@@ -255,6 +260,7 @@ namespace rx
             rx_assert(m_count!=0);
             node_t *node=m_origin.prev;                     //记录原来的尾结点,准备返回
             pick(node->prev, node->next);                   //摘除当前节点
+            --m_count;
             rx_assert_if(m_count==0, m_origin.prev == &m_origin && m_origin.next == &m_origin);
             return node;
         }
@@ -266,7 +272,8 @@ namespace rx
             rx_assert(m_count!=0);
             node_t *node= m_origin.next;                    //记录原来的头结点,准备返回
             pick(node->prev, node->next);                   //摘除当前节点
-            rx_assert_if(m_count == 0, m_origin.prev == &m_origin && m_origin.next == &m_origin);
+            --m_count;
+            rx_assert_if(m_count == 0, m_origin.prev == (node_t*)&m_origin && m_origin.next == (node_t*)&m_origin);
             return node;
         }
         //-------------------------------------------------
