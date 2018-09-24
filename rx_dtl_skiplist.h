@@ -50,7 +50,8 @@ namespace rx
     public:
         void seed(uint32_t s)
         {
-            if (s<=1) s=(uint32_t)time(NULL);
+            if (s<1) 
+                s=(uint32_t)time(NULL);
             m_rnd.seed(s);
         }
         //-------------------------------------------------

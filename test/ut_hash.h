@@ -9,6 +9,7 @@
 #include <math.h>
 
 //---------------------------------------------------------
+//计算指定哈希函数hash的仿rnd生成器的均方差
 template<uint32_t loop,uint32_t arrsize>
 inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_int_hash32_t hash,rx_tdd_t &rt)
 {
@@ -36,6 +37,7 @@ inline void rx_hash_int_base_1(uint32_t seed,const char* hash_name,rx_int_hash32
     printf("hash  <%30s> sdv = %.4f\n", hash_name, sqrt((double)variance / array_size));
 }
 //---------------------------------------------------------
+//计算指定rnd_t随机数生成器的均方差
 template<class rnd_t, uint32_t loop,uint32_t arrsize>
 inline void rx_hash_int_base_2(uint32_t seed,const char* hash_name,rx_tdd_t &rt)
 {
@@ -69,6 +71,7 @@ inline uint32_t tmp_test_stdrand(uint32_t x)
 }
 
 //---------------------------------------------------------
+//计算泊松分布随机数发生器的偏差
 inline void test_poisson_rnd(rx_tdd_t &rt, uint32_t seed, double lambda = 100, int pn_size = 1280, bool is_print = false)
 {
     rx::rand_poisson_skt prnd(seed, lambda);
@@ -92,6 +95,7 @@ inline void test_poisson_rnd(rx_tdd_t &rt, uint32_t seed, double lambda = 100, i
 }
 
 //---------------------------------------------------------
+//对多种随机数发生器进行统一测试
 template<uint32_t loop,uint32_t arrsize>
 inline void test_rnd_sdv(rx_tdd_t &rt,uint32_t seed)
 {
