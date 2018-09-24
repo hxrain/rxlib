@@ -44,11 +44,11 @@ inline void rx_assert_fun(bool R,int LineNo,const char *File,const char *Msg,boo
     if (R)
         return;
 
-    const char* Tip=IsAlert?"debug":"assert";
+    const char* Tip=IsAlert?"DEBUG":"ASSERT FAIL";
     if (Msg==NULL||Msg[0]==0)
-        rx_show_msg("file <%s>\r\nline <%d>\r\n%s!\r\n",File,LineNo,Tip);
+        rx_show_msg("\n<%s> : <%s:%u>\n",Tip,File,LineNo);
     else
-        rx_show_msg("file <%s>\r\nline <%d>\r\n%s!\r\ninfo <%s>",File,LineNo,Tip,Msg);
+        rx_show_msg("\n<%s> : {%s} : <%s:%u>\n",Tip,Msg,File,LineNo);
 
     #if RX_IS_CONSOLE
         printf("按回车键继续\r\n");
@@ -74,6 +74,7 @@ inline void rx_assert_fun(bool R,int LineNo,const char *File,const char *Msg,boo
 
 //运行时失败提示
 #define rx_fail(R) rx_assert_fun((R),__LINE__,__FILE__,"RX RUNTIME FAIL CHECK!")
+#define rx_fail_msg(R,msg) rx_assert_fun((R),__LINE__,__FILE__,msg)
 
 //断言条件判断,如果C成立,则要求R也成立.
 #define rx_assert_if(C,R) rx_assert(((C)?(R):true))
