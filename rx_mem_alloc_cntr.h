@@ -82,9 +82,9 @@ namespace rx
     inline mem_allotter_i& global_mem_allotter()
     {
 #if RX_DEF_ALLOC_USE_STD
-        static mem_allotter_tlmap_slt_std allotter;
+        static mem_allotter_std_t allotter;
 #else
-        static mem_allotter_pow2_slt allotter;
+        static mem_allotter_tlmap_slt allotter;
 #endif
         return allotter;
     }
