@@ -6,6 +6,7 @@
 
 namespace rx
 {
+#pragma pack(push,1)
     //-----------------------------------------------------
     //封装一个简易的字符串功能,用于dtl容器内部的临时key字符串存储
     template<class CT=char,uint16_t max_str_size=0>
@@ -91,6 +92,7 @@ namespace rx
         bool operator != (const CT *str) const {return st::strcmp(m_tinystr.buff, (is_empty(str)?sc<CT>::empty():str)) != 0;}
         //-------------------------------------------------
     };
+#pragma pack(pop)
 
     typedef tiny_string_head_t<char> tiny_string_head_ct;
     typedef tiny_string_head_t<wchar_t> tiny_string_head_wt;
