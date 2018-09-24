@@ -48,9 +48,9 @@ namespace rx
     {
         rnd_t   m_rnd;
     public:
-        void seed(uint32_t s)
+        skiplist_rnd_level(uint32_t s)
         {
-            if (s<1) 
+            if (s<1)
                 s=(uint32_t)time(NULL);
             m_rnd.seed(s);
         }
@@ -72,6 +72,7 @@ namespace rx
     template<class key_t,uint32_t MAX_LEVEL=32,class rnd_t=skiplist_rnd_t>
     class skipset_t
     {
+        #pragma pack(push,1)
         //-------------------------------------------------
         //skiplist集合容器节点类型,为了避免gcc内嵌类的精确偏特化错误,增加一个类型占位符dummy_t.
         template<class kt,typename dummy_t>
@@ -135,7 +136,7 @@ namespace rx
             static int cmp(const skipset_node_t &n,const KT &key){return st::strcmp(n.key.c_str(),key);}
             //---------------------------------------------
             //计算key需要的扩展尺寸(w串占用空间比c串大一倍)
-            static int ext_size(const wchar_t* k){return (st::strlen(k)+1)<<1;}
+            static int ext_size(const wchar_t* k){return (st::strlen(k)+1) * sc<wchar_t>::char_size();}
 
             //---------------------------------------------
             //进行定向构造并初始化
@@ -143,7 +144,7 @@ namespace rx
             void OC(uint32_t level,val_t &val,uint32_t es)
             {
                 ct::OC(&key);
-                uint32_t cap=(es>>1);
+                uint32_t cap = es / sc<wchar_t>::char_size();
                 key.bind((wchar_t*)&next[level],cap,val,cap-1);
             }
             //---------------------------------------------
@@ -151,7 +152,7 @@ namespace rx
             node_key_t  key;
             struct skipset_node_t *next[1];                //跳表实现的关键:分层的节点后趋数组,必须放在节点的最后,用于弹性扩展访问
         };
-
+        #pragma pack(pop)
         //-------------------------------------------------
         typedef skipset_node_t<key_t,void>          sk_node_t;      //定义最终使用的基础原始调整容器节点
         typedef raw_skiplist_t<sk_node_t,MAX_LEVEL> sk_list_t;      //定义最终使用的基础原始跳表容器类型
@@ -161,8 +162,8 @@ namespace rx
     public:
         typedef sk_node_t node_t;
         //-------------------------------------------------
-        skipset_t(mem_allotter_i &ma,uint32_t seed=1):m_raw_list(ma){m_rnd_level.seed(seed);}
-        skipset_t(uint32_t seed=1):m_raw_list(global_mem_allotter()){m_rnd_level.seed(seed);}
+        skipset_t(mem_allotter_i &ma,uint32_t seed=1):m_rnd_level(seed),m_raw_list(ma){}
+        skipset_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(global_mem_allotter()){}
         virtual ~skipset_t() {clear();}
         //-------------------------------------------------
         //定义简单的只读迭代器
@@ -306,7 +307,7 @@ namespace rx
             //---------------------------------------------
             //计算key需要的扩展尺寸
             template<class KT,class VT>
-            static uint32_t ext_size(const KT &k,const VT& v,uint32_t &es1,uint32_t &es2){es1=(st::strlen(k)+1)<<1;return es1;}
+            static uint32_t ext_size(const KT &k,const VT& v,uint32_t &es1,uint32_t &es2){es1=(st::strlen(k)+1) * sc<wchar_t>::char_size();return es1;}
 
             //---------------------------------------------
             //进行定向构造并初始化
@@ -315,7 +316,7 @@ namespace rx
             {
                 ct::OC(&key);
                 ct::OC(&val,v);
-                uint32_t cap=(es1>>1);
+                uint32_t cap = es1 / sc<wchar_t>::char_size();
                 key.bind((wchar_t*)&next[level],cap,k,cap-1);
             }
             //---------------------------------------------
@@ -366,8 +367,8 @@ namespace rx
         typedef sk_node_t node_t;
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        skiplist_t(mem_allotter_i &ma,uint32_t seed=1):m_raw_list(ma){m_rnd_level.seed(seed);}
-        skiplist_t(uint32_t seed=1):m_raw_list(global_mem_allotter()){m_rnd_level.seed(seed);}
+        skiplist_t(mem_allotter_i &ma,uint32_t seed=1):m_rnd_level(seed),m_raw_list(ma){}
+        skiplist_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(global_mem_allotter()){}
         virtual ~skiplist_t() {clear();}
         //-------------------------------------------------
         //已经使用的节点数量
