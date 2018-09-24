@@ -91,6 +91,7 @@ namespace rx
 }
 //------------------------------------------------------
 //描述全局使用的默认内存分配器语法糖
+#define rx_mem()                rx::global_mem_allotter()
 #define rx_alloc(size)          rx::global_mem_allotter().alloc((size))
 #define rx_realloc(p,newsize)   rx::global_mem_allotter().realloc((p),(newsize))
 #define rx_free(p)              rx::global_mem_allotter().free((p))
