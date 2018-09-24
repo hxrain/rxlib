@@ -5,18 +5,38 @@
 #include "../rx_tdd.h"
 #include "../rx_hash_rand.h"
 
+#define RX_UT_TEST_MEM_BAD 0
+
 void test_mem_alloc_base(rx_tdd_t &rt)
 {
     uint32_t *dp1=rx_new(uint32_t);
     rt.tdd_assert(dp1!=NULL);
+    rt.tdd_assert(rx_mem().memsize(dp1)>sizeof(uint32_t));
+    rt.tdd_assert(rx_mem().usrsize(dp1)>=sizeof(uint32_t));
     rx_delete(dp1);
 
     void *p1=rx_alloc(5);
     rt.tdd_assert(p1!=NULL);
+    rt.tdd_assert(rx_mem().memsize(p1)>5);
+    rt.tdd_assert(rx_mem().usrsize(p1)>=5);
+
     void *p2=rx_realloc(p1,6);
     rt.tdd_assert(p2!=NULL);
+
+    uint32_t us=rx_mem().usrsize(p2);
+    rt.tdd_assert(rx_mem().memsize(p2)>6);
+    rt.tdd_assert(us>=6);
+
+#if RX_UT_TEST_MEM_BAD
+    //进行内存溢出覆盖的测试
+    memset(p2,0,us+1);
+#endif
     rx_free(p2);
 
+#if RX_UT_TEST_MEM_BAD
+    //进行double free测试
+    rx_free(p2);
+#endif
 }
 
 template<class ma_t,uint32_t array_size=5000,uint32_t loop_test=5000,uint32_t max_mem_size=1024*16>
