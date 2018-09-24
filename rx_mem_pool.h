@@ -39,12 +39,19 @@ namespace rx
 
     //------------------------------------------------------
     //基于C标准库的内存池
-    class mempool_std_t
+    template<class dummy=void>
+    class mempool_std_t:public mempool_t
     {
     public:
-        static void *do_alloc(uint32_t size) { return malloc(size); }
-        static void *do_realloc(void* ptr, uint32_t size) { return realloc(ptr, size); }
-        static void do_free(void* ptr, uint32_t size = 0) { free(ptr); }
+        static void *alloc(uint32_t size) { return ::malloc(size); }
+        static void *realloc(void* ptr, uint32_t size) { return ::realloc(ptr, size); }
+        static void free(void* ptr, uint32_t size = 0) { ::free(ptr); }
+        
+        virtual void *do_alloc(uint32_t &blocksize, uint32_t size) { blocksize = size; return ::malloc(size); }
+        virtual void *do_realloc(uint32_t &blocksize, void* ptr, uint32_t newsize) { blocksize = newsize; return ::realloc(ptr,newsize); }
+        virtual void do_free(void* ptr, uint32_t blocksize = 0) { ::free(ptr); }
+        virtual bool do_init(uint32_t size = 0) { return true; }
+        virtual void do_uninit(bool force = false) {}
     };
 
     //------------------------------------------------------
@@ -64,7 +71,7 @@ namespace rx
             else
             {
                 blocksize=size;
-                return mempool_std_t::do_alloc(size);
+                return mempool_std_t<>::alloc(size);
             }
         }
         //--------------------------------------------------
@@ -75,7 +82,7 @@ namespace rx
             else
             {
                 blocksize=newsize;
-                return mempool_std_t::do_realloc(ptr,newsize);
+                return mempool_std_t<>::realloc(ptr,newsize);
             }
         }
         //--------------------------------------------------
@@ -84,7 +91,7 @@ namespace rx
             if (m_base)
                 return m_base->do_free(ptr,blocksize);
             else
-                return mempool_std_t::do_free(ptr,blocksize);
+                return mempool_std_t<>::free(ptr,blocksize);
         }
 
     public:
