@@ -55,33 +55,37 @@ namespace rx
         typedef mem_allotter_pool_t<cntr_t<pool_t<cfg_t>,cfg_t> ,lock_t>  tname
 
     //简化的内存分配器(线性递增)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
-    #define desc_mem_allotter_lin(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_lin_t,mempool_fixed_t)
+    #define desc_mem_allotter_lin(tname,cfg_t,lock_t,pool_t) \
+        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_lin_t,pool_t)
 
     //简化的内存分配器(指数倍增)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
-    #define desc_mem_allotter_pow2(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_pow2_t,mempool_fixed_t)
+    #define desc_mem_allotter_pow2(tname,cfg_t,lock_t,pool_t) \
+        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_pow2_t,pool_t)
 
     //简化的内存分配器(两级映射)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型
-    #define desc_mem_allotter_tlmap(tname,cfg_t,lock_t) \
-        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_tlmap_t,mempool_fixed_t)
+    #define desc_mem_allotter_tlmap(tname,cfg_t,lock_t,pool_t) \
+        desc_mem_allotter(tname,cfg_t,lock_t,mempool_cntr_tlmap_t,pool_t)
 
     //------------------------------------------------------
     //描述默认的各种容器类型的内存分配器,无锁保护,单线程安全.
-    desc_mem_allotter_lin  (mem_allotter_lin_t,mempool_cfg_t,null_lock_t);
-    desc_mem_allotter_pow2 (mem_allotter_pow2_t,mempool_cfg_t,null_lock_t);
-    desc_mem_allotter_tlmap(mem_allotter_tlmap_t,mempool_cfg_t,null_lock_t);
+    desc_mem_allotter_lin  (mem_allotter_lin_t,mempool_cfg_t,null_lock_t, mempool_fixed_t);
+    desc_mem_allotter_pow2 (mem_allotter_pow2_t,mempool_cfg_t,null_lock_t, mempool_fixed_t);
+    desc_mem_allotter_tlmap(mem_allotter_tlmap_t,mempool_cfg_t,null_lock_t, mempool_fixed_t);
     //------------------------------------------------------
     //描述默认的各种容器类型的内存分配器,自旋锁保护,多线程安全.
-    desc_mem_allotter_lin  (mem_allotter_lin_slt,mempool_cfg_t,spin_lock_t);
-    desc_mem_allotter_pow2 (mem_allotter_pow2_slt,mempool_cfg_t,spin_lock_t);
-    desc_mem_allotter_tlmap(mem_allotter_tlmap_slt,mempool_cfg_t,spin_lock_t);
-
+    desc_mem_allotter_lin  (mem_allotter_lin_slt,mempool_cfg_t,spin_lock_t, mempool_fixed_t);
+    desc_mem_allotter_pow2 (mem_allotter_pow2_slt,mempool_cfg_t,spin_lock_t, mempool_fixed_t);
+    desc_mem_allotter_tlmap(mem_allotter_tlmap_slt,mempool_cfg_t,spin_lock_t, mempool_fixed_t);
+    desc_mem_allotter_tlmap(mem_allotter_tlmap_slt_std, mempool_cfg_t, spin_lock_t, mempool_std_t);
     //------------------------------------------------------
     //定义默认的全局使用的内存分配器
     inline mem_allotter_i& global_mem_allotter()
     {
+#if RX_DEF_ALLOC_USE_STD
+        static mem_allotter_tlmap_slt_std allotter;
+#else
         static mem_allotter_pow2_slt allotter;
+#endif
         return allotter;
     }
 }
