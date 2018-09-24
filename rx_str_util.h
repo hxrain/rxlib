@@ -22,6 +22,7 @@ namespace rx
     template<> class sc<char>
     {
     public:
+        static const uint32_t char_size() { return sizeof(char); }
         static const char* hex_upr() {return "0123456789ABCDEF";}
         static const char* hex_lwr() {return "0123456789abcdef";}
         static const char  hex_upr(uint32_t i) {return "0123456789ABCDEF"[i];}
@@ -42,6 +43,7 @@ namespace rx
     template<> class sc<wchar_t>
     {
     public:
+        static const uint32_t char_size(){ return sizeof(wchar_t); }
         static const wchar_t* hex_upr() {return L"0123456789ABCDEF";}
         static const wchar_t* hex_lwr() {return L"0123456789abcdef";}
         static const wchar_t  hex_upr(uint32_t i) {return L"0123456789ABCDEF"[i];}
