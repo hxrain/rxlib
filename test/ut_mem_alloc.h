@@ -14,7 +14,7 @@ void test_mem_alloc_base(rx_tdd_t &rt)
     void *p1=rx_alloc(5);
     rt.tdd_assert(p1!=NULL);
     void *p2=rx_realloc(p1,6);
-    rt.tdd_assert(p1==p2);
+    rt.tdd_assert(p2!=NULL);
     rx_free(p2);
 
 }

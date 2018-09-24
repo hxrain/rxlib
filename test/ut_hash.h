@@ -90,7 +90,7 @@ inline void test_poisson_rnd(rx_tdd_t &rt, uint32_t seed, double lambda = 100, i
     double avg = sum / (double)pn_size;
     double err = fabs(lambda - avg) / pn_size;
     printf("TEST :: rand_poisson_skt(lambda=%.1f),avg=%.4f;loop=%u;err=%.4f%%\n", lambda, avg, pn_size, err * 100);
-    rt.tdd_assert(err<0.0007);          //验证过的均值,与实际期待均值间的偏差,小于此比例(万分之七).
+    rt.tdd_assert(err<0.00075);          //验证过的均值,与实际期待均值间的偏差,小于此比例(万分之七).
 
 }
 
