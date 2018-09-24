@@ -322,9 +322,9 @@ namespace rx
     }
 
     //-----------------------------------------------------
-    inline void test_skipset_base_1w(rx_tdd_t &rt)
+    inline void test_skipset_base_1w(rx_tdd_t &rt,uint32_t seed)
     {
-        skipset_wstr_t sl;
+        skipset_wstr_t sl(seed);
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -403,11 +403,17 @@ namespace rx
 
 rx_tdd(skiplist_base)
 {
+    //for(uint32_t i=0;i<10000000;++i)
+    //    rx::test_skipset_base_1w(*this,i+1537538321);
+
+    rx::test_skipset_base_1w(*this,1537538337);
+    rx::test_skipset_base_1w(*this,1537760438);
+
     rx::test_skipset_base_2w(*this);
 
     rx::test_skipset_base_1(*this);
     rx::test_skipset_base_1c(*this);
-    rx::test_skipset_base_1w(*this);
+    rx::test_skipset_base_1w(*this,0);
 
     rx::test_skiplist_base_1(*this);
     rx::test_skiplist_base_1c(*this);
