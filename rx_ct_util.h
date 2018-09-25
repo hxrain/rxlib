@@ -227,22 +227,24 @@ namespace rx
     //将一个数字向上以AlignTo为边界进行对齐
     inline uint32_t size_align_to(uint32_t Size,uint32_t AlignTo) {return (Size + AlignTo - 1) & ~(AlignTo - 1);}
     //将一个数字向上以4为边界对齐
-#define size_align4(S) ((S+3)& ~3)
+    #define size_align4(S) ((S+3)& ~3)
     //将一个数字向上以8为边界对齐
-#define size_align8(S) ((S+7)& ~7)
+    #define size_align8(S) ((S+7)& ~7)
+    //将一个数字s向上以x为边界对齐
+    #define size_alignx(S,x) ((S+x-1)& ~(x-1))
 
     //根据数据类型计算其尺寸并将其向上以4字节边界对齐
-#define type_align4(T) size_align4(sizeof(T))
+    #define type_align4(T) size_align4(sizeof(T))
     //根据数据类型计算其尺寸并将其向上以8字节边界对齐
-#define type_align8(T) size_align8(sizeof(T))
+    #define type_align8(T) size_align8(sizeof(T))
 
     //取一个结构体T的成员F的相对于结构体的偏移量
-#define struct_offset(T,F) (uint32_t)(&((T*)0)->F)
+    #define struct_offset(T,F) (uint32_t)(&((T*)0)->F)
     //得到结构体T中F1字段开始到F2之前字段的空间占用尺寸
-#define field_size(T,F1,F2) ((struct_offset(T,F2))-(struct_offset(T,F1)))
+    #define field_size(T,F1,F2) ((struct_offset(T,F2))-(struct_offset(T,F1)))
 
     //语法糖,禁止对象拷贝的快捷宏定义
-#define dont_copy(CN) const CN& operator=(const CN&)
+    #define dont_copy(CN) const CN& operator=(const CN&)
 
     //浮点数向上对齐获取整数
     inline uint32_t round_up(const double &num)

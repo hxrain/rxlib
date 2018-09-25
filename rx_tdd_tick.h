@@ -38,20 +38,13 @@ namespace rx
         void begin(bool enable=true,uint32_t expend_limit=0,const char* msg_a=NULL,const char* msg_b=NULL,const char* file=NULL,int lineno=0)
         {
             m_enable=enable;
-            if (!m_enable)
-                return;
+            if (!m_enable) return;
             m_begin_tick=m_tick_meter.update();
             m_expend_limit=expend_limit;
-            m_msg_a=msg_a;
-            if (!m_msg_a)
-                m_msg_a="";
-            m_msg_b=msg_b;
-            if (!m_msg_b)
-                m_msg_b="";
-            m_file=file;
-            if (!m_file)
-                m_file="";
-            m_lineno=lineno;
+            m_msg_a = (msg_a==NULL?"":msg_a);
+            m_msg_b = (msg_b==NULL?"":msg_b);
+            m_file  = (file==NULL?"":file);
+            m_lineno= lineno;
             m_tab_deep=0;
         }
         uint32_t &tab_deep() {return m_tab_deep;}
