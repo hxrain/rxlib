@@ -91,7 +91,6 @@ inline void test_poisson_rnd(rx_tdd_t &rt, uint32_t seed, double lambda = 100, i
     double err = fabs(lambda - avg) / pn_size;
     printf("TEST :: rand_poisson_skt(lambda=%.1f),avg=%.4f;loop=%u;err=%.4f%%\n", lambda, avg, pn_size, err * 100);
     rt.tdd_assert(err<0.00075);          //验证过的均值,与实际期待均值间的偏差,小于此比例(万分之七).
-
 }
 
 //---------------------------------------------------------
@@ -115,6 +114,25 @@ inline void test_rnd_sdv(rx_tdd_t &rt,uint32_t seed)
     printf("< rand/hash > LOOP:%u,ARRSize:%u\n",loop,arrsize);
 }
 //---------------------------------------------------------
+//计算指定哈希函数hash值并打印显示.
+template<uint32_t loop>
+inline void rx_test_hash_int_show_1(uint32_t seed, const char* hash_name, rx_int_hash32_t hash, rx_tdd_t &rt)
+{
+    printf("hash  <%30s> result (%u)\n", hash_name, loop);
+    uint32_t h = seed;
+    for (uint32_t i = 0; i < loop; ++i)
+    {
+        h = hash(h + i);
+        if (i&&i % 8 == 0) printf("\n");
+        printf("%6u : %08x",i,h);
+    }
+    printf("\n");
+}
+
+
+
+//---------------------------------------------------------
+//较慢的随机数均方差验证性测试
 rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
 {
     uint32_t seed = (uint32_t)time(NULL);
@@ -122,10 +140,13 @@ rx_tdd_rtl(rx_hash_int_base,tdd_level_slow)
 }
 
 //---------------------------------------------------------
+//hash和rand的基础测试用例
 rx_tdd_rtl(rx_hash_int_base,tdd_level_std)
 {
     uint32_t seed = (uint32_t)time(NULL);
     test_rnd_sdv<100,1000>(*this, seed);
+
+    //rx_test_hash_int_show_1<10000>(0, "rand_skeeto_triple", rx_int_hash32_skeeto3s(0),*this);
 
     rx_int_hash32_t hf=rx_int_hash32_skeeto3s(0);
     hf(0);
