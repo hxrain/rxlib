@@ -21,10 +21,10 @@
 
 //描述一个通用的H4内存分配器类型拼装宏
 //tname为最终的类型名;cfg_t为内存池参数配置;locl_t为锁类型;
-#define desc_mem_allotter_h4(tname,cfg_t) \
-        typedef rx::mem_allotter_pool_t<rx::mempool_h4fx_t<cfg_t> ,rx::null_lock_t>  tname
-#define desc_mem_allotter_h4slt(tname,cfg_t) \
-        typedef rx::mem_allotter_pool_t<rx::mempool_h4fx_t<cfg_t> ,rx::spin_lock_t>  tname
+#define desc_mem_allotter_h4(tname,cfg_t,h4_pool) \
+        typedef rx::mem_allotter_pool_t<h4_pool<cfg_t> ,rx::null_lock_t>  tname
+#define desc_mem_allotter_h4slt(tname,cfg_t,h4_pool) \
+        typedef rx::mem_allotter_pool_t<h4_pool<cfg_t> ,rx::spin_lock_t>  tname
 
 //------------------------------------------------------
 //简化的内存分配器(线性递增)类型描述:tname定义的分配器类型名称;cfg_t为内存池配置参数;lock_t为锁类型

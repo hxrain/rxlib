@@ -10,7 +10,8 @@ namespace rx
 {
     #define RX_USE_MEMPOOL_H4_CHECK 0
     //-------------------------------------------------------------------
-    //基于内存区域的分配器
+    //基于内存区域的分配器.h4_mem_align_size告知最小内存对齐尺寸
+    template<size_t h4_mem_align_size>
     class mempool_h4_raw
     {
         //记录内存块节点头
@@ -20,10 +21,8 @@ namespace rx
             size_t size;						            //可用块的尺寸
         } h4_block_head;
 
-        static const size_t h4_mem_align_size = 16;         //内存对齐尺寸
         //内存块节点占用的空间(对齐后的)尺寸
         static const size_t h4_block_head_size	=size_align<sizeof(h4_block_head),h4_mem_align_size>::result;
-        static const size_t h4_block_min_size	=((size_t) (h4_block_head_size << 1));
         //制作"使用中"掩码标记,在size_t类型变量的最高位
         static const size_t h4_node_using_mask = ((size_t)1)<<((sizeof(size_t)*8)-1);
 
@@ -116,7 +115,7 @@ namespace rx
             free_head->next = curr_block->next;
 
             //如果剩余空间仍然足够大,那么就需要进行拆分处理,让剩余部分进入自由空间链表
-            if((curr_block->size - want_size) > h4_block_min_size)
+            if((curr_block->size - want_size) > (h4_block_head_size << 1))
             {
                 //剩余块指向当前块跳过分配字节的空余处
                 h4_block_head *remain_block = (h4_block_head *) (((uint8_t*) curr_block) + want_size);
@@ -309,18 +308,51 @@ namespace rx
     };
 
     //-----------------------------------------------------
-    //总容量固定的h4内存池
+    //总容量固定的h4内存池(静态占用缓冲区)
     template<class CT = mempool_cfg_t>
-    class mempool_h4fx_t :public mempool_i
+    class mempool_h4f_t :public mempool_i
     {
-        uint8_t             m_mem_buff[CT::StripeAlignSize];
-        mempool_h4_raw      m_pool;
+        mempool_h4_raw<CT::MinNodeSize>     m_pool;
+        uint8_t     m_mem_buff[CT::StripeAlignSize];
     public:
-        mempool_h4fx_t() { do_init(); }
+        //-------------------------------------------------
+        mempool_h4f_t() { do_init(); }
+        //-------------------------------------------------
         virtual void *do_alloc(uint32_t &blocksize, uint32_t size) { return m_pool.malloc(blocksize, size); }
         virtual void do_free(void* ptr, uint32_t blocksize = 0) { m_pool.free(ptr); }
         virtual bool do_init(uint32_t size = 0) { return m_pool.init(m_mem_buff, sizeof(m_mem_buff)); }
         virtual void do_uninit(bool force = false) {}
+    };
+
+    //-----------------------------------------------------
+    //总容量固定的h4内存池(动态分配缓冲区)
+    template<class CT = mempool_cfg_t>
+    class mempool_h4fx_t :public mempool_i
+    {
+        mempool_h4_raw<CT::MinNodeSize>     m_pool;
+        uint8_t    *m_mem_buff;
+    public:
+        //-------------------------------------------------
+        mempool_h4fx_t():m_mem_buff(NULL){ do_init(CT::StripeAlignSize); }
+        mempool_h4fx_t(uint32_t max_size) :m_mem_buff(NULL) { do_init(max_size); }
+        ~mempool_h4fx_t() { do_uninit(); }
+        //-------------------------------------------------
+        virtual void *do_alloc(uint32_t &blocksize, uint32_t size) { return m_pool.malloc(blocksize, size); }
+        virtual void do_free(void* ptr, uint32_t blocksize = 0) { m_pool.free(ptr); }
+        //-------------------------------------------------
+        virtual bool do_init(uint32_t size = 0) 
+        { 
+            if (m_mem_buff) return true;
+            if (!size) size = CT::StripeAlignSize;
+            m_mem_buff = (uint8_t*)mempool_std_t<>::alloc(size);
+            return m_pool.init(m_mem_buff, size);
+        }
+        virtual void do_uninit(bool force = false) 
+        {
+            if (!m_mem_buff) return;
+            mempool_std_t<>::free(m_mem_buff);
+            m_mem_buff = NULL;
+        }
     };
 }
 

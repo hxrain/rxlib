@@ -50,7 +50,7 @@ namespace rx
                         else if ((yield_cnt & 3) == 3)
                             rx_thread_yield_us(0);          // 切换到优先级跟自己一样或更高的线程, 可以换到别的CPU核心上
                         else if (!rx_thread_yield())        // 让步给该线程所在的CPU核心上的别的线程,
-                            rx_thread_yield_us(0);      // 如果同核心上没有可切换的线程,
+                            rx_thread_yield_us(0);          // 如果同核心上没有可切换的线程,
                     }
                     ++loop_count;
                 }

@@ -1,5 +1,3 @@
-#include "../ut_mem_pool_h4.h"
-#include "../../rx_mem_pool_h4.h"
 
 #include "../ut_dtl_list.h"
 #include "../../rx_dtl_list.h"
@@ -20,7 +18,11 @@
 
 #include "../../rx_tdd_tick.h"
 
+
+
 #include "../ut_mem_alloc.h"
+#include "../ut_mem_pool_h4.h"
+#include "../../rx_mem_pool_h4.h"
 #include "../../rx_mem_alloc_cntr.h"
 #include "../../rx_mem_alloc.h"
 
@@ -29,8 +31,6 @@
 
 #include "../ut_dtl_ringqueue.h"
 #include "../../rx_dtl_ringqueue.h"
-
-#include "../../rx_os_spinlock.h"
 
 #include "../ut_os_tasks.h"
 #include "../../rx_os_tasks.h"
@@ -41,6 +41,7 @@
 
 #include "../ut_os_lock.h"
 #include "../../rx_os_lock.h"
+#include "../../rx_os_spinlock.h"
 
 #include "../ut_hash_tlmap.h"
 #include "../../rx_hash_tlmap.h"

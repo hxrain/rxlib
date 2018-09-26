@@ -29,7 +29,7 @@ void test_mem_pool_h4_base(rx_tdd_t &rt)
 
 rx_tdd(test_mem_pool_h4_base)
 {
-    test_mem_pool_h4_base<rx::mempool_h4fx_t<> >(*this);
+    test_mem_pool_h4_base<rx::mempool_h4f_t<> >(*this);
 }
 
 

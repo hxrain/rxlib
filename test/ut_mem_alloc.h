@@ -55,7 +55,9 @@ public:
         {
             for(uint32_t l=0;l<array_size;++l)
             {
-                ptr_array[l]=ma.alloc(rnd.get(max_mem_size));
+                uint32_t s = rnd.get(max_mem_size);
+                ptr_array[l]=ma.alloc(s);
+                rx_assert(ptr_array[l]!=NULL);
             }
             for(uint32_t l=0;l<array_size;++l)
             {
@@ -86,8 +88,10 @@ typedef struct ut_mempool_cfg_h4t
     enum { MaxNodeShiftBit = rx::LOG2<MaxNodeSize>::result };
 } ut_mempool_cfg_h4t;
 
-desc_mem_allotter_h4slt(mem_allotter_h4_slt, ut_mempool_cfg_h4t);
-desc_mem_allotter_h4(ut_mem_allotter_h4, ut_mempool_cfg_h4t);
+desc_mem_allotter_h4slt(ut_mem_allotter_h4_slt, ut_mempool_cfg_h4t, rx::mempool_h4f_t);
+desc_mem_allotter_h4(ut_mem_allotter_h4, ut_mempool_cfg_h4t, rx::mempool_h4f_t);
+desc_mem_allotter_h4slt(ut_mem_allotter_h4x_slt, ut_mempool_cfg_h4t, rx::mempool_h4fx_t);
+desc_mem_allotter_h4(ut_mem_allotter_h4x, ut_mempool_cfg_h4t, rx::mempool_h4fx_t);
 
 //---------------------------------------------------------
 rx_tdd(test_mem_alloc_base)
@@ -98,14 +102,19 @@ rx_tdd(test_mem_alloc_base)
 
     test_mem_alloc_base(*this);
     uint32_t seed=(uint32_t)time(NULL);
-    test_mem_alloc_a<rx::mem_allotter_lin_slt,arr_count,loop_count,max_size>::    test(*this,"   mem_allotter_lin_slt", seed);
-    test_mem_alloc_a<rx::mem_allotter_pow2_slt,arr_count,loop_count,max_size>::   test(*this,"  mem_allotter_pow2_slt", seed);
-    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,arr_count,loop_count,max_size>::  test(*this," mem_allotter_tlmap_slt", seed);
-    test_mem_alloc_a<rx::mem_allotter_std_t,arr_count,loop_count,max_size>::      test(*this,"       mem_allotter_std", seed);
+    test_mem_alloc_a<rx::mem_allotter_lin_slt,arr_count,loop_count,max_size>::      test(*this,"    mem_allotter_lin_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_pow2_slt,arr_count,loop_count,max_size>::     test(*this,"   mem_allotter_pow2_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,arr_count,loop_count,max_size>::    test(*this,"  mem_allotter_tlmap_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_std_t,arr_count,loop_count,max_size>::        test(*this,"        mem_allotter_std", seed);
 
-    test_mem_alloc_a<mem_allotter_h4_slt, arr_count, loop_count,max_size>::       test(*this, "ut_mem_allotter_h4_slt", seed);
-    test_mem_alloc_a<ut_mem_allotter_h4, arr_count, loop_count,max_size>::        test(*this, "    ut_mem_allotter_h4", seed);
+    test_mem_alloc_a<rx::mem_allotter_lin_t, arr_count, loop_count, max_size>::     test(*this, "       mem_allotter_lin", seed);
+    test_mem_alloc_a<rx::mem_allotter_pow2_t, arr_count, loop_count, max_size>::    test(*this, "      mem_allotter_pow2", seed);
+    test_mem_alloc_a<rx::mem_allotter_tlmap_t, arr_count, loop_count, max_size>::   test(*this, "     mem_allotter_tlmap", seed);
 
+    test_mem_alloc_a<ut_mem_allotter_h4_slt, arr_count, loop_count,max_size>::      test(*this, "ut_mem_allotter_h4_slt ", seed);
+    test_mem_alloc_a<ut_mem_allotter_h4, arr_count, loop_count,max_size>::          test(*this, "ut_mem_allotter_h4     ", seed);
+    test_mem_alloc_a<ut_mem_allotter_h4x_slt, arr_count, loop_count, max_size>::    test(*this, "ut_mem_allotter_h4x_slt", seed);
+    test_mem_alloc_a<ut_mem_allotter_h4x, arr_count, loop_count, max_size>::        test(*this, "ut_mem_allotter_h4x    ", seed);
 }
 
 //---------------------------------------------------------
@@ -120,7 +129,6 @@ rx_tdd_rtl(test_mem_alloc_base,tdd_level_slow)
     test_mem_alloc_a<rx::mem_allotter_pow2_slt,arr_count,loop_count,max_size>::   test(*this," mem_allotter_pow2_slt", seed);
     test_mem_alloc_a<rx::mem_allotter_tlmap_slt,arr_count,loop_count,max_size>::  test(*this,"mem_allotter_tlmap_slt", seed);
     test_mem_alloc_a<rx::mem_allotter_std_t,arr_count,loop_count,max_size>::      test(*this,"      mem_allotter_std", seed);
-
 }
 
 
