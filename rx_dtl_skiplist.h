@@ -163,7 +163,7 @@ namespace rx
         typedef sk_node_t node_t;
         //-------------------------------------------------
         skipset_t(mem_allotter_i &ma,uint32_t seed=1):m_rnd_level(seed),m_raw_list(ma){}
-        skipset_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(global_mem_allotter()){}
+        skipset_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(rx_global_mem_allotter()){}
         virtual ~skipset_t() {clear();}
         //-------------------------------------------------
         //定义简单的只读迭代器
@@ -368,7 +368,7 @@ namespace rx
         //-------------------------------------------------
         //构造的时候绑定节点空间
         skiplist_t(mem_allotter_i &ma,uint32_t seed=1):m_rnd_level(seed),m_raw_list(ma){}
-        skiplist_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(global_mem_allotter()){}
+        skiplist_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(rx_global_mem_allotter()){}
         virtual ~skiplist_t() {clear();}
         //-------------------------------------------------
         //已经使用的节点数量

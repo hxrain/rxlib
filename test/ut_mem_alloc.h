@@ -39,16 +39,13 @@ void test_mem_alloc_base(rx_tdd_t &rt)
 #endif
 }
 
-template<class ma_t,uint32_t array_size=5000,uint32_t loop_test=5000,uint32_t max_mem_size=1024*16>
+template<class ma_t,uint32_t array_size=5000,uint32_t loop_test=5000,uint32_t max_mem_size=1024>
 class test_mem_alloc_a
 {
 public:
     static void test(rx_tdd_t &rt,const char* ms_type,uint32_t seed)
     {
-        tdd_tt(tt,"mem_alloc_test",ms_type);
-        tdd_tt_hit(tt,"array_size=%u,loop_test=%u,max_mem_size=%u",array_size,loop_test,max_mem_size);
-        tdd_tt_hit(tt,"tmp1");
-        tdd_tt_hit(tt,"tmp2");
+        tdd_tt(tt,ms_type, "mem_alloc_test");
         ptr_t   ptr_array[array_size];
         rx::rand_skeeto_bsa_t rnd;
         ma_t ma;
@@ -65,31 +62,64 @@ public:
                 ma.free(ptr_array[l]);
             }
         }
-
+        tdd_tt_hit(tt, "array_size=%u,loop_test=%u,max_mem_size=%u", array_size, loop_test, max_mem_size);
     }
 
 };
 
+//默认内存池的配置参数(每个值都必须为2的整数次幂)
+typedef struct ut_mempool_cfg_h4t
+{
+    enum
+    {
+        //可缓存的最小节点尺寸
+        MinNodeSize = 32,
+        //可缓存的最大节点尺寸
+        MaxNodeSize = 1024,
+        //每个内存条的最大或对齐尺寸
+        StripeAlignSize = MaxNodeSize * 128
+    };
 
+    //默认不需改动:log2(最小对齐尺寸),确定MinNodeSize是2的整数次幂
+    enum { MinNodeShiftBit = rx::LOG2<MinNodeSize>::result };
+    //默认不需改动:log2(最大节点尺寸),确定MaxNodeSize是2的整数次幂
+    enum { MaxNodeShiftBit = rx::LOG2<MaxNodeSize>::result };
+} ut_mempool_cfg_h4t;
+
+desc_mem_allotter_h4slt(mem_allotter_h4_slt, ut_mempool_cfg_h4t);
+desc_mem_allotter_h4(ut_mem_allotter_h4, ut_mempool_cfg_h4t);
+
+//---------------------------------------------------------
 rx_tdd(test_mem_alloc_base)
 {
+    const uint32_t arr_count = 100;
+    const uint32_t loop_count = 5000;
+    const uint32_t max_size = ut_mempool_cfg_h4t::MaxNodeSize;
+
     test_mem_alloc_base(*this);
     uint32_t seed=(uint32_t)time(NULL);
-    test_mem_alloc_a<rx::mem_allotter_lin_slt,100,200>::test(*this,"mem_allotter_lin_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_pow2_slt,100,200>::test(*this,"mem_allotter_pow2_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,100,200>::test(*this,"mem_allotter_tlmap_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_std_t,100,200>::test(*this,"mem_allotter_std",seed);
+    test_mem_alloc_a<rx::mem_allotter_lin_slt,arr_count,loop_count,max_size>::    test(*this,"   mem_allotter_lin_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_pow2_slt,arr_count,loop_count,max_size>::   test(*this,"  mem_allotter_pow2_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,arr_count,loop_count,max_size>::  test(*this," mem_allotter_tlmap_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_std_t,arr_count,loop_count,max_size>::      test(*this,"       mem_allotter_std", seed);
+
+    test_mem_alloc_a<mem_allotter_h4_slt, arr_count, loop_count,max_size>::       test(*this, "ut_mem_allotter_h4_slt", seed);
+    test_mem_alloc_a<ut_mem_allotter_h4, arr_count, loop_count,max_size>::        test(*this, "    ut_mem_allotter_h4", seed);
 
 }
 
-
+//---------------------------------------------------------
 rx_tdd_rtl(test_mem_alloc_base,tdd_level_slow)
 {
+    const uint32_t arr_count = 5000;
+    const uint32_t loop_count = 5000;
+    const uint32_t max_size = 1024*16;
+
     uint32_t seed=(uint32_t)time(NULL);
-    test_mem_alloc_a<rx::mem_allotter_lin_slt>::test(*this,"mem_allotter_lin_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_pow2_slt>::test(*this,"mem_allotter_pow2_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_tlmap_slt>::test(*this,"mem_allotter_tlmap_slt",seed);
-    test_mem_alloc_a<rx::mem_allotter_std_t>::test(*this,"mem_allotter_std",seed);
+    test_mem_alloc_a<rx::mem_allotter_lin_slt,arr_count,loop_count,max_size>::    test(*this,"  mem_allotter_lin_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_pow2_slt,arr_count,loop_count,max_size>::   test(*this," mem_allotter_pow2_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,arr_count,loop_count,max_size>::  test(*this,"mem_allotter_tlmap_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_std_t,arr_count,loop_count,max_size>::      test(*this,"      mem_allotter_std", seed);
 
 }
 

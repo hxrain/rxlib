@@ -2,14 +2,16 @@
 #define _RX_MEM_POOL_H4_H_
 
 #include "rx_cc_macro.h"
+#include "rx_mem_pool.h"
 #include "rx_ct_util.h"
 #include "rx_assert.h"
 
 namespace rx
 {
+    #define RX_USE_MEMPOOL_H4_CHECK 0
     //-------------------------------------------------------------------
     //基于内存区域的分配器
-    class mem_pool_h4
+    class mempool_h4_raw
     {
         //记录内存块节点头
         typedef struct h4_block_head
@@ -145,10 +147,10 @@ namespace rx
         }
     public:
         //---------------------------------------------------------------
-        mem_pool_h4() {memset(this,0,sizeof(mem_pool_h4));} //构造函数进行内部状态清零
+        mempool_h4_raw() {memset(this,0,sizeof(mempool_h4_raw));} //构造函数进行内部状态清零
         //---------------------------------------------------------------
         //分配指定尺寸的内存
-        void *malloc(size_t want_size)
+        void *malloc(uint32_t &block_size,uint32_t want_size)
         {
             if( want_size==0 ||
                 m_end_ptr == NULL ||
@@ -159,6 +161,7 @@ namespace rx
 
             //对待分配的尺寸数进行字节边界对齐
             want_size =size_alignx(want_size,h4_mem_align_size);
+            block_size = want_size - h4_block_head_size;
 
             void *ret = m_alloc(want_size);
             rx_assert((((size_t)ret) & (h4_mem_align_size-1)) == 0);
@@ -180,7 +183,7 @@ namespace rx
             rx_assert(block_head->next == NULL);
 
             if((block_head->size & h4_node_using_mask) == 0 ||
-                    block_head->next != NULL)
+                block_head->next != NULL)
                 return -1;
 
             //撤销节点信息中的块尺寸使用中标记位
@@ -208,7 +211,9 @@ namespace rx
         //进行堆区域初始化
         bool init(void* mem_addr,size_t mem_size)
         {
-            if (!mem_addr||mem_size<h4_mem_align_size*64)
+            if (!mem_addr ||
+                mem_size < h4_mem_align_size * 64 ||
+                m_tail_addr != NULL)
                 return false;
 
             //进行工作区域首地址和可用尺寸的对齐处理
@@ -257,6 +262,9 @@ namespace rx
         //返回值:0成功;其他失败
         int check()
         {
+#if !RX_USE_MEMPOOL_H4_CHECK
+            return 0;
+#endif
             //当前节点从头节点的后趋开始
             h4_block_head *curr_block = (h4_block_head *)m_head_addr;
             //对自由链表进行遍历,查找足够大的那个块作为当前块
@@ -300,7 +308,20 @@ namespace rx
         }
     };
 
-
+    //-----------------------------------------------------
+    //总容量固定的h4内存池
+    template<class CT = mempool_cfg_t>
+    class mempool_h4fx_t :public mempool_i
+    {
+        uint8_t             m_mem_buff[CT::StripeAlignSize];
+        mempool_h4_raw      m_pool;
+    public:
+        mempool_h4fx_t() { do_init(); }
+        virtual void *do_alloc(uint32_t &blocksize, uint32_t size) { return m_pool.malloc(blocksize, size); }
+        virtual void do_free(void* ptr, uint32_t blocksize = 0) { m_pool.free(ptr); }
+        virtual bool do_init(uint32_t size = 0) { return m_pool.init(m_mem_buff, sizeof(m_mem_buff)); }
+        virtual void do_uninit(bool force = false) {}
+    };
 }
 
 #endif

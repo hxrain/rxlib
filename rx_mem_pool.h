@@ -14,8 +14,8 @@ namespace rx
     {
     public:
         virtual void *do_alloc(uint32_t &blocksize,uint32_t size)=0;
-        virtual void *do_realloc(uint32_t &blocksize,void* ptr,uint32_t newsize) {return NULL;}
         virtual void do_free(void* ptr, uint32_t blocksize=0)=0;
+        virtual void *do_realloc(uint32_t &blocksize, void* ptr, uint32_t newsize) { return NULL; }
     protected:
         virtual ~mempool_t() {}
     };
@@ -96,9 +96,10 @@ namespace rx
 
     public:
         void bind(mempool_t& mp) {m_base=&mp;}
-        virtual bool do_init(uint32_t size=0) {return true;}
-        virtual void do_uninit(bool force=false) {}
         const mempool_stat_t& stat() const {return m_stat;}
+
+        virtual bool do_init(uint32_t size = 0) { return true; }
+        virtual void do_uninit(bool force = false) {}
     };
 
     //======================================================

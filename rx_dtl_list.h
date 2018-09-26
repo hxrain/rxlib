@@ -121,7 +121,7 @@ namespace rx
         cntr_t          m_cntr;                             //µ×²ãÕ»ÈÝÆ÷
     public:
         //-------------------------------------------------
-        stack_t():m_mem(global_mem_allotter()){}
+        stack_t():m_mem(rx_global_mem_allotter()){}
         stack_t(mem_allotter_i& ma):m_mem(ma){}
         virtual ~stack_t(){clear();}
         //-------------------------------------------------
@@ -213,7 +213,7 @@ namespace rx
         cntr_t           m_cntr;                            //µ×²ãÕ»ÈÝÆ÷
     public:
         //-------------------------------------------------
-        queue_t():m_mem(global_mem_allotter()){}
+        queue_t():m_mem(rx_global_mem_allotter()){}
         queue_t(mem_allotter_i& ma):m_mem(ma){}
         virtual ~queue_t(){clear();}
         //-------------------------------------------------
@@ -378,7 +378,7 @@ namespace rx
         cntr_t           m_cntr;                            //µ×²ãÕ»ÈÝÆ÷
     public:
         //-------------------------------------------------
-        list_t():m_mem(global_mem_allotter()){}
+        list_t():m_mem(rx_global_mem_allotter()){}
         list_t(mem_allotter_i& ma):m_mem(ma){}
         virtual ~list_t(){clear();}
         //-------------------------------------------------
