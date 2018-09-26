@@ -28,27 +28,27 @@
 
 /*在上述三种基础容器的基础上,进行便捷功能封装的语法糖容器
     //默认为uin32_t类型的hash集合
-    template<uint32_t max_node_count,class key_t=uint32_t>
+    template<uint32_t max_node_count,class key_t=uint32_t,class cmp_t=hashset_cmp_t>
     class tiny_hashset_t;
 
     //节点为tiny_string类型的轻量级集合
-    template<uint32_t max_node_count,uint16_t max_str_size=12,class CT=char>
+    template<uint32_t max_node_count,uint16_t max_str_size=12,class CT=char,class cmp_t=hashset_cmp_t>
     class tiny_hashset_st;
 
     //默认key为uint32_t类型的轻量级哈希表(默认val也为uint32_t)
-    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t,class cmp_t=hashset_cmp_t>
     class tiny_hashtbl_t;
 
     //key为tiny_string类型的轻量级哈希表(默认val为uint32_t)
-    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char,class cmp_t=hashset_cmp_t>
     class tiny_hashtbl_st;
 
     //默认key为uint32_t类型的轻量级哈希链表(默认val也为uint32_t)
-    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t,class cmp_t=hashset_cmp_t>
     class tiny_hashlink_t;
 
     //key为tiny_string类型的轻量级哈希链表(默认val为uint32_t)
-    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char,class cmp_t=hashset_cmp_t>
     class tiny_hashlink_st;
 */
 
@@ -57,22 +57,25 @@ namespace rx
     //-----------------------------------------------------
     //进行key类型/value类型/cmp比较器的组装后,得到最终便于使用的哈希表类型
     //-----------------------------------------------------
+    class hashtbl_fun_t
+    {
+    public:
+        template<class KT>
+        static uint32_t hash(const KT &k) { return rx_hash_murmur(&k, sizeof(k)); }
+        static uint32_t hash(const char *k) { return rx_hash_murmur(k,st::strlen(k)); }
+        static uint32_t hash(const wchar_t *k) { return rx_hash_murmur(k, st::strlen(k))*sizeof(wchar_t); }
+        static uint32_t hash(const uint32_t &k) { return rx_hash_skeeto_3s(k); }
+        static uint32_t hash(const int32_t &k) { return rx_hash_skeeto_3s(k); }
+    };
     //简单哈希集使用的节点比较器
-    class hashset_cmp_t
+    class hashset_cmp_t:public hashtbl_fun_t
     {
     public:
         template<class NVT, class KT>
         static bool equ(const NVT &n, const KT &k) { return n == k; }
-
-        template<class KT>
-        static uint32_t hash(const KT &k) { return rx_hash_murmur(&k, sizeof(k)); }
-        static uint32_t hash(const char *k) { return rx_hash_murmur(k,st::strlen(k)); }
-        static uint32_t hash(const wchar_t *k) { return rx_hash_murmur(k, st::strlen(k)); }
-        static uint32_t hash(const uint32_t &k) { return rx_hash_skeeto_3s(k); }
-        static uint32_t hash(const int32_t &k) { return rx_hash_skeeto_3s(k); }
     };
     //简单哈希表使用的节点比较器
-    class hashtbl_cmp_t:public hashset_cmp_t
+    class hashtbl_cmp_t:public hashtbl_fun_t
     {
     public:
         //对节点比较函数进行覆盖,需要真正使用节点中的key字段与给定的k值进行比较
@@ -631,10 +634,10 @@ namespace rx
     //-----------------------------------------------------
     //默认节点为uint32_t类型的轻量级集合
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class key_t=uint32_t>
-    class tiny_hashset_t :public hashset_base_t<key_t, hashset_cmp_t >
+    template<uint32_t max_node_count,class key_t=uint32_t,class cmp_t=hashset_cmp_t>
+    class tiny_hashset_t :public hashset_base_t<key_t, cmp_t >
     {
-        typedef hashset_base_t<key_t, hashset_cmp_t > super_t;
+        typedef hashset_base_t<key_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
         tiny_hashset_t():super_t(m_nodes, max_node_count){}
@@ -643,10 +646,10 @@ namespace rx
     //-----------------------------------------------------
     //节点为tiny_string类型的轻量级集合
     //-----------------------------------------------------
-    template<uint32_t max_node_count,uint16_t max_str_size=12,class CT=char>
-    class tiny_hashset_st :public hashset_base_t<tiny_string_head_t<CT,max_str_size>, hashset_cmp_t >
+    template<uint32_t max_node_count,uint16_t max_str_size=12,class CT=char,class cmp_t=hashset_cmp_t>
+    class tiny_hashset_st :public hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t >
     {
-        typedef hashset_base_t<tiny_string_head_t<CT,max_str_size>, hashset_cmp_t > super_t;
+        typedef hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
         tiny_hashset_st():super_t(m_nodes, max_node_count){}
@@ -655,10 +658,10 @@ namespace rx
     //-----------------------------------------------------
     //key为uint32_t类型的轻量级哈希表(默认val也为uint32_t)
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
-    class tiny_hashtbl_t :public hashtbl_base_t<key_t,val_t, hashtbl_cmp_t >
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t,class cmp_t=hashtbl_cmp_t>
+    class tiny_hashtbl_t :public hashtbl_base_t<key_t,val_t, cmp_t >
     {
-        typedef hashtbl_base_t<key_t, val_t, hashtbl_cmp_t > super_t;
+        typedef hashtbl_base_t<key_t, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
         tiny_hashtbl_t():super_t(m_nodes, max_node_count) {}
@@ -667,10 +670,10 @@ namespace rx
     //-----------------------------------------------------
     //key为tiny_string类型的轻量级哈希表(默认val为uint32_t)
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
-    class tiny_hashtbl_st :public hashtbl_base_t<tiny_string_head_t<CT,max_str_size>,val_t, hashtbl_cmp_t >
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char,class cmp_t=hashtbl_cmp_t>
+    class tiny_hashtbl_st :public hashtbl_base_t<tiny_string_head_t<CT,max_str_size>,val_t, cmp_t >
     {
-        typedef hashtbl_base_t<tiny_string_head_t<CT,max_str_size>, val_t, hashtbl_cmp_t > super_t;
+        typedef hashtbl_base_t<tiny_string_head_t<CT,max_str_size>, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
         tiny_hashtbl_st():super_t(m_nodes, max_node_count) {}
@@ -679,10 +682,10 @@ namespace rx
     //-----------------------------------------------------
     //key为uint32_t类型的轻量级哈希链表(默认val也为uint32_t)
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t>
-    class tiny_hashlink_t :public hashlink_base_t<key_t,val_t, hashtbl_cmp_t >
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t,class cmp_t=hashtbl_cmp_t>
+    class tiny_hashlink_t :public hashlink_base_t<key_t,val_t, cmp_t >
     {
-        typedef hashlink_base_t<key_t, val_t, hashtbl_cmp_t > super_t;
+        typedef hashlink_base_t<key_t, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
         tiny_hashlink_t():super_t(m_nodes, max_node_count) {}
@@ -691,10 +694,10 @@ namespace rx
     //-----------------------------------------------------
     //key为tiny_string类型的轻量级哈希链表(默认val为uint32_t)
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char>
-    class tiny_hashlink_st :public hashlink_base_t<tiny_string_head_t<CT,max_str_size>,val_t, hashtbl_cmp_t >
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char,class cmp_t=hashtbl_cmp_t>
+    class tiny_hashlink_st :public hashlink_base_t<tiny_string_head_t<CT,max_str_size>,val_t, cmp_t >
     {
-        typedef hashlink_base_t<tiny_string_head_t<CT,max_str_size>, val_t, hashtbl_cmp_t > super_t;
+        typedef hashlink_base_t<tiny_string_head_t<CT,max_str_size>, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
     public:
         tiny_hashlink_st():super_t(m_nodes, max_node_count) {}
