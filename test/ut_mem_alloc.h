@@ -39,7 +39,7 @@ void test_mem_alloc_base(rx_tdd_t &rt)
 #endif
 }
 
-template<class ma_t,uint32_t array_size=5000,uint32_t loop_test=5000,uint32_t max_mem_size=1024>
+template<class ma_t,uint32_t array_size,uint32_t loop_test,uint32_t max_mem_size>
 class test_mem_alloc_a
 {
 public:
@@ -102,14 +102,13 @@ rx_tdd(test_mem_alloc_base)
 
     test_mem_alloc_base(*this);
     uint32_t seed=(uint32_t)time(NULL);
-    test_mem_alloc_a<rx::mem_allotter_lin_slt,arr_count,loop_count,max_size>::      test(*this,"    mem_allotter_lin_slt", seed);
-    test_mem_alloc_a<rx::mem_allotter_pow2_slt,arr_count,loop_count,max_size>::     test(*this,"   mem_allotter_pow2_slt", seed);
-    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,arr_count,loop_count,max_size>::    test(*this,"  mem_allotter_tlmap_slt", seed);
-    test_mem_alloc_a<rx::mem_allotter_std_t,arr_count,loop_count,max_size>::        test(*this,"        mem_allotter_std", seed);
-
-    test_mem_alloc_a<rx::mem_allotter_lin_t, arr_count, loop_count, max_size>::     test(*this, "       mem_allotter_lin", seed);
-    test_mem_alloc_a<rx::mem_allotter_pow2_t, arr_count, loop_count, max_size>::    test(*this, "      mem_allotter_pow2", seed);
-    test_mem_alloc_a<rx::mem_allotter_tlmap_t, arr_count, loop_count, max_size>::   test(*this, "     mem_allotter_tlmap", seed);
+    test_mem_alloc_a<rx::mem_allotter_lin_slt,arr_count,loop_count,max_size>::      test(*this, "   mem_allotter_lin_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_lin_t, arr_count, loop_count, max_size>::     test(*this, "   mem_allotter_lin    ", seed);
+    test_mem_alloc_a<rx::mem_allotter_pow2_slt,arr_count,loop_count,max_size>::     test(*this, "  mem_allotter_pow2_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_pow2_t, arr_count, loop_count, max_size>::    test(*this, "  mem_allotter_pow2    ", seed);
+    test_mem_alloc_a<rx::mem_allotter_tlmap_slt,arr_count,loop_count,max_size>::    test(*this, " mem_allotter_tlmap_slt", seed);
+    test_mem_alloc_a<rx::mem_allotter_tlmap_t, arr_count, loop_count, max_size>::   test(*this, " mem_allotter_tlmap    ", seed);
+    test_mem_alloc_a<rx::mem_allotter_std_t,arr_count,loop_count,max_size>::        test(*this, "       mem_allotter_std", seed);
 
     test_mem_alloc_a<ut_mem_allotter_h4_slt, arr_count, loop_count,max_size>::      test(*this, "ut_mem_allotter_h4_slt ", seed);
     test_mem_alloc_a<ut_mem_allotter_h4, arr_count, loop_count,max_size>::          test(*this, "ut_mem_allotter_h4     ", seed);
