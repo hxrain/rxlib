@@ -3,6 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
+#include "rx_ct_util.h"
 
 namespace rx
 {
@@ -115,6 +116,17 @@ namespace rx
                 if (m_nodes[pos].state)
                     return pos;
             return m_max_slot_size;
+        }
+        //-------------------------------------------------
+        //清理全部节点,回归初始状态.
+        void clear()
+        {
+            for(uint32_t pos=next(-1);pos<m_max_slot_size;pos=next(pos))
+            {
+                node_t *node=m_nodes[pos];
+                ct::OD(&node->value);
+                remove(node);
+            }
         }
     };
 
