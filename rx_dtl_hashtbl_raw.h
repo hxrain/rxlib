@@ -47,6 +47,8 @@ namespace rx
         //添加节点
         //返回值:NULL失败;其他成功.
         template<class key_t>
+        node_t *push(uint32_t hash_code,const key_t &value){uint32_t pos;return push(hash_code,value,pos);}
+        template<class key_t>
         node_t *push(uint32_t hash_code,const key_t &value,uint32_t &pos)
         {
             for(uint32_t i=0; i<m_max_slot_size; ++i)
@@ -72,6 +74,8 @@ namespace rx
         //-------------------------------------------------
         //搜索节点
         //返回值:NULL未找到;其他成功
+        template<class key_t>
+        node_t *find(uint32_t hash_code,const key_t &value) const {uint32_t pos;return find(hash_code,value,pos);}
         template<class key_t>
         node_t *find(uint32_t hash_code,const key_t &value,uint32_t &pos) const
         {
