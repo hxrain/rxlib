@@ -2,6 +2,7 @@
 #define _RX_UT_CTOBJ_H_
 
 #include "../rx_ct_util.h"
+#include "../rx_ct_delegate.h"
 #include "../rx_tdd.h"
 
 class tmp_tst_obj_1
@@ -36,6 +37,7 @@ namespace rx_ut
         rt.tdd_assert(dg(NULL,0,0,0)==10);
 
         //进行成员函数的委托绑定与调用测试
+        dg.reset();
         cb_test_class_t cb;
         dg.bind(cb,&cb_test_class_t::member_method);
         rt.tdd_assert(dg.is_valid());

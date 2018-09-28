@@ -5,11 +5,16 @@
 #include "rx_hash_int.h"
 #include "rx_dtl_hashtbl_raw.h"
 #include "rx_ct_util.h"
+#include "rx_ct_delegate.h"
 
 namespace rx
 {
+    //层次状态机最大的层数
+#ifndef HSM_MAX_LEVELs
+    #define HSM_MAX_LEVELs    8 
+#endif
     //内置的状态类型:根状态
-    const uint16_t HSM_STATE_ROOT = (uint16_t)-1;
+    const uint16_t HSM_ROOT_STATE  = (uint16_t)-1;
     //内置的事件类型:状态进入事件
     const uint16_t HSM_EVENT_ENTRY = (uint16_t)-2;
     //内置的事件类型:状态离开事件
@@ -34,17 +39,22 @@ namespace rx
     }hsm_state_event_t;
 
     //-----------------------------------------------------
+    //拼装状态码与事件码并组成新key的函数
+    typedef uint32_t (*hsm_st_ev_key_t)(uint16_t state_code, uint16_t event_code);
+    inline uint32_t hsm_st_ev_key(uint16_t state_code, uint16_t event_code)
+    {
+        return ((uint32_t)state_code << 16) | event_code;
+    }
+
+    //-----------------------------------------------------
     //层次状态机使用的状态树接口
     class hsm_tree_i
     {
     protected:
         hsm_state_node_t    m_root_state;                   //根状态节点
         //-------------------------------------------------
-        virtual uint32_t on_state_event_key(uint16_t state_code, uint16_t event_code)
-        {
-            return ((uint32_t)state_code << 16) | event_code;
-        }
     public:
+        hsm_st_ev_key_t     state_event_key_fun;            //拼装状态事件key的函数
         rx_int_hash32_t     event_hashkey_fun;              //用于计算事件哈希索引的整数哈希函数
         rx_int_hash32_t     state_hashkey_fun;              //用于计算状态哈希索引的整数哈希函数
         //-------------------------------------------------
@@ -52,22 +62,23 @@ namespace rx
         {
             event_hashkey_fun=rx_hash_skeeto_3s;
             state_hashkey_fun=rx_hash_skeeto_3s;
+            state_event_key_fun=hsm_st_ev_key;
             m_root_state.key=0;
             m_root_state.parent_state=NULL;
             m_root_state.state_level=0;
-            m_root_state.key=HSM_STATE_ROOT;
+            m_root_state.key=HSM_ROOT_STATE;
         }
         virtual ~hsm_tree_i(){}
         //根据指定的状态值查找对应的状态节点
         virtual hsm_state_node_t* find_state(uint16_t state_code) = 0;
         //根据指定的状态事件代码,查找对应的事件节点
-        virtual hsm_state_event_t* find_state_event(uint16_t state_code,uint16_t event_code) = 0;
+        virtual hsm_state_event_t* find_event(uint16_t state_code,uint16_t event_code) = 0;
     };
 
     //-----------------------------------------------------
     //定义状态机依赖的状态树,记录所有状态的层级关系,一颗状态树可以被多个HSM状态机共用.
-    template<uint32_t max_state_count,uint32_t max_event_count,uint32_t HSM_MAX_LEVELs=8,class tree_i=hsm_tree_i>
-    class hsm_tree_t:public tree_i
+    template<uint32_t max_state_count,uint32_t max_event_count>
+    class hsm_tree_t:public hsm_tree_i
     {
     protected:
         //简单哈希表使用的节点比较器
@@ -99,16 +110,19 @@ namespace rx
         //根据指定的状态值查找对应的状态节点
         hsm_state_node_t* find_state(uint16_t state_code)
         {
-            if (state_code==HSM_STATE_ROOT)
-                return &tree_i::m_root_state;
-            typename hsm_state_table_t::node_t *node=m_state_tbl.find(state_code);
+            if (state_code==HSM_ROOT_STATE)
+                return &(hsm_tree_i::m_root_state);
+            uint32_t pos;
+            typename hsm_state_table_t::node_t *node=m_state_tbl.find(hsm_tree_i::state_hashkey_fun(state_code),state_code,pos);
             return node?&node->value:NULL;
         }
         //-------------------------------------------------
         //根据指定的状态事件代码,查找对应的事件节点
-        hsm_state_event_t* find_state_event(uint16_t state_code,uint16_t event_code)
+        hsm_state_event_t* find_event(uint16_t state_code,uint16_t event_code)
         {
-            typename hsm_state_table_t::node_t *node=m_event_tbl.find(tree_i::on_state_event_key(state_code,event_code));
+            uint32_t pos;
+            uint32_t svkey=hsm_tree_i::state_event_key_fun(state_code,event_code);
+            typename hsm_event_table_t::node_t *node=m_event_tbl.find(hsm_tree_i::event_hashkey_fun(svkey),svkey,pos);
             return node?&node->value:NULL;
         }
         //-------------------------------------------------
@@ -121,15 +135,15 @@ namespace rx
         //-------------------------------------------------
         //创建状态信息,记录该状态的父状态,并计算当前状态的层级level.
         //返回值:<0错误;0状态已经存在了;>0成功,为已经存储的状态数量.
-        int make_state(uint16_t state_code, uint16_t parent_state = HSM_STATE_ROOT, void* usrptr = NULL)
+        int make_state(uint16_t state_code, uint16_t parent_state = HSM_ROOT_STATE, void* usrptr = NULL)
         {
-            if (state_code==parent_state||state_code==HSM_STATE_ROOT)
+            if (state_code==parent_state||state_code==HSM_ROOT_STATE)
                 return -4;
 
             //找到指定的父节点
             hsm_state_node_t *parent;
-            if (parent_state == HSM_STATE_ROOT)
-                parent = &tree_i::m_root_state;
+            if (parent_state == HSM_ROOT_STATE)
+                parent = &(hsm_tree_i::m_root_state);
             else
             {//找不到指定的父节点,说明状态树的初始构造顺序错误.
                 parent = find_state(parent_state);
@@ -145,18 +159,19 @@ namespace rx
 
             //创建新节点
             uint32_t pos;
-            hsm_state_node_t *state_node = m_state_tbl.push(tree_i::state_hashkey_fun(state_code),state_code,pos);
-            if (!state_node)
+            hsm_state_table_t::node_t *tbl_node = m_state_tbl.push(hsm_tree_i::state_hashkey_fun(state_code),state_code,pos);
+            if (!tbl_node)
                 return -3;                                  //状态哈希表满了.
+            hsm_state_node_t &state_node = tbl_node->value;
 
-            if (state_node->parent_state)
+            if (state_node.parent_state)
                 return 0;                                   //当前状态已经存在了,重复!
 
             //填充新状态的信息
-            state_node->parent_state = parent;
-            state_node->state_level = state_level;
-            state_node->usrptr = usrptr;
-            state_node->key=state_code;
+            state_node.parent_state = parent;
+            state_node.state_level = state_level;
+            state_node.usrptr = usrptr;
+            state_node.key=state_code;
 
             return m_state_tbl.size();
         }
@@ -165,13 +180,15 @@ namespace rx
         //返回值:<0错误;0状态事件已经存在了;>0成功,为已经存储的状态事件数量.
         int make_event(uint16_t state_code, uint16_t event_code)
         {
-            uint32_t evt_key=tree_i::on_state_event_key(state_code, event_code);
+            uint32_t evt_key=hsm_tree_i::state_event_key_fun(state_code, event_code);
             uint32_t pos;
-            hsm_state_event_t *state_event = m_event_tbl.push(tree_i::state_hashkey_fun(evt_key),evt_key,pos);
-            if (!state_event)
+            hsm_event_table_t::node_t *tbl_node = m_event_tbl.push(hsm_tree_i::state_hashkey_fun(evt_key),evt_key,pos);
+            if (!tbl_node)
                 return -1;                                  //状态事件表满了.
-            else if (state_event->evt_cb.is_valid())
+            hsm_state_event_t &state_event = tbl_node->value;
+            if (state_event.evt_cb.is_valid())
                 return 0;                                   //状态事件重复(或者是key函数冲突了)
+            state_event.key=evt_key;
             return m_event_tbl.size();
         }
         //-------------------------------------------------
@@ -196,7 +213,6 @@ namespace rx
     //-----------------------------------------------------
     //基于状态树进行独立工作的状态机.根据需要,可以生成一个状态树的多个状态机,互相是独立的.
     //这里仅开放HSM的主功能,应用时使用子类hsm_t进行实例化.
-    template<uint32_t HSM_MAX_LEVELs=8>
     class hsm_core_t
     {
     protected:
@@ -204,6 +220,7 @@ namespace rx
         hsm_state_node_t   *m_curr_state;                   //指向当前状态信息
         hsm_tree_i         &m_state_tree;                   //指向状态树
         uint32_t            m_traning;                      //状态机迁移标记
+        void               *m_usrobj;
         //-------------------------------------------------
         //内部调用,触发进入或离开状态的事件(如果有的话).idx为进入或离开的顺序,0代表最终进入或最初离开,非零代表中间过程.
         //返回值:是否触发了事件回调函数
@@ -212,16 +229,19 @@ namespace rx
             uint16_t state_code = state_node->key;
             uint16_t event_code = is_entry ? HSM_EVENT_ENTRY : HSM_EVENT_LEAVE;
 
-            hsm_state_event_t *E = m_state_tree.find_state_event(state_code, event_code);
+            hsm_state_event_t *E = m_state_tree.find_event(state_code, event_code);
             if (!E || !E->evt_cb.is_valid())
                 return false;                               //当前状态没有绑定此事件处理回调,那么就继续向上查找
 
-            E->evt_cb(this, &state_code, &event_code, &idx);//现在找到能够处理此事件的回调了
+            E->evt_cb(this, state_node, &event_code, &idx);//现在找到能够处理此事件的回调了
             return true;
         }
         virtual ~hsm_core_t(){}
     public:
-        hsm_core_t(hsm_tree_i& state_tree):m_state_tree(state_tree){}
+        hsm_core_t(hsm_tree_i& state_tree):m_curr_state(NULL),m_state_tree(state_tree),m_traning(0),m_usrobj(NULL){}
+        //-------------------------------------------------
+        //获取绑定的用户关联对象
+        void *usrobj(){return m_usrobj;}
         //-------------------------------------------------
         //获取当前状态节点的状态代码和绑定的扩展指针
         void* curr_state(uint16_t* state_code=NULL) const
@@ -244,7 +264,7 @@ namespace rx
         }
         //-------------------------------------------------
         //判断当前是否处于状态迁移过程中
-        uint32_t traning()const{return m_traning;}
+        uint32_t going()const{return m_traning;}
         //-------------------------------------------------
         //状态机触发给定的事件.在状态机的当前状态或父状态链上,尝试触发给定的事件.
         //返回值:0未被正确处理;其他为事件处理回调返回值.
@@ -254,11 +274,11 @@ namespace rx
             for (hsm_state_node_t *state_node = m_curr_state; state_node; state_node = state_node->parent_state)
             {
                 uint16_t state_code = state_node->key;
-                hsm_state_event_t *E = m_state_tree.find_state_event(state_code,event_code);
+                hsm_state_event_t *E = m_state_tree.find_event(state_code,event_code);
                 if (!E || !E->evt_cb.is_valid())
                     continue;                               //当前状态没有绑定此事件处理回调,那么就继续向上查找
 
-                return E->evt_cb(this, &state_code, &event_code, Data);//现在终于在父子状态链上找到能够处理此事件的回调了
+                return E->evt_cb(this, state_node, &event_code, Data);//现在终于在父子状态链上找到能够处理此事件的回调了
             }
             return 0;
         }
@@ -330,32 +350,31 @@ namespace rx
 
     //-----------------------------------------------------
     //真正的层次状态机功能类,实现了初始化与关闭方法.
-    template<uint32_t HSM_MAX_LEVELs=8>
-    class hsm_t :public hsm_core_t<HSM_MAX_LEVELs>
+    class hsm_t :public hsm_core_t
     {
-        typedef hsm_core_t<HSM_MAX_LEVELs> super_t;
     public:
-        hsm_t(hsm_tree_i& state_tree):hsm_core_t<HSM_MAX_LEVELs>(state_tree){}
+        hsm_t(hsm_tree_i& state_tree):hsm_core_t(state_tree){}
         //-------------------------------------------------
         //状态树的初始化工作都完成了,现在打开状态机,准备工作了
-        bool init(uint16_t init_state_code=HSM_STATE_ROOT)
+        bool init(uint16_t init_state_code=HSM_ROOT_STATE,void *usrobj=NULL)
         {
             //查找给定的初始化状态
-            super_t::m_curr_state = super_t::m_state_tree.find_state(init_state_code);
-            if (!super_t::m_curr_state)
+            hsm_core_t::m_curr_state = hsm_core_t::m_state_tree.find_state(init_state_code);
+            if (!hsm_core_t::m_curr_state)
                 return false;
 
+            hsm_core_t::m_usrobj=usrobj;
+
             //给出进入事件
-            super_t::m_walk_event(init_state_code, true, 0);//给出状态进入事件,0代表最终进入而不是路过
+            hsm_core_t::m_walk_event(hsm_core_t::m_curr_state, true, 0);//给出状态进入事件,0代表最终进入而不是路过
             return true;
         }
         //-------------------------------------------------
         //清理全部的信息,关闭状态机.不再继续操作了.
         void uninit()
         {
-            super_t::m_curr_state = NULL;
-            super_t::m_traning = 0;
-            super_t::m_state_tree = NULL;
+            hsm_core_t::m_curr_state = NULL;
+            hsm_core_t::m_traning = 0;
         }
     };
 }

@@ -1,3 +1,4 @@
+#include "../ut_hsm_core.h"
 #include "../../rx_hsm_core.h"
 
 #include "../ut_dtl_list.h"
