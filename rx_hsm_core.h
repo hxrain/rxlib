@@ -11,7 +11,7 @@ namespace rx
 {
     //层次状态机最大的层数
 #ifndef HSM_MAX_LEVELs
-    #define HSM_MAX_LEVELs    8 
+    #define HSM_MAX_LEVELs    8
 #endif
     //内置的状态类型:根状态
     const uint16_t HSM_ROOT_STATE  = (uint16_t)-1;
@@ -159,7 +159,7 @@ namespace rx
 
             //创建新节点
             uint32_t pos;
-            hsm_state_table_t::node_t *tbl_node = m_state_tbl.push(hsm_tree_i::state_hashkey_fun(state_code),state_code,pos);
+            typename hsm_state_table_t::node_t *tbl_node = m_state_tbl.push(hsm_tree_i::state_hashkey_fun(state_code),state_code,pos);
             if (!tbl_node)
                 return -3;                                  //状态哈希表满了.
             hsm_state_node_t &state_node = tbl_node->value;
@@ -182,7 +182,7 @@ namespace rx
         {
             uint32_t evt_key=hsm_tree_i::state_event_key_fun(state_code, event_code);
             uint32_t pos;
-            hsm_event_table_t::node_t *tbl_node = m_event_tbl.push(hsm_tree_i::state_hashkey_fun(evt_key),evt_key,pos);
+            typename hsm_event_table_t::node_t *tbl_node = m_event_tbl.push(hsm_tree_i::state_hashkey_fun(evt_key),evt_key,pos);
             if (!tbl_node)
                 return -1;                                  //状态事件表满了.
             hsm_state_event_t &state_event = tbl_node->value;
