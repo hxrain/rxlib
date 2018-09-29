@@ -49,7 +49,7 @@ namespace rx
         template<class key_t>
         node_t *push(uint32_t hash_code,const key_t &value){uint32_t pos;return push(hash_code,value,pos);}
         template<class key_t>
-        node_t *push(uint32_t hash_code,const key_t &value,uint32_t &pos)
+        node_t *push(uint32_t hash_code,const key_t &value,uint32_t &pos,bool *is_dup=NULL)
         {
             for(uint32_t i=0; i<m_max_slot_size; ++i)
             {
@@ -64,7 +64,11 @@ namespace rx
                     return &node;
                 }
                 else if (vkcmp::equ(node.value,value))
+                {
+                    if (is_dup)
+                        *is_dup=true;
                     return &node;                           //该节点已经被使用了,且value也是重复的,那么就直接给出吧
+                }
             }
 
             pos=-1;
