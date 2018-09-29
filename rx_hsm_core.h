@@ -27,15 +27,20 @@ namespace rx
         hsm_state_node_t   *parent_state;                   //当前状态的父状态
         void               *usrptr;                         //状态树节点记录的扩展指针,方便外部使用
         uint16_t            state_level;                    //当前状态的层级深度
-        uint16_t            key;                            //当前状态唯一标识(用于哈希表的key)
+        uint16_t            code;                           //当前状态唯一标识(用于哈希表的key)
     }hsm_state_node_t;
+
+    //-----------------------------------------------------
+    class hsm_core_t;
+    //事件回调委托类型定义
+    typedef delegate4_t<hsm_core_t&, hsm_state_node_t&, uint16_t, void*>    hsm_delegate_t;
 
     //-----------------------------------------------------
     //定义事件信息结构体
     typedef struct hsm_state_event_t
     {
-        delegate_def_t  evt_cb;                             //状态事件对应的回调函数
-        uint32_t        key;                                //状态事件的唯一标识(用于哈希表的key)
+        hsm_delegate_t      evt_cb;                         //状态事件对应的回调函数
+        uint32_t            code;                           //状态事件的唯一标识(用于哈希表的key)
     }hsm_state_event_t;
 
     //-----------------------------------------------------
@@ -63,16 +68,17 @@ namespace rx
             event_hashkey_fun=rx_hash_skeeto_3s;
             state_hashkey_fun=rx_hash_skeeto_3s;
             state_event_key_fun=hsm_st_ev_key;
-            m_root_state.key=0;
+
+            m_root_state.usrptr=NULL;
             m_root_state.parent_state=NULL;
             m_root_state.state_level=0;
-            m_root_state.key=HSM_ROOT_STATE;
+            m_root_state.code=HSM_ROOT_STATE;
         }
         virtual ~hsm_tree_i(){}
         //根据指定的状态值查找对应的状态节点
         virtual hsm_state_node_t* find_state(uint16_t state_code) = 0;
         //根据指定的状态事件代码,查找对应的事件节点
-        virtual hsm_state_event_t* find_event(uint16_t state_code,uint16_t event_code) = 0;
+        virtual hsm_delegate_t* find_event(uint16_t state_code,uint16_t event_code) = 0;
     };
 
     //-----------------------------------------------------
@@ -87,7 +93,7 @@ namespace rx
         public:
             //对节点比较函数进行覆盖,需要真正使用节点中的key字段与给定的k值进行比较
             template<class NVT, class KT>
-            static bool equ(const NVT &n, const KT &k) { return n.key == k; }
+            static bool equ(const NVT &n, const KT &k) { return n.code == k; }
         };
 
         typedef raw_hashtbl_t<hsm_state_node_t, cmp_t> hsm_state_table_t;
@@ -118,12 +124,11 @@ namespace rx
         }
         //-------------------------------------------------
         //根据指定的状态事件代码,查找对应的事件节点
-        hsm_state_event_t* find_event(uint16_t state_code,uint16_t event_code)
+        hsm_delegate_t* find_event(uint16_t state_code,uint16_t event_code)
         {
-            uint32_t pos;
             uint32_t svkey=hsm_tree_i::state_event_key_fun(state_code,event_code);
-            typename hsm_event_table_t::node_t *node=m_event_tbl.find(hsm_tree_i::event_hashkey_fun(svkey),svkey,pos);
-            return node?&node->value:NULL;
+            typename hsm_event_table_t::node_t *node=m_event_tbl.find(hsm_tree_i::event_hashkey_fun(svkey),svkey);
+            return node?&node->value.evt_cb:NULL;
         }
         //-------------------------------------------------
         //清理全部的状态树数据,可以重新构建.
@@ -171,7 +176,7 @@ namespace rx
             state_node.parent_state = parent;
             state_node.state_level = state_level;
             state_node.usrptr = usrptr;
-            state_node.key=state_code;
+            state_node.code=state_code;
 
             return m_state_tbl.size();
         }
@@ -182,13 +187,15 @@ namespace rx
         {
             uint32_t evt_key=hsm_tree_i::state_event_key_fun(state_code, event_code);
             uint32_t hashcode=hsm_tree_i::state_hashkey_fun(evt_key);
-            typename hsm_event_table_t::node_t *tbl_node = m_event_tbl.push(hashcode,evt_key);
+            uint32_t pos;
+            bool is_dup=false;
+            typename hsm_event_table_t::node_t *tbl_node = m_event_tbl.push(hashcode,evt_key,pos,&is_dup);
             if (!tbl_node)
                 return -1;                                  //状态事件表满了.
-            hsm_state_event_t &state_event = tbl_node->value;
-            if (state_event.evt_cb.is_valid())
+            if (is_dup)
                 return 0;                                   //状态事件重复(或者是key函数冲突了)
-            state_event.key=evt_key;
+            hsm_state_event_t &state_event = tbl_node->value;
+            state_event.code=evt_key;
             return m_event_tbl.size();
         }
         //-------------------------------------------------
@@ -226,14 +233,14 @@ namespace rx
         //返回值:是否触发了事件回调函数
         bool m_walk_event(hsm_state_node_t *state_node, bool is_entry,uint32_t idx)
         {
-            uint16_t state_code = state_node->key;
+            uint16_t state_code = state_node->code;
             uint16_t event_code = is_entry ? HSM_EVENT_ENTRY : HSM_EVENT_LEAVE;
 
-            hsm_state_event_t *E = m_state_tree.find_event(state_code, event_code);
-            if (!E || !E->evt_cb.is_valid())
+            hsm_delegate_t *E = m_state_tree.find_event(state_code, event_code);
+            if (!E || !E->is_valid())
                 return false;                               //当前状态没有绑定此事件处理回调,那么就继续向上查找
 
-            E->evt_cb(this, state_node, &event_code, &idx);//现在找到能够处理此事件的回调了
+            (*E)(*this, *state_node, event_code, &idx);     //现在找到能够处理此事件的回调了
             return true;
         }
         virtual ~hsm_core_t(){}
@@ -248,7 +255,7 @@ namespace rx
         {
             if (!m_curr_state)
                 return NULL;
-            if (state_code) *state_code = m_curr_state->key;
+            if (state_code) *state_code = m_curr_state->code;
             return m_curr_state->usrptr;
         }
         //-------------------------------------------------
@@ -257,7 +264,7 @@ namespace rx
         {
             for (hsm_state_node_t *state_node = m_curr_state; state_node; state_node = state_node->parent_state)
             {
-                if (state_node->key == state_code)
+                if (state_node->code == state_code)
                     return true;
             }
             return false;
@@ -273,12 +280,12 @@ namespace rx
             //从当前状态,一直尝试向上层查找
             for (hsm_state_node_t *state_node = m_curr_state; state_node; state_node = state_node->parent_state)
             {
-                uint16_t state_code = state_node->key;
-                hsm_state_event_t *E = m_state_tree.find_event(state_code,event_code);
-                if (!E || !E->evt_cb.is_valid())
+                uint16_t state_code = state_node->code;
+                hsm_delegate_t *E = m_state_tree.find_event(state_code,event_code);
+                if (!E || !E->is_valid())
                     continue;                               //当前状态没有绑定此事件处理回调,那么就继续向上查找
 
-                return E->evt_cb(this, state_node, &event_code, Data);//现在终于在父子状态链上找到能够处理此事件的回调了
+                return (*E)(*this, *state_node, event_code, Data);//现在终于在父子状态链上找到能够处理此事件的回调了
             }
             return 0;
         }
