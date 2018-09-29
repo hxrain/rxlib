@@ -6,19 +6,6 @@
 #include "../rx_tdd.h"
 
 //---------------------------------------------------------
-class tmp_tst_obj_1
-{
-public:
-    int tmp_v1;
-    tmp_tst_obj_1(int v):tmp_v1(v){}
-};
-//---------------------------------------------------------
-class tmp_tst_obj_2:public tmp_tst_obj_1
-{
-public:
-    tmp_tst_obj_2(int v):tmp_tst_obj_1(v){}
-};
-//---------------------------------------------------------
 namespace rx_ut
 {
     //-----------------------------------------------------
@@ -32,7 +19,7 @@ namespace rx_ut
     void test_delegate_base_1(rx_tdd_t &rt)
     {
         //进行标准函数的委托绑定与调用测试
-        typedef rx::delegate1_t<uint32_t> dt;
+        typedef rx::delegate1_t<uint32_t&> dt;
         uint32_t p;
         dt dgf(std_cb_func1_t);
         rt.tdd_assert(dgf.is_valid());
@@ -56,7 +43,7 @@ namespace rx_ut
     void test_delegate_base_2(rx_tdd_t &rt)
     {
         //进行标准函数的委托绑定与调用测试
-        typedef rx::delegate2_t<uint32_t, uint32_t> dt;
+        typedef rx::delegate2_t<uint32_t&, uint32_t&> dt;
         uint32_t p;
         dt dgf(std_cb_func2_t);
         rt.tdd_assert(dgf.is_valid());
@@ -80,7 +67,7 @@ namespace rx_ut
     void test_delegate_base_3(rx_tdd_t &rt)
     {
         //进行标准函数的委托绑定与调用测试
-        typedef rx::delegate3_t<uint32_t, uint32_t, uint32_t> dt;
+        typedef rx::delegate3_t<uint32_t&, uint32_t&, uint32_t&> dt;
         uint32_t p;
         dt dgf(std_cb_func3_t);
         rt.tdd_assert(dgf.is_valid());
@@ -104,7 +91,7 @@ namespace rx_ut
     void test_delegate_base_4(rx_tdd_t &rt)
     {
         //进行标准函数的委托绑定与调用测试
-        typedef rx::delegate4_t<uint32_t, uint32_t, uint32_t, uint32_t> dt;
+        typedef rx::delegate4_t<uint32_t&, uint32_t&, uint32_t&, uint32_t&> dt;
         uint32_t p;
         dt dgf(std_cb_func4_t);
         rt.tdd_assert(dgf.is_valid());
@@ -117,6 +104,20 @@ namespace rx_ut
         rt.tdd_assert(dgc(p, p, p, p) == 40);
     }
 }
+
+//---------------------------------------------------------
+class tmp_tst_obj_1
+{
+public:
+    int tmp_v1;
+    tmp_tst_obj_1(int v):tmp_v1(v){}
+};
+//---------------------------------------------------------
+class tmp_tst_obj_2:public tmp_tst_obj_1
+{
+public:
+    tmp_tst_obj_2(int v):tmp_tst_obj_1(v){}
+};
 
 //---------------------------------------------------------
 rx_tdd(tmp_obj)
