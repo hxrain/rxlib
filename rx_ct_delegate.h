@@ -65,7 +65,7 @@ namespace rx
         //-------------------------------------------------
         //进行成员函数回调指针绑定
         template<class T>
-        void bind(T& owner, uint32_t(T::*member_func)(PT1 P1))
+        void bind(T& owner, RT (T::*member_func)(PT1 P1))
         {
             rx_static_assert(sizeof(m_buff) >= sizeof(delegate_t<T, void>));
             ct::OC((delegate_t<T, void>*)m_buff, owner, member_func);//针对具体的委托源类T和其成员函数,动态生成委托对象
@@ -155,7 +155,7 @@ namespace rx
         //-------------------------------------------------
         //进行成员函数回调指针绑定
         template<class T>
-        void bind(T& owner, uint32_t(T::*member_func)(PT1 P1, PT2 P2))
+        void bind(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2))
         {
             rx_static_assert(sizeof(m_buff) >= sizeof(delegate_t<T, void>));
             ct::OC((delegate_t<T, void>*)m_buff, owner, member_func);//针对具体的委托源类T和其成员函数,动态生成委托对象
@@ -245,7 +245,7 @@ namespace rx
         //-------------------------------------------------
         //进行成员函数回调指针绑定
         template<class T>
-        void bind(T& owner, uint32_t(T::*member_func)(PT1 P1, PT2 P2, PT3 P3))
+        void bind(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2, PT3 P3))
         {
             rx_static_assert(sizeof(m_buff) >= sizeof(delegate_t<T, void>));
             ct::OC((delegate_t<T, void>*)m_buff, owner, member_func);//针对具体的委托源类T和其成员函数,动态生成委托对象
@@ -336,7 +336,7 @@ namespace rx
         //-------------------------------------------------
         //进行成员函数回调指针绑定
         template<class T>
-        void bind(T& owner, uint32_t(T::*member_func)(PT1 P1, PT2 P2, PT3 P3,PT4 P4))
+        void bind(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2, PT3 P3,PT4 P4))
         {
             rx_static_assert(sizeof(m_buff) >= sizeof(delegate_t<T, void>));
             ct::OC((delegate_t<T, void>*)m_buff, owner, member_func);//针对具体的委托源类T和其成员函数,动态生成委托对象
