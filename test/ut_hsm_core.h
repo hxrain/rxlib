@@ -10,24 +10,22 @@ namespace rx_ut
     class hsm_tst_handle_t
     {
     public:
-        uint32_t on_se(rx::hsm_core_t &hsm, rx::hsm_state_node_t &state_node, uint16_t event_code, void *usrdat)
+        uint16_t on_se(rx::hsm_core_t &hsm, const rx::hsm_state_node_t &state_node, uint16_t event_code, void *usrdat)
         {
             uint32_t data=*(uint32_t*)usrdat;
             void *usrobj=hsm.usrobj();
             printf("%p :: s(%d)e(%d) :: data(%u)\n",usrobj,state_node.code,event_code,data);
             return 1+data;
         }
-        uint32_t on_se_entry(rx::hsm_core_t &hsm, rx::hsm_state_node_t &state_node, uint16_t event_code, uint32_t passed_on)
+        void on_se_entry(rx::hsm_core_t &hsm, const rx::hsm_state_node_t &state_node, uint16_t event_code, uint16_t passed_on)
         {
             void *usrobj=hsm.usrobj();
             printf("%p :: s(%d)e(%d) :: entry(%u)\n",usrobj,state_node.code,event_code,passed_on);
-            return 0;
         }
-        uint32_t on_se_leave(rx::hsm_core_t &hsm, rx::hsm_state_node_t &state_node, uint16_t event_code, uint32_t passed_on)
+        void on_se_leave(rx::hsm_core_t &hsm, const rx::hsm_state_node_t &state_node, uint16_t event_code, uint16_t passed_on)
         {
             void *usrobj=hsm.usrobj();
             printf("%p :: s(%d)e(%d) :: leave(%u)\n",usrobj,state_node.code,event_code,passed_on);
-            return 0;
         }
     };
 
