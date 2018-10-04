@@ -15,6 +15,12 @@ namespace rx_ut
         uint32_t member_method(uint32_t &p1) { printf("TEST DELEGATE :: call cb_test1_class_t::member_method()\n"); return 10; }
     };
     uint32_t std_cb_func1_t(uint32_t &p1, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func1_t()\n"); return 11; }
+    class cb_test1B_class_t
+    {
+    public:
+        void member_method(uint32_t &p1) { printf("TEST DELEGATE :: call cb_test1B_class_t::member_method()\n");  }
+    };
+    void std_cb_func1B_t(uint32_t &p1, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func1B_t()\n"); }
     //-----------------------------------------------------
     void test_delegate_base_1(rx_tdd_t &rt)
     {
@@ -30,6 +36,15 @@ namespace rx_ut
         dt dgc(cb, &cb_test1_class_t::member_method);
         rt.tdd_assert(dgc.is_valid());
         rt.tdd_assert(dgc(p) == 10);
+
+        typedef rx::delegate1_t<uint32_t&,void> dvt;
+        dvt dgv(std_cb_func1B_t);
+        rt.tdd_assert(dgv.is_valid());
+        dgv(p);
+
+        cb_test1B_class_t cbB;
+        dgv.bind(cbB,&cb_test1B_class_t::member_method);
+        dgv(p);
     }
 
     //-----------------------------------------------------
@@ -39,6 +54,12 @@ namespace rx_ut
         uint32_t member_method(uint32_t &p1, uint32_t &p2) { printf("TEST DELEGATE :: call cb_test2_class_t::member_method()\n"); return 20; }
     };
     uint32_t std_cb_func2_t(uint32_t &p1, uint32_t &p2, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func2_t()\n"); return 21; }
+    class cb_test2B_class_t
+    {
+    public:
+        void member_method(uint32_t &p1, uint32_t &p2) { printf("TEST DELEGATE :: call cb_test2B_class_t::member_method()\n");}
+    };
+    void std_cb_func2B_t(uint32_t &p1, uint32_t &p2, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func2B_t()\n"); }
     //-----------------------------------------------------
     void test_delegate_base_2(rx_tdd_t &rt)
     {
@@ -54,6 +75,16 @@ namespace rx_ut
         dt dgc(cb, &cb_test2_class_t::member_method);
         rt.tdd_assert(dgc.is_valid());
         rt.tdd_assert(dgc(p, p) == 20);
+
+        typedef rx::delegate2_t<uint32_t&,uint32_t&,void> dvt;
+        dvt dgv(std_cb_func2B_t);
+        rt.tdd_assert(dgv.is_valid());
+        dgv(p,p);
+
+        cb_test2B_class_t cbB;
+        dgv.bind(cbB,&cb_test2B_class_t::member_method);
+        dgv(p,p);
+
     }
 
     //-----------------------------------------------------
@@ -63,6 +94,12 @@ namespace rx_ut
         uint32_t member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3) { printf("TEST DELEGATE :: call cb_test3_class_t::member_method()\n"); return 30; }
     };
     uint32_t std_cb_func3_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func3_t()\n"); return 31; }
+    class cb_test3B_class_t
+    {
+    public:
+        void member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3) { printf("TEST DELEGATE :: call cb_test3B_class_t::member_method()\n"); }
+    };
+    void std_cb_func3B_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func3B_t()\n"); }
     //-----------------------------------------------------
     void test_delegate_base_3(rx_tdd_t &rt)
     {
@@ -78,6 +115,15 @@ namespace rx_ut
         dt dgc(cb, &cb_test3_class_t::member_method);
         rt.tdd_assert(dgc.is_valid());
         rt.tdd_assert(dgc(p, p, p) == 30);
+
+        typedef rx::delegate3_t<uint32_t&,uint32_t&,uint32_t&,void> dvt;
+        dvt dgv(std_cb_func3B_t);
+        rt.tdd_assert(dgv.is_valid());
+        dgv(p,p,p);
+
+        cb_test3B_class_t cbB;
+        dgv.bind(cbB,&cb_test3B_class_t::member_method);
+        dgv(p,p,p);
     }
 
     //-----------------------------------------------------
@@ -87,6 +133,12 @@ namespace rx_ut
         uint32_t member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4) { printf("TEST DELEGATE :: call cb_test4_class_t::member_method()\n"); return 40; }
     };
     uint32_t std_cb_func4_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func4_t()\n"); return 41; }
+    class cb_test4B_class_t
+    {
+    public:
+        void member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4) { printf("TEST DELEGATE :: call cb_test4B_class_t::member_method()\n"); }
+    };
+    void std_cb_func4B_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func4B_t()\n");}
     //-----------------------------------------------------
     void test_delegate_base_4(rx_tdd_t &rt)
     {
@@ -102,6 +154,15 @@ namespace rx_ut
         dt dgc(cb, &cb_test4_class_t::member_method);
         rt.tdd_assert(dgc.is_valid());
         rt.tdd_assert(dgc(p, p, p, p) == 40);
+
+        typedef rx::delegate4_t<uint32_t&,uint32_t&,uint32_t&,uint32_t&,void> dvt;
+        dvt dgv(std_cb_func4B_t);
+        rt.tdd_assert(dgv.is_valid());
+        dgv(p,p,p,p);
+
+        cb_test4B_class_t cbB;
+        dgv.bind(cbB,&cb_test4B_class_t::member_method);
+        dgv(p,p,p,p);
     }
 }
 
