@@ -131,9 +131,9 @@ namespace rx
         {
             for(uint32_t pos=next(-1);pos<m_max_slot_size;pos=next(pos))
             {
-                node_t *node=m_nodes[pos];
-                ct::OD(&node->value);
-                remove(node);
+                node_t &node=m_nodes[pos];
+                ct::OD(&node.value);
+                remove(&node);
             }
         }
     };
