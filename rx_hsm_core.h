@@ -324,7 +324,7 @@ namespace rx
         //-------------------------------------------------
         //状态机触发给定的事件.在状态机的当前状态或父状态链上,尝试触发给定的事件.
         //返回值:0未被正确处理;其他为事件处理回调返回值.
-        int hit(uint16_t event_code, void *Data = NULL)
+        int hit(uint16_t event_code, void *Data = NULL, hsm_tree_i::state_node_t* *hit_state=NULL)
         {
             //从当前状态,一直尝试向上层查找
             for (hsm_tree_i::state_node_t *state_node = m_curr_state; state_node; state_node = state_node->parent_state)
@@ -334,6 +334,7 @@ namespace rx
                 if (!E || !E->is_valid())
                     continue;                               //当前状态没有绑定此事件处理回调,那么就继续向上查找
 
+                if (hit_state) *hit_state = state_node;     //如果需要,则记录真正触发事件的状态节点
                 return (*E)(*this, *state_node, event_code, Data);//现在终于在父子状态链上找到能够处理此事件的回调了
             }
             return 0;
@@ -446,7 +447,7 @@ namespace rx
     public:
         hsm_tree_maker(tree_t& t) :m_tree(t){}
         //-------------------------------------------------
-        //生成状态节点
+        //基于最后的父状态,生成子状态节点
         hsm_tree_maker& state(uint16_t state_code, void* usrptr = NULL)
         {
             int rc = m_tree.make_state(state_code, usrptr);
@@ -454,6 +455,7 @@ namespace rx
             m_last_state_code = state_code;
             return *this;
         }
+        //在指定的父状态下生成子状态,并记录最后的父状态
         hsm_tree_maker& state(uint16_t state_code,uint16_t parent, void* usrptr = NULL)
         {
             int rc = m_tree.make_state(state_code, parent, usrptr);
@@ -464,13 +466,13 @@ namespace rx
         //-------------------------------------------------
         //给状态节点绑定进入事件
         template<class T>
-        hsm_tree_maker& entry(T& owner, void (T::*member_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, uint16_t passed_on))
+        hsm_tree_maker& entry(T& owner, void (T::*entry_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, uint16_t passed_on))
         {
             int rc = m_tree.make_over(m_last_state_code, true);
             rx_fail(rc > 0);
             hsm_tree_i::over_delegate_t *dg= m_tree.find_over(m_last_state_code, true);
             rx_fail(dg!=NULL);
-            dg->bind(owner, member_func);
+            dg->bind(owner, entry_func);
             return *this;
         }
         hsm_tree_maker& entry(hsm_tree_i::over_delegate_t::cb_func_t cf, void* obj = NULL)
@@ -485,13 +487,13 @@ namespace rx
         //-------------------------------------------------
         //给状态节点绑定离开事件
         template<class T>
-        hsm_tree_maker& leave(T& owner, void (T::*member_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, uint16_t passed_on))
+        hsm_tree_maker& leave(T& owner, void (T::*leave_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, uint16_t passed_on))
         {
             int rc = m_tree.make_over(m_last_state_code, false);
             rx_fail(rc > 0);
             hsm_tree_i::over_delegate_t *dg = m_tree.find_over(m_last_state_code, false);
             rx_fail(dg != NULL);
-            dg->bind(owner, member_func);
+            dg->bind(owner, leave_func);
             return *this;
         }
         hsm_tree_maker& leave(hsm_tree_i::over_delegate_t::cb_func_t cf, void* obj = NULL)
@@ -506,13 +508,13 @@ namespace rx
         //-------------------------------------------------
         //给状态节点绑定功能事件
         template<class T>
-        hsm_tree_maker& event(uint16_t event_code,T& owner, uint16_t (T::*member_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, void *usrdat))
+        hsm_tree_maker& event(uint16_t event_code,T& owner, uint16_t (T::*event_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, void *usrdat))
         {
             int rc = m_tree.make_event(m_last_state_code, event_code);
             rx_fail(rc > 0);
             hsm_tree_i::evnt_delegate_t *dg = m_tree.find_event(m_last_state_code, event_code);
             rx_fail(dg != NULL);
-            dg->bind(owner, member_func);
+            dg->bind(owner, event_func);
             return *this;
         }
         hsm_tree_maker& event(uint16_t event_code, hsm_tree_i::evnt_delegate_t::cb_func_t cf, void* obj = NULL)
@@ -522,6 +524,58 @@ namespace rx
             hsm_tree_i::evnt_delegate_t *dg = m_tree.find_event(m_last_state_code, event_code);
             rx_fail(dg != NULL);
             dg->bind(cf, obj);
+            return *this;
+        }
+    };
+
+    //-----------------------------------------------------
+    //语法糖,状态树扩展构造器,可以绑定处理器实现对象后简化调用参数
+    template<class tree_t,class handler_t>
+    class hsm_maker
+    {
+        typedef hsm_tree_maker<tree_t> maker_t;
+        maker_t         m_maker;
+        handler_t      &m_handler;
+        uint16_t        m_last_parent_code;
+    public:
+        //-------------------------------------------------
+        hsm_maker(tree_t& t, handler_t &h):m_maker(t),m_handler(h), m_last_parent_code(-1){}
+        //-------------------------------------------------
+        //基于最后的父状态,生成子状态节点
+        hsm_maker& state(uint16_t state_code, void* usrptr = NULL)
+        {
+            if (m_last_parent_code == -1)
+                m_maker.state(state_code, usrptr);
+            else
+                m_maker.state(state_code, m_last_parent_code, usrptr);
+            return *this;
+        }
+        //在指定的父状态下生成子状态,并记录最后的父状态
+        hsm_maker& state(uint16_t state_code, uint16_t parent, void* usrptr = NULL)
+        {
+            m_last_parent_code = parent;
+            m_maker.state(state_code, parent, usrptr);
+            return *this;
+        }
+        //-------------------------------------------------
+        //给状态节点绑定进入事件
+        hsm_maker& entry(void (handler_t::*entry_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, uint16_t passed_on))
+        {
+            m_maker.entry(m_handler, entry_func);
+            return *this;
+        }
+        //-------------------------------------------------
+        //给状态节点绑定离开事件
+        hsm_maker& leave(void (handler_t::*leave_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, uint16_t passed_on))
+        {
+            m_maker.leave(m_handler, leave_func);
+            return *this;
+        }
+        //-------------------------------------------------
+        //给状态节点绑定功能事件
+        hsm_maker& event(uint16_t event_code, uint16_t(handler_t::*event_func)(hsm_core_t &hsm, const hsm_tree_i::state_node_t &state_node, uint16_t event_code, void *usrdat))
+        {
+            m_maker.event(event_code, m_handler,event_func);
             return *this;
         }
     };
