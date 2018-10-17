@@ -99,6 +99,7 @@ namespace rx
         stack_t():m_mem(rx_global_mem_allotter()){}
         stack_t(mem_allotter_i& ma):m_mem(ma){}
         virtual ~stack_t(){clear();}
+        mem_allotter_i& mem(){return m_mem;}
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -169,6 +170,45 @@ namespace rx
     typedef stack_t<const char*>     stack_cstr_t;
     //语法糖,定义一个便于使用的const wchar_t*内容持有栈
     typedef stack_t<const wchar_t*>  stack_wstr_t;
+
+    //-----------------------------------------------------
+    //利用栈容器封装一个简单的对象缓存池
+    template<class T>
+    class stack_cache_t
+    {
+        typedef stack_t<T*> obj_cache_t;
+        obj_cache_t     m_cache;
+    public:
+        //-------------------------------------------------
+        stack_cache_t():m_cache(rx_global_mem_allotter()){}
+        stack_cache_t(mem_allotter_i& ma):m_cache(ma){}
+        ~stack_cache_t(){clear();}
+        //-------------------------------------------------
+        T* get()
+        {
+            if (m_cache.size())
+            {
+                T *ret=*m_cache.begin();
+                m_cache.pop_front();
+                return ret;
+            }
+            else
+                return m_cache.mem().new0();
+        }
+        //-------------------------------------------------
+        void put(T* obj)
+        {
+            m_cache.push_front(obj);
+        }
+        //-------------------------------------------------
+        void clear()
+        {
+            if (!m_cache.size()) return;
+            do{
+                m_cache.mem().del(*m_cache.begin());
+            }while(m_cache.pop_front());
+        }
+    };
 }
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_dtl_list_raw.h"
+#include "rx_dtl_stack.h"
 #include "rx_mem_alloc.h"
 #include "rx_mem_alloc_cntr.h"
 #include "rx_str_tiny.h"
@@ -43,6 +44,7 @@ namespace rx
         queue_t():m_mem(rx_global_mem_allotter()){}
         queue_t(mem_allotter_i& ma):m_mem(ma){}
         virtual ~queue_t(){clear();}
+        mem_allotter_i& mem(){return m_mem;}
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -121,6 +123,7 @@ namespace rx
         }
     };
 
+    //-----------------------------------------------------
     //语法糖,定义一个便于使用的整数队列
     typedef queue_t<uint32_t>        queue_uint32_t;
     typedef queue_t<int32_t>         queue_int32_t;
@@ -128,6 +131,45 @@ namespace rx
     typedef queue_t<const char*>     queue_cstr_t;
     //语法糖,定义一个便于使用的const wchar_t*内容持有队列
     typedef queue_t<const wchar_t*>  queue_wstr_t;
+    
+    //-----------------------------------------------------
+    //利用队列容器封装一个简单的对象缓存池
+    template<class T>
+    class queue_cache_t
+    {
+        typedef queue_t<T*> obj_cache_t;
+        obj_cache_t     m_cache;
+    public:
+        //-------------------------------------------------
+        queue_cache_t():m_cache(rx_global_mem_allotter()){}
+        queue_cache_t(mem_allotter_i& ma):m_cache(ma){}
+        ~queue_cache_t(){clear();}
+        //-------------------------------------------------
+        T* get()
+        {
+            if (m_cache.size())
+            {
+                T *ret=*m_cache.begin();
+                m_cache.pop_front();
+                return ret;
+            }
+            else
+                return m_cache.mem().new0();
+        }
+        //-------------------------------------------------
+        void put(T* obj)
+        {
+            m_cache.push_back(obj);
+        }
+        //-------------------------------------------------
+        void clear()
+        {
+            if (!m_cache.size()) return;
+            do{
+                m_cache.mem().del(*m_cache.begin());
+            }while(m_cache.pop_front());
+        }
+    };
 }
 
 #endif

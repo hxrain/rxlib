@@ -102,6 +102,7 @@ namespace rx
         list_t():m_mem(rx_global_mem_allotter()){}
         list_t(mem_allotter_i& ma):m_mem(ma){}
         virtual ~list_t(){clear();}
+        mem_allotter_i& mem(){return m_mem;}
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
