@@ -3,6 +3,8 @@
 
 #include "../rx_tdd.h"
 #include "../rx_dtl_list.h"
+#include "../rx_dtl_stack.h"
+#include "../rx_dtl_queue.h"
 
 //---------------------------------------------------------
 //进行容器的遍历,同时对比给定的数组元素内容
