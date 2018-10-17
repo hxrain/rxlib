@@ -204,8 +204,8 @@ namespace rx
         {
             if (!size()) return false;
             node_t *node=m_cntr.pop_back();
-            ct::OD(node);                               //节点析构
-            m_mem.free(node);                           //节点内存释放
+            ct::OD(node);                                   //节点析构
+            m_mem.free(node);                               //节点内存释放
             return true;
         }
         //-------------------------------------------------
