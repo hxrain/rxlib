@@ -1,8 +1,12 @@
+#include "../../rx_timer_tw.h"
+
 #include "../ut_hsm_core.h"
 #include "../../rx_hsm_core.h"
 
 #include "../ut_dtl_list.h"
 #include "../../rx_dtl_list.h"
+#include "../../rx_dtl_stack.h"
+#include "../../rx_dtl_queue.h"
 #include "../ut_dtl_htbl_sklist_map.h"
 
 
@@ -94,6 +98,7 @@ using namespace std;
 
 int main()
 {
+    rx_show_msg("%d",sizeof(rx::tw::timer_entry_t));
     cout << "ÄãºÃHello world!\n" << rx_cc_desc() << endl << endl;
     rx_static_assert(1);
 
