@@ -119,6 +119,7 @@ namespace rx
             //---------------------------------------------
             //* 运算符重载,用于获取当前节点的data
             const typename node_t::node_data_t& operator* () const {return m_node->data;}
+            typename node_t::node_data_t* operator-> () const { return &m_node->data; }
             //---------------------------------------------
             iterator& operator++()
             {
