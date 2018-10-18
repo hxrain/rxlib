@@ -121,7 +121,8 @@ namespace rx
             iterator& operator=(const iterator &i) {m_node=i.m_node; return *this;}
             //---------------------------------------------
             //* 运算符重载,用于获取当前节点的data
-            const typename node_t::node_data_t& operator* () const {return m_node->data;}
+            const typename node_t::node_data_t& operator* () const { return m_node->data; }
+            typename node_t::node_data_t* operator-> () const { return &m_node->data; }
             //---------------------------------------------
             iterator& operator++()
             {
@@ -226,9 +227,9 @@ namespace rx
         bool earse(iterator &it)
         {
             if (!size()) return false;
-            node_t *node=m_cntr.pick(it.m_node)
+            node_t *node = m_cntr.pick((node_t *)it.m_node);
             ct::OD(it.m_node);                              //节点析构
-            m_mem.free(it.m_node);                          //节点内存释放
+            m_mem.free((node_t *)it.m_node);                //节点内存释放
 
             it.m_node=node;
             return true;
