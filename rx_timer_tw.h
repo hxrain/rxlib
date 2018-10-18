@@ -117,7 +117,7 @@ namespace rx
             //初始化
             bool init(uint32_t wheel_idx, mem_allotter_i& mem)
             {
-                if (m_wheel_idx != -1)
+                if (m_wheel_idx != (uint32_t)-1)
                     return false;
                 m_slot_ptr = 0;
                 m_wheel_idx = wheel_idx;
@@ -164,7 +164,7 @@ namespace rx
             //将给定的item从槽位中摘除
             bool remove(timer_entry_t& item)
             {
-                if (item.w_slot_idx >= wheel_slots || item.w_wheel_idx!=m_wheel_idx || 
+                if (item.w_slot_idx >= wheel_slots || item.w_wheel_idx!=m_wheel_idx ||
                     item.w_slot_link == NULL)
                     return false;
 
@@ -173,7 +173,7 @@ namespace rx
                 item_list_t::iterator I = item.w_slot_link;
                 if (!slot.earse(I))
                     return false;
-                
+
                 //抹除条目的轮槽信息
                 item.w_wheel_idx = -1;
                 item.w_slot_idx = -1;
@@ -186,7 +186,7 @@ namespace rx
             bool move(timer_entry_t& item,uint8_t slot_idx)
             {
                 rx_assert(slot_idx < wheel_slots);
-                if (slot_idx >= wheel_slots || item.w_slot_idx >= wheel_slots || 
+                if (slot_idx >= wheel_slots || item.w_slot_idx >= wheel_slots ||
                     item.w_wheel_idx != m_wheel_idx || item.w_slot_link == NULL)
                     return false;
 
@@ -225,7 +225,7 @@ namespace rx
                     timer_entry_t &item = *(*I);
                     ++I;                                    //迭代器预先后移,避免在cb_step中item被删除时产生干扰.
 
-                    if (item.c_round) 
+                    if (item.c_round)
                     {//仍有剩余轮数,继续等待下一次吧
                         --item.c_round;
                         continue;
@@ -266,7 +266,7 @@ namespace rx
         //默认构造不初始化(需明确给出初始时间才进行构造初始化).
         timing_wheel_t(uint64_t curr_time_us=0,uint32_t slot_unit_us=1000,mem_allotter_i& ma=rx_global_mem_allotter())
         {
-            if (curr_time_us) 
+            if (curr_time_us)
                 wheels_init(curr_time_us,slot_unit_us,ma);
         }
         ~timing_wheel_t(){wheels_uninit();}
@@ -308,7 +308,7 @@ namespace rx
             uint64_t delta=curr_time_us-m_last_step_time;
             //计算应该走动的步数
             uint32_t step_count=uint32_t(delta/m_slot_unit_us);
-            
+
             //驱动最低级时间轮行走(在round回调中会同步驱动上级时间轮)
             for(uint32_t i=0;i<step_count;++i)
                 m_wheels[0].step();
