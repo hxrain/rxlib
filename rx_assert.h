@@ -79,4 +79,7 @@ inline void rx_assert_fun(bool R,int LineNo,const char *File,const char *Msg,boo
 //断言条件判断,如果C成立,则要求R也成立.
 #define rx_assert_if(C,R) rx_assert(((C)?(R):true))
 
+//语法糖,进行断言判断的时候,也进行流程返回处理.
+#define rx_assert_ret(R) if (!(R)) {rx_alert("rx_assert_ret");return false;}
+
 #endif

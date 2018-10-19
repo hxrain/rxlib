@@ -183,7 +183,7 @@ namespace rx
         //-------------------------------------------------
         stack_cache_t():m_cache(rx_global_mem_allotter()){}
         stack_cache_t(mem_allotter_i& ma):m_cache(ma){}
-        ~stack_cache_t(){clear();}
+        virtual ~stack_cache_t(){clear();}
         //-------------------------------------------------
         T* get()
         {

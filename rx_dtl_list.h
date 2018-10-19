@@ -226,7 +226,7 @@ namespace rx
         //返回值:是否删除成功
         bool earse(iterator &it)
         {
-            if (!size()) return false;
+            rx_assert_ret(!size());
             node_t *node = m_cntr.pick((node_t *)it.m_node);
             ct::OD(it.m_node);                              //节点析构
             m_mem.free((node_t *)it.m_node);                //节点内存释放

@@ -144,7 +144,7 @@ namespace rx
         //-------------------------------------------------
         queue_cache_t():m_cache(rx_global_mem_allotter()){}
         queue_cache_t(mem_allotter_i& ma):m_cache(ma){}
-        ~queue_cache_t(){clear();}
+        virtual ~queue_cache_t(){clear();}
         //-------------------------------------------------
         T* get()
         {
@@ -155,7 +155,7 @@ namespace rx
                 return ret;
             }
             else
-                return m_cache.mem().new0();
+                return m_cache.mem().new0<T>();
         }
         //-------------------------------------------------
         void put(T* obj)
