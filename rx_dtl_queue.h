@@ -132,35 +132,59 @@ namespace rx
     typedef queue_t<const char*>     queue_cstr_t;
     //语法糖,定义一个便于使用的const wchar_t*内容持有队列
     typedef queue_t<const wchar_t*>  queue_wstr_t;
-    
+
     //-----------------------------------------------------
     //利用队列容器封装一个简单的对象缓存池
-    template<class T>
-    class queue_cache_t
+    template<class obj_t>
+    class object_cache_t
     {
-        typedef queue_t<T*> obj_cache_t;
+        typedef queue_t<obj_t*> obj_cache_t;
         obj_cache_t     m_cache;
     public:
         //-------------------------------------------------
-        queue_cache_t():m_cache(rx_global_mem_allotter()){}
-        queue_cache_t(mem_allotter_i& ma):m_cache(ma){}
-        virtual ~queue_cache_t(){clear();}
+        object_cache_t():m_cache(rx_global_mem_allotter()){}
+        object_cache_t(mem_allotter_i& ma):m_cache(ma){}
+        //强制绑定内存分配器
+        bool bind(mem_allotter_i& ma)
+        {
+            if (m_cache.size())
+                return false;
+            ct::OC(&m_cache,ma);
+            return true;
+        }
+        virtual ~object_cache_t(){clear();}
         //-------------------------------------------------
-        T* get()
+        obj_t* get()
         {
             if (m_cache.size())
             {
-                T *ret=*m_cache.begin();
+                obj_t *ret=*m_cache.begin();
                 m_cache.pop_front();
                 return ret;
             }
             else
-                return m_cache.mem().new0<T>();
+            {
+                mem_allotter_i &ma=m_cache.mem();
+                return ma.new0<obj_t>();
+            }
+
         }
         //-------------------------------------------------
-        void put(T* obj)
+        //归还指定的对象,可以告知是放入缓存的尾部还是头部
+        //返回值:true被缓存;false被释放
+        bool put(obj_t* obj,bool to_back=true)
         {
-            m_cache.push_back(obj);
+            bool rc;
+            if (to_back)
+                rc=m_cache.push_back(obj)!=m_cache.end();
+            else
+                rc=m_cache.push_front(obj)!=m_cache.end();
+            if (!rc)
+            {
+                mem_allotter_i &ma=m_cache.mem();
+                ma.del(obj);
+            }
+            return rc;
         }
         //-------------------------------------------------
         void clear()

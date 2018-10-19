@@ -188,7 +188,7 @@ namespace rx
         //获知指定内存块的实际占用尺寸
         uint32_t memsize(void* P){return cookie_t::get(cookie_t::rawptr(P)).mem_size;}
         //-------------------------------------------------
-        //分配一个指定类型的对象或数组,使用默认构造函数进行初始化
+        //分配一个指定类型的对象或数组,使用默认构造函数进行初始化,没有额外参数
         template<class VT>
         VT* new0(uint32_t Count=1)
         {

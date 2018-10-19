@@ -98,7 +98,7 @@ using namespace std;
 
 int main()
 {
-    rx_show_msg("%d",sizeof(rx::tw::timer_entry_t));
+    rx_show_msg("%d",sizeof(rx::tw::timer_item_t));
     cout << "ÄãºÃHello world!\n" << rx_cc_desc() << endl << endl;
     rx_static_assert(1);
 

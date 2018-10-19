@@ -24,59 +24,30 @@ namespace rx
     {
         //-------------------------------------------------
         //定义内部定时器信息列表类型
-        struct timer_entry_t;
-        typedef list_t<timer_entry_t*>  item_list_t;
+        struct timer_item_t;
+        typedef list_t<timer_item_t*>  item_list_t;
 
         //轮子指针行走事件委托
-        typedef delegate1_rt<timer_entry_t*, void> step_delegate_t;
+        typedef delegate1_rt<timer_item_t*, void> item_delegate_t;
 
         //轮子转动一周事件委托
-        typedef delegate1_rt<uint32_t, void> round_delegate_t;
+        typedef delegate1_rt<uint32_t, uint32_t> round_delegate_t;
 
         const uint32_t wheel_slots = 256;                   //每个轮子上的槽位数量
         const uint32_t slot_mask   = wheel_slots-1;         //槽位索引掩码,用于取模计算
-        const uint32_t max_rounds  = 65535;                 //每个定时器条目最大允许的溢出轮数
-
-        //-------------------------------------------------
-        //各级轮子对应的满轮滴答数
-        template<uint8_t w> struct wheel_ticks 
-        {
-            static uint32_t value(uint32_t i)
-            {
-                rx_assert(i<3);
-                static const uint32_t tbl[3] =
-                { wheel_slots,
-                  wheel_slots*wheel_slots,
-                  wheel_slots*wheel_slots*wheel_slots};
-                return tbl[i];
-            }
-        };
-        template<>
-        struct wheel_ticks<4>
-        {
-            static uint64_t value(uint32_t i)
-            {
-                rx_assert(i<4);
-                static const uint64_t tbl[4] =
-                { wheel_slots,
-                  wheel_slots*wheel_slots,
-                  wheel_slots*wheel_slots*wheel_slots,
-                  wheel_slots*wheel_slots*wheel_slots*uint64_t(wheel_slots) };
-                return tbl[i];
-            }
-        };
+        const uint32_t max_rounds  = 65535;                 //定时器条目最大允许的溢出圈数
 
         //-------------------------------------------------
         //内部定时器信息项
-        typedef struct timer_entry_t
+        typedef struct timer_item_t
         {
             static const uint8_t size_mask = 0x1F;          //本条目的尺寸掩码(2的5次方,应<=sizeof(*this))
 
             //---------------------------------------------
             //外部用户提供的参数
-            timer_delegate_t      u_cb_func;                //定时器委托回调
             size_t                u_inv_tick;               //定时间隔滴答数
             uint32_t              u_event_code;             //用户给定的事件码
+            timer_delegate_t      u_cb_func;                //定时器委托回调
             uint16_t              u_repeat;                 //重复执行次数,-1为永远执行
 
             //---------------------------------------------
@@ -123,24 +94,24 @@ namespace rx
             }
             //---------------------------------------------
             //静态方法,根据定时器句柄计算内部信息对象指针
-            static timer_entry_t* to_ptr(size_t handle)
+            static timer_item_t* to_ptr(size_t handle)
             {
-                timer_entry_t *ret=(timer_entry_t*)(handle&(~size_mask));
+                timer_item_t *ret=(timer_item_t*)(handle&(~size_mask));
                 if (ret->check(handle))
                     return ret;
                 return NULL;
             }
             //---------------------------------------------
-            timer_entry_t():c_ttl(0){reset();}
-        }timer_entry_t;
+            timer_item_t():c_ttl(0){reset();}
+        }timer_item_t;
 
         //-------------------------------------------------
         //扩展简单缓存管理器
-        class entry_cache_t :public queue_cache_t<timer_entry_t>
+        class entry_cache_t :public object_cache_t<timer_item_t>
         {
         public:
             //-------------------------------------------------
-            void recycle(timer_entry_t *item)
+            void recycle(timer_item_t *item)
             {
                 rx_assert(item != NULL);
                 item->reset();
@@ -157,7 +128,7 @@ namespace rx
             uint32_t      m_wheel_idx;                      //轮子序号
         public:
             wheel_t():m_wheel_idx(-1){}
-            step_delegate_t     cb_step;                    //指针转动事件,需要处理一个条目
+            item_delegate_t     cb_item;                    //指针转动事件,需要处理一个条目
             round_delegate_t    cb_round;                   //轮子转动一周事件,可以驱动上层轮子
             //---------------------------------------------
             //初始化
@@ -179,7 +150,7 @@ namespace rx
                     item_list_t &slot = m_slots[i];
                     for (item_list_t::iterator I = slot.begin(); I != slot.end();)
                     {
-                        timer_entry_t *item = *I;
+                        timer_item_t *item = *I;
                         slot.earse(I);
                         ec.recycle(item);
                     }
@@ -188,7 +159,7 @@ namespace rx
                 m_wheel_idx = -1;
                 m_slot_ptr = 0;
                 cb_round.reset();
-                cb_step.reset();
+                cb_item.reset();
             }
             //---------------------------------------------
             //获取当前轮子的槽位指向位置
@@ -196,7 +167,7 @@ namespace rx
             //---------------------------------------------
             //将给定的item安装在给定的槽位中
             //返回值:是否在新槽位插入成功
-            bool put(timer_entry_t& item)
+            bool put(timer_item_t& item)
             {
                 rx_assert_ret(item.w_wheel_idx == m_wheel_idx);
 
@@ -213,14 +184,16 @@ namespace rx
             //---------------------------------------------
             //将给定的item从槽位中摘除
             //返回值:是否从旧槽位删除完成.
-            bool pick(timer_entry_t& item)
+            bool pick(timer_item_t& item)
             {
                 rx_assert_ret(item.w_wheel_idx==m_wheel_idx);
 
                 //将条目从旧槽中移除
                 item_list_t &slot = m_slots[item.w_slot_idx];
+                rx_assert_ret(slot.size());
+
                 item_list_t::iterator I = item.w_slot_link;
-                slot.earse(I);
+                rx_check(slot.earse(I));
 
                 //抹除条目的轮槽信息
                 item.w_wheel_idx = -1;
@@ -232,14 +205,14 @@ namespace rx
             //---------------------------------------------
             //将指定的条目移动到新的槽位
             //返回值:是否在新槽位插入成功(失败时当前条目需释放)
-            bool move(timer_entry_t& item,uint8_t slot_idx)
+            bool move(timer_item_t& item,uint8_t slot_idx)
             {
                 rx_assert_ret(item.w_wheel_idx == m_wheel_idx);
 
                 {//将条目从旧槽移除
                     item_list_t &slot = m_slots[item.w_slot_idx];
                     item_list_t::iterator I = item.w_slot_link;
-                    slot.earse(I);
+                    rx_check(slot.earse(I));
                 }
 
                 //条目放入新槽
@@ -255,18 +228,19 @@ namespace rx
             }
             //---------------------------------------------
             //驱动当前轮子中的槽位指针前进一步,遍历新槽位中的全部条目
+            //返回值:被驱动的条目数量
             uint32_t step()
             {
+                uint32_t rc=0;
                 //槽位指针前移一步
                 m_slot_ptr = (m_slot_ptr + 1) & slot_mask;
                 if (m_slot_ptr == 0)
-                    cb_round(m_wheel_idx);                  //上一轮结束了,新一轮开始给出事件,可用于驱动上层轮子的转动
+                    rc+=cb_round(m_wheel_idx);              //上一轮结束了,新一轮开始给出事件,可用于驱动上层轮子的转动
 
                 item_list_t &slot = m_slots[m_slot_ptr];
-                uint32_t rc=0;
                 for (item_list_t::iterator I = slot.begin(); I != slot.end();)
                 {
-                    timer_entry_t &item = *(*I);
+                    timer_item_t &item = *(*I);
                     ++I;                                    //迭代器预先后移,避免在cb_step中item被删除时产生干扰.
 
                     if (item.w_round)
@@ -276,7 +250,7 @@ namespace rx
                     }
 
                     ++rc;
-                    cb_step(&item);                         //给出外部事件动作
+                    cb_item(&item);                         //给出外部事件动作
                 }
                 return rc;
             }
@@ -287,31 +261,50 @@ namespace rx
     //-----------------------------------------------------
     //时间轮定时器
     //-----------------------------------------------------
+    template<uint32_t max_wheels = 4>
     class timing_wheel_t
     {
-        static const uint32_t max_wheels = 4;               //最大的轮子数量
+        //static const uint32_t max_wheels = 4;
         static const uint32_t min_level_wheel = 0;          //最底层的轮子序号
         static const uint32_t max_level_wheel =max_wheels-1;//最顶层的轮子序号
+        rx_static_assert(max_wheels<=4);
 
         tw::entry_cache_t   m_items_cache;                  //定时器条目对象指针缓存
         tw::wheel_t         m_wheels[max_wheels];           //定义多级(max_wheels)轮子数组,min_level_wheel(0)为最低级;每级轮子间时间速率相差256倍(wheel_slots)
         uint64_t            m_last_step_time;               //上一次的动作发生时间,ms.
         uint32_t            m_tick_unit_ms;                 //min_level_wheel(0)级轮子时间槽的滴答时间单位,用ms表示.
+        //-------------------------------------------------
+        //各级轮子对应的满轮滴答数掩码(满值减一,可用模与方法取余)
+        static uint32_t wheel_ticks_mask(uint32_t i)
+        {
+            rx_assert(i<max_wheels);
+            static const uint32_t tbl[max_wheels] = { 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF };
+            return tbl[i];
+        }
+        //各级轮子对应的满轮滴答数移位(可用移位法取商)
+        static uint32_t wheel_ticks_shift(uint32_t i)
+        {
+            if (i>=max_wheels) return 0;
+            static const uint32_t tbl[max_wheels] = { 8, 16, 24, 32 };
+            return tbl[i];
+        }
 
         //-------------------------------------------------
         //处理一次轮子转动(级联触发时此方法可能会被递归调用max_wheels层)
-        void on_round(uint32_t wi)
+        uint32_t on_round(uint32_t wi)
         {
+            uint32_t rc=0;
             if (wi<max_level_wheel)
-                m_wheels[wi+1].step();                      //级联驱动上层时间轮
+                rc=m_wheels[wi+1].step();                      //级联驱动上层时间轮
+            return rc;
         }
         //-------------------------------------------------
         //处理一个定时器条目
-        void on_step(tw::timer_entry_t* item)
+        void on_item(tw::timer_item_t* item)
         {
             rx_assert(item != NULL);
             rx_assert(item->w_round == 0);
-            size_t remain_tick = item->u_inv_tick % tw::wheel_ticks<max_wheels>::value(item->w_wheel_idx);
+            size_t remain_tick = item->u_inv_tick & wheel_ticks_mask(item->w_wheel_idx);
 
             if (item->w_wheel_idx == min_level_wheel ||
                 remain_tick == 0)
@@ -325,21 +318,11 @@ namespace rx
                 if (item->u_repeat == 0)
                     m_timer_remove(item);                   //如果重复计数为0则删除当前定时器条目
                 else
-                {//需要重新调整当前定时器条目的新位置了
-                    uint8_t wheel_idx;
-                    uint8_t slot_idx;
-                    //计算新位置
-                    uint16_t round = m_calc_pos(item->u_inv_tick, wheel_idx, slot_idx);
-                    m_timer_move(item, wheel_idx, slot_idx, round);
-                }
+                    m_timer_update(item,item->u_inv_tick);  //需要重新调整当前定时器条目的新位置了
             }
             else
             {//上层轮子上的定时器需要进行降级处理
-                uint8_t wheel_idx;
-                uint8_t slot_idx;
-                //计算新位置
-                uint16_t round = m_calc_pos(remain_tick, wheel_idx, slot_idx);
-                m_timer_move(item, wheel_idx, slot_idx, round);
+                m_timer_update(item,remain_tick);
             }
         }
 
@@ -348,10 +331,10 @@ namespace rx
         //返回值:条目的round数
         uint16_t m_calc_pos(size_t inv_tick, uint8_t &wheel_idx, uint8_t &slot_idx)
         {
-            uint32_t round = uint32_t(inv_tick / tw::wheel_ticks<max_wheels>::value(max_level_wheel));
+            uint32_t round = uint32_t(inv_tick >> wheel_ticks_shift(max_level_wheel));
             if (round)
             {//尝试在最高层轮子上进行滴答扣圈处理
-                uint8_t offset = uint8_t(inv_tick % tw::wheel_ticks<max_wheels>::value(max_level_wheel));
+                uint8_t offset = uint8_t((inv_tick & wheel_ticks_mask(max_level_wheel)) >> wheel_ticks_shift(max_level_wheel-1));
                 wheel_idx = max_level_wheel;
                 slot_idx = m_wheels[wheel_idx].slot_ptr() + offset;
                 return uint16_t(round > tw::max_rounds ? tw::max_rounds : round);
@@ -360,9 +343,9 @@ namespace rx
             {//最高层无需扣圈,则从上至下逐层查找正确的位置
                 for (int i = max_level_wheel; i >= 1; --i)
                 {
-                    if (inv_tick / tw::wheel_ticks<max_wheels>::value(i - 1))
+                    if (inv_tick >> wheel_ticks_shift(i - 1))
                     {//周期滴答数在当前层的下一层轮子上有溢出,则需要挂接到当前层
-                        uint8_t offset = uint8_t(inv_tick % tw::wheel_ticks<max_wheels>::value(i));
+                        uint8_t offset = uint8_t((inv_tick & wheel_ticks_mask(i)) >> wheel_ticks_mask(i-1));
                         wheel_idx = i;
                         slot_idx = m_wheels[wheel_idx].slot_ptr() + offset;
                         return 0;
@@ -377,11 +360,11 @@ namespace rx
 
         //-------------------------------------------------
         //创建定时器条目
-        tw::timer_entry_t* m_timer_create(size_t inv_tick, uint32_t event_code, uint16_t repeat)
+        tw::timer_item_t* m_timer_create(size_t inv_tick, uint32_t event_code, uint16_t repeat)
         {
-            tw::timer_entry_t *item = m_items_cache.get();
+            tw::timer_item_t *item = m_items_cache.get();
             if (!item) return NULL;
-            
+
             //计算新位置
             item->w_round = m_calc_pos(inv_tick, item->w_wheel_idx, item->w_slot_idx);
             if (!m_wheels[item->w_wheel_idx].put(*item))
@@ -394,27 +377,30 @@ namespace rx
 
         //-------------------------------------------------
         //删除一个定时器
-        bool m_timer_remove(tw::timer_entry_t *item)
+        bool m_timer_remove(tw::timer_item_t *item)
         {
-            if (!item)
+            rx_assert(item->w_slot_idx < tw::wheel_slots);
+            rx_assert(item->w_slot_link != NULL);
+            rx_assert(item->w_wheel_idx < max_wheels);
+
+            if (!m_wheels[item->w_wheel_idx].pick(*item))
                 return false;
-
-            rx_assert_ret(item->w_slot_idx < tw::wheel_slots);
-            rx_assert_ret(item->w_slot_link != NULL);
-            rx_assert_ret(item->w_wheel_idx < max_wheels);
-
-            m_wheels[item->w_wheel_idx].pick(*item);
             m_items_cache.recycle(item);
             return true;
         }
 
         //-------------------------------------------------
         //将指定的定时器放入新的位置
-        bool m_timer_move(tw::timer_entry_t *item, uint8_t wheel_idx, uint8_t slot_idx, uint16_t round)
+        bool m_timer_update(tw::timer_item_t *item, size_t inv_ticks)
         {
-            rx_assert_ret(item->w_slot_idx < tw::wheel_slots);
-            rx_assert_ret(item->w_slot_link != NULL);
-            rx_assert_ret(item->w_wheel_idx < max_wheels);
+            rx_assert(item->w_slot_idx < tw::wheel_slots);
+            rx_assert(item->w_slot_link != NULL);
+            rx_assert(item->w_wheel_idx < max_wheels);
+
+            uint8_t wheel_idx;
+            uint8_t slot_idx;
+            //计算新位置
+            uint16_t round = m_calc_pos(inv_ticks, wheel_idx, slot_idx);
 
             if (wheel_idx == item->w_wheel_idx)
             {//如果新位置和旧位置都在一个轮子上,则直接进行移动处理
@@ -458,14 +444,17 @@ namespace rx
         //时间轮初始化:给出初始时间点;内部时间槽的时间单位(默认1ms);时间轮使用的内存分配器.
         bool wheels_init(uint64_t curr_time_ms,uint32_t tick_unit_ms=1,mem_allotter_i& mem=rx_global_mem_allotter())
         {
+            if (!m_items_cache.bind(mem))
+                return false;
+
             for(uint32_t i=0;i<max_wheels;++i)
             {
                 tw::wheel_t  &w=m_wheels[i];
                 if (!w.init(i,mem))                                 //逐一初始化各级轮子
                     return false;
-                
+
                 w.cb_round.bind(*this,&timing_wheel_t::on_round);   //给当前时间轮挂接轮子转动事件
-                w.cb_step.bind(*this,&timing_wheel_t::on_step);     //给当前时间轮挂接条目处理事件
+                w.cb_item.bind(*this,&timing_wheel_t::on_item);     //给当前时间轮挂接条目处理事件
             }
 
             m_last_step_time = curr_time_ms;                        //记录最后的行走时间和最底层时间槽单位
@@ -488,7 +477,7 @@ namespace rx
 
         //-------------------------------------------------
         //驱动当前时间轮:给出当前时间.
-        //返回值:真正触发行走的步数;-1时发生时间突变了,等待下次过程.
+        //返回值:真正触发的定时器条目数量;-1时发生时间突变了,等待下次过程.
         uint32_t wheels_step(uint64_t curr_time_ms)
         {
             if (curr_time_ms < m_last_step_time)
@@ -502,13 +491,14 @@ namespace rx
             //计算应该走动的步数
             uint32_t step_count=uint32_t(delta/m_tick_unit_ms);
 
+            uint32_t rc=0;
             //驱动最低级时间轮行走(在round满圈回调中会同步驱动上级时间轮)
             for(uint32_t i=0;i<step_count;++i)
-                m_wheels[min_level_wheel].step();
+                rc+=m_wheels[min_level_wheel].step();
 
             //记录最后行走的时间点
             m_last_step_time+=step_count*m_tick_unit_ms;
-            return step_count;
+            return rc;
         }
 
         //-------------------------------------------------
@@ -518,9 +508,9 @@ namespace rx
         {
             if (repeat == 0) return 0;
 
-            tw::timer_entry_t *item = m_timer_create(inv_tick, event_code, repeat);
+            tw::timer_item_t *item = m_timer_create(inv_tick, event_code, repeat);
             if (!item) return 0;
-            
+
             item->u_cb_func.bind(func, usrdat);
             return item->handle();
         }
@@ -529,9 +519,9 @@ namespace rx
         {
             if (repeat == 0) return 0;
 
-            tw::timer_entry_t *item = m_timer_create(inv_tick, event_code, repeat);
+            tw::timer_item_t *item = m_timer_create(inv_tick, event_code, repeat);
             if (!item) return 0;
-            
+
             item->u_cb_func.bind(owner, member_func);
             return item->handle();
         }
@@ -540,7 +530,8 @@ namespace rx
         //删除一个定时器
         bool timer_remove(size_t timer)
         {
-            tw::timer_entry_t *item = tw::timer_entry_t::to_ptr(timer);
+            tw::timer_item_t *item = tw::timer_item_t::to_ptr(timer);
+            rx_assert_ret(!item);
             return m_timer_remove(item);
         }
 
@@ -548,15 +539,9 @@ namespace rx
         //更新一个定时器(以当前时间点和触发间隔,更新下一次的触发时刻)
         bool timer_update(size_t timer)
         {
-            tw::timer_entry_t *item = tw::timer_entry_t::to_ptr(timer);
+            tw::timer_item_t *item = tw::timer_item_t::to_ptr(timer);
             rx_assert_ret(!item);
-
-            //计算新位置
-            uint8_t wheel_idx;
-            uint8_t slot_idx;
-            uint16_t round = m_calc_pos(item->u_inv_tick, wheel_idx, slot_idx);
-            
-            return m_timer_move(item,wheel_idx,slot_idx,round);
+            return m_timer_update(item,item->u_inv_tick);
         }
     };
 
