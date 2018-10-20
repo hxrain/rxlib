@@ -13,6 +13,7 @@ namespace rx
 
     //语法糖,生成当前对象实例对应的owner和类成员函数指针
     #define mr_this(CLASS,FUNC) *this,&CLASS::FUNC
+    #define mr_obj(CLASS,obj,FUNC) obj,&CLASS::FUNC
 
     //-----------------------------------------------------
     //一个参数的委托功能类

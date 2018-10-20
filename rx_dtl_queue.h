@@ -189,10 +189,11 @@ namespace rx
         //-------------------------------------------------
         void clear()
         {
-            if (!m_cache.size()) return;
-            do{
+            while(m_cache.size())
+            {
                 m_cache.mem().del(*m_cache.begin());
-            }while(m_cache.pop_front());
+                m_cache.pop_front();
+            }
         }
     };
 }
