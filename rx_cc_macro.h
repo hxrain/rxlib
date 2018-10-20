@@ -433,23 +433,38 @@
     //-----------------------------------------------------
     //工具宏定义
     #define _RX_CONCAT_(A,B)                A##B
-    #define RX_CONCAT(A,B)                  _RX_CONCAT_(A,B)            //宏拼接
+    #define RX_CT_CONCAT(A,B)               _RX_CONCAT_(A,B)                //宏拼接
 
-    #define RX_CT_LINE                      RX_CONCAT(_LINE,__LINE__)   //行号拼接得行符号 LINE_xxx
-    #define RX_CT_LINE_EX(n)                RX_CONCAT(_LINE,n)          //常量数字拼接得行符号
+    #define RX_CT_LINE                      RX_CT_CONCAT(_LINE,__LINE__)    //行号拼接得行符号 LINE_xxx
+    #define RX_CT_LINE_EX(n)                RX_CT_CONCAT(_LINE,n)           //常量数字拼接得行符号
 
-    #define RX_CT_SYM(prename)              RX_CONCAT(prename,RX_CT_LINE)//在行符号的基础上再拼接符号前缀
-    #define RX_CT_SYM_EX(prename,n)         RX_CONCAT(prename,RX_CT_LINE_EX(n))
+    #define RX_CT_SYM(prename)              RX_CT_CONCAT(prename,RX_CT_LINE)//在行符号的基础上再拼接符号前缀
+    #define RX_CT_SYM_EX(prename,n)         RX_CT_CONCAT(prename,RX_CT_LINE_EX(n))
 
-    #define RX_CC_STR(M)                    #M                          //宏转字符串
-    #define RX_CC_N2S(N)                    RX_CC_STR(N)                //宏数字转字符串
+    #define RX_CT_STR(M)                    #M                              //宏转字符串
+    #define RX_CT_N2S(N)                    RX_CT_STR(N)                    //宏数字转字符串
 
-    #define is_empty(str)                   (str==NULL||str[0]==0)      //判断字符串是否为空(空指针或首字节为0)
+    #define is_empty(str)                   (str==NULL||str[0]==0)          //判断字符串是否为空(空指针或首字节为0)
 
     //-----------------------------------------------------
-    //静态断言的实现
-    #define rx_static_assert(cond) struct RX_CT_SYM(rx_static_assert) {int static_assert_fail:cond;}
+    //静态断言的实现(基于位域尺寸不能为0的特性,再结合结构体类型定义.)
+    #define rx_static_assert(cond) struct RX_CT_SYM(rx_static_assert) {char static_assert_fail:cond;}
 
+    //-----------------------------------------------------
+    //用于进行宏默认参数的值替代
+    template<typename T>
+    struct macro_def_argv
+    {
+        static bool value() { return 0; }
+        static T value(T v) { return v; }
+    };
+
+    //-----------------------------------------------------
+    //定义指针类型
+    typedef void* ptr_t;
+
+    //-----------------------------------------------------
+    //构造rx_cc_desc()宏或函数,便于获取当前编译期信息
 #if RX_CC == RX_CC_VC
 	#include <stdio.h>
     #if (RX_CC_VER_MAJOR<19)
@@ -465,12 +480,11 @@
 	}
 #else
     //自动拼装编译器和CPU信息描述. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
-    #define RX_CC_DESC ("OS:" RX_OS_NAME "/CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/CC:" RX_CC_NAME "(" RX_CC_N2S(RX_CC_VER_MAJOR) "." RX_CC_N2S(RX_CC_VER_MINOR) "." RX_CC_N2S(RX_CC_VER_PATCH) "." RX_CC_N2S(RX_CC_VER_BUILD) ")/WordLength:" RX_CC_N2S(RX_CC_BIT) "Bit")
+    #define RX_CC_DESC ("OS:" RX_OS_NAME "/CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/CC:" RX_CC_NAME "(" RX_CT_N2S(RX_CC_VER_MAJOR) "." RX_CT_N2S(RX_CC_VER_MINOR) "." RX_CT_N2S(RX_CC_VER_PATCH) "." RX_CT_N2S(RX_CC_VER_BUILD) ")/WordLength:" RX_CT_N2S(RX_CC_BIT) "Bit")
 
     inline const char* rx_cc_desc() {return RX_CC_DESC;}
 #endif
 
-    typedef void* ptr_t;
     //-----------------------------------------------------
     //根据上面的各类分析,引入各个平台的开发基础头文件
     #if RX_OS_WIN
@@ -496,7 +510,9 @@
     #endif
 
     #include <stdint.h>
-    
+
+    //-----------------------------------------------------
+    //定义常用的数学常量
     static const double MATH_E        =2.71828182845904523536   ;// e
     static const double MATH_LOG2E    =1.44269504088896340736   ;// log2(e)
     static const double MATH_LOG10E   =0.434294481903251827651  ;// log10(e)
