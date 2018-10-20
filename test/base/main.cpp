@@ -1,3 +1,4 @@
+#include "../../rx_ct_typeof.h"
 #include "../../rx_timer_tw.h"
 
 #include "../ut_hsm_core.h"
