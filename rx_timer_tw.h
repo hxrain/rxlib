@@ -453,8 +453,8 @@ namespace rx
                 if (!w.init(i,mem))                                 //逐一初始化各级轮子
                     return false;
 
-                w.cb_round.bind(*this,&timing_wheel_t::on_round);   //给当前时间轮挂接轮子转动事件
-                w.cb_item.bind(*this,&timing_wheel_t::on_item);     //给当前时间轮挂接条目处理事件
+                w.cb_round.bind(mr_this(timing_wheel_t, on_round));//给当前时间轮挂接轮子转动事件
+                w.cb_item.bind(mr_this(timing_wheel_t, on_item));  //给当前时间轮挂接条目处理事件
             }
 
             m_last_step_time = curr_time_ms;                        //记录最后的行走时间和最底层时间槽单位
