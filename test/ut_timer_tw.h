@@ -15,10 +15,11 @@ public:
     }
 };
 
-inline void ut_timer_tw1(rx_tdd_t &rt)
+template<uint32_t wheels>
+inline void ut_timer_tw_base(rx_tdd_t &rt)
 {
     ut_timer_tw_result tr;
-    rx::timing_wheel_t<1> w;
+    rx::timing_wheel_t<wheels> w;
     uint64_t curr_time = 0;
     size_t h;
     rt.tdd_assert(w.wheels_init(++curr_time));
@@ -70,13 +71,14 @@ inline void ut_timer_tw1(rx_tdd_t &rt)
     rt.tdd_assert(tr.hits == 4);
     rt.tdd_assert(w.wheels_step(++curr_time) == 1);
     rt.tdd_assert(tr.hits == 5);
-
-
 }
 
 rx_tdd(ut_timer_base)
 {
-    ut_timer_tw1(*this);
+    ut_timer_tw_base<1>(*this);
+    ut_timer_tw_base<2>(*this);
+    ut_timer_tw_base<3>(*this);
+    ut_timer_tw_base<4>(*this);
 }
 
 #endif

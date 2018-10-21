@@ -29,7 +29,7 @@ namespace rx
         typedef list_t<timer_item_t*>  item_list_t;
 
         //轮子指针行走事件委托
-        typedef delegate1_rt<timer_item_t*, void> item_delegate_t;
+        typedef delegate1_rt<timer_item_t*, bool> item_delegate_t;
 
         //轮子转动一周事件委托
         typedef delegate1_rt<uint32_t, uint32_t> round_delegate_t;
@@ -243,8 +243,8 @@ namespace rx
                         continue;
                     }
 
-                    ++rc;
-                    cb_item(&item);                         //给出外部事件动作
+                    if (cb_item(&item))                     //给出外部事件动作
+                        ++rc;
                 }
                 return rc;
             }
@@ -260,7 +260,7 @@ namespace rx
     {
         //static const uint32_t wheel_count = 4;
         static const uint32_t max_wheel_count = 4;          //最大允许的轮子数量
-        rx_static_assert(wheel_count >0 && wheel_count <= max_wheel_count);
+        rx_static_assert(wheel_count >=1 && wheel_count <= max_wheel_count);
 
         static const uint32_t min_level_wheel = 0;          //最底层的轮子序号
         static const uint32_t max_level_wheel=wheel_count-1;//最顶层的轮子序号
@@ -270,14 +270,14 @@ namespace rx
         uint64_t            m_last_step_time;               //上一次的动作发生时间,ms.
         uint32_t            m_tick_unit_ms;                 //min_level_wheel(0)级轮子时间槽的滴答时间单位,用ms表示.
         //-------------------------------------------------
-        //各级轮子对应的满轮滴答数掩码(满值减一,可用模与方法取余)
+        //各级轮子对应的满轮滴答数掩码(满值减一,可用&方法取余)
         static uint32_t wheel_ticks_mask(uint32_t i)
         {
             rx_assert(i<wheel_count);
             static const uint32_t tbl[max_wheel_count] = { 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF };
             return tbl[i];
         }
-        //各级轮子对应的满轮滴答数移位(可用移位法取商)
+        //各级轮子对应的满轮滴答数移位(可用>>移位法取商)
         static uint32_t wheel_ticks_shift(uint32_t i)
         {
             if (i>=wheel_count) return 0;
@@ -291,19 +291,19 @@ namespace rx
         {
             uint32_t rc=0;
             if (wi<max_level_wheel)
-                rc=m_wheels[wi+1].step();                      //级联驱动上层时间轮
+                rc=m_wheels[wi+1].step();                   //级联驱动上层时间轮
             return rc;
         }
         //-------------------------------------------------
         //处理一个定时器条目
-        void on_item(tw::timer_item_t* item)
+        //返回值:是否执行了定时器回调事件
+        bool on_item(tw::timer_item_t* item)
         {
             rx_assert(item != NULL);
             rx_assert(item->w_round == 0);
-            size_t remain_tick = item->u_inv_tick & wheel_ticks_mask(item->w_wheel_idx);
 
             if (item->w_wheel_idx == min_level_wheel ||
-                remain_tick == 0)
+                (item->u_inv_tick & wheel_ticks_mask(item->w_wheel_idx)) == 0)
             {//最低层轮子上的定时器被触发了;或者上层轮子的临界点定时器直接触发.
                 if (item->u_repeat != (uint16_t)-1)
                     --item->u_repeat;                       //减少重复次数
@@ -315,10 +315,12 @@ namespace rx
                     m_timer_remove(item);                   //如果重复计数为0则删除当前定时器条目
                 else
                     m_timer_update(item,item->u_inv_tick);  //需要重新调整当前定时器条目的新位置了
+                return true;
             }
             else
             {//上层轮子上的定时器需要进行降级处理
-                m_timer_update(item,remain_tick);
+                m_timer_update(item,item->u_inv_tick & wheel_ticks_mask(item->w_wheel_idx-1));
+                return false;
             }
         }
 
@@ -341,7 +343,7 @@ namespace rx
                 {
                     if (inv_tick >> wheel_ticks_shift(i - 1))
                     {//周期滴答数在当前层的下一层轮子上有溢出,则需要挂接到当前层
-                        uint8_t offset = uint8_t((inv_tick & wheel_ticks_mask(i)) >> wheel_ticks_mask(i-1));
+                        uint8_t offset = uint8_t((inv_tick & wheel_ticks_mask(i)) >> wheel_ticks_shift(i-1));
                         wheel_idx = i;
                         slot_idx = m_wheels[wheel_idx].slot_ptr() + offset;
                         return 0;
