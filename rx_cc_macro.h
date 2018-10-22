@@ -448,7 +448,7 @@
 
     //-----------------------------------------------------
     //静态断言的实现(基于位域尺寸不能为0的特性,再结合结构体类型定义.)
-    #define rx_static_assert(cond) struct RX_CT_SYM(rx_static_assert) {char static_assert_fail:cond;}
+    #define rx_static_assert(cond) struct RX_CT_SYM(rx_static_assert) {char static_assert_fail:(cond);}
 
     //-----------------------------------------------------
     //用于进行宏默认参数的值替代
