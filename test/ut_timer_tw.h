@@ -3,6 +3,7 @@
 
 #include "../rx_tdd.h"
 #include "../rx_timer_tw.h"
+#include "../rx_hash_rand.h"
 
 class ut_timer_tw_result
 {
@@ -147,8 +148,55 @@ inline void ut_timer_tw_base3(rx_tdd_t &rt)
     rt.tdd_assert(tr.hits == 6);
 }
 
+template<uint32_t wheels>
+inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit,uint32_t timer_count)
+{
+    ut_timer_tw_result tr;
+    rx::timing_wheel_t<wheels> w;
+    rx::rand_skeeto_bsa_t rnd;
+    uint64_t curr_time = 0;
+    uint32_t need_hits=0;
+
+    size_t h;
+    rt.tdd_assert(w.wheels_init(curr_time));
+    uint32_t err_count=0;
+
+    uint32_t inv=rnd.get(inv_limit);
+    uint32_t hc=rnd.get(hit_limit);
+
+    need_hits+=hc;
+    h=w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), inv, 0, hc);
+    if (h==0)
+        ++err_count;
+
+    uint32_t hits=0;
+    uint32_t lc=0;
+    uint32_t mkc=timer_count;
+    while(hits<need_hits)
+    {
+        ++lc;
+        if (mkc)
+        {
+            --mkc;
+            inv=rnd.get(inv_limit,1);
+            hc=rnd.get(hit_limit,1);
+
+            need_hits+=hc;
+            h=w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), inv, 0, hc);
+            if (h==0)
+                ++err_count;
+        }
+        hits+=w.wheels_step(++curr_time);
+    }
+    rt.tdd_assert(need_hits==tr.hits);
+    printf("inv_limit=%d,hit_limit=%d,timer_count=%d,total_hits=%d,loop_count=%d,err=%d\n",inv_limit,hit_limit,timer_count,need_hits,lc,err_count);
+
+}
+
 rx_tdd(ut_timer_base)
 {
+    ut_timer_tw_base4<2>(*this,1000*30,100,0);
+
     ut_timer_tw_base2<1>(*this);
 
     ut_timer_tw_base1<1>(*this,2);
@@ -210,6 +258,20 @@ rx_tdd(ut_timer_base)
     ut_timer_tw_base3<2>(*this);
     ut_timer_tw_base3<3>(*this);
     ut_timer_tw_base3<4>(*this);
+
+    ut_timer_tw_base4<1>(*this,1000*30,100,100);
+    ut_timer_tw_base4<1>(*this,1000*30,100,1000);
+    ut_timer_tw_base4<1>(*this,1000*30,100,10000);
+
+    ut_timer_tw_base4<2>(*this,1000*30,100,10);
+    ut_timer_tw_base4<2>(*this,1000*30,100,1000);
+    ut_timer_tw_base4<2>(*this,1000*30,100,10000);
+    ut_timer_tw_base4<3>(*this,1000*30,100,100);
+    ut_timer_tw_base4<3>(*this,1000*30,100,1000);
+    ut_timer_tw_base4<3>(*this,1000*30,100,10000);
+    ut_timer_tw_base4<4>(*this,1000*30,100,100);
+    ut_timer_tw_base4<4>(*this,1000*30,100,1000);
+    ut_timer_tw_base4<4>(*this,1000*30,100,10000);
 
 }
 

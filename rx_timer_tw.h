@@ -359,10 +359,9 @@ namespace rx
                 //计算周期滴答数在当前层的下一层轮子上的溢出倍数
                 size_t over=TW_DIV(inv_tick,i - 1);
                 if (over)
-                {//如果在下层有溢出,则需要挂接到当前层
-                    uint8_t offset = uint8_t(over-1);
+                {//如果安装在下层有溢出,则需要挂接到当前层
                     wheel_idx = i;
-                    slot_idx = m_wheels[wheel_idx].slot_ptr() + offset;
+                    slot_idx = m_wheels[wheel_idx].slot_ptr() + over-1;
                     return;
                 }
             }
@@ -411,7 +410,7 @@ namespace rx
         }
 
         //-------------------------------------------------
-        //刷新定时器条目,等待新的开始或继续
+        //刷新定时器条目,等待新的开始或轮子降级
         bool m_timer_update(tw::timer_item_t *item, bool is_reset)
         {
             rx_assert(item->w_slot_idx < tw::wheel_slots);
@@ -419,21 +418,23 @@ namespace rx
             rx_assert(item->w_wheel_idx < wheel_count);
 
 
-            uint32_t remain_tick;
+            uint32_t inv_tick;
             if (is_reset)
             {
-                remain_tick = item->u_inv_tick;
+                inv_tick = item->u_inv_tick;
                 item->c_dst_tick = m_curr_tick + item->u_inv_tick;     //定时器重置,准备下一个周期触发
             }
             else
             {
-                remain_tick = uint32_t(item->c_dst_tick - m_curr_tick);
+                inv_tick = uint32_t(item->c_dst_tick - m_curr_tick);
             }
 
             uint8_t wheel_idx;
             uint8_t slot_idx;
             //计算新位置
-            m_calc_item_pos(remain_tick, wheel_idx, slot_idx);
+            m_calc_item_pos(inv_tick, wheel_idx, slot_idx);
+            if (is_reset)
+                ++slot_idx;
 
             if (wheel_idx == item->w_wheel_idx)
             {//如果新位置和旧位置都在一个轮子上,则直接进行移动处理
