@@ -9,14 +9,14 @@ class ut_timer_tw_result
 public:
     uint64_t    hits;
     ut_timer_tw_result():hits(0){}
-    void on_timer(size_t handle, uint32_t event_code, uint16_t repeat)
+    void on_timer(size_t handle, uint32_t event_code, uint32_t repeat)
     {
         ++hits;
     }
 };
 
 template<uint32_t wheels>
-inline void ut_timer_tw_base0(rx_tdd_t &rt,uint32_t cycle)
+inline void ut_timer_tw_base1(rx_tdd_t &rt,uint32_t cycle)
 {
     ut_timer_tw_result tr;
     rx::timing_wheel_t<wheels> w;
@@ -37,7 +37,7 @@ inline void ut_timer_tw_base0(rx_tdd_t &rt,uint32_t cycle)
 }
 
 template<uint32_t wheels>
-inline void ut_timer_tw_base1(rx_tdd_t &rt)
+inline void ut_timer_tw_base2(rx_tdd_t &rt)
 {
     ut_timer_tw_result tr;
     rx::timing_wheel_t<wheels> w;
@@ -70,16 +70,16 @@ inline void ut_timer_tw_base1(rx_tdd_t &rt)
     rt.tdd_assert(h > 0);
     curr_time += 255;
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
-    rt.tdd_assert(tr.hits == 3);
+    rt.tdd_assert(tr.hits == 2);
     rt.tdd_assert(w.wheels_step(++curr_time) == 1);
-    rt.tdd_assert(tr.hits == 4);
+    rt.tdd_assert(tr.hits == 3);
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
-    rt.tdd_assert(tr.hits == 4);
+    rt.tdd_assert(tr.hits == 3);
 }
 
 
 template<uint32_t wheels>
-inline void ut_timer_tw_base(rx_tdd_t &rt)
+inline void ut_timer_tw_base3(rx_tdd_t &rt)
 {
     ut_timer_tw_result tr;
     rx::timing_wheel_t<wheels> w;
@@ -149,52 +149,86 @@ inline void ut_timer_tw_base(rx_tdd_t &rt)
 
 rx_tdd(ut_timer_base)
 {
-    ut_timer_tw_base0<1>(*this,2);
-    ut_timer_tw_base0<2>(*this,2);
-    ut_timer_tw_base0<3>(*this,2);
-    ut_timer_tw_base0<4>(*this,2);
+    ut_timer_tw_base2<1>(*this);
 
-    ut_timer_tw_base0<1>(*this,257);
-    ut_timer_tw_base0<2>(*this,257);
-    ut_timer_tw_base0<3>(*this,257);
-    ut_timer_tw_base0<4>(*this,257);
+    ut_timer_tw_base1<1>(*this,2);
+    ut_timer_tw_base1<2>(*this,2);
+    ut_timer_tw_base1<3>(*this,2);
+    ut_timer_tw_base1<4>(*this,2);
 
-    ut_timer_tw_base0<1>(*this,256);
-    ut_timer_tw_base0<2>(*this,256);
-    ut_timer_tw_base0<3>(*this,256);
-    ut_timer_tw_base0<4>(*this,256);
+    ut_timer_tw_base1<1>(*this,257);
+    ut_timer_tw_base1<2>(*this,257);
+    ut_timer_tw_base1<3>(*this,257);
+    ut_timer_tw_base1<4>(*this,257);
 
-    ut_timer_tw_base0<1>(*this,255);
-    ut_timer_tw_base0<2>(*this,255);
-    ut_timer_tw_base0<3>(*this,255);
-    ut_timer_tw_base0<4>(*this,255);
+    ut_timer_tw_base1<1>(*this,256);
+    ut_timer_tw_base1<2>(*this,256);
+    ut_timer_tw_base1<3>(*this,256);
+    ut_timer_tw_base1<4>(*this,256);
 
-    ut_timer_tw_base0<1>(*this,511);
-    ut_timer_tw_base0<2>(*this,511);
-    ut_timer_tw_base0<3>(*this,511);
-    ut_timer_tw_base0<4>(*this,511);
+    ut_timer_tw_base1<1>(*this,255);
+    ut_timer_tw_base1<2>(*this,255);
+    ut_timer_tw_base1<3>(*this,255);
+    ut_timer_tw_base1<4>(*this,255);
 
-    ut_timer_tw_base0<1>(*this,512);
-    ut_timer_tw_base0<2>(*this,512);
-    ut_timer_tw_base0<3>(*this,512);
-    ut_timer_tw_base0<4>(*this,512);
+    ut_timer_tw_base1<1>(*this,511);
+    ut_timer_tw_base1<2>(*this,511);
+    ut_timer_tw_base1<3>(*this,511);
+    ut_timer_tw_base1<4>(*this,511);
 
-    ut_timer_tw_base0<1>(*this,513);
-    ut_timer_tw_base0<2>(*this,513);
-    ut_timer_tw_base0<3>(*this,513);
-    ut_timer_tw_base0<4>(*this,513);
+    ut_timer_tw_base1<1>(*this,512);
+    ut_timer_tw_base1<2>(*this,512);
+    ut_timer_tw_base1<3>(*this,512);
+    ut_timer_tw_base1<4>(*this,512);
 
-    for(uint32_t i=2;i<256*256+1024;++i)
-    {
-        ut_timer_tw_base0<1>(*this,i);
-        ut_timer_tw_base0<2>(*this,i);
-        ut_timer_tw_base0<3>(*this,i);
-        ut_timer_tw_base0<4>(*this,i);
-    }
-    //ut_timer_tw_base<1>(*this);
-    //ut_timer_tw_base<2>(*this);
-    //ut_timer_tw_base<3>(*this);
-    //ut_timer_tw_base<4>(*this);
+    ut_timer_tw_base1<1>(*this,513);
+    ut_timer_tw_base1<2>(*this,513);
+    ut_timer_tw_base1<3>(*this,513);
+    ut_timer_tw_base1<4>(*this,513);
+
+    ut_timer_tw_base1<1>(*this,256*256-1);
+    ut_timer_tw_base1<2>(*this,256*256-1);
+    ut_timer_tw_base1<3>(*this,256*256-1);
+    ut_timer_tw_base1<4>(*this,256*256-1);
+
+    ut_timer_tw_base1<1>(*this,256*256);
+    ut_timer_tw_base1<2>(*this,256*256);
+    ut_timer_tw_base1<3>(*this,256*256);
+    ut_timer_tw_base1<4>(*this,256*256);
+
+    ut_timer_tw_base1<1>(*this,256*256+1);
+    ut_timer_tw_base1<2>(*this,256*256+1);
+    ut_timer_tw_base1<3>(*this,256*256+1);
+    ut_timer_tw_base1<4>(*this,256*256+1);
+
+    ut_timer_tw_base2<1>(*this);
+    ut_timer_tw_base2<2>(*this);
+    ut_timer_tw_base2<3>(*this);
+    ut_timer_tw_base2<4>(*this);
+
+    ut_timer_tw_base3<1>(*this);
+    ut_timer_tw_base3<2>(*this);
+    ut_timer_tw_base3<3>(*this);
+    ut_timer_tw_base3<4>(*this);
+
 }
 
+rx_tdd_rtl(ut_timer_base,tdd_level_slow)
+{
+    for (uint32_t i = 2; i<256 * 256; ++i)
+    {
+        ut_timer_tw_base1<1>(*this, i);
+        ut_timer_tw_base1<2>(*this, i);
+        ut_timer_tw_base1<3>(*this, i);
+        ut_timer_tw_base1<4>(*this, i);
+    }
+
+    for (uint32_t i = 256 * 256; i< 256 * 256 + 1024; ++i)
+    {
+        ut_timer_tw_base1<1>(*this, i);
+        ut_timer_tw_base1<2>(*this, i);
+        ut_timer_tw_base1<3>(*this, i);
+        ut_timer_tw_base1<4>(*this, i);
+    }
+}
 #endif
