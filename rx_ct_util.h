@@ -244,7 +244,7 @@ namespace rx
 
     //=====================================================
     //取一个结构体T的成员F的相对于结构体起始地址的偏移量
-    #define field_offset(type,field) (uint32_t)(&((type*)0)->field)
+    #define field_offset(type,field) (size_t)(&((type*)0)->field)
     
     //得到结构体T中F1字段开始到F2之前字段的空间占用尺寸(就是F1实际占用的尺寸)
     #define field_size(type,field1,field2) ((field_offset(type,field2))-(field_offset(type,field1)))
