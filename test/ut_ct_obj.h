@@ -180,6 +180,32 @@ public:
     tmp_tst_obj_2(int v):tmp_tst_obj_1(v){}
 };
 
+typedef struct ut_tmp_struct
+{
+    uint64_t f1;
+    uint32_t f2;
+    uint16_t f3;
+    uint8_t  f4;
+    uint8_t  f5;
+}ut_tmp_struct;
+
+//---------------------------------------------------------
+void test_ct_struct_macro(rx_tdd_t &rt)
+{
+    rx_static_assert(field_offset(ut_tmp_struct, f1) == 0);
+    rx_static_assert(field_offset(ut_tmp_struct, f2) == 8);
+    rx_static_assert(field_offset(ut_tmp_struct, f3) == 12);
+    rx_static_assert(field_offset(ut_tmp_struct, f4) == 14);
+
+    rx_static_assert(field_size(ut_tmp_struct, f1, f2) == 8);
+    rx_static_assert(field_size(ut_tmp_struct, f3, f4) == 2);
+
+    ut_tmp_struct ut_tmp_s1;
+    rt.tdd_assert(struct_head(&ut_tmp_s1.f1, ut_tmp_struct, f1) == &ut_tmp_s1);
+    rt.tdd_assert(struct_head(&ut_tmp_s1.f2, ut_tmp_struct, f2) == &ut_tmp_s1);
+    rt.tdd_assert(struct_head(&ut_tmp_s1.f4, ut_tmp_struct, f4) == &ut_tmp_s1);
+}
+
 //---------------------------------------------------------
 rx_tdd(tmp_obj)
 {

@@ -29,7 +29,6 @@
 #include "../../rx_tdd_tick.h"
 
 
-
 #include "../ut_mem_alloc.h"
 #include "../ut_mem_pool_h4.h"
 #include "../../rx_mem_pool_h4.h"

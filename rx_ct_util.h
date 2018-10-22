@@ -123,13 +123,16 @@ namespace rx
     //自定义实现最大值最小值比较功能
     //=====================================================
     template <class T>
-    inline const T& Min(const T& ValueA, const T& ValueB) { return ValueB < ValueA ? ValueB : ValueA; }
+    inline const T& Min(const T& A, const T& B) { return B < A ? B : A; }
     template <class T>
-    inline const T& Max(const T& ValueA, const T& ValueB) {  return  ValueA < ValueB ? ValueB : ValueA; }
+    inline const T& Max(const T& A, const T& B) {  return  A < B ? B : A; }
     template <class T>
-    inline const T& Min(const T& ValueA, const T& ValueB,const T& ValueC) { return Min(Min(ValueA,ValueB),ValueC); }
+    inline const T& Min(const T& A, const T& B,const T& ValueC) { return Min(Min(A,B),ValueC); }
     template <class T>
-    inline const T& Max(const T& ValueA, const T& ValueB,const T& ValueC) { return Max(Max(ValueA,ValueB),ValueC); }
+    inline const T& Max(const T& A, const T& B,const T& ValueC) { return Max(Max(A,B),ValueC); }
+
+    template <class T>
+    inline void Swap(const T& A, const T& B) { T C(A); A = B; B = C; }
 
     //=====================================================
     //静态函数,计算Log2(num),其中num必须是2的整数次幂
@@ -205,7 +208,7 @@ namespace rx
     template<>class POW2<30> { public:enum { result = 0x40000000 }; };
     template<>class POW2<31> { public:enum { result = 0x80000000 }; };
 
-    //-----------------------------------------------------
+    //=====================================================
     //计算指定n的阶乘(n<=170)
     inline double factorial(uint8_t n)
     {
@@ -215,6 +218,7 @@ namespace rx
             result *= n--;
         return result;
     }
+
     //=====================================================
     //尺寸向上对齐处理
     //=====================================================
@@ -238,14 +242,21 @@ namespace rx
     //根据数据类型计算其尺寸并将其向上以8字节边界对齐
     #define type_align8(T) size_align8(sizeof(T))
 
-    //取一个结构体T的成员F的相对于结构体的偏移量
-    #define struct_offset(T,F) (uint32_t)(&((T*)0)->F)
-    //得到结构体T中F1字段开始到F2之前字段的空间占用尺寸
-    #define field_size(T,F1,F2) ((struct_offset(T,F2))-(struct_offset(T,F1)))
+    //=====================================================
+    //取一个结构体T的成员F的相对于结构体起始地址的偏移量
+    #define field_offset(type,field) (uint32_t)(&((type*)0)->field)
+    
+    //得到结构体T中F1字段开始到F2之前字段的空间占用尺寸(就是F1实际占用的尺寸)
+    #define field_size(type,field1,field2) ((field_offset(type,field2))-(field_offset(type,field1)))
 
+    //根据type类型中field字段的指针ptr,获取这个type的首地址
+    #define struct_head(ptr, type, field) (type *)( (char *)ptr - field_offset(type,field) )
+
+    //=====================================================
     //语法糖,禁止对象拷贝的快捷宏定义
     #define dont_copy(CN) const CN& operator=(const CN&)
 
+    //=====================================================
     //浮点数向上对齐获取整数
     inline uint32_t round_up(const double &num)
     {
