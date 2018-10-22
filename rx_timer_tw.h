@@ -58,7 +58,7 @@ namespace rx
         //对V进行'指定轮子层级I'的滴答数的取模运算
         #define TW_MOD(V,I) (size_t(V) & tw::ticks_mask(I))
         //判断目标滴答V与当前滴答C的差是否小于'指定轮子层级I'的满圈滴答
-        #define TW_DIF(V,C,I) (C==V||(C<V)&&(V-C-1)<(tw::ticks_mask(I)))
+        #define TW_DIF(V,C,I) (C==V||((C<V)&&(V-C-1)<(tw::ticks_mask(I))))
 
         //-------------------------------------------------
         //内部定时器信息项
@@ -70,7 +70,7 @@ namespace rx
             timer_tw_cb_t         u_cb_func;                //定时器委托回调
             item_list_t::iterator w_slot_link;              //记录本节点在时间槽链表中的位置,结合slot_idx便于反向查找
             uint64_t              c_dst_tick;               //应该触发的目标滴答数
-            size_t                u_inv_tick;               //定时间隔滴答数
+            uint32_t              u_inv_tick;               //定时间隔滴答数
             uint32_t              u_event_code;             //用户给定的事件码
             uint32_t              u_repeat;                 //重复执行次数,-1为永远执行
             uint8_t               w_wheel_idx;              //本条目所属的轮子编号
@@ -373,7 +373,7 @@ namespace rx
 
         //-------------------------------------------------
         //创建定时器条目
-        tw::timer_item_t* m_timer_create(size_t inv_tick, uint32_t event_code, uint32_t repeat)
+        tw::timer_item_t* m_timer_create(uint32_t inv_tick, uint32_t event_code, uint32_t repeat)
         {
             tw::timer_item_t *item = m_items_cache.get();
             if (!item) return NULL;
@@ -418,8 +418,8 @@ namespace rx
             rx_assert(item->w_slot_link != NULL);
             rx_assert(item->w_wheel_idx < wheel_count);
 
-            
-            size_t remain_tick;
+
+            uint32_t remain_tick;
             if (is_reset)
             {
                 remain_tick = item->u_inv_tick;
@@ -427,7 +427,7 @@ namespace rx
             }
             else
             {
-                remain_tick = size_t(item->c_dst_tick - m_curr_tick);
+                remain_tick = uint32_t(item->c_dst_tick - m_curr_tick);
             }
 
             uint8_t wheel_idx;
@@ -538,7 +538,7 @@ namespace rx
         //-------------------------------------------------
         //创建一个新的定时器:回调函数指针;回调参数;间隔滴答数(*tick_unit_ms后为间隔时间ms);事件码;重复次数
         //返回值:0失败;其他为定时器句柄.
-        size_t timer_insert(timer_tw_func_t func,void* usrdat, size_t inv_tick, uint32_t event_code=0, uint32_t repeat=-1)
+        size_t timer_insert(timer_tw_func_t func,void* usrdat, uint32_t inv_tick, uint32_t event_code=0, uint32_t repeat=-1)
         {
             if (repeat == 0) return 0;
 
@@ -549,7 +549,7 @@ namespace rx
             return item->handle();
         }
         template<class H>
-        size_t timer_insert(H& owner, void(H::*member_func)(size_t handle, uint32_t event_code, uint32_t repeat), size_t inv_tick, uint32_t event_code = 0, uint32_t repeat = -1)
+        size_t timer_insert(H& owner, void(H::*member_func)(size_t handle, uint32_t event_code, uint32_t repeat), uint32_t inv_tick, uint32_t event_code = 0, uint32_t repeat = -1)
         {
             if (repeat == 0) return 0;
 

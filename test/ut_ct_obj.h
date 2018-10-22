@@ -192,13 +192,13 @@ typedef struct ut_tmp_struct
 //---------------------------------------------------------
 void test_ct_struct_macro(rx_tdd_t &rt)
 {
-    rx_static_assert(field_offset(ut_tmp_struct, f1) == 0);
-    rx_static_assert(field_offset(ut_tmp_struct, f2) == 8);
-    rx_static_assert(field_offset(ut_tmp_struct, f3) == 12);
-    rx_static_assert(field_offset(ut_tmp_struct, f4) == 14);
+    rt.tdd_assert(field_offset(ut_tmp_struct, f1) == 0);
+    rt.tdd_assert(field_offset(ut_tmp_struct, f2) == 8);
+    rt.tdd_assert(field_offset(ut_tmp_struct, f3) == 12);
+    rt.tdd_assert(field_offset(ut_tmp_struct, f4) == 14);
 
-    rx_static_assert(field_size(ut_tmp_struct, f1, f2) == 8);
-    rx_static_assert(field_size(ut_tmp_struct, f3, f4) == 2);
+    rt.tdd_assert(field_size(ut_tmp_struct, f1, f2) == 8);
+    rt.tdd_assert(field_size(ut_tmp_struct, f3, f4) == 2);
 
     ut_tmp_struct ut_tmp_s1;
     rt.tdd_assert(struct_head(&ut_tmp_s1.f1, ut_tmp_struct, f1) == &ut_tmp_s1);
@@ -209,6 +209,8 @@ void test_ct_struct_macro(rx_tdd_t &rt)
 //---------------------------------------------------------
 rx_tdd(tmp_obj)
 {
+    test_ct_struct_macro(*this);
+
     rx_ut::test_delegate_base_1(*this);
     rx_ut::test_delegate_base_2(*this);
     rx_ut::test_delegate_base_3(*this);
