@@ -157,6 +157,8 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
     uint64_t curr_time = 0;
     uint32_t need_hits=0;
 
+    printf("wheels=%d,inv_limit=%d,hit_limit=%d,timer_count=%d:", wheels, inv_limit, hit_limit, timer_count);
+
     size_t h;
     rt.tdd_assert(w.wheels_init(curr_time));
     uint32_t err_count=0;
@@ -186,17 +188,18 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
             if (h==0)
                 ++err_count;
         }
-        hits+=w.wheels_step(++curr_time);
+        uint32_t r = w.wheels_step(++curr_time);
+        if (r)
+            hits += r;
+
+        rx_assert_if(w.timer_count() == 0, hits==need_hits);
     }
     rt.tdd_assert(need_hits==tr.hits);
-    printf("inv_limit=%d,hit_limit=%d,timer_count=%d,total_hits=%d,loop_count=%d,err=%d\n",inv_limit,hit_limit,timer_count,need_hits,lc,err_count);
-
+    printf("total_hits=%d,loop_count=%d,err=%d\n", need_hits,lc,err_count);
 }
 
 rx_tdd(ut_timer_base)
 {
-    ut_timer_tw_base4<2>(*this,1000*30,100,0);
-
     ut_timer_tw_base2<1>(*this);
 
     ut_timer_tw_base1<1>(*this,2);
@@ -263,16 +266,17 @@ rx_tdd(ut_timer_base)
     ut_timer_tw_base4<1>(*this,1000*30,100,1000);
     ut_timer_tw_base4<1>(*this,1000*30,100,10000);
 
-    ut_timer_tw_base4<2>(*this,1000*30,100,10);
+    ut_timer_tw_base4<2>(*this,1000*30,100,100);
     ut_timer_tw_base4<2>(*this,1000*30,100,1000);
     ut_timer_tw_base4<2>(*this,1000*30,100,10000);
+
     ut_timer_tw_base4<3>(*this,1000*30,100,100);
     ut_timer_tw_base4<3>(*this,1000*30,100,1000);
     ut_timer_tw_base4<3>(*this,1000*30,100,10000);
+
     ut_timer_tw_base4<4>(*this,1000*30,100,100);
     ut_timer_tw_base4<4>(*this,1000*30,100,1000);
     ut_timer_tw_base4<4>(*this,1000*30,100,10000);
-
 }
 
 rx_tdd_rtl(ut_timer_base,tdd_level_slow)

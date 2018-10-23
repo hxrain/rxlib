@@ -102,7 +102,6 @@ using namespace std;
 
 int main()
 {
-    rx_show_msg("%d,%d",sizeof(rx::tw::timer_item_t),field_offset(rx::tw::timer_item_t,w_wheel_idx));
     cout << "ÄãºÃHello world!\n" << rx_cc_desc() << endl << endl;
     rx_static_assert(1);
 
