@@ -12,6 +12,8 @@
 
 namespace rx
 {
+    #define tdd_tt_enable true                              //默认tdd计时是否开启
+
     //-----------------------------------------------------
     //滴答增量计时器,用于记录代码段执行用时
     template<class tick_type=rx_tick_us_t>
@@ -26,6 +28,9 @@ namespace rx
         uint32_t     m_tab_deep;                            //打印输出时,进行hit层次化缩进深度处理
         const char*  m_file;
         uint32_t     m_lineno;
+        uint32_t     m_last_hit_elapsed;
+        uint32_t     m_total_elapsed;
+        uint64_t     m_last_hit_time;
     public:
         //-------------------------------------------------
         //构造函数,传入时间戳的限定值和消息提示
@@ -46,28 +51,52 @@ namespace rx
             m_file  = (file==NULL?"":file);
             m_lineno= lineno;
             m_tab_deep=0;
+            m_last_hit_elapsed  = 0;
+            m_total_elapsed  = 0;
+            m_last_hit_time = m_begin_tick;
         }
+        //-------------------------------------------------
         uint32_t &tab_deep() {return m_tab_deep;}
+        //最后一次hit之前的耗时
+        uint32_t last_hit_elapsed() { return m_last_hit_elapsed ; }
+        //执行到end之后的总耗时
+        uint32_t total_end_elapsed() { return m_total_elapsed ; }
+        //最后hit动作的时间点
+        uint64_t last_hit_time() {return m_last_hit_time;}
+        //获取当前时间点
+        uint64_t curr_time() { return m_tick_meter.ticks(); }
+        const char* msg_a() { return m_msg_a; }
         //-------------------------------------------------
         //进行计时的中间动作
-        void hit(const char* msg_c=NULL,const char* file=NULL,int lineno=0)
+        uint64_t hit()
+        {
+            if (!m_enable)
+                return 0;
+            m_last_hit_time =m_tick_meter.count();
+            m_last_hit_elapsed  =uint32_t(m_tick_meter.update() - m_last_hit_time);
+            return m_tick_meter.count();
+        }
+        //-------------------------------------------------
+        //显示输出最后动作耗时
+        void msg(const char* file = NULL, int lineno = 0, const char* msg_c = NULL, ...)
         {
             if (!m_enable)
                 return;
-            uint64_t prv_tick=m_tick_meter.count();
-            uint32_t dt=uint32_t(m_tick_meter.update()-prv_tick);
-            if (dt<m_expend_limit)
-                return;
 
             char tab_str[32];
-            uint32_t tab_deep=m_tab_deep+1;
-            if (tab_deep>sizeof(tab_str)-1)
-                tab_deep=sizeof(tab_str)-1;
-            memset(tab_str,'.',tab_deep);
-            tab_str[tab_deep]=0;
+            uint32_t tab_deep = m_tab_deep + 1;
+            if (tab_deep>sizeof(tab_str) - 1)
+                tab_deep = sizeof(tab_str) - 1;
+            memset(tab_str, '.', tab_deep);
+            tab_str[tab_deep] = 0;
+
+            va_list ap;
+            va_start(ap, msg_c);
+            char tmp1[512];
+            vsnprintf(tmp1, sizeof(tmp1), msg_c, ap);
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:hit:%s (%.1f)ms {%s} : (%s:%u).",m_msg_a,tab_str,dt / 1000.0,msg_c,file,lineno);
+            snprintf(tmp, sizeof(tmp), "<tdd_tt>{ %s }:hit:%s (%.1f)ms {%s} : (%s:%u).", m_msg_a, tab_str, m_last_hit_elapsed  / 1000.0, tmp1, file, lineno);
             on_output(tmp);
         }
         //-------------------------------------------------
@@ -76,12 +105,12 @@ namespace rx
         {
             if (!m_enable)
                 return;
-            uint32_t dt=uint32_t(m_tick_meter.update()-m_begin_tick);
-            if (dt<m_expend_limit)
+            m_total_elapsed  =uint32_t(m_tick_meter.update()-m_begin_tick);
+            if (m_total_elapsed <m_expend_limit)
                 return;
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:all: (%.1f)ms {%s} : (%s:%u).",m_msg_a,dt/1000.0,m_msg_b,m_file,m_lineno);
+            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:all: (%.1f)ms {%s} : (%s:%u).",m_msg_a, m_total_elapsed /1000.0,m_msg_b,m_file,m_lineno);
             on_output(tmp);
             m_enable=false;
         }
@@ -91,48 +120,143 @@ namespace rx
         {
             end();
         }
-    protected:
         virtual void on_output(const char* str) {puts(str);}
     };
 
     //-----------------------------------------------------
     //进行滴答计时的tab深度管理,同时简化输出时的参数数量
     template<class tt=tdd_tick_t<> >
-    class tdd_tick_guard_t
+    class tdd_tick_tab_t
     {
         tt  &m_tdd_tick;
+        const char* m_file;
+        uint32_t m_lineno;
+        char m_msg[128];
     public:
         //-------------------------------------------------
-        tdd_tick_guard_t(tt& tc,const char* file,uint32_t lineno,const char* fmt,...):m_tdd_tick(tc)
+        tdd_tick_tab_t(tt& tc,const char* file=NULL,uint32_t lineno=0,const char* msg_c=NULL,...):m_tdd_tick(tc)
         {
+            m_file = file;
+            m_lineno = lineno;
+
             va_list ap;
-            va_start(ap,fmt);
-            char msg_c[256];
-            vsnprintf(msg_c,sizeof(msg_c),fmt,ap);
-            m_tdd_tick.hit(msg_c,file,lineno);
-            va_end(ap);
+            va_start(ap, msg_c);
+            vsnprintf(m_msg,sizeof(m_msg),msg_c,ap);
 
             ++m_tdd_tick.tab_deep();
         }
-        ~tdd_tick_guard_t() {--m_tdd_tick.tab_deep();}
+        ~tdd_tick_tab_t()
+        {
+            m_tdd_tick.hit();
+            m_tdd_tick.msg(m_file, m_lineno, m_msg);
+
+            --m_tdd_tick.tab_deep();
+        }
+    };
+
+    //-----------------------------------------------------
+    //进行滴答计时的for循环处理,统计总时间和平均时间
+    template<class tt = tdd_tick_t<> >
+    class tdd_tick_for_t
+    {
+        tt          &m_tdd_tick;
+        uint32_t    m_for_count;
+        uint32_t    m_for_idx;
+        uint64_t    m_begin_time;
+        const char* m_file;
+        uint32_t    m_lineno;
+        char        m_msg[128];
+
+    public:
+        //-------------------------------------------------
+        tdd_tick_for_t(tt& tc, uint32_t count,const char* file, uint32_t lineno, const char* fmt, ...) :m_tdd_tick(tc)
+        {
+            m_file = file;
+            m_lineno = lineno;
+
+            m_for_count = count;
+            m_for_idx = 0;
+            m_begin_time = m_tdd_tick.curr_time();
+            
+            va_list ap;
+            va_start(ap, fmt);
+            vsnprintf(m_msg, sizeof(m_msg), fmt, ap);
+
+            ++m_tdd_tick.tab_deep();
+        }
+        ~tdd_tick_for_t() 
+        { 
+            uint32_t usetime = uint32_t(m_tdd_tick.curr_time() - m_begin_time);
+
+            char tab_str[32];
+            uint32_t tab_deep = m_tdd_tick.tab_deep() + 1;
+            if (tab_deep>sizeof(tab_str) - 1)
+                tab_deep = sizeof(tab_str) - 1;
+            memset(tab_str, '.', tab_deep);
+            tab_str[tab_deep] = 0;
+
+            char tmp[512];
+
+            double total_ms = usetime / 1000.0;
+            snprintf(tmp, sizeof(tmp), "<tdd_for>{ %s }: %s all(%.1f)ms/%d=%.1f {%s} : (%s:%u).", m_tdd_tick.msg_a(), tab_str, total_ms,m_for_count,total_ms/m_for_count, m_msg, m_file, m_lineno);
+            m_tdd_tick.on_output(tmp);
+
+            --m_tdd_tick.tab_deep(); 
+        }
+        //-------------------------------------------------
+        bool step()
+        {
+            return (++m_for_idx <= m_for_count);
+        }
     };
 }
 
 //-----------------------------------------------------
-#define tdd_tt_enable true                              //默认tdd计时是否开启
-#define tdd_tt_limit 0                                  //默认tdd计时的超时限定值
 
-//用来定义一个tt滴答计时对象,可以给出完整的参数
-#define tdd_tt_desc(sym,msg_a,msg_b,limit) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,limit,msg_a,msg_b,__FILE__,__LINE__)
-//用于简化定义一个tt滴答计时对象,用时限制使用默认值
-#define tdd_tt(sym,msg_a,msg_b) tdd_tt_desc(sym,msg_a,msg_b,tdd_tt_limit)
-#define tt(msg_a) tdd_tt(tt,msg_a,"")
+//用来定义一个滴答计时对象,可以给出完整的参数
+#define tdd_tt(sym,msg_a,msg_b,...) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,macro_def_argv<uint32_t>::value(__VA_ARGS__) ,msg_a,msg_b,__FILE__,__LINE__)
+//触发滴答计时对象的中间过程,计算最后动作的耗时
+#define tdd_tt_hit(sym,msgc,...) {__tdd_tt_obj_##sym.hit();__tdd_tt_obj_##sym.msg(__FILE__,__LINE__,msgc,##__VA_ARGS__);}
 
 //用于简化定义一个tt滴答计时对象的中间可嵌套计时动作
-#define _tdd_tt_hit(sym,dis,fmt,...) rx::tdd_tick_guard_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,fmt,##__VA_ARGS__)
+#define _tdd_tt_tab(sym,dis,msgc,...) rx::tdd_tick_tab_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,msgc,##__VA_ARGS__)
 //中间宏定义,为了进行dis的展开转换
-#define _tdd_tt_hit_(sym,dis,fmt,...) _tdd_tt_hit(sym,dis,fmt,##__VA_ARGS__)
+#define _tdd_tt_tab_(sym,dis,msgc,...) _tdd_tt_tab(sym,dis,msgc,##__VA_ARGS__)
 //定义rx_tdd_rtl宏,用于便捷的建立一个指定名字和运行级的测试用例
-#define tdd_tt_hit(sym,fmt,...) _tdd_tt_hit_(sym,RX_CT_SYM(sym),fmt,##__VA_ARGS__)
+#define tdd_tt_tab(sym,msgc,...) _tdd_tt_tab_(sym,RX_CT_SYM(sym),msgc,##__VA_ARGS__)
+
+//进行多次循环后计算平均执行时间
+#define tdd_tt_for(sym,count,msgc,...) for(rx::tdd_tick_for_t<> __tt_obj(__tdd_tt_obj_##sym,count,__FILE__,__LINE__,msgc,##__VA_ARGS__);__tt_obj.step();)
+
+/*计时滴答的用法示例
+*/
+inline void test_demo()
+{
+    tdd_tt(t,"module_main","module_sub");
+    //do some ...
+    tdd_tt_hit(t, "action1");
+    //do some ...
+    tdd_tt_hit(t, "");
+    //do some ...
+    tdd_tt_hit(t, "action2:%d",1);
+    //do some ...
+    {tdd_tt_tab(t, "action3");
+        //do some ...
+        {tdd_tt_tab(t, "action3.1");
+            //do some ...
+        }
+        {tdd_tt_tab(t, "action3.2:%d",2);
+            //do some ...
+        }
+        tdd_tt_for(t,100,"for action4.%d",1)
+        {
+
+        }
+    }
+    tdd_tt_for(t, 100, "for action5")
+    {
+
+    }
+}
 
 #endif

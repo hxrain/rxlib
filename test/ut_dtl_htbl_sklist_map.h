@@ -29,7 +29,7 @@ inline void ut_map_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* msgb)
         for (uint32_t mi = 0; mi<MaxSize; ++mi)
             cntr.insert(key_op::key(mi), mi);
     }
-    tdd_tt_hit(tt, "MAKE(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
+    tdd_tt_tab(tt, "MAKE(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
 
     //测试2:单次填充
     cntr_t cntr;
@@ -53,7 +53,7 @@ inline void ut_map_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* msgb)
         }
     }
     rt.tdd_assert(rc == LoopCount*MaxSize);
-    tdd_tt_hit(tt, "FIND(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
+    tdd_tt_tab(tt, "FIND(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
 
     //测试4:对容器进行遍历
     rc = 0;
@@ -64,7 +64,7 @@ inline void ut_map_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* msgb)
                 ++rc;
     }
     rt.tdd_assert(rc == LoopCount*MaxSize);
-    tdd_tt_hit(tt, "FOR(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
+    tdd_tt_tab(tt, "FOR(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
 
     //测试5:单次遍历
     rc = 0;
@@ -86,7 +86,7 @@ inline void ut_list_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* msgb)
         cntr.push_back(key_op::key(mi));
 
     rt.tdd_assert(cntr.size()==MaxSize);
-    tdd_tt_hit(tt, "BEGIN(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
+    tdd_tt_tab(tt, "BEGIN(LoopCount=%u,MaxSize=%u)", LoopCount, MaxSize);
 
     //测试2:对容器进行遍历
     uint64_t rc = 0;
@@ -97,7 +97,7 @@ inline void ut_list_cntr_loop_1(rx_tdd_t &rt,const char* msga,const char* msgb)
                 ++rc;
     }
     rt.tdd_assert(rc == LoopCount*MaxSize);
-    tdd_tt_hit(tt,"FOR(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
+    tdd_tt_tab(tt,"FOR(LoopCount=%u,MaxSize=%u)",LoopCount,MaxSize);
 }
 
 //---------------------------------------------------------

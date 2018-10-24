@@ -160,7 +160,7 @@ public:
     void  interval(TickType I) {m_interval=I;}
     //-------------------------------------------------
     //查看当前滴答数
-    TickType TickCount() {return m_tick.count();}
+    TickType ticks() {return m_tick.count();}
     //-------------------------------------------------
     //判断是否到达了指定的定时间隔
     bool is_timing()

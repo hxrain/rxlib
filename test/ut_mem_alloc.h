@@ -64,7 +64,7 @@ public:
                 ma.free(ptr_array[l]);
             }
         }
-        tdd_tt_hit(tt, "array_size=%u,loop_test=%u,max_mem_size=%u", array_size, loop_test, max_mem_size);
+        tdd_tt_tab(tt, "array_size=%u,loop_test=%u,max_mem_size=%u", array_size, loop_test, max_mem_size);
     }
 
 };
