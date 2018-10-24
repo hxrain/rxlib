@@ -10,6 +10,38 @@
 #include <stdlib.h>
 #include <memory.h>
 
+/*
+//计时滴答的用法示例
+inline void tdd_tt_demo()
+{
+    tdd_tt(t,"module_main","module_sub");
+    //do some ...
+    tdd_tt_hit(t, "action1");
+    //do some ...
+    tdd_tt_hit(t, "action2");
+    //do some ...
+    tdd_tt_hit(t, "action3:%d",1);
+    //do some ...
+    {tdd_tt_tab(t, "action4");
+        //do some ...
+        {tdd_tt_tab(t, "action4.1");
+            //do some ...
+        }
+        {tdd_tt_tab(t, "action4.2:%d",2);
+            //do some ...
+        }
+        tdd_tt_for(t,100,"action4.3%d",1)
+        {
+
+        }
+    }
+    tdd_tt_for(t, 100, "for action5")
+    {
+
+    }
+}
+*/
+
 namespace rx
 {
     #define tdd_tt_enable true                              //默认tdd计时是否开启
@@ -78,7 +110,7 @@ namespace rx
         }
         //-------------------------------------------------
         //显示输出最后动作耗时
-        void msg(const char* file = NULL, int lineno = 0, const char* msg_c = NULL, ...)
+        void msg(bool is_hit,const char* file = NULL, int lineno = 0, const char* msg_c = NULL, ...)
         {
             if (!m_enable)
                 return;
@@ -96,7 +128,7 @@ namespace rx
             vsnprintf(tmp1, sizeof(tmp1), msg_c, ap);
 
             char tmp[512];
-            snprintf(tmp, sizeof(tmp), "<tdd_tt>{ %s }:hit:%s (%.1f)ms {%s} : (%s:%u).", m_msg_a, tab_str, m_last_hit_elapsed  / 1000.0, tmp1, file, lineno);
+            snprintf(tmp, sizeof(tmp), "<tdd_tt>{ %s }:%s:%s (%.1f)ms {%s} : (%s:%u).", m_msg_a,(is_hit?"hit":"seg"), tab_str, m_last_hit_elapsed  / 1000.0, tmp1, file, lineno);
             on_output(tmp);
         }
         //-------------------------------------------------
@@ -110,7 +142,7 @@ namespace rx
                 return;
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:all: (%.1f)ms {%s} : (%s:%u).",m_msg_a, m_total_elapsed /1000.0,m_msg_b,m_file,m_lineno);
+            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:end: (%.1f)ms {%s} : (%s:%u).",m_msg_a, m_total_elapsed /1000.0,m_msg_b,m_file,m_lineno);
             on_output(tmp);
             m_enable=false;
         }
@@ -148,7 +180,7 @@ namespace rx
         ~tdd_tick_tab_t()
         {
             m_tdd_tick.hit();
-            m_tdd_tick.msg(m_file, m_lineno, m_msg);
+            m_tdd_tick.msg(false,m_file, m_lineno, m_msg);
 
             --m_tdd_tick.tab_deep();
         }
@@ -181,8 +213,6 @@ namespace rx
             va_list ap;
             va_start(ap, fmt);
             vsnprintf(m_msg, sizeof(m_msg), fmt, ap);
-
-            ++m_tdd_tick.tab_deep();
         }
         ~tdd_tick_for_t() 
         { 
@@ -198,10 +228,8 @@ namespace rx
             char tmp[512];
 
             double total_ms = usetime / 1000.0;
-            snprintf(tmp, sizeof(tmp), "<tdd_for>{ %s }: %s all(%.1f)ms/%d=%.1f {%s} : (%s:%u).", m_tdd_tick.msg_a(), tab_str, total_ms,m_for_count,total_ms/m_for_count, m_msg, m_file, m_lineno);
+            snprintf(tmp, sizeof(tmp), "<tdd_tt>{ %s }:for:%s (%.1f)ms/%d=(%.1f)ms {%s} : (%s:%u).", m_tdd_tick.msg_a(), tab_str, total_ms,m_for_count,total_ms/m_for_count, m_msg, m_file, m_lineno);
             m_tdd_tick.on_output(tmp);
-
-            --m_tdd_tick.tab_deep(); 
         }
         //-------------------------------------------------
         bool step()
@@ -216,7 +244,7 @@ namespace rx
 //用来定义一个滴答计时对象,可以给出完整的参数
 #define tdd_tt(sym,msg_a,msg_b,...) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,macro_def_argv<uint32_t>::value(__VA_ARGS__) ,msg_a,msg_b,__FILE__,__LINE__)
 //触发滴答计时对象的中间过程,计算最后动作的耗时
-#define tdd_tt_hit(sym,msgc,...) {__tdd_tt_obj_##sym.hit();__tdd_tt_obj_##sym.msg(__FILE__,__LINE__,msgc,##__VA_ARGS__);}
+#define tdd_tt_hit(sym,msgc,...) {__tdd_tt_obj_##sym.hit();__tdd_tt_obj_##sym.msg(true,__FILE__,__LINE__,msgc,##__VA_ARGS__);}
 
 //用于简化定义一个tt滴答计时对象的中间可嵌套计时动作
 #define _tdd_tt_tab(sym,dis,msgc,...) rx::tdd_tick_tab_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,msgc,##__VA_ARGS__)
@@ -227,36 +255,5 @@ namespace rx
 
 //进行多次循环后计算平均执行时间
 #define tdd_tt_for(sym,count,msgc,...) for(rx::tdd_tick_for_t<> __tt_obj(__tdd_tt_obj_##sym,count,__FILE__,__LINE__,msgc,##__VA_ARGS__);__tt_obj.step();)
-
-/*计时滴答的用法示例
-*/
-inline void test_demo()
-{
-    tdd_tt(t,"module_main","module_sub");
-    //do some ...
-    tdd_tt_hit(t, "action1");
-    //do some ...
-    tdd_tt_hit(t, "");
-    //do some ...
-    tdd_tt_hit(t, "action2:%d",1);
-    //do some ...
-    {tdd_tt_tab(t, "action3");
-        //do some ...
-        {tdd_tt_tab(t, "action3.1");
-            //do some ...
-        }
-        {tdd_tt_tab(t, "action3.2:%d",2);
-            //do some ...
-        }
-        tdd_tt_for(t,100,"for action4.%d",1)
-        {
-
-        }
-    }
-    tdd_tt_for(t, 100, "for action5")
-    {
-
-    }
-}
 
 #endif
