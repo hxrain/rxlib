@@ -141,10 +141,16 @@ namespace rx
         template<class VT>
         bool find(const VT &val) const
         {
-            uint32_t hash_code = cmp_t::hash(val);
             uint32_t pos;
-            node_t *node = m_basetbl.find(hash_code, val,pos);
-            return node!=NULL;
+            return find(val,pos);
+        }
+        //查找元素是否存在,同时获知元素的索引位置
+        template<class VT>
+        bool find(const VT &val,uint32_t &pos) const
+        {
+            uint32_t hash_code = cmp_t::hash(val);
+            node_t *node = m_basetbl.find(hash_code, val, pos);
+            return node != NULL;
         }
         //-------------------------------------------------
         //删除元素并默认析构
@@ -165,7 +171,9 @@ namespace rx
         //插入位槽冲突总数
         uint32_t collision() const { return m_basetbl.collision(); }
         //根据给定的索引位置直接访问对应的值
-        const val_t& at(uint32_t pos)const { return m_basetbl.node(pos)->value; }
+        const val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
+        //根据给定的索引位置直接判断是否被使用
+        const bool at_using(uint32_t pos)const { return m_basetbl.node(pos)->state; }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -263,8 +271,10 @@ namespace rx
         uint32_t size() const { return m_basetbl.size(); }
         //插入位槽冲突总数
         uint32_t collision() const { return m_basetbl.collision(); }
-        //根据给定的索引位置直接访问对应的节点内容
-        const node_val_t& at(uint32_t pos)const { return m_basetbl.node(pos)->value; }
+        //根据给定的索引位置直接访问对应的值
+        const node_val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
+        //根据给定的索引位置直接判断是否被使用
+        const bool at_using(uint32_t pos)const { return m_basetbl.node(pos)->state; }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -338,15 +348,22 @@ namespace rx
         template<class KT>
         iterator find(const KT &key) const
         {
-            uint32_t hash_code = cmp_t::hash(key);
             uint32_t pos;
-            node_t *node = m_basetbl.find(hash_code, key,pos);
-            if (!node)
-                return end();
-            return iterator(*this,pos);
+            return find(key,pos);
         }
         //-------------------------------------------------
-        //标记删除指定的元素
+        //查找元素是否存在,同时获知元素的节点索引位置
+        template<class KT>
+        iterator find(const KT &key,uint32_t &pos) const
+        {
+            uint32_t hash_code = cmp_t::hash(key);
+            node_t *node = m_basetbl.find(hash_code, key, pos);
+            if (!node)
+                return end();
+            return iterator(*this, pos);
+        }
+        //-------------------------------------------------
+        //标记删除指定的元素(元素内容还没有被销毁)
         //返回值:待删除的节点
         template<class KT>
         node_t* erase_raw(const KT &key)
@@ -372,7 +389,7 @@ namespace rx
         }
 
         //-------------------------------------------------
-        //标记删除指定的元素
+        //标记删除指定的元素(元素内容还没有被销毁)
         //返回值:是否删除了当前值(删除成功时,迭代器i后移)
         node_t* erase_raw(iterator &i)
         {
@@ -445,8 +462,10 @@ namespace rx
         uint32_t size() const { return m_basetbl.size(); }
         //插入位槽冲突总数
         uint32_t collision() const { return m_basetbl.collision(); }
-        //根据给定的索引位置直接访问对应的节点内容
-        const node_val_t& at(uint32_t pos)const { return m_basetbl.node(pos)->value; }
+        //根据给定的索引位置直接访问对应的值
+        const node_val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
+        //根据给定的索引位置直接判断是否被使用
+        const bool at_using(uint32_t pos)const { return m_basetbl.node(pos)->state; }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -536,15 +555,22 @@ namespace rx
         template<class KT>
         iterator find(const KT &key) const
         {
-            uint32_t hash_code = cmp_t::hash(key);
             uint32_t pos;
-            node_t *node = m_basetbl.find(hash_code, key,pos);
-            if (!node)
-                return end();
-            return iterator(*this,pos);
+            return find(key,pos);
         }
         //-------------------------------------------------
-        //标记删除元素
+        //查找元素是否存在
+        template<class KT>
+        iterator find(const KT &key,uint32_t &pos) const
+        {
+            uint32_t hash_code = cmp_t::hash(key);
+            node_t *node = m_basetbl.find(hash_code, key, pos);
+            if (!node)
+                return end();
+            return iterator(*this, pos);
+        }
+        //-------------------------------------------------
+        //标记删除元素(元素内容还没有被销毁)
         //返回值:待删除的节点
         template<class KT>
         node_t* erase_raw(const KT &key)
@@ -583,7 +609,7 @@ namespace rx
         }
 
         //-------------------------------------------------
-        //标记删除指定位置的元素,迭代器位置后移
+        //标记删除指定位置的元素,迭代器位置后移(元素内容还没有被销毁)
         //返回值:被删除的节点指针
         node_t* erase_raw(iterator &i)
         {

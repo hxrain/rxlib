@@ -7,6 +7,7 @@
 
 namespace rx
 {
+    //-----------------------------------------------------
     //记录原始哈希表的工作状态(外置存放便于分离存储)
     typedef struct raw_hashtbl_stat_t
     {
@@ -68,7 +69,7 @@ namespace rx
                 {
                     //该节点尚未使用,那么就直接使用
                     node.state=i+1;                         //记录当前节点冲突顺序
-                    m_stat->collision+=i;              //记录冲突总数
+                    m_stat->collision+=i;                   //记录冲突总数
                     ++m_stat->using_count;
                     return &node;
                 }
@@ -115,7 +116,7 @@ namespace rx
             if (!node|| node->state==0)
                 return false;
             node->state=0;                                  //删除动作仅仅是打标记
-            --m_stat->using_count;                     //计数器递减
+            --m_stat->using_count;                          //计数器递减
             return true;
         }
         //-------------------------------------------------
