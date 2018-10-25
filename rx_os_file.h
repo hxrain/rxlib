@@ -251,7 +251,7 @@ namespace rx
         }
         //-------------------------------------------------
         //格式化打印输出到文件
-        template<uint32_t BuffSize = 1024 * 4>
+        template<uint32_t BuffSize>
         bool print(const char* Fmt, ...)
         {
             va_list	ap;

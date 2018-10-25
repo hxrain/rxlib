@@ -1,3 +1,5 @@
+#include "../ut_os_mmap.h"
+#include "../../rx_os_misc.h"
 #include "../../rx_os_mmap.h"
 #include "../../rx_os_file.h"
 
