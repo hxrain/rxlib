@@ -1,3 +1,4 @@
+#include "../../rx_os_mmap.h"
 #include "../../rx_os_file.h"
 
 #include "../../rx_ct_typeof.h"
