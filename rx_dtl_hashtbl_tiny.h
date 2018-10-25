@@ -123,7 +123,7 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        hashset_base_t(node_t* nodes,uint32_t max_node_count) {m_basetbl.bind(nodes,max_node_count);}
+        hashset_base_t(node_t* nodes,uint32_t max_node_count,raw_hashtbl_stat_t &st) {m_basetbl.bind(nodes,max_node_count,st);}
         virtual ~hashset_base_t() {clear();}
         //-------------------------------------------------
         //在集合中插入元素并赋值构造
@@ -254,7 +254,7 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        hashtbl_base_t(node_t *nodes,uint32_t max_node_count) {m_basetbl.bind(nodes,max_node_count);}
+        hashtbl_base_t(node_t* nodes,uint32_t max_node_count,raw_hashtbl_stat_t &st) {m_basetbl.bind(nodes,max_node_count,st);}
         virtual ~hashtbl_base_t() {clear();}
         //-------------------------------------------------
         //最大节点数量
@@ -436,7 +436,7 @@ namespace rx
     public:
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        hashlink_base_t(node_t *nodes, uint32_t max_node_count):m_head(nil_pos),m_last(nil_pos) {m_basetbl.bind(nodes,max_node_count);}
+        hashlink_base_t(node_t* nodes,uint32_t max_node_count,raw_hashtbl_stat_t &st):m_head(nil_pos),m_last(nil_pos) {m_basetbl.bind(nodes,max_node_count,st);}
         virtual ~hashlink_base_t() {clear();}
         //-------------------------------------------------
         //最大节点数量
@@ -639,8 +639,9 @@ namespace rx
     {
         typedef hashset_base_t<key_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
+        raw_hashtbl_stat_t          m_stat;
     public:
-        tiny_hashset_t():super_t(m_nodes, max_node_count){}
+        tiny_hashset_t():super_t(m_nodes, max_node_count,m_stat){}
     };
 
     //-----------------------------------------------------
@@ -651,8 +652,9 @@ namespace rx
     {
         typedef hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
+        raw_hashtbl_stat_t          m_stat;
     public:
-        tiny_hashset_st():super_t(m_nodes, max_node_count){}
+        tiny_hashset_st():super_t(m_nodes, max_node_count,m_stat){}
     };
 
     //-----------------------------------------------------
@@ -663,8 +665,9 @@ namespace rx
     {
         typedef hashtbl_base_t<key_t, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
+        raw_hashtbl_stat_t          m_stat;
     public:
-        tiny_hashtbl_t():super_t(m_nodes, max_node_count) {}
+        tiny_hashtbl_t():super_t(m_nodes, max_node_count,m_stat) {}
     };
 
     //-----------------------------------------------------
@@ -675,8 +678,9 @@ namespace rx
     {
         typedef hashtbl_base_t<tiny_string_head_t<CT,max_str_size>, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
+        raw_hashtbl_stat_t          m_stat;
     public:
-        tiny_hashtbl_st():super_t(m_nodes, max_node_count) {}
+        tiny_hashtbl_st():super_t(m_nodes, max_node_count,m_stat) {}
     };
 
     //-----------------------------------------------------
@@ -687,8 +691,9 @@ namespace rx
     {
         typedef hashlink_base_t<key_t, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
+        raw_hashtbl_stat_t          m_stat;
     public:
-        tiny_hashlink_t():super_t(m_nodes, max_node_count) {}
+        tiny_hashlink_t():super_t(m_nodes, max_node_count,m_stat) {}
     };
 
     //-----------------------------------------------------
@@ -699,8 +704,9 @@ namespace rx
     {
         typedef hashlink_base_t<tiny_string_head_t<CT,max_str_size>, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
+        raw_hashtbl_stat_t          m_stat;
     public:
-        tiny_hashlink_st():super_t(m_nodes, max_node_count) {}
+        tiny_hashlink_st():super_t(m_nodes, max_node_count,m_stat) {}
     };
 }
 

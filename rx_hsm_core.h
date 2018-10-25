@@ -157,12 +157,14 @@ namespace rx
 
         hsm_state_table_t        m_state_tbl;               //状态信息与状态值的哈希表
         hsm_event_table_t        m_event_tbl;               //状态事件与处理函数的哈希表
+        raw_hashtbl_stat_t       m_state_tbl_stat;
+        raw_hashtbl_stat_t       m_event_tbl_stat;
     public:
         //-------------------------------------------------
         hsm_tree_t()
         {
-            m_state_tbl.bind(m_states,max_state_count);
-            m_event_tbl.bind(m_events,max_event_count);
+            m_state_tbl.bind(m_states,max_state_count, m_state_tbl_stat);
+            m_event_tbl.bind(m_events,max_event_count, m_event_tbl_stat);
         }
         //-------------------------------------------------
         //根据指定的状态值查找对应的状态节点
