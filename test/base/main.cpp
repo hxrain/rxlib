@@ -1,3 +1,4 @@
+#include "../../rx_os_file.h"
 
 #include "../../rx_ct_typeof.h"
 
@@ -97,8 +98,6 @@
 #include <iostream>
 
 using namespace std;
-
-
 
 int main()
 {
