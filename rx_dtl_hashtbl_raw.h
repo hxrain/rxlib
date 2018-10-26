@@ -12,8 +12,9 @@ namespace rx
     typedef struct raw_hashtbl_stat_t
     {
         uint32_t    using_count;                            //当前节点的数量
-        uint32_t    collision;                              //节点哈希冲突总数
-        raw_hashtbl_stat_t():using_count(0), collision(0){}
+        uint32_t    collision_count;                        //节点哈希冲突总数
+        uint32_t    collision_length;                       //节点哈希冲突总长度
+        raw_hashtbl_stat_t():using_count(0), collision_count(0), collision_length(0){}
     }raw_hashtbl_stat_t;
 
     //-----------------------------------------------------
@@ -40,15 +41,13 @@ namespace rx
         raw_hashtbl_t():m_nodes(NULL), m_stat(NULL){}
         //绑定最终可用的节点空间
         //-------------------------------------------------
-        bool bind(node_t* nodes,uint32_t max_slot_size, raw_hashtbl_stat_t& stat)
+        void bind(node_t* nodes,uint32_t max_slot_size, raw_hashtbl_stat_t* stat,bool clear=true)
         {
-            if (m_nodes)
-                return false;
             m_nodes=nodes;
-            memset(m_nodes,0,sizeof(node_t)*max_slot_size);
+            if (m_nodes&&clear)
+                memset(m_nodes,0,sizeof(node_t)*max_slot_size);
             m_max_node_count=max_slot_size;
-            m_stat = &stat;
-            return true;
+            m_stat = stat;
         }
         //-------------------------------------------------
         //通过节点索引直接访问节点
@@ -69,7 +68,9 @@ namespace rx
                 {
                     //该节点尚未使用,那么就直接使用
                     node.state=i+1;                         //记录当前节点冲突顺序
-                    m_stat->collision+=i;                   //记录冲突总数
+                    if (i)
+                        m_stat->collision_count +=1;        //记录冲突总数
+                    m_stat->collision_length += i;          //记录冲突总步长
                     ++m_stat->using_count;
                     return &node;
                 }
@@ -125,7 +126,7 @@ namespace rx
         //已经使用的节点数量
         uint32_t size() const { return m_stat->using_count; }
         //插入位槽冲突总数
-        uint32_t collision() const { return m_stat->collision; }
+        uint32_t collision() const { return m_stat->collision_count; }
         //-------------------------------------------------
         //尝试找到pos节点后的下一个被使用的节点(跳过中间未被使用的部分)
         uint32_t next(uint32_t pos) const
