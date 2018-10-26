@@ -3,7 +3,9 @@
 
 #include "../rx_mem_alloc_cntr.h"
 #include "../rx_tdd.h"
+#include "../rx_tdd_tick.h"
 #include "../rx_hash_rand.h"
+#include <time.h>
 
 #define RX_UT_TEST_MEM_BAD 0
 

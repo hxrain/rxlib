@@ -8,6 +8,7 @@ namespace rx
 {
     //是否开启原始跳表的调试打印功能
     #define RX_RAW_SKIPLIST_DEBUG_PRINT 0
+    #define RX_RAW_SKIPLIST_MAX_LEVELS 32
     /*
     //原始跳表的节点类型(示例,只要对外接口语义正确即可)
     template<class key_t>
@@ -29,14 +30,14 @@ namespace rx
         void OC(uint32_t level,val_t &val,uint32_t es){ct::OC(&key,val);}
         //-------------------------------------------------
         typedef key_t node_key_t;
-        key_t  key;
+        node_key_t  key;
         struct tiny_skipset_node_t *next[1];                //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
     };
     */
 
     //---------------------------------------------------------
     //定义原始的跳表容器基类
-    template<class node_t,uint32_t MAX_LEVEL>
+    template<class node_t>
     class raw_skiplist_t
     {
         uint32_t        m_count;                            //内部节点数量
@@ -95,10 +96,10 @@ namespace rx
         }
     public:
         //-----------------------------------------------------
-        raw_skiplist_t(mem_allotter_i &ma):m_mem(ma)
+        raw_skiplist_t(mem_allotter_i &ma,uint32_t head_levels=RX_RAW_SKIPLIST_MAX_LEVELS):m_mem(ma)
         {
             m_levels = 1;                                   //跳表的初始层数只有1层(索引为0的基础层)
-            m_head = m_make_node(MAX_LEVEL,0);              //头结点只分配内存,不构造
+            m_head = m_make_node(head_levels,0);            //头结点只分配内存,不构造
             rx_fail(m_head!=NULL);
             m_tail=NULL;
             m_count=0;
@@ -122,7 +123,7 @@ namespace rx
         template<class key_t>
         node_t *insert_raw(const key_t &key,bool &duplication,uint32_t ext_size,const uint32_t level)
         {
-            node_t *update[MAX_LEVEL];                      //用于临时记录当前节点操作中,对应的各层前趋节点
+            node_t *update[RX_RAW_SKIPLIST_MAX_LEVELS];     //用于临时记录当前节点操作中,对应的各层前趋节点
             node_t *prv=m_find_prv(key,update)->next[0];    //查找指定key对应的各层前趋,并尝试得到已经存在的key节点
 
             if (prv&&node_t::cmp(*prv,key)==0)
@@ -160,7 +161,7 @@ namespace rx
         template<class key_t>
         bool earse(const key_t &key)
         {
-            node_t *update[MAX_LEVEL];                      //用于临时记录当前节点操作时,对应的各层前趋节点
+            node_t *update[RX_RAW_SKIPLIST_MAX_LEVELS];     //用于临时记录当前节点操作时,对应的各层前趋节点
             node_t *node = m_find_prv(key,update)->next[0]; //查找指定key节点对应的各层前趋,并尝试得到对应的节点
             if (node && node_t::cmp(*node, key)==0)
             {//如果对应节点存在且key相同,则说明找到了此节点

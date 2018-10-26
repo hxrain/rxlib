@@ -83,7 +83,16 @@ namespace rx
         template<class NVT, class KT>
         static bool equ(const NVT &n, const KT &k) { return n.key == k; }
     };
-
+    /*hash table 比较器最小样例
+    class hashtbl_cmp_t
+    {
+    public:
+        //对节点比较函数进行覆盖,需要真正使用节点中的key字段与给定的k值进行比较
+        template<class NVT, class KT>
+        static bool equ(const NVT &n, const KT &k) { return n.key == k; }
+        static uint32_t hash(const int32_t &k) { return rx_hash_skeeto_3s(k); }
+    };
+    */
     //-----------------------------------------------------
     //基于原始哈希表封装的轻量级集合容器
     //-----------------------------------------------------
@@ -170,8 +179,8 @@ namespace rx
         uint32_t capacity() const { return m_basetbl.capacity(); }
         //已经使用的节点数量
         uint32_t size() const { return m_basetbl.size(); }
-        //插入位槽冲突总数
-        uint32_t collision() const { return m_basetbl.collision(); }
+        //内部状态
+        const raw_hashtbl_stat_t& stat() const { return m_basetbl.stat(); }
         //根据给定的索引位置直接访问对应的值
         const val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
         //根据给定的索引位置直接判断是否被使用
@@ -272,8 +281,8 @@ namespace rx
         uint32_t capacity() const { return m_basetbl.capacity(); }
         //已经使用的节点数量
         uint32_t size() const { return m_basetbl.size(); }
-        //插入位槽冲突总数
-        uint32_t collision() const { return m_basetbl.collision(); }
+        //内部状态
+        const raw_hashtbl_stat_t& stat() const { return m_basetbl.stat(); }
         //根据给定的索引位置直接访问对应的值
         const node_val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
         //根据给定的索引位置直接判断是否被使用
@@ -464,8 +473,8 @@ namespace rx
         uint32_t capacity() const { return m_basetbl.capacity(); }
         //已经使用的节点数量
         uint32_t size() const { return m_basetbl.size(); }
-        //插入位槽冲突总数
-        uint32_t collision() const { return m_basetbl.collision(); }
+        //内部状态
+        const raw_hashtbl_stat_t& stat() const { return m_basetbl.stat(); }
         //根据给定的索引位置直接访问对应的值
         const node_val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
         //根据给定的索引位置直接判断是否被使用

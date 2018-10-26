@@ -125,8 +125,8 @@ namespace rx
         uint32_t capacity() const { return m_max_node_count; }
         //已经使用的节点数量
         uint32_t size() const { return m_stat->using_count; }
-        //插入位槽冲突总数
-        uint32_t collision() const { return m_stat->collision_count; }
+        //只读获取内部状态
+        const raw_hashtbl_stat_t& stat() const { return *m_stat; }
         //-------------------------------------------------
         //尝试找到pos节点后的下一个被使用的节点(跳过中间未被使用的部分)
         uint32_t next(uint32_t pos) const
