@@ -3,26 +3,23 @@
 
 /*rx_tdd unit test framework,usage:
 
-rx_tdd(test_name1)
-{
-    assert(1);
-}
+#include "rx_tdd.h"
 
-void test_1(rx_tdd_t &tdd)
+void ut_xx_base(rx_tdd_t &tdd)
 {
     tdd.assert(1);
 }
 
-rx_tdd(test_name2)
+rx_tdd(ut_xx)
 {
     assert(1);
-    test_1(*this);
+    ut_xx_base(*this);
 }
 
-rx_tdd_rtl(test_name3,tdd_level_slow)
+rx_tdd_rtl(ut_xx,tdd_level_slow)
 {
     assert(1);
-    test_1(*this);
+    ut_xx_base(*this);
 }
 
 void main()

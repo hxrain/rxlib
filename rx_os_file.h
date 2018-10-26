@@ -4,7 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
 #include "rx_str_util.h"
-
+#include <string>
 
 #if RX_OS_WIN
 namespace rx
@@ -45,7 +45,7 @@ namespace rx
         //-------------------------------------------------
         //创建一个文件,write_over=false文件打开或创建;write_over=true文件覆盖或创建
         //flags默认打开为可读写;mode默认别人可以共享读,0为独占;文件属性默认为正常
-        bool create(const char* filename, bool write_over, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
+        bool create(const char* filename, bool write_over, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
         {
             m_handle = CreateFileA(filename, flags, mode, NULL, write_over ? CREATE_ALWAYS : OPEN_ALWAYS, attrib, NULL);
             return m_handle != INVALID_HANDLE_VALUE;
@@ -53,7 +53,7 @@ namespace rx
         //-------------------------------------------------
         //打开一个文件,文字不存在就失败
         //flags默认打开为可读写;mode默认别人可以共享读,0为独占;文件属性默认为正常
-        bool open(const char* filename, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
+        bool open(const char* filename, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
         {
             m_handle = CreateFileA(filename, flags, mode, NULL, OPEN_EXISTING, attrib, NULL);
             return m_handle != INVALID_HANDLE_VALUE;
@@ -131,16 +131,6 @@ namespace rx
             }
         }
         //-------------------------------------------------
-        //读数据到缓冲区:缓冲区,希望读取的数量
-        //返回值:实际读取的尺寸
-        uint32_t read(void *Buf, uint32_t NeedSize)
-        {
-            if (m_handle == INVALID_HANDLE_VALUE) return 0;
-            DWORD RealReadedSize = 0;
-            if (!ReadFile(m_handle, Buf, NeedSize, &RealReadedSize, NULL))
-                return 0;
-            return RealReadedSize;
-        }
         //读数据到缓冲区:缓冲区,希望读取的数量,实际读取的尺寸.
         //返回值:是否成功
         bool read(void *Buf, uint32_t NeedSize,uint32_t &RealReadedSize)
@@ -153,11 +143,11 @@ namespace rx
         }
         //-------------------------------------------------
         //写数据到文件:缓冲区,希望写出的数量
-        bool write(const void *Buf, uint32_t Size)
+        bool write(const void *Buf, size_t Size)
         {
             rx_assert(m_handle != INVALID_HANDLE_VALUE);
             DWORD WNum = 0;
-            bool Ret = !!WriteFile(m_handle, Buf, Size, &WNum, NULL);
+            bool Ret = !!WriteFile(m_handle, Buf, (DWORD)Size, &WNum, NULL);
             return Ret&&WNum == Size;
         }
         //-------------------------------------------------
@@ -202,7 +192,7 @@ namespace rx
         }
         //-------------------------------------------------
         //得到当前的文件指针位置
-        //返回值:-1失败;其他为文件指针位置
+        //返回值:是否获取成功
         bool tell(uint32_t &ret)
         {
             if (m_handle == INVALID_HANDLE_VALUE) return false;
@@ -331,7 +321,7 @@ namespace rx
         //flags默认打开为可读写;文件属性默认为用户读写
         bool open(const char* filename, uint32_t flags = O_RDWR|O_CREAT, uint32_t attrib = S_IRUSR|S_IWUSR)
         {
-            m_handle = open(filename,flags,attrib);
+            m_handle = ::open(filename,flags,attrib);
             return m_handle != -1;
         }
         //-------------------------------------------------
@@ -385,14 +375,6 @@ namespace rx
                 m_handle = -1;
             }
         }
-        //-------------------------------------------------
-        //读数据到缓冲区:缓冲区,缓冲区长度,希望读取的数量
-        //返回值:实际读取的尺寸
-        uint32_t read(void *Buf, uint32_t NeedSize)
-        {
-            if (m_handle == -1) return 0;
-            return ::read(m_handle,Buf, NeedSize);
-        }
         //读数据到缓冲区:缓冲区,希望读取的数量,实际读取的数量
         //返回值:是否成功
         bool read(void *Buf, uint32_t NeedSize,uint32_t &RealReadSize)
@@ -406,11 +388,11 @@ namespace rx
         }
         //-------------------------------------------------
         //写数据到文件:缓冲区,希望写出的数量
-        bool write(const void *Buf, uint32_t Size)
+        bool write(const void *Buf, size_t Size)
         {
             rx_assert(m_handle != -1);
             ssize_t WNum = ::write(m_handle, Buf, Size);
-            return WNum == Size;
+            return (size_t)WNum == Size;
         }
         //-------------------------------------------------
         //查询文件大小
@@ -457,7 +439,7 @@ namespace rx
         }
         //-------------------------------------------------
         //得到当前的文件指针位置
-        //返回值:-1失败;其他为文件指针位置
+        //返回值:是否获取成功
         bool tell(uint32_t &ret)
         {
             if (m_handle == -1) return false;
@@ -537,7 +519,7 @@ namespace rx
     inline int alloc_file_size(os_file_t& file, uint32_t NewSize)
     {
         uint32_t Pos;
-        if (file.tell(Pos))
+        if (!file.tell(Pos))
             return -1;
         if (!file.seek(NewSize))
             return -2;
@@ -558,6 +540,47 @@ namespace rx
         if (!f.open(file,"w+"))
             return -1;
         return alloc_file_size(f, NewSize);
+    }
+    //---------------------------------------------------------
+    //保存数据到文件
+    //返回值:<0错误;>=0成功
+    inline int save_to_file(const char* filename,const void* data,size_t datalen)
+    {
+        os_file_t f;
+        if (!f.open(filename, "w+"))
+            return -1;
+        if (!f.write(data, datalen))
+            return -2;
+        return (int)datalen;
+    }
+    inline int save_to_file(const char* filename, const char* data) { return save_to_file(filename,data,strlen(data)); }
+    //---------------------------------------------------------
+    //从文件装载内容到字符串
+    //返回值:<0错误;>=0成功.
+    inline int load_from_file(const char* filename, std::string &str)
+    {
+        os_file_t f;
+        if (!f.open(filename, "r")) return -1;
+
+        uint32_t fsize;
+        if (!f.size(fsize)) return -2;
+
+        try { str.resize(fsize); }
+        catch (...) { return -3; }
+
+        str.clear();
+
+        char buff[512];
+        while (fsize)
+        {
+            uint32_t ds;
+            if (!f.read(buff, Min(fsize, (uint32_t)sizeof(buff)), ds))
+                return -4;
+
+            str.append(buff, ds);
+            fsize -= ds;
+        }
+        return (int)str.size();
     }
 }
 #endif
