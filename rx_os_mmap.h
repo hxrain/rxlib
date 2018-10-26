@@ -220,7 +220,7 @@ namespace rx
 
                 if (MemSize == 0)
                     MemSize = file_size;
-                else if (MemSize > file_size)
+                else if (MemSize + FileOffset > file_size)
                 {//如果指定的内存尺寸大于文件的实际尺寸,则尝试进行文件扩容
                     if (alloc_file_size(file, MemSize + FileOffset) <= 0)
                         return -4;
