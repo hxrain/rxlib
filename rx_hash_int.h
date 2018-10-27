@@ -47,12 +47,12 @@ inline uint32_t rx_tiny_fibonacci(const uint32_t idx)
 //-----------------------------------------------------
 //黄金分隔哈希算法,极其简单高效,对于部分自然数规律具有极好的效果.
 //因子选斐波那契序数,给定不同的因子可造就一系列的哈希函数族
-inline uint32_t rx_hash_gold(uint32_t x, uint32_t factor = 17711, uint32_t r_shift = 0)
+inline uint64_t rx_hash_gold(uint32_t x, uint32_t factor = 17711, uint32_t r_shift = 0)
 {
     return (x >> r_shift)* factor;
 }
 template<uint32_t r_shift>
-inline uint32_t rx_hash_gold(uint32_t x, uint32_t factor = 17711)
+inline uint64_t rx_hash_gold(uint32_t x, uint32_t factor = 17711)
 {
     return (x >> r_shift)* factor;
 }

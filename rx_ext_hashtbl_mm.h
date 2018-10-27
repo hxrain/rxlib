@@ -22,15 +22,35 @@ namespace rx
         //-------------------------------------------------
         uint32_t open(const char* file)
         {
-            if (!m_file.open(file, "w+"))
+            //先尝试打开已有文件,失败后再尝试创建文件
+            if (!m_file.open(file, "r+") && !m_file.open(file, "w+"))
                 return m_file.error();
             
+            //计算最大所需空间
             const uint32_t memsize = sizeof(super_t::node_t)*max_node_count + sizeof(raw_hashtbl_stat_t);
+
+            //映射文件到内存
             int ret = m_mmap.open(m_file, "w+", memsize);
             if (ret <= 0)
                 return ret;
             
-            super_t::m_basetbl.bind((super_t::node_t*)(m_mmap.ptr() + sizeof(raw_hashtbl_stat_t)), max_node_count, (raw_hashtbl_stat_t*)m_mmap.ptr(),false);
+            //获取数据区域指针
+            super_t::node_t *nodes = (super_t::node_t*)(m_mmap.ptr() + sizeof(raw_hashtbl_stat_t));
+            
+            /*
+            for (uint32_t i = 0; i < max_node_count; ++i)
+            {//临时查看一下,冲突元素的步长是怎样分布的
+                super_t::node_t &node = nodes[i];
+                if (node.state > 4)
+                    printf("%u ", node.state);
+            }
+            */
+
+            //获取状态区域指针
+            raw_hashtbl_stat_t *stat = (raw_hashtbl_stat_t*)m_mmap.ptr();
+
+            //最后进行哈希容器的初始化
+            super_t::m_basetbl.bind(nodes, max_node_count, stat,false);
             return 0;
         }
         //-------------------------------------------------

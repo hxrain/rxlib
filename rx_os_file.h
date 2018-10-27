@@ -61,18 +61,21 @@ namespace rx
         //-------------------------------------------------
         //仿std/fopen的文件打开操作
         bool open(const char* filename, const char* Mode)
-        {   //参照vc2008的crt函数
-            //"r": read       "w": write      "a": append
-            //"r+": read/write                "w+": open empty for read/write
-            //"a+": read/append
+        {   //参照vc2008
+            //r : read
+            //w : write
+            //a : append
+            //r+: read/write
+            //w+: open empty for read/write
+            //a+: read/append
 
             //参照bcb6
-            //r	open for reading only.
-            //w	create for writing. If a file by that name already exists, it will be overwritten.
-            //a	Append; open for writing at end-of-file or create for writing if the file does not exist.
-            //r+	open an existing file for update (reading and writing).
-            //w+	create a new file for update (reading and writing). If a file by that name already exists, it will be overwritten.
-            //a+	open for append; open (or create if the file does not exist) for update at the end of the file.
+            //r	: open for reading only.
+            //w	: create for writing. If a file by that name already exists, it will be overwritten.
+            //a	: Append; open for writing at end-of-file or create for writing if the file does not exist.
+            //r+: open an existing file for update (reading and writing).
+            //w+: create a new file for update (reading and writing). If a file by that name already exists, it will be overwritten.
+            //a+: open for append; open (or create if the file does not exist) for update at the end of the file.
 
             uint32_t flag_write = 0;
             uint32_t flag_read = 0;
@@ -97,7 +100,7 @@ namespace rx
                 if (st::strchr(Mode, 'a'))
                 {
                     op_append = true;
-                    flag_write = GENERIC_WRITE;
+                    flag_write = FILE_APPEND_DATA;
                 }
             }
             if (op_plus)
@@ -112,14 +115,8 @@ namespace rx
 
             if (op_read)                                    //"r"模式,仅打开不创建
                 return open(filename, flag_read | flag_write);
-            else                                            //"w"模式,内容要被覆盖
-            {
-                if (!create(filename, op_write, flag_write | flag_read))
-                    return false;
-                if (op_append)
-                    return seek(0, 2);
-                return true;
-            }
+            else                                            //"w"模式,内容要被覆盖;"a"创建但不覆盖
+                return create(filename, op_write, flag_write | flag_read);
         }
         //-------------------------------------------------
         void close()
