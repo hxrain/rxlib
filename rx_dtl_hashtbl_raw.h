@@ -11,10 +11,11 @@ namespace rx
     //记录原始哈希表的工作状态(外置存放便于分离存储)
     typedef struct raw_hashtbl_stat_t
     {
+        uint32_t    max_nodes;                              //最大的节点容量
         uint32_t    using_count;                            //当前节点的数量
         uint32_t    collision_count;                        //节点哈希冲突总数
         uint32_t    collision_length;                       //节点哈希冲突总长度
-        raw_hashtbl_stat_t():using_count(0), collision_count(0), collision_length(0){}
+        raw_hashtbl_stat_t():max_nodes(0),using_count(0), collision_count(0), collision_length(0){}
     }raw_hashtbl_stat_t;
 
     //-----------------------------------------------------
@@ -35,7 +36,6 @@ namespace rx
     private:
         node_t              *m_nodes;                       //节点数组
         raw_hashtbl_stat_t  *m_stat;
-        uint32_t             m_max_node_count;              //最多可用节点数量
     public:
         //-------------------------------------------------
         raw_hashtbl_t():m_nodes(NULL), m_stat(NULL){}
@@ -46,8 +46,8 @@ namespace rx
             m_nodes=nodes;
             if (m_nodes&&clear)
                 memset(m_nodes,0,sizeof(node_t)*max_slot_size);
-            m_max_node_count=max_slot_size;
             m_stat = stat;
+            m_stat->max_nodes = max_slot_size;
         }
         //-------------------------------------------------
         //通过节点索引直接访问节点
@@ -60,9 +60,9 @@ namespace rx
         template<class key_t>
         node_t *push(uint32_t hash_code,const key_t &value,uint32_t &pos,bool *is_dup=NULL)
         {
-            for(uint32_t i=0; i<m_max_node_count; ++i)
+            for(uint32_t i=0; i<capacity(); ++i)
             {
-                pos=(hash_code+i)%m_max_node_count;         //计算位置
+                pos=(hash_code+i)%capacity();               //计算位置
                 node_t &node = m_nodes[pos];                //得到节点
                 if (!node.state)
                 {
@@ -94,9 +94,9 @@ namespace rx
         template<class key_t>
         node_t *find(uint32_t hash_code,const key_t &value,uint32_t &pos) const
         {
-            for(uint32_t i=0; i<m_max_node_count; ++i)
+            for(uint32_t i=0; i<capacity(); ++i)
             {
-                uint32_t I=(hash_code+i)%m_max_node_count;  //计算位置
+                uint32_t I=(hash_code+i)%capacity();        //计算位置
                 node_t &node = m_nodes[I];                  //得到节点
                 if (!node.state)
                     return NULL;                            //直接就碰到空档了,不用继续了
@@ -122,7 +122,7 @@ namespace rx
         }
         //-------------------------------------------------
         //最大节点数量
-        uint32_t capacity() const { return m_max_node_count; }
+        uint32_t capacity() const { return m_stat->max_nodes; }
         //已经使用的节点数量
         uint32_t size() const { return m_stat->using_count; }
         //只读获取内部状态
@@ -131,16 +131,16 @@ namespace rx
         //尝试找到pos节点后的下一个被使用的节点(跳过中间未被使用的部分)
         uint32_t next(uint32_t pos) const
         {
-            while (++pos < m_max_node_count)
+            while (++pos < capacity())
                 if (m_nodes[pos].state)
                     return pos;
-            return m_max_node_count;
+            return capacity();
         }
         //-------------------------------------------------
         //清理全部节点,回归初始状态.
         void clear()
         {
-            for(uint32_t pos=next(-1);pos<m_max_node_count;pos=next(pos))
+            for(uint32_t pos=next(-1);pos<capacity();pos=next(pos))
             {
                 node_t &node=m_nodes[pos];
                 ct::OD(&node.value);

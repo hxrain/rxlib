@@ -20,11 +20,13 @@ namespace rx
         tiny_mm_hashtbl_t() {}
         ~tiny_mm_hashtbl_t() { close(); }
         //-------------------------------------------------
-        uint32_t open(const char* file)
+        //创建或打开文件映射哈希表
+        //返回值:<=0错误;>0成功.
+        int32_t open(const char* file)
         {
             //先尝试打开已有文件,失败后再尝试创建文件
             if (!m_file.open(file, "r+") && !m_file.open(file, "w+"))
-                return m_file.error();
+                return 0-m_file.error();
             
             //计算最大所需空间
             const uint32_t memsize = sizeof(super_t::node_t)*max_node_count + sizeof(raw_hashtbl_stat_t);
@@ -33,6 +35,11 @@ namespace rx
             int ret = m_mmap.open(m_file, "w+", memsize);
             if (ret <= 0)
                 return ret;
+
+            //获取状态区域指针
+            raw_hashtbl_stat_t *stat = (raw_hashtbl_stat_t*)m_mmap.ptr();
+            if (stat->max_nodes&&stat->max_nodes != max_node_count)
+                return 0;
             
             //获取数据区域指针
             super_t::node_t *nodes = (super_t::node_t*)(m_mmap.ptr() + sizeof(raw_hashtbl_stat_t));
@@ -46,12 +53,10 @@ namespace rx
             }
             */
 
-            //获取状态区域指针
-            raw_hashtbl_stat_t *stat = (raw_hashtbl_stat_t*)m_mmap.ptr();
 
             //最后进行哈希容器的初始化
             super_t::m_basetbl.bind(nodes, max_node_count, stat,false);
-            return 0;
+            return max_node_count;
         }
         //-------------------------------------------------
         void close()

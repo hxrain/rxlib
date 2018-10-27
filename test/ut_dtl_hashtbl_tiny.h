@@ -202,7 +202,7 @@ public:
 class ut_htcmp_t1:public ut_htcmp_t0
 {
 public:
-    static uint32_t hash(const uint32_t &k) { return rx_hash_gold<0>(k); }
+    static uint32_t hash(const uint32_t &k) { return (uint32_t)rx_hash_gold<0>(k); }
 };
 class ut_htcmp_t2:public ut_htcmp_t0
 {
