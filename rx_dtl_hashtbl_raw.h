@@ -11,11 +11,11 @@ namespace rx
     //记录原始哈希表的工作状态(外置存放便于分离存储)
     typedef struct raw_hashtbl_stat_t
     {
-        uint32_t    max_nodes;                              //最大的节点容量
+        uint32_t    max_nodes;                              //最大的节点容量,必须给定初始值
         uint32_t    using_count;                            //当前节点的数量
         uint32_t    collision_count;                        //节点哈希冲突总数
         uint32_t    collision_length;                       //节点哈希冲突总长度
-        raw_hashtbl_stat_t():max_nodes(0),using_count(0), collision_count(0), collision_length(0){}
+        raw_hashtbl_stat_t():using_count(0), collision_count(0), collision_length(0){}
     }raw_hashtbl_stat_t;
 
     //-----------------------------------------------------
@@ -41,13 +41,12 @@ namespace rx
         raw_hashtbl_t():m_nodes(NULL), m_stat(NULL){}
         //绑定最终可用的节点空间
         //-------------------------------------------------
-        void bind(node_t* nodes,uint32_t max_slot_size, raw_hashtbl_stat_t* stat,bool clear=true)
+        void bind(node_t* nodes, raw_hashtbl_stat_t* stat,bool clear=true)
         {
             m_nodes=nodes;
             if (m_nodes&&clear)
-                memset(m_nodes,0,sizeof(node_t)*max_slot_size);
+                memset(m_nodes,0,sizeof(node_t)*stat->max_nodes);
             m_stat = stat;
-            m_stat->max_nodes = max_slot_size;
         }
         //-------------------------------------------------
         //通过节点索引直接访问节点

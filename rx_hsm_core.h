@@ -163,8 +163,11 @@ namespace rx
         //-------------------------------------------------
         hsm_tree_t()
         {
-            m_state_tbl.bind(m_states,max_state_count, &m_state_tbl_stat);
-            m_event_tbl.bind(m_events,max_event_count, &m_event_tbl_stat);
+            m_state_tbl_stat.max_nodes = max_state_count;
+            m_state_tbl.bind(m_states, &m_state_tbl_stat);
+
+            m_event_tbl_stat.max_nodes = max_event_count;
+            m_event_tbl.bind(m_events, &m_event_tbl_stat);
         }
         //-------------------------------------------------
         //根据指定的状态值查找对应的状态节点

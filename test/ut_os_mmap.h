@@ -31,6 +31,14 @@ inline void ut_os_mmap_base_1(rx_tdd_t &rt)
 
     rt.tdd_assert(mmap2.write("1234567891", 10) == 10);
     rt.tdd_assert(strcmp((char*)mmap.ptr(), "1234567891") == 0);
+
+    mmap.close();
+    file.close();
+
+    mmap2.close();
+    file2.close();
+
+    remove(filename);
 }
 
 
