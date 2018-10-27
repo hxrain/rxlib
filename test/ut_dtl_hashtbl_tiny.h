@@ -235,6 +235,12 @@ void ut_hashtbl_ext_test_1(rx_tdd_t &rt)
     rt.tdd_assert(ec==0);
     tdd_tt_hit(t,"ut_hashtbl_ext_test_1:nodes=%u,items=%u,colli=%u,ec=%u",nodes,items,htbl.stat().collision_count,ec);
 
+    uint32_t loops = 7000;
+    for (uint32_t l = 0; l < loops; ++l)
+    {
+        htbl.find(l+1);
+    }
+    tdd_tt_hit(t, "ut_hashtbl_ext_test_1:nodes=%u,items=%u,loop=%u", nodes, items, loops);
 }
 
 rx_tdd(hashtbl_tiny_base)
