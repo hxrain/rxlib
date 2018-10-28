@@ -115,7 +115,7 @@ namespace rx
             node_t *node = m_basetbl.find(hash_code, val,pos);
             if (!node)
                 return NULL;
-            m_basetbl.remove(node);
+            m_basetbl.remove(node,pos);
             return node;
         }
         //-------------------------------------------------
@@ -241,7 +241,7 @@ namespace rx
 
             node_t &node = *m_basetbl.node(i.m_pos);
             ct::OD(&node.value);
-            m_basetbl.remove(&node);
+            m_basetbl.remove(&node,i.m_pos);
             ++i;
             return true;
         }
@@ -395,7 +395,7 @@ namespace rx
             node_t *node = m_basetbl.find(hash_code, key,pos);
             if (!node)
                 return NULL;
-            m_basetbl.remove(node);
+            m_basetbl.remove(node,pos);
             return node;
         }
         //删除指定的key对应的节点
@@ -420,7 +420,7 @@ namespace rx
                 return NULL;
 
             node_t &node = *m_basetbl.node(i.m_pos);
-            m_basetbl.remove(&node);
+            m_basetbl.remove(&node,i.m_pos);
             ++i;
             return &node;
         }
@@ -607,7 +607,7 @@ namespace rx
             node_t *node = m_basetbl.find(hash_code, key,pos);
             if (!node)
                 return NULL;
-            m_basetbl.remove(node);
+            m_basetbl.remove(node,pos);
 
             if (m_last==pos)
                 m_last=node->value.prv_pos;                 //如果当前节点恰好是尾节点,则尾节点位置变为其前趋
@@ -645,7 +645,7 @@ namespace rx
                 return NULL;
 
             node_t &node = *m_basetbl.node(i.m_pos);
-            m_basetbl.remove(&node);
+            m_basetbl.remove(&node,i.m_pos);
 
             if (m_last==i.m_pos)
                 m_last=node.value.prv_pos;                 //如果当前节点恰好是尾节点,则尾节点位置变为其前趋

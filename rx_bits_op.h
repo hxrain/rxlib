@@ -296,8 +296,8 @@
     //在指定长度len的字节数组bytes中,设置第idx位.字节数组的高地址对应高位序.
     static inline bool rx_bits_set(uint32_t idx, uint8_t *bytes, uint32_t len = 8)
     {
-        uint32_t b_idx = idx / 8;
-        uint32_t b_offset = idx % 8;
+        uint32_t b_idx = idx >> 3;      //=idx/8
+        uint32_t b_offset = idx & 0x07; //=idx%8
         if (b_idx >= len)
             return false;
         bit_set(bytes[b_idx], b_offset);
@@ -306,8 +306,8 @@
     //在指定长度len的字节数组bytes中,清0第idx位.字节数组的高地址对应高位序.
     static inline bool rx_bits_clr(uint32_t idx, uint8_t *bytes, uint32_t len = 8)
     {
-        uint32_t b_idx = idx / 8;
-        uint32_t b_offset = idx % 8;
+        uint32_t b_idx = idx >> 3;      //=idx/8
+        uint32_t b_offset = idx & 0x07; //=idx%8
         if (b_idx >= len)
             return false;
         bit_clr(bytes[b_idx], b_offset);
@@ -316,8 +316,8 @@
     //在指定长度len的字节数组bytes中(从低至高),获取第idx位(判断其是否置位,从0算起).字节数组的高地址对应高位序.
     static inline bool rx_bits_tst(uint32_t idx, const uint8_t *bytes, uint32_t len = 8)
     {
-        uint32_t b_idx = idx / 8;
-        uint32_t b_offset = idx % 8;
+        uint32_t b_idx = idx >> 3;      //=idx/8
+        uint32_t b_offset = idx & 0x07; //=idx%8
         if (b_idx >= len)
             return false;
         return !!bit_tst(bytes[b_idx], b_offset);
