@@ -210,7 +210,7 @@ namespace rx
             //---------------------------------------------
             const val_t& operator*() const
             {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->state);
+                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->flag==1);
                 return m_parent.m_basetbl.node(m_pos)->value;
             }
             //---------------------------------------------
@@ -318,14 +318,14 @@ namespace rx
             //*提领运算符重载,用于获取当前节点的val值
             const val_t& operator*() const
             {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->state);
+                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->flag==1);
                 return m_parent.m_basetbl.node(m_pos)->value.val;
             }
             //---------------------------------------------
             //()运算符重载,用于获取当前节点的key值
             const key_t& operator()() const
             {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity()&&m_parent.m_basetbl.node(m_pos)->state);
+                rx_assert(m_pos<m_parent.m_basetbl.capacity()&&m_parent.m_basetbl.node(m_pos)->flag==1);
                 return m_parent.m_basetbl.node(m_pos)->value.key;
             }
             //获取当前迭代器在容器中对应的位置索引
@@ -513,14 +513,14 @@ namespace rx
             //*提领运算符重载,用于获取当前节点的val值
             const val_t& operator*() const
             {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->state);
+                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->flag==1);
                 return m_parent.m_basetbl.node(m_pos)->value.val;
             }
             //---------------------------------------------
             //()运算符重载,用于获取当前节点的key值
             const key_t& operator()() const
             {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->state);
+                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&m_parent.m_basetbl.node(m_pos)->flag==1);
                 return m_parent.m_basetbl.node(m_pos)->value.key;
             }
             //获取当前迭代器在容器中对应的位置索引

@@ -19,8 +19,6 @@ namespace rx
         raw_hashtbl_stat_t():using_count(0), collision_count(0), collision_length(0){}
     }raw_hashtbl_stat_t;
 
-    #define raw_hashtbl_using_node_state 1
-
     //-----------------------------------------------------
     //简单的定长槽位哈希表,使用开地址方式进行冲突处理,用于简单的哈希搜索管理器,自身不进行任何内存管理.
     //-----------------------------------------------------
@@ -32,61 +30,38 @@ namespace rx
         //哈希表节点基类,使用的时候,必须让真正的节点继承于此
         typedef struct node_t
         {
-#if raw_hashtbl_using_node_state
-            uint32_t    state;                              //记录当前节点是否被使用,0未使用;1正常被使用;>1哈希冲突序数(比如3就是在冲突点后第三个位置)
-#endif
+            uint16_t    flag;                               //节点标记:0未使用;1使用中;2被删除.
+            uint16_t    step;                               //记录冲突的步数0~n
             NVT         value;                              //哈希节点的value值
         } node_t;
 
     private:
         node_t              *m_nodes;                       //节点数组
         raw_hashtbl_stat_t  *m_stat;                        //哈希表状态记录
-        uint8_t             *m_bits;                        //用于记录节点是否被使用的比特数组
-        uint32_t             m_bytesize;
         //-------------------------------------------------
+        //判断给定的节点是否为空节点
+        static bool node_is_empty(const node_t &node) {return node.flag==0;}
+        //判断给定的节点是否未被使用
+        static bool node_is_unused(const node_t &node) {return node.flag==0||node.flag==2;}
+        //判断给定的节点是否被删除
+        static bool node_is_deleted(const node_t &node) {return node.flag==2;}
         //判断给定的节点是否被使用
-        bool m_node_tst(const node_t &node,uint32_t idx)const
-        {
-        #if raw_hashtbl_using_node_state
-            return node.state!=0;
-        #else
-            if (m_bits) return rx_bits_tst(idx,m_bits,m_bytesize);
-            else return !equ_zero(&node.value,sizeof(node.value));
-        #endif
-        }
-        //设置或清理指定节点的使用标记
-        void m_node_set(node_t &node,uint32_t idx,uint32_t is_using)
-        {
-        #if raw_hashtbl_using_node_state
-            node.state=is_using;
-        #else
-            if (m_bits) 
-            {
-                if (is_using) 
-                    rx_bits_set(idx,m_bits,m_bytesize);
-                else
-                    rx_bits_clr(idx,m_bits,m_bytesize);
-            }
-            else 
-            {
-                if (!is_using)
-                    memset(&node.value,0,sizeof(node.value));
-            }
-        #endif
-        }
+        static bool node_is_using(const node_t &node) {return node.flag==1;}
+        //设置节点被使用
+        static void node_used(node_t &node,uint16_t step){node.flag=1;node.step=step;}
+        //设置节点被删除
+        static void node_delete(node_t &node){node.flag=2;}
     public:
         //-------------------------------------------------
-        raw_hashtbl_t():m_nodes(NULL), m_stat(NULL), m_bits(NULL){}
+        raw_hashtbl_t():m_nodes(NULL), m_stat(NULL){}
         //绑定最终可用的节点空间
         //-------------------------------------------------
-        void bind(node_t* nodes, raw_hashtbl_stat_t* stat,bool clear=true,uint8_t *bytes=NULL,uint32_t bytesize=0)
+        void bind(node_t* nodes, raw_hashtbl_stat_t* stat,bool clear=true)
         {
             m_nodes=nodes;
             if (m_nodes&&clear)
                 memset(m_nodes,0,sizeof(node_t)*stat->max_nodes);
             m_stat = stat;
-            m_bits = bytes;
-            m_bytesize=bytesize;
         }
         //-------------------------------------------------
         //通过节点索引直接访问节点
@@ -103,9 +78,9 @@ namespace rx
             {
                 pos=(hash_code+i)%capacity();               //计算位置
                 node_t &node = m_nodes[pos];                //得到节点
-                if (!m_node_tst(node,pos))
+                if (node_is_unused(node))
                 {
-                    m_node_set(node,pos,i+1);               //该节点尚未使用,那么就直接使用(顺便可记录当前节点冲突步长)
+                    node_used(node,i);                      //该节点未被使用中,那么就直接使用(顺便可记录当前节点冲突步长)
 
                     if (i)
                         m_stat->collision_count +=1;        //记录冲突总数
@@ -119,6 +94,7 @@ namespace rx
                         *is_dup=true;
                     return &node;                           //该节点已经被使用了,且value也是重复的,那么就直接给出吧
                 }
+                //继续向后查找未被使用的节点.
             }
 
             pos=-1;
@@ -137,14 +113,19 @@ namespace rx
             {
                 uint32_t I=(hash_code+i)%capacity();        //计算位置
                 node_t &node = m_nodes[I];                  //得到节点
-                if (!m_node_tst(node,I))
+                if (node_is_empty(node))
                     return NULL;                            //直接就碰到空档了,不用继续了
 
                 if (vkcmp::equ(node.value,value))
                 {
+                    if (node_is_deleted(node))
+                        return NULL;                        //如果找到的是之前已经被删除的值,直接放弃.
+
                     pos=I;
-                    return &node;                           //顺延后找到了
+                    return &node;                           //找到了
                 }
+
+                //向后顺序逐一查找
             }
 
             return NULL;                                    //转了一圈没找到!
@@ -153,9 +134,9 @@ namespace rx
         //删除节点
         bool remove(node_t *node,uint32_t pos)
         {
-            if (!node|| !m_node_tst(*node,pos))
+            if (!node || node_is_unused(*node))
                 return false;
-            m_node_set(*node,pos,false);                    //删除动作仅仅是打标记
+            node_delete(*node);                             //删除动作仅仅是打标记
             --m_stat->using_count;                          //计数器递减
             return true;
         }
@@ -171,7 +152,7 @@ namespace rx
         uint32_t next(uint32_t pos) const
         {
             while (++pos < capacity())
-                if (m_node_tst(m_nodes[pos],pos))
+                if (node_is_using(m_nodes[pos]))
                     return pos;
             return capacity();
         }
