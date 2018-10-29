@@ -63,6 +63,7 @@ namespace rx
                 memset(m_nodes,0,sizeof(node_t)*stat->max_nodes);
             m_stat = stat;
         }
+        bool is_valid() {return m_nodes&&m_stat;}
         //-------------------------------------------------
         //通过节点索引直接访问节点
         node_t *node(uint32_t idx)const { return &m_nodes[idx]; }

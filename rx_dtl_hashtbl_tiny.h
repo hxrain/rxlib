@@ -439,6 +439,8 @@ namespace rx
         //清空全部的元素
         void clear()
         {
+            if (!m_basetbl.is_valid())
+                return;
             for (iterator i = begin(); i != end();)
                 erase(i);
         }

@@ -38,8 +38,13 @@ namespace rx
 
             //获取状态区域指针
             raw_hashtbl_stat_t *stat = (raw_hashtbl_stat_t*)m_mmap.ptr();
-            if (stat->max_nodes&&stat->max_nodes != max_node_count)
-                return 0;
+            if (stat->max_nodes)
+            {
+                if (stat->max_nodes != max_node_count)
+                    return 0;
+            }
+            else
+                stat->max_nodes = max_node_count;
             
             //获取数据区域指针
             super_t::node_t *nodes = (super_t::node_t*)(m_mmap.ptr() + sizeof(raw_hashtbl_stat_t));
@@ -55,14 +60,13 @@ namespace rx
 
 
             //最后进行哈希容器的初始化
-            super_t::m_basetbl.bind(nodes, max_node_count, stat,false);
+            super_t::m_basetbl.bind(nodes, stat,false);
             return max_node_count;
         }
         //-------------------------------------------------
         void close()
         {
-            raw_hashtbl_stat_t dummy;
-            super_t::m_basetbl.bind(NULL,0,&dummy);
+            super_t::m_basetbl.bind(NULL,NULL);
 
             m_mmap.flush();
             m_mmap.close();
