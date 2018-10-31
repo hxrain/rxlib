@@ -48,7 +48,7 @@ namespace rx
     {
         rnd_t   m_rnd;
     public:
-        static const uint32_t max_level() {return MAX_LEVEL};
+        static const uint32_t max_level() {return MAX_LEVEL;}
         skiplist_rnd_level(uint32_t seed)
         {
             if (seed<1)
@@ -157,7 +157,7 @@ namespace rx
         //-------------------------------------------------
         typedef skipset_node_t<key_t,void>  sk_node_t;      //定义最终使用的基础原始调整容器节点
         typedef raw_skiplist_t<sk_node_t>   sk_list_t;      //定义最终使用的基础原始跳表容器类型
-        //------------------------------------------------- 
+        //-------------------------------------------------
         skiplist_rnd_level<rnd_t,MAX_LEVEL> m_rnd_level;    //随机层高生成器
         sk_list_t                           m_raw_list;     //原始的跳表容器
     public:

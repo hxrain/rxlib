@@ -27,7 +27,7 @@ namespace rx
             //先尝试打开已有文件,失败后再尝试创建文件
             if (!m_file.open(file, "r+") && !m_file.open(file, "w+"))
                 return 0-m_file.error();
-            
+
             //计算最大所需空间
             const uint32_t memsize = sizeof(super_t::node_t)*max_node_count + sizeof(raw_hashtbl_stat_t);
 
@@ -45,10 +45,11 @@ namespace rx
             }
             else
                 stat->max_nodes = max_node_count;
-            
+
             //获取数据区域指针
-            super_t::node_t *nodes = (super_t::node_t*)(m_mmap.ptr() + sizeof(raw_hashtbl_stat_t));
-            
+            void *ptr=(m_mmap.ptr() + sizeof(raw_hashtbl_stat_t));
+            typename super_t::node_t *nodes = (typename super_t::node_t*)ptr;
+
             /*
             for (uint32_t i = 0; i < max_node_count; ++i)
             {//临时查看一下,冲突元素的步长是怎样分布的
@@ -73,7 +74,7 @@ namespace rx
             m_file.close();
         }
         //-------------------------------------------------
-        bool flush() { m_mmap.flush(); }
+        bool flush() { return m_mmap.flush(); }
         //-------------------------------------------------
     };
 

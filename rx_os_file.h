@@ -194,7 +194,7 @@ namespace rx
         {
             if (m_handle == INVALID_HANDLE_VALUE) return false;
             ret=SetFilePointer(m_handle, 0, NULL, FILE_CURRENT);
-            return ret != -1;
+            return ret != (uint32_t)-1;
         }
         //-------------------------------------------------
         //设置文件在当前读写点处结束
