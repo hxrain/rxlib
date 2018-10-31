@@ -3,7 +3,6 @@
 
 #include "rx_cc_macro.h"
 #include "rx_os_spinlock.h"
-#include "rx_bits_op.h"
 #include "rx_ct_util.h"
 
 namespace rx

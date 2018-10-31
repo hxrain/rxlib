@@ -2,7 +2,7 @@
 #define _HX_THREAD_H_
 
 #include "rx_cc_macro.h"
-#include "rx_atomic.h"
+#include "rx_ct_atomic.h"
 #include "rx_os_lock.h"
 #include "rx_os_cond.h"
 

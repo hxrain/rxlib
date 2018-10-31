@@ -4,7 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_mem_pool.h"
 #include "rx_ct_util.h"
-#include "rx_bits_op.h"
+#include "rx_ct_bitop.h"
 #include "rx_hash_tlmap.h"
 #include "rx_assert.h"
 #include <math.h>

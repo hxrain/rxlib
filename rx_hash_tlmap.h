@@ -3,7 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_ct_util.h"
-#include "rx_bits_op.h"
+#include "rx_ct_bitop.h"
 
 //---------------------------------------------------------
 //两级bitmap索引计算的限定条件

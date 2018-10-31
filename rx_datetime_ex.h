@@ -3,7 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_datetime.h"
-#include "rx_atomic.h"
+#include "rx_ct_atomic.h"
 #include <time.h>
 
 /*

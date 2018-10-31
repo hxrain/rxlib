@@ -1,4 +1,9 @@
 
+
+#include "../../rx_ext_hashtbl_mm.h"
+
+#include "../../rx_ct_error.h"
+
 #include "../ut_os_file.h"
 #include "../ut_os_mmap.h"
 #include "../../rx_os_misc.h"
@@ -45,6 +50,7 @@
 #include "../../rx_dtl_ringbuff.h"
 
 #include "../ut_dtl_ringqueue.h"
+
 #include "../../rx_dtl_ringqueue.h"
 
 #include "../ut_os_tasks.h"
@@ -70,7 +76,7 @@
 #include "../../rx_hash_int.h"
 
 #include "../ut_bits_op.h"
-#include "../../rx_bits_op.h"
+#include "../../rx_ct_bitop.h"
 
 #include "../ut_mem_pool.h"
 #include "../../rx_mem_pool_fx1.h"
@@ -89,7 +95,7 @@
 
 
 #include "../ut_atomic.h"
-#include "../../rx_atomic.h"
+#include "../../rx_ct_atomic.h"
 #include "../ut_cc_atomic.h"
 #include "../../rx_tdd.h"
 

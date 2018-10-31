@@ -1,7 +1,7 @@
 #ifndef _UT_BITS_OP_H_
 #define _UT_BITS_OP_H_
 
-#include "../rx_bits_op.h"
+#include "../rx_ct_bitop.h"
 #include "../rx_tdd.h"
 
 //---------------------------------------------------------

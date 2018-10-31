@@ -1,7 +1,7 @@
 #ifndef _UT_ATOMIC_H_
 #define _UT_ATOMIC_H_
 #include "../rx_tdd.h"
-#include "../rx_atomic.h"
+#include "../rx_ct_atomic.h"
 
 template<class T>
 void test_atomic_base(rx_tdd_t &rt)
