@@ -12,10 +12,10 @@ inline void ut_os_mmap_base_1(rx_tdd_t &rt)
     remove(filename);
 
     rx::os_file_t file;
-    rt.tdd_assert(file.open(filename,"w+"));
+    rt.tdd_assert(file.open(filename,"w+")== rx::ec_ok);
 
     rx::os_mmap_t mmap;
-    rt.tdd_assert(mmap.open(file, "w+",20) > 0);
+    rt.tdd_assert(mmap.open(file, "w+",20) == rx::ec_ok);
     if (!mmap.is_valid())
         return;
 
@@ -23,10 +23,10 @@ inline void ut_os_mmap_base_1(rx_tdd_t &rt)
     rt.tdd_assert(mmap.flush());
 
     rx::os_file_t file2;
-    rt.tdd_assert(file2.open(filename, "r+"));
+    rt.tdd_assert(file2.open(filename, "r+")== rx::ec_ok);
 
     rx::os_mmap_t mmap2;
-    rt.tdd_assert(mmap2.open(file2, "w+", 20) > 0);
+    rt.tdd_assert(mmap2.open(file2, "w+", 20) == rx::ec_ok);
     rt.tdd_assert(strcmp((char*)mmap2.ptr(), "1234567890") == 0);
 
     rt.tdd_assert(mmap2.write("1234567891", 10) == 10);

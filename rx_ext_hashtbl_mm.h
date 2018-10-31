@@ -21,27 +21,27 @@ namespace rx
         ~tiny_mm_hashtbl_t() { close(); }
         //-------------------------------------------------
         //创建或打开文件映射哈希表
-        //返回值:<=0错误;>0成功.
-        int32_t open(const char* file)
+        error_code open(const char* file)
         {
             //先尝试打开已有文件,失败后再尝试创建文件
-            if (!m_file.open(file, "r+") && !m_file.open(file, "w+"))
-                return 0-m_file.error();
+            error_code ec;
+            if ((ec=m_file.open(file, "r+")) && (ec=m_file.open(file, "w+")))
+                return ec;
 
             //计算最大所需空间
             const uint32_t memsize = sizeof(super_t::node_t)*max_node_count + sizeof(raw_hashtbl_stat_t);
 
             //映射文件到内存
-            int ret = m_mmap.open(m_file, "w+", memsize);
-            if (ret <= 0)
-                return ret;
+            ec = m_mmap.open(m_file, "w+", memsize);
+            if (ec)
+                return ec;
 
             //获取状态区域指针
             raw_hashtbl_stat_t *stat = (raw_hashtbl_stat_t*)m_mmap.ptr();
             if (stat->max_nodes)
             {
                 if (stat->max_nodes != max_node_count)
-                    return 0;
+                    return ec_limit_data;
             }
             else
                 stat->max_nodes = max_node_count;
@@ -55,14 +55,14 @@ namespace rx
             {//临时查看一下,冲突元素的步长是怎样分布的
                 super_t::node_t &node = nodes[i];
                 if (node.state > 4)
-                    printf("%u ", node.state);
+                    printf("%u ", node.step);
             }
             */
 
 
             //最后进行哈希容器的初始化
             super_t::m_basetbl.bind(nodes, stat,false);
-            return max_node_count;
+            return ec_ok;
         }
         //-------------------------------------------------
         void close()

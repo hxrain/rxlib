@@ -27,7 +27,6 @@ namespace rx
         //-------------------------------------------------
         //判断映射是否有效
         bool is_valid() { return m_mem_ptr != NULL&&m_handle != NULL; }
-        uint32_t error() { return GetLastError(); }
         //-------------------------------------------------
         //获取映射过的尺寸
         uint32_t size() { return m_mem_size; }
@@ -47,17 +46,17 @@ namespace rx
             w+:READWRITE
         */
         //入口:File文件对象;mode打开模式;MemSize要创建的共享内存的大小,0时参照文件尺寸;FileOffset文件映射的偏移
-        //返回值:<=0错误;>0成功
-        int open(os_file_t &file,const char* mode="w+",uint32_t MemSize=0, uint32_t FileOffset = 0)
+        error_code open(os_file_t &file,const char* mode="w+",uint32_t MemSize=0, uint32_t FileOffset = 0)
         {
             if (m_handle)
-                return 0;
+                return ec_limit_double_op;
+
+            if (is_empty(mode))
+                return error_code(ec_in_param,-1);
 
             uint32_t flag_page = 0;
             uint32_t flag_map = 0;
             bool op_plus = false;
-            if (is_empty(mode))
-                return -1;
 
             if (st::strchr(mode, '+'))
                 op_plus = true;
@@ -75,10 +74,10 @@ namespace rx
 
 
             if (flag_page==PAGE_WRITECOPY&&!file.is_valid())
-                return -2;                                  //写拷贝模式必须与文件句柄一起使用!
+                return error_code(ec_in_param,-2);          //写拷贝模式必须与文件句柄一起使用!
 
             if (MemSize==0&&!file.size(MemSize))
-                return -3;
+                return error_code(ec_in_param,-3);
 
             //创建文件映射
             //os_security_desc_t SSD;
@@ -86,7 +85,7 @@ namespace rx
             if (m_handle == NULL)
             {
                 close();
-                return -4;
+                return ec_os_mmap_open;
             }
 
             //进行内存关联,得到内存映射后的数据指针
@@ -94,11 +93,11 @@ namespace rx
             if (m_mem_ptr == NULL)
             {
                 close();
-                return -5;
+                return ec_os_mmap_bind;
             }
 
             m_mem_size = MemSize;
-            return MemSize;
+            return ec_ok;
         }
 
         //-------------------------------------------------
@@ -121,7 +120,7 @@ namespace rx
         }
         //-------------------------------------------------
         //写数据:数据缓冲区指针;数据长度;内存起始偏移
-        //返回值:0失败;其他为实际写入的长度(可能不等于DataLen)
+        //返回值:0失败;其他为实际写入的长度(由于Offset的存在,导致可能不等于DataLen)
         uint32_t write(const void* Data, uint32_t DataLen, uint32_t Offset = 0)
         {
             if (!m_mem_ptr) return 0;
@@ -131,7 +130,7 @@ namespace rx
         }
         //-------------------------------------------------
         //读数据:缓冲区;需要读取的长度;内存起始偏移
-        //返回值:0失败;其他为实际读取的长度(可能不等于ReadLen)
+        //返回值:0失败;其他为实际读取的长度(由于Offset的存在,导致可能不等于ReadLen)
         uint32_t read(void* Buffer, uint32_t ReadLen, uint32_t Offset = 0)
         {
             if (!m_mem_ptr) return 0;
@@ -183,17 +182,17 @@ namespace rx
             w+:READWRITE
         */
         //入口:File文件对象;mode打开模式;MemSize要创建的共享内存的大小,0时参照文件尺寸;FileOffset文件映射的偏移
-        //返回值:<=0错误;>0成功
-        int open(os_file_t &file,const char* mode="w+",uint32_t MemSize=0, uint32_t FileOffset = 0)
+        error_code open(os_file_t &file,const char* mode="w+",uint32_t MemSize=0, uint32_t FileOffset = 0)
         {
             if (m_mem_ptr)
-                return 0;
+                return ec_limit_double_op;
+
+            if (is_empty(mode))
+                return error_code(ec_in_param,-1);
 
             uint32_t flag_prot = 0;
             uint32_t flag_map = 0;
             bool op_plus = false;
-            if (is_empty(mode))
-                return -1;
 
             if (st::strchr(mode, '+'))
                 op_plus = true;
@@ -208,7 +207,7 @@ namespace rx
                 flag_map=MAP_SHARED;
 
             if (flag_prot==PROT_WRITE&&flag_map==MAP_PRIVATE&&!file.is_valid())
-                return -2;                                  //写拷贝模式必须与文件句柄一起使用!
+                return error_code(ec_in_param,-2);          //写拷贝模式必须与文件句柄一起使用!
 
             if (!file.is_valid())
                 flag_map = MAP_ANONYMOUS;                   //文件句柄无效就当作匿名映射使用
@@ -216,30 +215,31 @@ namespace rx
             {//文件句柄有效,则需要进行内存映射尺寸的校正处理
                 uint32_t file_size = 0;
                 if (!file.size(file_size))                  //获取文件尺寸
-                    return -3;
+                    return error_code(ec_file_op,-3);
 
                 if (MemSize == 0)
                     MemSize = file_size;
                 else if (MemSize + FileOffset > file_size)
                 {//如果指定的内存尺寸大于文件的实际尺寸,则尝试进行文件扩容
-                    if (alloc_file_size(file, MemSize + FileOffset) <= 0)
-                        return -4;
+                    error_code ec=alloc_file_size(file, MemSize + FileOffset);
+                    if (ec)
+                        return ec;
                 }
             }
 
             if (MemSize == 0)
-                return -5;
+                return error_code(ec_in_param,-5);
 
             //进行内存关联,得到内存映射后的数据指针
             m_mem_ptr = mmap(NULL,MemSize,flag_prot,flag_map,file.handle(),FileOffset);
             if (m_mem_ptr == NULL)
             {
                 close();
-                return -6;
+                return ec_os_mmap_bind;
             }
 
             m_mem_size = MemSize;
-            return MemSize;
+            return ec_ok;
         }
 
         //-------------------------------------------------

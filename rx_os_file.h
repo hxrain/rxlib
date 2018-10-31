@@ -4,7 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
 #include "rx_str_util.h"
-#include <string>
+#include "rx_ct_error.h"
 
 #if RX_OS_WIN
 namespace rx
@@ -39,28 +39,30 @@ namespace rx
         virtual ~os_file_t() { close(); }
         bool is_valid() { return m_handle != INVALID_HANDLE_VALUE; }
         //-------------------------------------------------
-        uint32_t error() { return GetLastError(); }
-        //-------------------------------------------------
         size_t handle() { return (size_t)m_handle; }
         //-------------------------------------------------
         //创建一个文件,write_over=false文件打开或创建;write_over=true文件覆盖或创建
         //flags默认打开为可读写;mode默认别人可以共享读,0为独占;文件属性默认为正常
-        bool create(const char* filename, bool write_over, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
+        error_code create(const char* filename, bool write_over, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
         {
+            if (is_empty(filename))
+                return ec_in_param;
             m_handle = CreateFileA(filename, flags, mode, NULL, write_over ? CREATE_ALWAYS : OPEN_ALWAYS, attrib, NULL);
-            return m_handle != INVALID_HANDLE_VALUE;
+            return m_handle == INVALID_HANDLE_VALUE ? ec_file_open : ec_ok;
         }
         //-------------------------------------------------
         //打开一个文件,文字不存在就失败
         //flags默认打开为可读写;mode默认别人可以共享读,0为独占;文件属性默认为正常
-        bool open(const char* filename, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
+        error_code open(const char* filename, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
         {
+            if (is_empty(filename))
+                return ec_in_param;
             m_handle = CreateFileA(filename, flags, mode, NULL, OPEN_EXISTING, attrib, NULL);
-            return m_handle != INVALID_HANDLE_VALUE;
+            return m_handle == INVALID_HANDLE_VALUE ? ec_file_open : ec_ok;
         }
         //-------------------------------------------------
         //仿std/fopen的文件打开操作
-        bool open(const char* filename, const char* Mode)
+        error_code open(const char* filename, const char* Mode)
         {   //参照vc2008
             //r : read
             //w : write
@@ -77,32 +79,34 @@ namespace rx
             //w+: create a new file for update (reading and writing). If a file by that name already exists, it will be overwritten.
             //a+: open for append; open (or create if the file does not exist) for update at the end of the file.
 
+            if (is_empty(filename)||is_empty(Mode))
+                return ec_in_param;
+
             uint32_t flag_write = 0;
             uint32_t flag_read = 0;
             bool op_plus = false;
             bool op_append = false;
             bool op_write = false;
             bool op_read = false;
-            if (!is_empty(Mode))
+
+            if (st::strchr(Mode, '+'))
+                op_plus = true;
+            if (st::strchr(Mode, 'r'))
             {
-                if (st::strchr(Mode, '+'))
-                    op_plus = true;
-                if (st::strchr(Mode, 'r'))
-                {
-                    op_read = true;
-                    flag_read = GENERIC_READ;
-                }
-                if (st::strchr(Mode, 'w'))
-                {
-                    op_write = true;
-                    flag_write = GENERIC_WRITE;
-                }
-                if (st::strchr(Mode, 'a'))
-                {
-                    op_append = true;
-                    flag_write = FILE_APPEND_DATA;
-                }
+                op_read = true;
+                flag_read = GENERIC_READ;
             }
+            if (st::strchr(Mode, 'w'))
+            {
+                op_write = true;
+                flag_write = GENERIC_WRITE;
+            }
+            if (st::strchr(Mode, 'a'))
+            {
+                op_append = true;
+                flag_write = FILE_APPEND_DATA;
+            }
+
             if (op_plus)
             {
                 if (op_read)
@@ -310,16 +314,16 @@ namespace rx
         virtual ~os_file_t() { close(); }
         bool is_valid() { return m_handle != -1; }
         //-------------------------------------------------
-        uint32_t error() { return errno; }
-        //-------------------------------------------------
         size_t handle() { return (size_t)m_handle; }
         //-------------------------------------------------
         //打开一个文件,文字不存在就失败
         //flags默认打开为可读写;文件属性默认为用户读写
-        bool open(const char* filename, uint32_t flags = O_RDWR|O_CREAT, uint32_t attrib = S_IRUSR|S_IWUSR)
+        error_code open(const char* filename, uint32_t flags = O_RDWR|O_CREAT, uint32_t attrib = S_IRUSR|S_IWUSR)
         {
+            if (is_empty(filename))
+                return ec_in_param;
             m_handle = ::open(filename,flags,attrib);
-            return m_handle != -1;
+            return m_handle == -1 ? ec_file_open : ec_ok;
         }
         //-------------------------------------------------
         bool open(const char* filename, const char* Mode)
@@ -339,26 +343,27 @@ namespace rx
             //w+: create a new file for update (reading and writing). If a file by that name already exists, it will be overwritten.
             //a+: open for append; open (or create if the file does not exist) for update at the end of the file.
 
+            if (is_empty(filename)||is_empty(Mode))
+                return ec_in_param;
+
             uint32_t flag_write = 0;
             uint32_t flag_read = 0;
             bool op_plus = false;
-            if (!is_empty(Mode))
-            {
-                if (st::strchr(Mode, '+'))
-                    op_plus = true;
 
-                if (st::strchr(Mode, 'r'))
-                {
-                    flag_read = op_plus ? O_RDWR : O_RDONLY;
-                }
-                if (st::strchr(Mode, 'w'))
-                {
-                    flag_write = op_plus ? O_RDWR | O_CREAT : O_WRONLY | O_CREAT;
-                }
-                if (st::strchr(Mode, 'a'))
-                {
-                    flag_write = op_plus ? O_RDWR | O_APPEND | O_CREAT : O_APPEND | O_CREAT;
-                }
+            if (st::strchr(Mode, '+'))
+                op_plus = true;
+
+            if (st::strchr(Mode, 'r'))
+            {
+                flag_read = op_plus ? O_RDWR : O_RDONLY;
+            }
+            if (st::strchr(Mode, 'w'))
+            {
+                flag_write = op_plus ? O_RDWR | O_CREAT : O_WRONLY | O_CREAT;
+            }
+            if (st::strchr(Mode, 'a'))
+            {
+                flag_write = op_plus ? O_RDWR | O_APPEND | O_CREAT : O_APPEND | O_CREAT;
             }
 
             return open(filename, flag_read | flag_write);
@@ -512,58 +517,60 @@ namespace rx
 {
     //---------------------------------------------------------
     //将给定的os_file_t进行预分配处理(调整文件尺寸)
-    //返回值:<0错误;>=0成功
-    inline int alloc_file_size(os_file_t& file, uint32_t NewSize)
+    inline error_code alloc_file_size(os_file_t& file, uint32_t NewSize)
     {
         uint32_t Pos;
         if (!file.tell(Pos))
-            return -1;
+            return error_code(ec_file_op,-1);
         if (!file.seek(NewSize))
-            return -2;
+            return error_code(ec_file_op,-2);
         if (!file.truncate())
-            return -3;
+            return error_code(ec_file_op,-3);
         if (!file.flush())
-            return -4;
+            return error_code(ec_file_op,-4);
         if (!file.seek(Pos))
-            return -5;
-        return NewSize;
+            return error_code(ec_file_op,-5);
+        return ec_ok;
     }
     //---------------------------------------------------------
     //产生指定名字的文件,并预分配指定的空间
-    //返回值:<0错误;>=0成功
-    inline int alloc_file_size(const char* file, uint32_t NewSize)
+    inline error_code alloc_file_size(const char* file, uint32_t NewSize)
     {
         os_file_t f;
-        if (!f.open(file,"w+"))
-            return -1;
+        error_code ec=f.open(file,"w+");
+        if (ec)
+            return ec;
         return alloc_file_size(f, NewSize);
     }
     //---------------------------------------------------------
     //保存数据到文件
-    //返回值:<0错误;>=0成功
-    inline int save_to_file(const char* filename,const void* data,size_t datalen)
+    inline error_code save_to_file(const char* filename,const void* data,size_t datalen)
     {
         os_file_t f;
-        if (!f.open(filename, "w+"))
-            return -1;
+        error_code ec=f.open(filename, "w+");
+        if (ec)
+            return ec;
+
         if (!f.write(data, datalen))
-            return -2;
-        return (int)datalen;
+            return ec_file_write;
+        return ec_ok;
     }
-    inline int save_to_file(const char* filename, const char* data) { return save_to_file(filename,data,strlen(data)); }
+    inline error_code save_to_file(const char* filename, const char* data) { return save_to_file(filename,data,strlen(data)); }
     //---------------------------------------------------------
     //从文件装载内容到字符串
-    //返回值:<0错误;>=0成功.
-    inline int load_from_file(const char* filename, std::string &str)
+    inline error_code load_from_file(const char* filename, std::string &str)
     {
         os_file_t f;
-        if (!f.open(filename, "r")) return -1;
+        error_code ec=f.open(filename, "r");
+        if (ec) 
+            return ec;
 
         uint32_t fsize;
-        if (!f.size(fsize)) return -2;
+        if (!f.size(fsize)) 
+            return ec_file_op;
 
         try { str.resize(fsize); }
-        catch (...) { return -3; }
+        catch (...) { return ec_mem_not_enough; }
 
         str.clear();
 
@@ -572,12 +579,12 @@ namespace rx
         {
             uint32_t ds;
             if (!f.read(buff, Min(fsize, (uint32_t)sizeof(buff)), ds))
-                return -4;
+                return ec_file_read;
 
             str.append(buff, ds);
             fsize -= ds;
         }
-        return (int)str.size();
+        return ec_ok;
     }
 }
 #endif
