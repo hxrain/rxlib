@@ -29,7 +29,7 @@ namespace rx
     {
         if (!os_errno)
             os_errno=GetLastError();
-        
+
         msg.clear();
         if (!os_errno)
             return true;
@@ -58,7 +58,7 @@ namespace rx
     inline bool os_error_reason(std::string &msg,uint32_t os_errno=0)
     {
         if (!os_errno)
-            os_errno=GetLastError();
+            os_errno=errno;
 
         msg.clear();
         if (!os_errno)
@@ -91,7 +91,7 @@ namespace rx
         };
         //布尔类型运算符重载,便于判断是否有错.
         operator bool() { return e_code != 0; }              //结构体的实例可以直接进行逻辑比较
-        
+
         bool operator == (const uint16_t ec) { return e_code == ec; }
 
         //构造函数

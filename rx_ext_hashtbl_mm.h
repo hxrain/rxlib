@@ -29,7 +29,7 @@ namespace rx
                 return ec;
 
             //计算最大所需空间
-            const uint32_t memsize = sizeof(super_t::node_t)*max_node_count + sizeof(raw_hashtbl_stat_t);
+            const uint32_t memsize = sizeof(typename super_t::node_t)*max_node_count + sizeof(raw_hashtbl_stat_t);
 
             //映射文件到内存
             ec = m_mmap.open(m_file, "w+", memsize);

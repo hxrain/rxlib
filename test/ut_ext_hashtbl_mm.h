@@ -60,7 +60,7 @@ namespace rx_ut
     inline uint32_t ut_mm_hashtbl_base_check(mm_hashtbl_int &tbl)
     {
         tdd_tt(t, "mm_hashtbl_int", "check");
-        uint32_t max_step = 0;
+        uint16_t max_step = 0;
         uint32_t ec = 0;
         for (uint32_t i = 0; i < tbl.size(); ++i)
         {
@@ -69,7 +69,7 @@ namespace rx_ut
             if (I == tbl.end() || *I != i)
                 ++ec;
             else
-                max_step = max(tbl.at(I.pos())->step, max_step);
+                max_step = std::max(tbl.at(I.pos())->step, max_step);
         }
         tdd_tt_hit(t, "capacity=%d items=%d collision=%d max_step=%d", tbl.capacity(), tbl.size(), tbl.stat().collision_count, max_step);
         return ec;
