@@ -9,6 +9,7 @@ namespace rx
 {
 
     //-----------------------------------------------------
+    //基于文件内存映射的持久化定长哈希表
     template<uint32_t max_node_count, class val_t = uint32_t, class key_t = uint32_t, class cmp_t = hashtbl_cmp_t>
     class tiny_mm_hashtbl_t :public hashtbl_base_t<key_t, val_t, cmp_t >
     {
@@ -39,26 +40,16 @@ namespace rx
             //获取状态区域指针
             raw_hashtbl_stat_t *stat = (raw_hashtbl_stat_t*)m_mmap.ptr();
             if (stat->max_nodes)
-            {
+            {//文件被初始化过,则需要检查之前初始化和现在初始化给定的最大容量是否相同.
                 if (stat->max_nodes != max_node_count)
                     return ec_limit_data;
             }
             else
-                stat->max_nodes = max_node_count;
+                stat->max_nodes = max_node_count;   //文件未被初始化过,则记录最大容量
 
             //获取数据区域指针
             void *ptr=(m_mmap.ptr() + sizeof(raw_hashtbl_stat_t));
             typename super_t::node_t *nodes = (typename super_t::node_t*)ptr;
-
-            /*
-            for (uint32_t i = 0; i < max_node_count; ++i)
-            {//临时查看一下,冲突元素的步长是怎样分布的
-                super_t::node_t &node = nodes[i];
-                if (node.state > 4)
-                    printf("%u ", node.step);
-            }
-            */
-
 
             //最后进行哈希容器的初始化
             super_t::m_basetbl.bind(nodes, stat,false);
