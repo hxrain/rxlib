@@ -84,25 +84,29 @@ namespace rx
         {
             struct
             {
-                uint16_t    reason_;                        //附加的错误原因参数
-                uint16_t    code_;                          //错误码
+                uint16_t    e_reason;                      //附加的错误原因参数
+                uint16_t    e_code;                        //错误码
             };
-            uint32_t        value_;                         //便于使用的统一的错误码整数值
+            uint32_t        value;                         //便于使用的统一的错误码整数值
         };
         //布尔类型运算符重载,便于判断是否有错.
-        operator bool() { return code_ != 0; }              //结构体的实例可以直接进行逻辑比较
+        operator bool() { return e_code != 0; }              //结构体的实例可以直接进行逻辑比较
+        
+        bool operator == (const uint16_t ec) { return e_code == ec; }
+
         //构造函数
-        error_code():value_(0){}
-        error_code(const error_code& ec):value_(ec.value_){}
-        error_code(const uint16_t code,const uint16_t reason=0):reason_(reason),code_(code){}
+        error_code():value(0){}
+        error_code(const error_code& ec):value(ec.value){}
+        error_code(const uint16_t code,const uint16_t reason=0):e_reason(reason),e_code(code){}
         //设置错误原因码并返回自身
-        error_code reason(const uint16_t reason){reason_=reason;return value_;}
+        error_code reason(const uint16_t reason){e_reason=reason;return value;}
     }error_code;
 
 
     //-----------------------------------------------------
     //定义rx库统一使用的错误分类与代码
     #define desc_errcode(classify,no) ((classify)<<8|no)
+
     //错误码:没有错误,正常完成.
     const uint16_t ec_ok                    = 0;
 

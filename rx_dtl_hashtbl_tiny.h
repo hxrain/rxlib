@@ -188,8 +188,8 @@ namespace rx
         const raw_hashtbl_stat_t& stat() const { return m_basetbl.stat(); }
         //根据给定的索引位置直接访问对应的值
         const val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
-        //根据给定的索引位置直接判断是否被使用
-        const bool at_using(uint32_t pos)const { return m_basetbl.node(pos)->state; }
+        //根据给定的索引位置获取节点
+        const node_t* at(uint32_t pos)const { return m_basetbl.node(pos); }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -295,8 +295,8 @@ namespace rx
         const raw_hashtbl_stat_t& stat() const { return m_basetbl.stat(); }
         //根据给定的索引位置直接访问对应的值
         const node_val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
-        //根据给定的索引位置直接判断是否被使用
-        const bool at_using(uint32_t pos)const { return m_basetbl.node(pos)->state; }
+        //根据给定的索引位置获取节点
+        const node_t* at(uint32_t pos)const { return m_basetbl.node(pos); }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
@@ -493,8 +493,8 @@ namespace rx
         const raw_hashtbl_stat_t& stat() const { return m_basetbl.stat(); }
         //根据给定的索引位置直接访问对应的值
         const node_val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
-        //根据给定的索引位置直接判断是否被使用
-        const bool at_using(uint32_t pos)const { return m_basetbl.node(pos)->state; }
+        //根据给定的索引位置获取节点
+        const node_t* at(uint32_t pos)const { return m_basetbl.node(pos); }
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator
