@@ -34,22 +34,29 @@ namespace rx
             NVT         value;                              //哈希节点的value值
         } node_t;
 
+        //节点状态标记的类型定义
+        enum
+        {
+            node_flag_empty     =0,
+            node_flag_using     =1,
+            node_flag_removed   =2,
+        };
     private:
         node_t              *m_nodes;                       //节点数组
         raw_hashtbl_stat_t  *m_stat;                        //哈希表状态记录
         //-------------------------------------------------
         //判断给定的节点是否为空节点
-        static bool node_is_empty(const node_t &node) {return node.flag==0;}
+        static bool node_is_empty(const node_t &node) {return node.flag==node_flag_empty;}
         //判断给定的节点是否未被使用
-        static bool node_is_unused(const node_t &node) {return node.flag==0||node.flag==2;}
+        static bool node_is_unused(const node_t &node) {return node.flag==node_flag_empty||node.flag==node_flag_removed;}
         //判断给定的节点是否被删除
-        static bool node_is_deleted(const node_t &node) {return node.flag==2;}
+        static bool node_is_deleted(const node_t &node) {return node.flag==node_flag_removed;}
         //判断给定的节点是否被使用
-        static bool node_is_using(const node_t &node) {return node.flag==1;}
+        static bool node_is_using(const node_t &node) {return node.flag==node_flag_using;}
         //设置节点被使用
-        static void node_used(node_t &node,uint16_t step){node.flag=1;node.step=step;}
+        static void node_used(node_t &node,uint16_t step){node.flag=node_flag_using;node.step=step;}
         //设置节点被删除
-        static void node_delete(node_t &node){node.flag=2;}
+        static void node_delete(node_t &node){node.flag=node_flag_removed;}
     public:
         //-------------------------------------------------
         raw_hashtbl_t():m_nodes(NULL), m_stat(NULL){}
@@ -139,6 +146,19 @@ namespace rx
             node_delete(*node);                             //删除动作仅仅是打标记
             --m_stat->using_count;                          //计数器递减
             return true;
+        }
+        //-------------------------------------------------
+        //在remove之后尝试进行pos的校正点的查找,查找pos之后的可以被前移的节点,用于进行remove之后的空洞修复,避免频繁增删后空洞过少降低查询性能
+        //返回值:0无需校正;非零为对应可校正到pos处的节点的索引
+        uint32_t correct_pos(uint32_t pos)
+        {
+            rx_assert_ret(m_nodes[pos].flag==node_flag_removed);
+
+            //需要校正的情况有:pos占用了后面某个节点的位置;
+            for(uint32_t i=0; i<capacity(); ++i)
+            {
+
+            }
         }
         //-------------------------------------------------
         //最大节点数量
