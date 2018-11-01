@@ -160,6 +160,9 @@ namespace rx
             uint32_t pos;
             return find(val,pos);
         }
+        template<class VT>
+        bool operator[](const VT &val) const { return find(val); }
+        //-------------------------------------------------
         //查找元素,同时获知元素的索引位置
         template<class VT>
         bool find(const VT &val,uint32_t &pos) const
@@ -373,6 +376,8 @@ namespace rx
             uint32_t pos;
             return find(key,pos);
         }
+        template<class KT>
+        iterator operator[](const KT &key) const { return find(key); }
         //-------------------------------------------------
         //查找元素,同时获知元素的节点索引位置
         template<class KT>
@@ -587,6 +592,8 @@ namespace rx
             uint32_t pos;
             return find(key,pos);
         }
+        template<class KT>
+        iterator operator[](const KT &key) const { return find(key); }
         //-------------------------------------------------
         //查找元素,通过返回迭代器是否与end()相同判断是否存在
         template<class KT>
@@ -636,7 +643,6 @@ namespace rx
             ct::OD(&node->value.val);
             return true;
         }
-
         //-------------------------------------------------
         //标记删除指定位置的元素,迭代器位置后移(元素内容还没有被销毁)
         //返回值:被删除的节点指针
