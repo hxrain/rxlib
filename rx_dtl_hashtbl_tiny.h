@@ -153,14 +153,14 @@ namespace rx
             return true;
         }
         //-------------------------------------------------
-        //查找元素是否存在
+        //查找元素,通过返回迭代器是否与end()相同判断是否存在
         template<class VT>
         bool find(const VT &val) const
         {
             uint32_t pos;
             return find(val,pos);
         }
-        //查找元素是否存在,同时获知元素的索引位置
+        //查找元素,同时获知元素的索引位置
         template<class VT>
         bool find(const VT &val,uint32_t &pos) const
         {
@@ -366,7 +366,7 @@ namespace rx
             return iterator(*this, pos);
         }
         //-------------------------------------------------
-        //查找元素是否存在
+        //查找元素,通过返回迭代器是否与end()相同判断是否存在
         template<class KT>
         iterator find(const KT &key) const
         {
@@ -374,7 +374,7 @@ namespace rx
             return find(key,pos);
         }
         //-------------------------------------------------
-        //查找元素是否存在,同时获知元素的节点索引位置
+        //查找元素,同时获知元素的节点索引位置
         template<class KT>
         iterator find(const KT &key,uint32_t &pos) const
         {
@@ -580,7 +580,7 @@ namespace rx
             return iterator(*this, pos);
         }
         //-------------------------------------------------
-        //查找元素是否存在
+        //查找元素,通过返回迭代器是否与end()相同判断是否存在
         template<class KT>
         iterator find(const KT &key) const
         {
@@ -588,7 +588,7 @@ namespace rx
             return find(key,pos);
         }
         //-------------------------------------------------
-        //查找元素是否存在
+        //查找元素,通过返回迭代器是否与end()相同判断是否存在
         template<class KT>
         iterator find(const KT &key,uint32_t &pos) const
         {
