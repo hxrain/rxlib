@@ -240,20 +240,28 @@ namespace rx
 }
 
 //-----------------------------------------------------
+#if RX_USE_TDD_TICK
+    //用来定义一个滴答计时对象,可以给出完整的参数
+    #define tdd_tt(sym,msg_a,msg_b,...) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,macro_def_argv<uint32_t>::value(__VA_ARGS__) ,msg_a,msg_b,__FILE__,__LINE__)
+    //触发滴答计时对象的中间过程,计算最后动作的耗时
+    #define tdd_tt_hit(sym,msgc,...) {__tdd_tt_obj_##sym.hit();__tdd_tt_obj_##sym.msg(true,__FILE__,__LINE__,msgc,##__VA_ARGS__);}
 
-//用来定义一个滴答计时对象,可以给出完整的参数
-#define tdd_tt(sym,msg_a,msg_b,...) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,macro_def_argv<uint32_t>::value(__VA_ARGS__) ,msg_a,msg_b,__FILE__,__LINE__)
-//触发滴答计时对象的中间过程,计算最后动作的耗时
-#define tdd_tt_hit(sym,msgc,...) {__tdd_tt_obj_##sym.hit();__tdd_tt_obj_##sym.msg(true,__FILE__,__LINE__,msgc,##__VA_ARGS__);}
+    //用于简化定义一个tt滴答计时对象的中间可嵌套计时动作
+    #define _tdd_tt_tab(sym,dis,msgc,...) rx::tdd_tick_tab_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,msgc,##__VA_ARGS__)
+    //中间宏定义,为了进行dis的展开转换
+    #define _tdd_tt_tab_(sym,dis,msgc,...) _tdd_tt_tab(sym,dis,msgc,##__VA_ARGS__)
+    //定义rx_tdd_rtl宏,用于便捷的建立一个指定名字和运行级的测试用例
+    #define tdd_tt_tab(sym,msgc,...) _tdd_tt_tab_(sym,RX_CT_SYM(sym),msgc,##__VA_ARGS__)
 
-//用于简化定义一个tt滴答计时对象的中间可嵌套计时动作
-#define _tdd_tt_tab(sym,dis,msgc,...) rx::tdd_tick_tab_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,msgc,##__VA_ARGS__)
-//中间宏定义,为了进行dis的展开转换
-#define _tdd_tt_tab_(sym,dis,msgc,...) _tdd_tt_tab(sym,dis,msgc,##__VA_ARGS__)
-//定义rx_tdd_rtl宏,用于便捷的建立一个指定名字和运行级的测试用例
-#define tdd_tt_tab(sym,msgc,...) _tdd_tt_tab_(sym,RX_CT_SYM(sym),msgc,##__VA_ARGS__)
-
-//进行多次循环后计算平均执行时间
-#define tdd_tt_for(sym,count,msgc,...) for(rx::tdd_tick_for_t<> __tt_obj(__tdd_tt_obj_##sym,count,__FILE__,__LINE__,msgc,##__VA_ARGS__);__tt_obj.step();)
+    //进行多次循环后计算平均执行时间
+    #define tdd_tt_for(sym,count,msgc,...) for(rx::tdd_tick_for_t<> __tt_obj(__tdd_tt_obj_##sym,count,__FILE__,__LINE__,msgc,##__VA_ARGS__);__tt_obj.step();)
+#else
+    #define tdd_tt(sym,msg_a,msg_b,...)
+    #define tdd_tt_hit(sym,msgc,...)
+    #define _tdd_tt_tab(sym,dis,msgc,...)
+    #define _tdd_tt_tab_(sym,dis,msgc,...)
+    #define tdd_tt_tab(sym,msgc,...)
+    #define tdd_tt_for(sym,count,msgc,...)
+#endif
 
 #endif

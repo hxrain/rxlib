@@ -5,9 +5,11 @@
 #include "../rx_tdd_tick.h"
 #include "../rx_ext_hashtbl_mm.h"
 #include "../rx_hash_int.h"
+#include "../rx_ct_util.h"
 
 namespace rx_ut
 {
+    const bool ut_show_mmhashtbl_debug = false;
     //-----------------------------------------------------
     class ut_mmhtcmp_t0
     {
@@ -44,7 +46,7 @@ namespace rx_ut
     //-----------------------------------------------------
     inline uint32_t ut_mm_hashtbl_base_make(mm_hashtbl_int &tbl,uint32_t total)
     {
-        printf("mm_hashtbl test1\r\n");
+        tdd_print(ut_show_mmhashtbl_debug,"mm_hashtbl test1\r\n");
         tdd_tt(t, "mm_hashtbl_int", "make");
         uint32_t ec = 0;
         for (uint32_t i = 0; i < total; ++i)
@@ -69,7 +71,7 @@ namespace rx_ut
             if (I == tbl.end() || *I != i)
                 ++ec;
             else
-                max_step = std::max(tbl.at(I.pos())->step, max_step);
+                max_step = rx::Max(tbl.at(I.pos())->step, max_step);
         }
         tdd_tt_hit(t, "capacity=%d items=%d collision=%d max_step=%d", tbl.capacity(), tbl.size(), tbl.stat().collision_count, max_step);
         return ec;
@@ -85,7 +87,7 @@ namespace rx_ut
 
         if (ec)
         {
-            printf("mm_hashtbl open error = %d\r\n", ec.value);
+            tdd_print(ut_show_mmhashtbl_debug, "mm_hashtbl open error = %d\r\n", ec.value);
             return;
         }
 

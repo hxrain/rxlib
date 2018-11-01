@@ -6,6 +6,8 @@
 
 namespace rx_ut
 {
+    const bool ut_show_hsm_debug = false;
+
     //HSM状态事件处理器
     class hsm_hdr_t
     {
@@ -14,18 +16,18 @@ namespace rx_ut
         {
             uint32_t data=*(uint32_t*)usrdat;
             void *usrobj=hsm.usrobj();
-            printf("%p :: hit_state(%5d) : cur_state(%5d) : event(%5d) :: data(%u)\n",usrobj,state_node.code,hsm.curr_state()->code,event_code,data);
+            tdd_print(ut_show_hsm_debug,"%p :: hit_state(%5d) : cur_state(%5d) : event(%5d) :: data(%u)\n",usrobj,state_node.code,hsm.curr_state()->code,event_code,data);
             return 1+data;
         }
         void on_entry(rx::hsm_core_t &hsm, const rx::hsm_tree_i::state_node_t &state_node, uint16_t event_code, uint16_t passed_on)
         {
             void *usrobj=hsm.usrobj();
-            printf("%p :: hit_state(%5d) : cur_state(%5d) : Entry(%5d) :: passed(%u)\n",usrobj,state_node.code, hsm.curr_state()->code,event_code,passed_on);
+            tdd_print(ut_show_hsm_debug, "%p :: hit_state(%5d) : cur_state(%5d) : Entry(%5d) :: passed(%u)\n",usrobj,state_node.code, hsm.curr_state()->code,event_code,passed_on);
         }
         void on_leave(rx::hsm_core_t &hsm, const rx::hsm_tree_i::state_node_t &state_node, uint16_t event_code, uint16_t passed_on)
         {
             void *usrobj=hsm.usrobj();
-            printf("%p :: hit_state(%5d) : cur_state(%5d) : Leave(%5d) :: passed(%u)\n",usrobj,state_node.code, hsm.curr_state()->code,event_code,passed_on);
+            tdd_print(ut_show_hsm_debug, "%p :: hit_state(%5d) : cur_state(%5d) : Leave(%5d) :: passed(%u)\n",usrobj,state_node.code, hsm.curr_state()->code,event_code,passed_on);
         }
     };
 
@@ -109,7 +111,7 @@ namespace rx_ut
         rt.tdd_assert(hsm.curr_state()->code == 3);
         rt.tdd_assert(hsm.hit(0, &usrdat) == 1 + usrdat);
 
-        printf("             *********************            \n\n");
+        tdd_print(ut_show_hsm_debug, "             *********************            \n\n");
     }
 
     //-----------------------------------------------------

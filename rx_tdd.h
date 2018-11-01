@@ -205,6 +205,8 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
 #define msg_assert(v,msg,...) assert((v),__LINE__,msg,##__VA_ARGS__)
 
 //---------------------------------------------------------
+#define tdd_print(en,...) if (en) printf(__VA_ARGS__)
+//---------------------------------------------------------
 //定义rx_tdd宏,并指定运行级别,用于便捷的建立一个指定名字的测试用例
 #define _tdd_rtl_desc(name,rtl,lineno) class __RX_TDD_CLS__##name:public rx_tdd_t \
     {public:                                                    \

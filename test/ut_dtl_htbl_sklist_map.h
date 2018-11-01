@@ -160,7 +160,6 @@ public:
         ut_list_cntr_loop_1<MaxSize, LoopCount,std::list<uint32_t>,tmp_cmp::key_op_uint >(rt,"    std::list","int");
         ut_list_cntr_loop_1<MaxSize, LoopCount,std::list<std::string>,tmp_cmp::key_op_uint_hash_str >(rt,"    std::list","string");
 
-        printf("\n");
         if (test_hashtbl)
         {
             ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_t<uint32_t(MaxSize*2.3)>, tmp_cmp, tmp_cmp::key_op_uint>(rt, " tiny_hashtbl", "int/int");
@@ -169,7 +168,6 @@ public:
         ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::skiplist_t<uint32_t, uint32_t>,tmp_cmp,tmp_cmp::key_op_uint>(rt, "     skiplist", "int/int");
         ut_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp,tmp_cmp::key_op_uint >(rt,"     std::map","int/int");
 
-        printf("\n");
         if (test_hashtbl)
         {
             ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::tiny_hashtbl_t<uint32_t(MaxSize*1.3),uint32_t>, tmp_cmp, tmp_cmp::key_op_uint_hash>(rt, " tiny_hashtbl", "hash(int)/int");
@@ -178,7 +176,6 @@ public:
         ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::skiplist_t<uint32_t, uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash>(rt, "     skiplist", "hash(int)/int");
         ut_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash >(rt,"     std::map","hash(int)/int");
         
-        printf("\n");
         ut_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<std::string>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"     std::map","std::string(hash(int)/int");
         ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::skiplist_t<const char*,uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"     skiplist", "tinystr(hash(int))/int");
         ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::skiplist_t<std::string,uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"     skiplist", "std::string(hash(int))/int");

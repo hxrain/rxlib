@@ -5,6 +5,8 @@
 #include "../rx_timer_tw.h"
 #include "../rx_hash_rand.h"
 
+const bool ut_show_timer_tw_debug = false;
+
 class ut_timer_tw_result
 {
 public:
@@ -157,7 +159,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
     uint64_t curr_time = 0;
     uint32_t need_hits=0;
 
-    printf("wheels=%d,inv_limit=%d,hit_limit=%d,timer_count=%d:", wheels, inv_limit, hit_limit, timer_count);
+    tdd_print(ut_show_timer_tw_debug,"wheels=%d,inv_limit=%d,hit_limit=%d,timer_count=%d:", wheels, inv_limit, hit_limit, timer_count);
 
     size_t h;
     rt.tdd_assert(w.wheels_init(curr_time));
@@ -195,7 +197,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
         rx_assert_if(w.timer_count() == 0, hits==need_hits);
     }
     rt.tdd_assert(need_hits==tr.hits);
-    printf("total_hits=%d,loop_count=%d,err=%d\n", need_hits,lc,err_count);
+    tdd_print(ut_show_timer_tw_debug, "total_hits=%d,loop_count=%d,err=%d\n", need_hits,lc,err_count);
 }
 
 rx_tdd(ut_timer_base)

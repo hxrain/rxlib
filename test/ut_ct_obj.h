@@ -8,19 +8,20 @@
 //---------------------------------------------------------
 namespace rx_ut
 {
+    const bool ut_show_delegate_debug = false;
     //-----------------------------------------------------
     class cb_test1_class_t
     {
     public:
-        uint32_t member_method(uint32_t &p1) { printf("TEST DELEGATE :: call cb_test1_class_t::member_method()\n"); return 10; }
+        uint32_t member_method(uint32_t &p1) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call cb_test1_class_t::member_method()\n"); return 10; }
     };
-    uint32_t std_cb_func1_t(uint32_t &p1, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func1_t()\n"); return 11; }
+    uint32_t std_cb_func1_t(uint32_t &p1, void *usrdat) { tdd_print(ut_show_delegate_debug, "TEST DELEGATE :: call std_cb_func1_t()\n"); return 11; }
     class cb_test1B_class_t
     {
     public:
-        void member_method(uint32_t &p1) { printf("TEST DELEGATE :: call cb_test1B_class_t::member_method()\n");  }
+        void member_method(uint32_t &p1) { tdd_print(ut_show_delegate_debug, "TEST DELEGATE :: call cb_test1B_class_t::member_method()\n");  }
     };
-    void std_cb_func1B_t(uint32_t &p1, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func1B_t()\n"); }
+    void std_cb_func1B_t(uint32_t &p1, void *usrdat) { tdd_print(ut_show_delegate_debug, "TEST DELEGATE :: call std_cb_func1B_t()\n"); }
     //-----------------------------------------------------
     void test_delegate_base_1(rx_tdd_t &rt)
     {
@@ -51,15 +52,15 @@ namespace rx_ut
     class cb_test2_class_t
     {
     public:
-        uint32_t member_method(uint32_t &p1, uint32_t &p2) { printf("TEST DELEGATE :: call cb_test2_class_t::member_method()\n"); return 20; }
+        uint32_t member_method(uint32_t &p1, uint32_t &p2) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call cb_test2_class_t::member_method()\n"); return 20; }
     };
-    uint32_t std_cb_func2_t(uint32_t &p1, uint32_t &p2, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func2_t()\n"); return 21; }
+    uint32_t std_cb_func2_t(uint32_t &p1, uint32_t &p2, void *usrdat) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call std_cb_func2_t()\n"); return 21; }
     class cb_test2B_class_t
     {
     public:
-        void member_method(uint32_t &p1, uint32_t &p2) { printf("TEST DELEGATE :: call cb_test2B_class_t::member_method()\n");}
+        void member_method(uint32_t &p1, uint32_t &p2) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call cb_test2B_class_t::member_method()\n");}
     };
-    void std_cb_func2B_t(uint32_t &p1, uint32_t &p2, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func2B_t()\n"); }
+    void std_cb_func2B_t(uint32_t &p1, uint32_t &p2, void *usrdat) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call std_cb_func2B_t()\n"); }
     //-----------------------------------------------------
     void test_delegate_base_2(rx_tdd_t &rt)
     {
@@ -91,15 +92,15 @@ namespace rx_ut
     class cb_test3_class_t
     {
     public:
-        uint32_t member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3) { printf("TEST DELEGATE :: call cb_test3_class_t::member_method()\n"); return 30; }
+        uint32_t member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call cb_test3_class_t::member_method()\n"); return 30; }
     };
-    uint32_t std_cb_func3_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func3_t()\n"); return 31; }
+    uint32_t std_cb_func3_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, void *usrdat) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call std_cb_func3_t()\n"); return 31; }
     class cb_test3B_class_t
     {
     public:
-        void member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3) { printf("TEST DELEGATE :: call cb_test3B_class_t::member_method()\n"); }
+        void member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call cb_test3B_class_t::member_method()\n"); }
     };
-    void std_cb_func3B_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func3B_t()\n"); }
+    void std_cb_func3B_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, void *usrdat) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call std_cb_func3B_t()\n"); }
     //-----------------------------------------------------
     void test_delegate_base_3(rx_tdd_t &rt)
     {
@@ -130,15 +131,15 @@ namespace rx_ut
     class cb_test4_class_t
     {
     public:
-        uint32_t member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4) { printf("TEST DELEGATE :: call cb_test4_class_t::member_method()\n"); return 40; }
+        uint32_t member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call cb_test4_class_t::member_method()\n"); return 40; }
     };
-    uint32_t std_cb_func4_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func4_t()\n"); return 41; }
+    uint32_t std_cb_func4_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4, void *usrdat) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call std_cb_func4_t()\n"); return 41; }
     class cb_test4B_class_t
     {
     public:
-        void member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4) { printf("TEST DELEGATE :: call cb_test4B_class_t::member_method()\n"); }
+        void member_method(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call cb_test4B_class_t::member_method()\n"); }
     };
-    void std_cb_func4B_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4, void *usrdat) { printf("TEST DELEGATE :: call std_cb_func4B_t()\n");}
+    void std_cb_func4B_t(uint32_t &p1, uint32_t &p2, uint32_t &p3, uint32_t &p4, void *usrdat) { tdd_print(ut_show_delegate_debug,"TEST DELEGATE :: call std_cb_func4B_t()\n");}
     //-----------------------------------------------------
     void test_delegate_base_4(rx_tdd_t &rt)
     {
