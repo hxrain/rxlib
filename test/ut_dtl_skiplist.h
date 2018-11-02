@@ -5,7 +5,7 @@
 #include "../rx_tdd.h"
 #include "../rx_dtl_skiplist.h"
 
-namespace rx
+namespace rx_ut
 {
     //-----------------------------------------------------
     inline void test_skiplist_base_1(rx_tdd_t &rt)
@@ -15,7 +15,7 @@ namespace rx
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        skiplist_uint32_t sl;
+        rx::skiplist_uint32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
         sl.insert((uint32_t)3,vals[3]);
@@ -46,7 +46,7 @@ namespace rx
         rt.tdd_assert(sl.rbegin()()==8);
         rt.tdd_assert(sl.size()==5);
 
-        skiplist_uint32_t::node_t *n=sl.find((uint32_t)3);
+        rx::skiplist_uint32_t::node_t *n=sl.find((uint32_t)3);
         rt.tdd_assert(n&&n->key==3&&n->val==vals[3]);
 
         n=sl.find((uint32_t)8);
@@ -86,7 +86,7 @@ namespace rx
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        skiplist_cstr_uint32_t sl;
+        rx::skiplist_cstr_uint32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -122,7 +122,7 @@ namespace rx
         rt.tdd_assert(sl.rbegin()()=="8");
         rt.tdd_assert(sl.size()==5);
 
-        skiplist_cstr_uint32_t::node_t *n=sl.find("3");
+        rx::skiplist_cstr_uint32_t::node_t *n=sl.find("3");
         rt.tdd_assert(n&&n->key=="3"&&n->val==vals[3]);
 
         n=sl.find("8");
@@ -157,7 +157,7 @@ namespace rx
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        skiplist_wstr_uint32_t sl;
+        rx::skiplist_wstr_uint32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -193,7 +193,7 @@ namespace rx
         rt.tdd_assert(sl.rbegin()()==L"8");
         rt.tdd_assert(sl.size()==5);
 
-        skiplist_wstr_uint32_t::node_t *n=sl.find(L"3");
+        rx::skiplist_wstr_uint32_t::node_t *n=sl.find(L"3");
         rt.tdd_assert(n&&n->key==L"3"&&n->val==vals[3]);
 
         n=sl.find(L"8");
@@ -224,7 +224,7 @@ namespace rx
     //-----------------------------------------------------
     inline void test_skipset_base_1(rx_tdd_t &rt)
     {
-        skipset_int32_t sl;
+        rx::skipset_int32_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -276,7 +276,7 @@ namespace rx
     //-----------------------------------------------------
     inline void test_skipset_base_1c(rx_tdd_t &rt)
     {
-        skipset_cstr_t sl;
+        rx::skipset_cstr_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -324,7 +324,7 @@ namespace rx
     //-----------------------------------------------------
     inline void test_skipset_base_1w(rx_tdd_t &rt,uint32_t seed)
     {
-        skipset_wstr_t sl(seed);
+        rx::skipset_wstr_t sl(seed);
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -368,7 +368,7 @@ namespace rx
     }
     inline void test_skipset_base_2w(rx_tdd_t &rt)
     {
-        skipset_wstr_t sl;
+        rx::skipset_wstr_t sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -397,27 +397,41 @@ namespace rx
 
         sl.clear();
     }
+
+    //-----------------------------------------------------
+    inline void ut_skiplist_bd_base_make()
+    {
+        rx::skiplist_t<int, int> m;
+
+        tdd_tt(t, "ut_stdmap_base", "make");
+
+        for (int i = 0; i < 10000 * 4000; ++i)
+            m.insert(i, i);
+
+        tdd_tt_hit(t, "");
+        getchar();
+    }
 }
-
-
 
 rx_tdd(skiplist_base)
 {
     //for(uint32_t i=0;i<10000000;++i)
     //    rx::test_skipset_base_1w(*this,i+1537538321);
 
-    rx::test_skipset_base_1w(*this,1537538337);
-    rx::test_skipset_base_1w(*this,1537760438);
+    //rx_ut::ut_skiplist_bd_base_make();
 
-    rx::test_skipset_base_2w(*this);
+    rx_ut::test_skipset_base_1w(*this,1537538337);
+    rx_ut::test_skipset_base_1w(*this,1537760438);
 
-    rx::test_skipset_base_1(*this);
-    rx::test_skipset_base_1c(*this);
-    rx::test_skipset_base_1w(*this,0);
+    rx_ut::test_skipset_base_2w(*this);
 
-    rx::test_skiplist_base_1(*this);
-    rx::test_skiplist_base_1c(*this);
-    rx::test_skiplist_base_1w(*this);
+    rx_ut::test_skipset_base_1(*this);
+    rx_ut::test_skipset_base_1c(*this);
+    rx_ut::test_skipset_base_1w(*this,0);
+
+    rx_ut::test_skiplist_base_1(*this);
+    rx_ut::test_skiplist_base_1c(*this);
+    rx_ut::test_skiplist_base_1w(*this);
 }
 
 

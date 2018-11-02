@@ -108,14 +108,8 @@ namespace rx
         //-------------------------------------------------
         //删除元素(做节点删除标记,没有处理真正的值)
         template<class VT>
-        node_t* erase_raw(const VT &val)
+        node_t* erase_raw(const VT &val, uint32_t &pos)
         {
-            uint32_t hash_code = cmp_t::hash(val);
-            uint32_t pos;
-            node_t *node = m_basetbl.find(hash_code, val,pos);
-            if (!node)
-                return NULL;
-            m_basetbl.remove(node,pos);
             return node;
         }
         //-------------------------------------------------
@@ -139,8 +133,52 @@ namespace rx
             st->max_nodes = max_node_count;
             m_basetbl.bind(nodes, st);
         }
-
         virtual ~hashset_base_t() {clear();}
+        //-------------------------------------------------
+        //最大节点数量
+        uint32_t capacity() const { return m_basetbl.capacity(); }
+        //已经使用的节点数量
+        uint32_t size() const { return m_basetbl.size(); }
+        //内部状态
+        const raw_hashtbl_stat_t& stat() const { return m_basetbl.stat(); }
+        //根据给定的索引位置直接访问对应的值
+        const val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
+        //根据给定的索引位置获取节点
+        const node_t* at(uint32_t pos)const { return m_basetbl.node(pos); }
+        //-------------------------------------------------
+        //定义简单的只读迭代器
+        class iterator
+        {
+            const hashset_base_t   &m_parent;
+            uint32_t                m_pos;
+            friend class hashset_base_t;
+
+        public:
+            //---------------------------------------------
+            iterator(const hashset_base_t &s, uint32_t pos) :m_parent(s), m_pos(pos) {}
+            iterator(const iterator &i) :m_parent(i.m_parent), m_pos(i.m_pos) {}
+            //---------------------------------------------
+            bool operator==(const iterator &i)const { return &m_parent == &i.m_parent&&m_pos == i.m_pos; }
+            bool operator!=(const iterator &i)const { return !(operator==(i)); }
+            //---------------------------------------------
+            iterator& operator=(const iterator &i) { m_parent = i.m_parent; m_pos = i.m_pos; return *this; }
+            //---------------------------------------------
+            const val_t& operator*() const
+            {
+                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
+                    m_parent.m_basetbl.node(m_pos)->flag == raw_tbl_t::node_flag_using);
+                return m_parent.m_basetbl.node(m_pos)->value;
+            }
+            //---------------------------------------------
+            //节点指向后移(前置运算符模式,未提供后置模式)
+            iterator& operator++()
+            {
+                m_pos = m_parent.m_basetbl.next(m_pos);        //尝试找到下一个有效的位置
+                return reinterpret_cast<iterator&>(*this);
+            }
+            //获取当前迭代器在容器中对应的位置索引
+            uint32_t pos() const { return m_pos; }
+        };
         //-------------------------------------------------
         //在集合中插入元素并赋值构造
         template<class VT>
@@ -172,62 +210,23 @@ namespace rx
             return node != NULL;
         }
         //-------------------------------------------------
-        //删除元素并默认析构
+        //删除元素并默认析构,可以指定是否进行删除后的空洞校正
         template<class VT>
-        bool erase(const VT &val)
+        bool erase(const VT &val,bool correct=false)
         {
-            node_t *node = erase_raw(val);
-            if (!node)
+            uint32_t pos;
+            uint32_t hash_code = cmp_t::hash(val);
+            node_t *node = m_basetbl.find(hash_code, val, pos);
+
+            if (!node || !m_basetbl.remove(node, pos))
                 return false;
+
             ct::OD(&node->value);
+
+            if (correct)
+                m_basetbl.correct_following(pos);
             return true;
         }
-        //-------------------------------------------------
-        //最大节点数量
-        uint32_t capacity() const { return m_basetbl.capacity(); }
-        //已经使用的节点数量
-        uint32_t size() const { return m_basetbl.size(); }
-        //内部状态
-        const raw_hashtbl_stat_t& stat() const { return m_basetbl.stat(); }
-        //根据给定的索引位置直接访问对应的值
-        const val_t& at_value(uint32_t pos)const { return m_basetbl.node(pos)->value; }
-        //根据给定的索引位置获取节点
-        const node_t* at(uint32_t pos)const { return m_basetbl.node(pos); }
-        //-------------------------------------------------
-        //定义简单的只读迭代器
-        class iterator
-        {
-            const hashset_base_t   &m_parent;
-            uint32_t                m_pos;
-            friend class hashset_base_t;
-
-        public:
-            //---------------------------------------------
-            iterator(const hashset_base_t &s, uint32_t pos) :m_parent(s), m_pos(pos) {}
-            iterator(const iterator &i):m_parent(i.m_parent),m_pos(i.m_pos) {}
-            //---------------------------------------------
-            bool operator==(const iterator &i)const { return &m_parent == &i.m_parent&&m_pos == i.m_pos; }
-            bool operator!=(const iterator &i)const { return !(operator==(i));}
-            //---------------------------------------------
-            iterator& operator=(const iterator &i) {m_parent=i.m_parent; m_pos=i.m_pos; return *this;}
-            //---------------------------------------------
-            const val_t& operator*() const
-            {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
-                          m_parent.m_basetbl.node(m_pos)->flag==raw_tbl_t::node_flag_using);
-                return m_parent.m_basetbl.node(m_pos)->value;
-            }
-            //---------------------------------------------
-            //节点指向后移(前置运算符模式,未提供后置模式)
-            iterator& operator++()
-            {
-                m_pos=m_parent.m_basetbl.next(m_pos);        //尝试找到下一个有效的位置
-                return reinterpret_cast<iterator&>(*this);
-            }
-            //获取当前迭代器在容器中对应的位置索引
-            uint32_t pos() const { return m_pos; }
-        };
-
         //-------------------------------------------------
         //准备遍历集合,返回遍历的初始位置
         iterator begin() const{return iterator(*this, m_basetbl.next(-1));}
@@ -237,7 +236,7 @@ namespace rx
         //-------------------------------------------------
         //删除指定位置的元素
         //返回值:是否删除了当前值
-        bool erase(iterator &i)
+        bool erase(iterator &i, bool correct = false)
         {
             rx_assert(i.m_pos<m_basetbl.capacity() && &i.m_parent==this);
             if (i.m_pos>= m_basetbl.capacity() || &i.m_parent!=this)
@@ -245,7 +244,10 @@ namespace rx
 
             node_t &node = *m_basetbl.node(i.m_pos);
             ct::OD(&node.value);
-            m_basetbl.remove(&node,i.m_pos);
+            
+            if (m_basetbl.remove(&node, i.m_pos) && correct)
+                m_basetbl.correct_following(i.m_pos);
+
             ++i;
             return true;
         }
@@ -396,25 +398,28 @@ namespace rx
         //标记删除指定的元素(元素内容还没有被销毁)
         //返回值:待删除的节点
         template<class KT>
-        node_t* erase_raw(const KT &key)
+        node_t* erase_raw(const KT &key, uint32_t &pos)
         {
             uint32_t hash_code = cmp_t::hash(key);
-            uint32_t pos;
             node_t *node = m_basetbl.find(hash_code, key,pos);
-            if (!node)
+            if (!node|| !m_basetbl.remove(node, pos))
                 return NULL;
-            m_basetbl.remove(node,pos);
             return node;
         }
         //删除指定的key对应的节点
         template<class KT>
-        bool erase(const KT &key)
+        bool erase(const KT &key,bool correct=false)
         {
-            node_t *node = erase_raw( key);
+            uint32_t pos;
+            node_t *node = erase_raw(key, pos);
             if (!node)
                 return false;
+
             ct::OD(&node->value.key);
             ct::OD(&node->value.val);
+
+            if (correct)
+                m_basetbl.correct_following(pos);
             return true;
         }
 
@@ -434,13 +439,19 @@ namespace rx
         }
         //删除指定迭代器对应的节点
         //返回值:是否删除了当前值(删除成功时,迭代器i后移)
-        bool erase(iterator &i)
+        bool erase(iterator &i, bool correct = false)
         {
+            uint32_t pos = i.m_pos;
             node_t *node = erase_raw(i);
             if (!node)
                 return false;
+
             ct::OD(&node->value.key);
             ct::OD(&node->value.val);
+            
+            if (correct)
+                m_basetbl.correct_following(pos);
+
             return true;
         }
         //-------------------------------------------------

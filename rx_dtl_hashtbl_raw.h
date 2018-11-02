@@ -46,17 +46,19 @@ namespace rx
         raw_hashtbl_stat_t  *m_stat;                        //哈希表状态记录
         //-------------------------------------------------
         //判断给定的节点是否为空节点
-        static bool node_is_empty(const node_t &node) {return node.flag==node_flag_empty;}
+        static bool node_is_empty(const node_t &node) { return node.flag == node_flag_empty; }
         //判断给定的节点是否未被使用
-        static bool node_is_unused(const node_t &node) {return node.flag==node_flag_empty||node.flag==node_flag_removed;}
+        static bool node_is_unused(const node_t &node) { return node.flag == node_flag_empty || node.flag == node_flag_removed; }
         //判断给定的节点是否被删除
-        static bool node_is_deleted(const node_t &node) {return node.flag==node_flag_removed;}
+        static bool node_is_deleted(const node_t &node) { return node.flag == node_flag_removed; }
         //判断给定的节点是否被使用
-        static bool node_is_using(const node_t &node) {return node.flag==node_flag_using;}
+        static bool node_is_using(const node_t &node) { return node.flag == node_flag_using; }
         //设置节点被使用
-        static void node_used(node_t &node,uint16_t step){node.flag=node_flag_using;node.step=step;}
+        static void node_set_used(node_t &node, uint16_t step) { node.flag = node_flag_using; node.step = step; }
         //设置节点被删除
-        static void node_delete(node_t &node){node.flag=node_flag_removed;}
+        static void node_set_delete(node_t &node) { node.flag = node_flag_removed; }
+        //设置节点被清空
+        static void node_set_empty(node_t &node) { node.flag = node_flag_empty; }
     public:
         //-------------------------------------------------
         raw_hashtbl_t():m_nodes(NULL), m_stat(NULL){}
@@ -87,7 +89,7 @@ namespace rx
                 node_t &node = m_nodes[pos];                //得到节点
                 if (node_is_unused(node))
                 {
-                    node_used(node,i);                      //该节点未被使用中,那么就直接使用(顺便可记录当前节点冲突步长)
+                    node_set_used(node,i);                  //该节点未被使用中,那么就直接使用(顺便可记录当前节点冲突步长)
 
                     if (i)
                         m_stat->collision_count +=1;        //记录冲突总数
@@ -143,22 +145,71 @@ namespace rx
         {
             if (!node || node_is_unused(*node))
                 return false;
-            node_delete(*node);                             //删除动作仅仅是打标记
+            node_set_delete(*node);                         //删除动作仅仅是打标记
             --m_stat->using_count;                          //计数器递减
             return true;
         }
         //-------------------------------------------------
-        //在remove之后尝试进行pos的校正点的查找,查找pos之后的可以被前移的节点,用于进行remove之后的空洞修复,避免频繁增删后空洞过少降低查询性能
-        //返回值:0无需校正;非零为对应可校正到pos处的节点的索引
-        uint32_t correct_pos(uint32_t pos)
+        //在remove之后尝试进行从begin_pos的后面开始查找应该移动到begin_pos处的节点位置
+        //返回值:-1没有;其他为待移动节点位置
+        uint32_t correct_find(uint32_t begin_pos)
         {
-            rx_assert_ret(m_nodes[pos].flag==node_flag_removed);
-
             //需要校正的情况有:pos占用了后面某个节点的位置;
-            for(uint32_t i=0; i<capacity(); ++i)
+            for(uint32_t i=1; i<capacity(); ++i)
             {
+                //得到当前遍历位置
+                uint32_t curr_pos = (begin_pos + i) % capacity();
+                //当前位置位空,结束
+                if (node_is_empty(m_nodes[curr_pos]))
+                    return -1;
+                //得到当前节点的预期位置
+                uint32_t right_pos = curr_pos - m_nodes[curr_pos].step;
 
+                if (((curr_pos > begin_pos) && (right_pos <= begin_pos || right_pos > curr_pos)) ||
+                    ((curr_pos < begin_pos) && (right_pos <= begin_pos && right_pos > curr_pos)))
+                    return curr_pos;
             }
+            //全表循环完成,遍历结束
+            return -1;
+        }
+        //-------------------------------------------------
+        //校正指定节点,将其状态改为空闲
+        void correct_empty(uint32_t begin_pos) { node_set_empty(m_nodes[begin_pos]); }
+        //-------------------------------------------------
+        //校正指定节点后的跟随节点,用于remove之后的空洞修复,避免频繁增删后空洞过少降低查询性能
+        //此方法进行节点数据的直接赋值拷贝,begin_pos为刚刚被删除的节点索引
+        //返回值:校正过程中调整过的节点数量
+        uint32_t correct_following(uint32_t begin_pos)
+        {
+            rx_assert_ret(m_nodes[begin_pos].flag==node_flag_removed);  //要求初始节点必须是被删除的节点
+
+            uint32_t rc = 0;
+
+            while(1)
+            {
+                uint32_t next_pos = correct_find(begin_pos);//从开始点向后查找待校正的节点位置
+                if (next_pos == (uint32_t)-1)               //找不到了则结束
+                {
+                    correct_empty(begin_pos);               //开始点可以被置空了
+                    break;
+                }
+                    
+                ++rc;
+                //进行节点内容的复制
+                node_t &dst_node = m_nodes[begin_pos];
+                node_t &src_node = m_nodes[next_pos];
+                
+                dst_node.value = src_node.value;
+                dst_node.flag = src_node.flag;
+                rx_assert(dst_node.flag==node_flag_using);
+
+                //进行节点冲突步长的校正
+                int dp = next_pos - begin_pos;
+                dst_node.step = src_node.step - dp;
+
+                begin_pos = next_pos;                       //重新设置开始点,准备继续遍历
+            }
+            return rc;
         }
         //-------------------------------------------------
         //最大节点数量
@@ -169,6 +220,7 @@ namespace rx
         const raw_hashtbl_stat_t& stat() const { return *m_stat; }
         //-------------------------------------------------
         //尝试找到pos节点后的下一个被使用的节点(跳过中间未被使用的部分)
+        //返回值:下一个节点的位置;与容器的容量相同时代表结束
         uint32_t next(uint32_t pos) const
         {
             while (++pos < capacity())

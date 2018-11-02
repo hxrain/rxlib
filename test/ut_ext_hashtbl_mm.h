@@ -111,6 +111,7 @@ namespace rx_ut
 
 }
 
+
 rx_tdd(bits_op_base)
 {
     rx_ut::ut_mm_hashtbl_base(*this);

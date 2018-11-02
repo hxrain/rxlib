@@ -40,7 +40,7 @@ namespace rx
         str_head<CT,max_str_size>  m_tinystr;
     private:
         //-------------------------------------------------
-        tiny_string_head_t& operator=(const tiny_string_head_t&);
+        //tiny_string_head_t& operator=(const tiny_string_head_t&);
         tiny_string_head_t(const tiny_string_head_t&);
         //-------------------------------------------------
     public:
