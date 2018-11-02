@@ -152,7 +152,7 @@ namespace rx
         //-------------------------------------------------
         //在remove之后尝试进行从begin_pos的后面开始查找应该移动到begin_pos处的节点位置
         //返回值:-1没有;其他为待移动节点位置
-        uint32_t correct_find(uint32_t begin_pos)
+        uint32_t correct_find(uint32_t begin_pos,uint32_t abort_pos)
         {
             //需要校正的情况有:pos占用了后面某个节点的位置;
             for(uint32_t i=1; i<capacity(); ++i)
@@ -160,7 +160,7 @@ namespace rx
                 //得到当前遍历位置
                 uint32_t curr_pos = (begin_pos + i) % capacity();
                 //当前位置位空,结束
-                if (node_is_empty(m_nodes[curr_pos]))
+                if (node_is_empty(m_nodes[curr_pos])||curr_pos==abort_pos)
                     return -1;
                 //得到当前节点的预期位置
                 uint32_t right_pos = curr_pos - m_nodes[curr_pos].step;
@@ -184,10 +184,11 @@ namespace rx
             rx_assert_ret(m_nodes[begin_pos].flag==node_flag_removed);  //要求初始节点必须是被删除的节点
 
             uint32_t rc = 0;
-
+            uint32_t abort_pos=begin_pos;
             while(1)
             {
-                uint32_t next_pos = correct_find(begin_pos);//从开始点向后查找待校正的节点位置
+                //从开始点向后查找待校正的节点位置
+                uint32_t next_pos = correct_find(begin_pos,abort_pos);
                 if (next_pos == (uint32_t)-1)               //找不到了则结束
                 {
                     correct_empty(begin_pos);               //开始点可以被置空了

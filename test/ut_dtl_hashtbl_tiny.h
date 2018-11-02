@@ -227,7 +227,7 @@ namespace rx_ut
     template<uint32_t nodes, uint32_t items, class cmpt>
     void ut_hashtbl_ext_test_1(rx_tdd_t &rt)
     {
-        typedef rx::tiny_hashtbl_t<nodes, uint32_t, uint32_t, cmpt> htbl_t;
+        typedef rx::tiny_hashtbl_t<nodes, uint32_t, uint32_t,false, cmpt> htbl_t;
         htbl_t htbl;
         uint32_t ec = 0;
         //tdd_tt(t,"ut_hashtbl_ext_test","1");
@@ -261,17 +261,18 @@ namespace rx_ut
         tdd_print(ut_show_htbl_dbg, "---------------\r\n");
         for (uint32_t i = 0; i < tbl.capacity(); ++i)
         {
-            const T::node_t *node = tbl.at(i);
+            const typename T::node_t *node = tbl.at(i);
             tdd_print(ut_show_htbl_dbg, "key=%2d val=%2d pos=%2d flag=%2d step=%2d\n", node->value.key, node->value.val, i, node->flag, node->step);
         }
     }
     //---------------------------------------------------------
-    inline void tinyhashtbl_removed_adj_1(rx_tdd_t &rt, bool correct = true)
+    template<bool correct>
+    inline void tinyhashtbl_removed_adj_1(rx_tdd_t &rt)
     {
         const uint32_t nodes = 15;
         const uint32_t items = uint32_t(nodes*0.7);
 
-        typedef rx::tiny_hashtbl_t<nodes, uint32_t, uint32_t, ut_htcmp_tra> htbl_t;
+        typedef rx::tiny_hashtbl_t<nodes, uint32_t, uint32_t,correct, ut_htcmp_tra> htbl_t;
 
         //²åÈëÊı¾İ
         htbl_t tbl;
@@ -279,19 +280,19 @@ namespace rx_ut
             rt.tdd_assert(tbl.insert(i, i) != tbl.end());
         print_htbl(tbl);
 
-        rt.tdd_assert(tbl.erase(2, correct));
+        rt.tdd_assert(tbl.erase(2));
         rt.tdd_assert(tbl.find(2) == tbl.end());
         print_htbl(tbl);
 
-        rt.tdd_assert(tbl.erase(3, correct));
+        rt.tdd_assert(tbl.erase(3));
         rt.tdd_assert(tbl.find(3) == tbl.end());
         print_htbl(tbl);
 
-        rt.tdd_assert(tbl.erase(7, correct));
+        rt.tdd_assert(tbl.erase(7));
         rt.tdd_assert(tbl.find(7) == tbl.end());
         print_htbl(tbl);
 
-        rt.tdd_assert(tbl.erase(8, correct));
+        rt.tdd_assert(tbl.erase(8));
         rt.tdd_assert(tbl.find(8) == tbl.end());
         print_htbl(tbl);
     }
@@ -300,8 +301,8 @@ namespace rx_ut
 
 rx_tdd(hashtbl_tiny_base)
 {
-    rx_ut::tinyhashtbl_removed_adj_1(*this,true);
-    rx_ut::tinyhashtbl_removed_adj_1(*this,false);
+    rx_ut::tinyhashtbl_removed_adj_1<true>(*this);
+    rx_ut::tinyhashtbl_removed_adj_1<false>(*this);
 
     rx_ut::raw_tinyhashset_base_1(*this);
     rx_ut::raw_tinyhashtbl_base_1(*this);

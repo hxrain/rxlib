@@ -96,7 +96,7 @@ namespace rx
     //-----------------------------------------------------
     //基于原始哈希表封装的轻量级集合容器
     //-----------------------------------------------------
-    template<class val_t,class cmp_t=hashset_cmp_t>
+    template<class val_t,class cmp_t=hashset_cmp_t,bool correct=false>
     class hashset_base_t
     {
     protected:
@@ -105,13 +105,6 @@ namespace rx
 
         raw_tbl_t   m_basetbl;                              //底层哈希功能封装
 
-        //-------------------------------------------------
-        //删除元素(做节点删除标记,没有处理真正的值)
-        template<class VT>
-        node_t* erase_raw(const VT &val, uint32_t &pos)
-        {
-            return node;
-        }
         //-------------------------------------------------
         //在集合中插入元素,原始动作,没有记录真正的值
         template<class VT>
@@ -212,7 +205,7 @@ namespace rx
         //-------------------------------------------------
         //删除元素并默认析构,可以指定是否进行删除后的空洞校正
         template<class VT>
-        bool erase(const VT &val,bool correct=false)
+        bool erase(const VT &val)
         {
             uint32_t pos;
             uint32_t hash_code = cmp_t::hash(val);
@@ -236,7 +229,7 @@ namespace rx
         //-------------------------------------------------
         //删除指定位置的元素
         //返回值:是否删除了当前值
-        bool erase(iterator &i, bool correct = false)
+        bool erase(iterator &i)
         {
             rx_assert(i.m_pos<m_basetbl.capacity() && &i.m_parent==this);
             if (i.m_pos>= m_basetbl.capacity() || &i.m_parent!=this)
@@ -244,7 +237,7 @@ namespace rx
 
             node_t &node = *m_basetbl.node(i.m_pos);
             ct::OD(&node.value);
-            
+
             if (m_basetbl.remove(&node, i.m_pos) && correct)
                 m_basetbl.correct_following(i.m_pos);
 
@@ -263,7 +256,7 @@ namespace rx
     //-----------------------------------------------------
     //基于原始哈希表封装的轻量级哈希表容器
     //-----------------------------------------------------
-    template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t>
+    template<class key_t,class val_t,class cmp_t=hashtbl_cmp_t,bool correct=false>
     class hashtbl_base_t
     {
     public:
@@ -408,7 +401,7 @@ namespace rx
         }
         //删除指定的key对应的节点
         template<class KT>
-        bool erase(const KT &key,bool correct=false)
+        bool erase(const KT &key)
         {
             uint32_t pos;
             node_t *node = erase_raw(key, pos);
@@ -439,7 +432,7 @@ namespace rx
         }
         //删除指定迭代器对应的节点
         //返回值:是否删除了当前值(删除成功时,迭代器i后移)
-        bool erase(iterator &i, bool correct = false)
+        bool erase(iterator &i)
         {
             uint32_t pos = i.m_pos;
             node_t *node = erase_raw(i);
@@ -448,7 +441,7 @@ namespace rx
 
             ct::OD(&node->value.key);
             ct::OD(&node->value.val);
-            
+
             if (correct)
                 m_basetbl.correct_following(pos);
 
@@ -497,7 +490,7 @@ namespace rx
         //-------------------------------------------------
         hashlink_base_t() {}
         //构造的时候绑定节点空间
-        hashlink_base_t(node_t* nodes,uint32_t max_node_count,raw_hashtbl_stat_t *st):m_head(nil_pos),m_last(nil_pos) 
+        hashlink_base_t(node_t* nodes,uint32_t max_node_count,raw_hashtbl_stat_t *st):m_head(nil_pos),m_last(nil_pos)
         {
             st->max_nodes = max_node_count;
             m_basetbl.bind(nodes,st);
@@ -711,10 +704,10 @@ namespace rx
     //-----------------------------------------------------
     //默认节点为uint32_t类型的轻量级集合
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class key_t=uint32_t,class cmp_t=hashset_cmp_t>
-    class tiny_hashset_t :public hashset_base_t<key_t, cmp_t >
+    template<uint32_t max_node_count,class key_t=uint32_t,bool correct=false,class cmp_t=hashset_cmp_t>
+    class tiny_hashset_t :public hashset_base_t<key_t, cmp_t ,correct>
     {
-        typedef hashset_base_t<key_t, cmp_t > super_t;
+        typedef hashset_base_t<key_t, cmp_t ,correct> super_t;
         typename super_t::node_t    m_nodes[max_node_count];
         raw_hashtbl_stat_t          m_stat;
     public:
@@ -724,10 +717,10 @@ namespace rx
     //-----------------------------------------------------
     //节点为tiny_string类型的轻量级集合
     //-----------------------------------------------------
-    template<uint32_t max_node_count,uint16_t max_str_size=12,class CT=char,class cmp_t=hashset_cmp_t>
-    class tiny_hashset_st :public hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t >
+    template<uint32_t max_node_count,uint16_t max_str_size=12,bool correct=false,class CT=char,class cmp_t=hashset_cmp_t>
+    class tiny_hashset_st :public hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t ,correct>
     {
-        typedef hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t > super_t;
+        typedef hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t ,correct> super_t;
         typename super_t::node_t    m_nodes[max_node_count];
         raw_hashtbl_stat_t          m_stat;
     public:
@@ -737,10 +730,10 @@ namespace rx
     //-----------------------------------------------------
     //key为uint32_t类型的轻量级哈希表(默认val也为uint32_t)
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t,class cmp_t=hashtbl_cmp_t>
-    class tiny_hashtbl_t :public hashtbl_base_t<key_t,val_t, cmp_t >
+    template<uint32_t max_node_count,class val_t=uint32_t,class key_t=uint32_t,bool correct=false,class cmp_t=hashtbl_cmp_t>
+    class tiny_hashtbl_t :public hashtbl_base_t<key_t,val_t, cmp_t ,correct>
     {
-        typedef hashtbl_base_t<key_t, val_t, cmp_t > super_t;
+        typedef hashtbl_base_t<key_t, val_t, cmp_t ,correct> super_t;
         typename super_t::node_t    m_nodes[max_node_count];
         raw_hashtbl_stat_t          m_stat;
     public:
@@ -750,10 +743,10 @@ namespace rx
     //-----------------------------------------------------
     //key为tiny_string类型的轻量级哈希表(默认val为uint32_t)
     //-----------------------------------------------------
-    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char,class cmp_t=hashtbl_cmp_t>
-    class tiny_hashtbl_st :public hashtbl_base_t<tiny_string_head_t<CT,max_str_size>,val_t, cmp_t >
+    template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,bool correct=false,class CT=char,class cmp_t=hashtbl_cmp_t>
+    class tiny_hashtbl_st :public hashtbl_base_t<tiny_string_head_t<CT,max_str_size>,val_t, cmp_t ,correct>
     {
-        typedef hashtbl_base_t<tiny_string_head_t<CT,max_str_size>, val_t, cmp_t > super_t;
+        typedef hashtbl_base_t<tiny_string_head_t<CT,max_str_size>, val_t, cmp_t ,correct> super_t;
         typename super_t::node_t    m_nodes[max_node_count];
         raw_hashtbl_stat_t          m_stat;
     public:
