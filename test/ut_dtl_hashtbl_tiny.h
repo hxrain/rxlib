@@ -270,13 +270,13 @@ namespace rx_ut
     inline void tinyhashtbl_removed_adj_1(rx_tdd_t &rt)
     {
         const uint32_t nodes = 15;
-        const uint32_t items = uint32_t(nodes*0.7);
+        //const uint32_t items = uint32_t(nodes*0.7);
 
-        typedef rx::tiny_hashtbl_t<nodes, uint32_t, uint32_t,correct, ut_htcmp_tra> htbl_t;
+        typedef rx::tiny_hashtbl_t<nodes, int32_t, int32_t,correct, ut_htcmp_tra> htbl_t;
 
         //²åÈëÊı¾İ
         htbl_t tbl;
-        for (uint32_t i = 0; i < 10; ++i)
+        for (int32_t i = 0; i < 10; ++i)
             rt.tdd_assert(tbl.insert(i, i) != tbl.end());
         print_htbl(tbl);
 
