@@ -1,3 +1,4 @@
+#define RX_USE_TDD_TICK 0
 
 #include "../ut_ext_hashtbl_mm.h"
 #include "../../rx_ext_hashtbl_mm.h"

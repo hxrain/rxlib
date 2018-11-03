@@ -7,6 +7,8 @@
 #include "../rx_dtl_hashtbl_raw.h"
 #include "../rx_dtl_hashtbl_tiny.h"
 
+#include <set>
+
 namespace rx_ut
 {
     const bool ut_show_htbl_dbg = false;
@@ -270,13 +272,13 @@ namespace rx_ut
     inline void tinyhashtbl_removed_adj_1(rx_tdd_t &rt)
     {
         const uint32_t nodes = 15;
-        //const uint32_t items = uint32_t(nodes*0.7);
+        const uint32_t items = 10;
 
         typedef rx::tiny_hashtbl_t<nodes, int32_t, int32_t,correct, ut_htcmp_tra> htbl_t;
 
         //插入数据
         htbl_t tbl;
-        for (int32_t i = 0; i < 10; ++i)
+        for (int32_t i = 0; i < items; ++i)
             rt.tdd_assert(tbl.insert(i, i) != tbl.end());
         print_htbl(tbl);
 
@@ -296,11 +298,64 @@ namespace rx_ut
         rt.tdd_assert(tbl.find(8) == tbl.end());
         print_htbl(tbl);
     }
+    //---------------------------------------------------------
+    template<bool correct,uint32_t loops>
+    inline void tinyhashtbl_removed_adj_2(rx_tdd_t &rt,uint32_t seed=0)
+    {
+        const uint32_t nodes = 15;
+        const uint32_t items = 10;
+
+        //定义待测试容器类型
+        typedef rx::tiny_hashtbl_t<nodes, uint32_t, uint32_t, correct, ut_htcmp_tra> htbl_t;
+        //定义辅助key集合
+        typedef std::set<uint32_t> hset_t;
+
+        //随机数生成器
+        rx::rand_skeeto_bsa_t rnd(seed);
+
+        //辅助key容器
+        hset_t set;
+
+        //待测试数据容器
+        htbl_t tbl;
+
+        uint32_t ec = 0;
+
+        tdd_tt(t, "tinyhashtbl_removed_adj_2", correct ? "correct" : "not correct");
+
+        for (uint32_t i = 0; i < loops; ++i)
+        {
+            uint32_t r = rnd.get(nodes-1);
+            if (set.find(r) == set.end())
+            {//辅助集合中不存在,加入
+                set.insert(r);
+                tbl.insert(r,i);
+            }
+            else
+            {//辅助集合中已存在,删除
+                set.erase(r);
+                tbl.erase(r);
+            }
+
+            for (hset_t::iterator I = set.begin(); I != set.end(); ++I)
+            {
+                if (tbl.find(*I) == tbl.end())
+                {
+                    rt.msg_assert(0,"tinyhashtbl_removed_adj_2 loop=%u rnd=%u",i,*I);
+                    ++ec;
+                }
+            }
+        }
+        rt.tdd_assert(ec==0);
+    }
 }
 //---------------------------------------------------------
 
 rx_tdd(hashtbl_tiny_base)
 {
+    rx_ut::tinyhashtbl_removed_adj_2<true, 100000>(*this);
+    rx_ut::tinyhashtbl_removed_adj_2<false, 100000>(*this);
+
     rx_ut::tinyhashtbl_removed_adj_1<true>(*this);
     rx_ut::tinyhashtbl_removed_adj_1<false>(*this);
 

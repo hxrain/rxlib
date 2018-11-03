@@ -241,7 +241,7 @@ namespace rx
 
 //-----------------------------------------------------
 #if RX_USE_TDD_TICK
-    //用来定义一个滴答计时对象,可以给出完整的参数
+    //用来定义一个滴答计时对象,可以给出完整的参数:sym符号名;消息a;消息b;可选的用时下限(默认为0)
     #define tdd_tt(sym,msg_a,msg_b,...) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,macro_def_argv<uint32_t>::value(__VA_ARGS__) ,msg_a,msg_b,__FILE__,__LINE__)
     //触发滴答计时对象的中间过程,计算最后动作的耗时
     #define tdd_tt_hit(sym,msgc,...) {__tdd_tt_obj_##sym.hit();__tdd_tt_obj_##sym.msg(true,__FILE__,__LINE__,msgc,##__VA_ARGS__);}
