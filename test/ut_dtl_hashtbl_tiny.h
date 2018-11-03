@@ -272,7 +272,7 @@ namespace rx_ut
     inline void tinyhashtbl_removed_adj_1(rx_tdd_t &rt)
     {
         const uint32_t nodes = 15;
-        const int32_t items = 10;
+        const uint32_t items = 10;
 
         typedef rx::tiny_hashtbl_t<nodes, int32_t, int32_t,correct, ut_htcmp_tra> htbl_t;
 
@@ -303,6 +303,7 @@ namespace rx_ut
     inline void tinyhashtbl_removed_adj_2(rx_tdd_t &rt,uint32_t seed=0)
     {
         const uint32_t nodes = 15;
+        const uint32_t items = 10;
 
         //定义待测试容器类型
         typedef rx::tiny_hashtbl_t<nodes, uint32_t, uint32_t, correct, ut_htcmp_tra> htbl_t;
@@ -340,19 +341,28 @@ namespace rx_ut
             {
                 if (tbl.find(*I) == tbl.end())
                 {
-                    rt.msg_assert(0,"tinyhashtbl_removed_adj_2 loop=%u rnd=%u",i,*I);
+                    rt.msg_assert(0,"tinyhashtbl_removed_adj_2<%s> loop=%u rnd=%u",(correct ? "correct" : "not correct"),i,*I);
                     ++ec;
                 }
             }
         }
         rt.tdd_assert(ec==0);
+
+        if (correct)
+        {
+            for (uint32_t i = 0; i<nodes; ++i)
+            {
+                typename const  htbl_t::node_t *node = tbl.at(i);
+                rt.tdd_assert(!node->is_deleted());
+            }
+        }
     }
 }
 //---------------------------------------------------------
 
 rx_tdd(hashtbl_tiny_base)
 {
-    rx_ut::tinyhashtbl_removed_adj_2<true, 100000>(*this);
+    //rx_ut::tinyhashtbl_removed_adj_2<true, 100000>(*this);
     rx_ut::tinyhashtbl_removed_adj_2<false, 100000>(*this);
 
     rx_ut::tinyhashtbl_removed_adj_1<true>(*this);

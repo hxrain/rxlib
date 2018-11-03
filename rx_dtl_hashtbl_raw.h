@@ -19,6 +19,37 @@ namespace rx
     }raw_hashtbl_stat_t;
 
     //-----------------------------------------------------
+    //哈希表节点基类,使用的时候必须继承于此
+    typedef struct raw_hashtbl_node_t
+    {
+        uint16_t    flag;                               //节点标记:0未使用;1使用中;2被删除.
+        uint16_t    step;                               //记录冲突的步数0~n
+                                                        //节点状态标记的类型定义
+        enum
+        {
+            node_flag_empty = 0,
+            node_flag_using = 1,
+            node_flag_removed = 2,
+        };
+
+        //-------------------------------------------------
+        //判断给定的节点是否为空节点
+        bool empty() const { return flag == node_flag_empty; }
+        //判断给定的节点是否未被使用
+        bool is_unused() const { return flag == node_flag_empty || flag == node_flag_removed; }
+        //判断给定的节点是否被删除
+        bool is_deleted() const { return flag == node_flag_removed; }
+        //判断给定的节点是否被使用
+        bool is_using() const { return flag == node_flag_using; }
+        //设置节点被使用
+        void set_used(uint16_t n) { flag = node_flag_using; step = n; }
+        //设置节点被删除
+        void set_delete() { flag = node_flag_removed; }
+        //设置节点被清空
+        void set_empty() { flag = node_flag_empty; }
+    } raw_hashtbl_node_t;
+
+    //-----------------------------------------------------
     //简单的定长槽位哈希表,使用开地址方式进行冲突处理,用于简单的哈希搜索管理器,自身不进行任何内存管理.
     //-----------------------------------------------------
     template<class NVT,class vkcmp>
@@ -26,39 +57,15 @@ namespace rx
     {
     public:
         //-------------------------------------------------
-        //哈希表节点基类,使用的时候,必须让真正的节点继承于此
-        typedef struct node_t
+        //哈希表节点类型
+        typedef struct node_t:public raw_hashtbl_node_t
         {
-            uint16_t    flag;                               //节点标记:0未使用;1使用中;2被删除.
-            uint16_t    step;                               //记录冲突的步数0~n
             NVT         value;                              //哈希节点的value值
         } node_t;
 
-        //节点状态标记的类型定义
-        enum
-        {
-            node_flag_empty     =0,
-            node_flag_using     =1,
-            node_flag_removed   =2,
-        };
     private:
         node_t              *m_nodes;                       //节点数组
         raw_hashtbl_stat_t  *m_stat;                        //哈希表状态记录
-        //-------------------------------------------------
-        //判断给定的节点是否为空节点
-        static bool node_is_empty(const node_t &node) { return node.flag == node_flag_empty; }
-        //判断给定的节点是否未被使用
-        static bool node_is_unused(const node_t &node) { return node.flag == node_flag_empty || node.flag == node_flag_removed; }
-        //判断给定的节点是否被删除
-        static bool node_is_deleted(const node_t &node) { return node.flag == node_flag_removed; }
-        //判断给定的节点是否被使用
-        static bool node_is_using(const node_t &node) { return node.flag == node_flag_using; }
-        //设置节点被使用
-        static void node_set_used(node_t &node, uint16_t step) { node.flag = node_flag_using; node.step = step; }
-        //设置节点被删除
-        static void node_set_delete(node_t &node) { node.flag = node_flag_removed; }
-        //设置节点被清空
-        static void node_set_empty(node_t &node) { node.flag = node_flag_empty; }
     public:
         //-------------------------------------------------
         raw_hashtbl_t():m_nodes(NULL), m_stat(NULL){}
@@ -87,9 +94,9 @@ namespace rx
             {
                 pos=(hash_code+i)%capacity();               //计算位置
                 node_t &node = m_nodes[pos];                //得到节点
-                if (node_is_unused(node))
+                if (node.is_unused())
                 {
-                    node_set_used(node,i);                  //该节点未被使用中,那么就直接使用(顺便可记录当前节点冲突步长)
+                    node.set_used(i);                       //该节点未被使用中,那么就直接使用(顺便可记录当前节点冲突步长)
 
                     if (i)
                         m_stat->collision_count +=1;        //记录冲突总数
@@ -122,12 +129,12 @@ namespace rx
             {
                 uint32_t I=(hash_code+i)%capacity();        //计算位置
                 node_t &node = m_nodes[I];                  //得到节点
-                if (node_is_empty(node))
+                if (node.empty())
                     return NULL;                            //直接就碰到空档了,不用继续了
 
                 if (vkcmp::equ(node.value,value))
                 {
-                    if (node_is_deleted(node))
+                    if (node.is_deleted())
                         return NULL;                        //如果找到的是之前已经被删除的值,直接放弃.
 
                     pos=I;
@@ -143,9 +150,9 @@ namespace rx
         //删除节点
         bool remove(node_t *node,uint32_t pos)
         {
-            if (!node || node_is_unused(*node))
+            if (!node || node->is_unused())
                 return false;
-            node_set_delete(*node);                         //删除动作仅仅是打标记
+            node->set_delete();                             //删除动作仅仅是打标记
             --m_stat->using_count;                          //计数器递减
             return true;
         }
@@ -154,13 +161,24 @@ namespace rx
         //返回值:-1没有;其他为待移动节点位置
         uint32_t correct_find(uint32_t begin_pos,uint32_t abort_pos)
         {
+            /*https://stackoverflow.com/questions/9127207/hash-table-why-deletion-is-difficult-in-open-addressing-scheme
+                https://en.wikipedia.org/w/index.php?title=Hash_table&oldid=95275577
+                //(curr_pos > begin_pos)当前位置大于开始位置的时候(数组的后半段)
+                x:begin_pos|right_pos|curr_pos  //预期位置在当前位置之前开始位置之后,不调整
+                m:begin_pos|curr_pos|right_pos  //预期位置在当前位置之后,需调整
+                m:right_pos|begin_pos|curr_pos  //预期位置在开始位置之前,需调整
+                //(curr_pos < begin_pos)当前位置小于开始位置的时候(数组的后半段)
+                x:right_pos|curr_pos|begin_pos  //预期位置在当前位置与开始位置之前,不调整
+                m:curr_pos|right_pos|begin_pos  //预期位置在当前位置之后开始位置之前,需调整
+            */
+
             //需要校正的情况有:pos占用了后面某个节点的位置;
             for(uint32_t i=1; i<capacity(); ++i)
             {
                 //得到当前遍历位置
                 uint32_t curr_pos = (begin_pos + i) % capacity();
                 //当前位置位空,结束
-                if (node_is_empty(m_nodes[curr_pos])||curr_pos==abort_pos)
+                if (m_nodes[curr_pos].empty()||curr_pos==abort_pos)
                     return -1;
                 //得到当前节点的预期位置
                 uint32_t right_pos = curr_pos - m_nodes[curr_pos].step;
@@ -174,14 +192,14 @@ namespace rx
         }
         //-------------------------------------------------
         //校正指定节点,将其状态改为空闲
-        void correct_empty(uint32_t begin_pos) { node_set_empty(m_nodes[begin_pos]); }
+        void correct_empty(uint32_t begin_pos) { m_nodes[begin_pos].set_empty(); }
         //-------------------------------------------------
         //校正指定节点后的跟随节点,用于remove之后的空洞修复,避免频繁增删后空洞过少降低查询性能
         //此方法进行节点数据的直接赋值拷贝,begin_pos为刚刚被删除的节点索引
         //返回值:校正过程中调整过的节点数量
         uint32_t correct_following(uint32_t begin_pos)
         {
-            rx_assert_ret(m_nodes[begin_pos].flag==node_flag_removed);  //要求初始节点必须是被删除的节点
+            rx_assert_ret(m_nodes[begin_pos].is_deleted()); //要求初始节点必须是被删除的节点
 
             uint32_t rc = 0;
             uint32_t abort_pos=begin_pos;
@@ -202,7 +220,7 @@ namespace rx
                 
                 dst_node.value = src_node.value;
                 dst_node.flag = src_node.flag;
-                rx_assert(dst_node.flag==node_flag_using);
+                rx_assert(dst_node.is_using());
 
                 //进行节点冲突步长的校正
                 int dp = next_pos - begin_pos;
@@ -225,7 +243,7 @@ namespace rx
         uint32_t next(uint32_t pos) const
         {
             while (++pos < capacity())
-                if (node_is_using(m_nodes[pos]))
+                if (m_nodes[pos].is_using())
                     return pos;
             return capacity();
         }

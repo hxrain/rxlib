@@ -159,7 +159,7 @@ namespace rx
             const val_t& operator*() const
             {
                 rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
-                    m_parent.m_basetbl.node(m_pos)->flag == raw_tbl_t::node_flag_using);
+                    m_parent.m_basetbl.node(m_pos)->is_using());
                 return m_parent.m_basetbl.node(m_pos)->value;
             }
             //---------------------------------------------
@@ -318,7 +318,7 @@ namespace rx
             const val_t& operator*() const
             {
                 rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
-                          m_parent.m_basetbl.node(m_pos)->flag==raw_tbl_t::node_flag_using);
+                          m_parent.m_basetbl.node(m_pos)->is_using());
                 return m_parent.m_basetbl.node(m_pos)->value.val;
             }
             //---------------------------------------------
@@ -326,7 +326,7 @@ namespace rx
             const key_t& operator()() const
             {
                 rx_assert(m_pos<m_parent.m_basetbl.capacity()&&
-                          m_parent.m_basetbl.node(m_pos)->flag==raw_tbl_t::node_flag_using);
+                          m_parent.m_basetbl.node(m_pos)->is_using());
                 return m_parent.m_basetbl.node(m_pos)->value.key;
             }
             //获取当前迭代器在容器中对应的位置索引
@@ -528,7 +528,7 @@ namespace rx
             const val_t& operator*() const
             {
                 rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
-                          m_parent.m_basetbl.node(m_pos)->flag==raw_tbl_t::node_flag_using);
+                          m_parent.m_basetbl.node(m_pos)->is_using());
                 return m_parent.m_basetbl.node(m_pos)->value.val;
             }
             //---------------------------------------------
@@ -536,7 +536,7 @@ namespace rx
             const key_t& operator()() const
             {
                 rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
-                          m_parent.m_basetbl.node(m_pos)->flag==raw_tbl_t::node_flag_using);
+                          m_parent.m_basetbl.node(m_pos)->is_using());
                 return m_parent.m_basetbl.node(m_pos)->value.key;
             }
             //获取当前迭代器在容器中对应的位置索引
