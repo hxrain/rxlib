@@ -272,7 +272,7 @@ namespace rx_ut
     inline void tinyhashtbl_removed_adj_1(rx_tdd_t &rt)
     {
         const uint32_t nodes = 15;
-        const uint32_t items = 10;
+        const int32_t items = 10;
 
         typedef rx::tiny_hashtbl_t<nodes, int32_t, int32_t,correct, ut_htcmp_tra> htbl_t;
 
@@ -303,7 +303,6 @@ namespace rx_ut
     inline void tinyhashtbl_removed_adj_2(rx_tdd_t &rt,uint32_t seed=0)
     {
         const uint32_t nodes = 15;
-        const uint32_t items = 10;
 
         //定义待测试容器类型
         typedef rx::tiny_hashtbl_t<nodes, uint32_t, uint32_t, correct, ut_htcmp_tra> htbl_t;
@@ -352,7 +351,7 @@ namespace rx_ut
         {
             for (uint32_t i = 0; i<nodes; ++i)
             {
-                typename const  htbl_t::node_t *node = tbl.at(i);
+                const typename htbl_t::node_t *node = tbl.at(i);
                 rt.tdd_assert(!node->is_deleted());
             }
         }
