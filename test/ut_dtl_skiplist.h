@@ -3,7 +3,9 @@
 
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
+#include "../rx_tdd_tick.h"
 #include "../rx_dtl_skiplist.h"
+#include "../rx_dtl_skipset.h"
 
 namespace rx_ut
 {

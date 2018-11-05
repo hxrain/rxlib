@@ -3,6 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_mem_alloc.h"
+#include "rx_hash_rand.h"
 
 namespace rx
 {
@@ -34,6 +35,35 @@ namespace rx
         struct tiny_skipset_node_t *next[1];                //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
     };
     */
+
+    //统一指定一下跳表使用的随机数发生器类型
+    typedef rand_skl_t skiplist_rnd_t;
+
+    //-----------------------------------------------------
+    //进行跳表层级随机数生成器的封装
+    template<class rnd_t, uint32_t MAX_LEVEL>
+    class skiplist_rnd_level
+    {
+        rnd_t   m_rnd;
+    public:
+        static const uint32_t max_level() { return MAX_LEVEL; }
+        skiplist_rnd_level(uint32_t seed)
+        {
+            if (seed<1)
+                seed = (uint32_t)time(NULL);
+            m_rnd.seed(seed);
+        }
+        //-------------------------------------------------
+        //生成一个随机的层数:>=1;<=最大层数
+        uint32_t make()
+        {
+            uint32_t rc = 1;
+            while (rc<MAX_LEVEL && (m_rnd.get() & 0xFFFFFF)<(0xFFFFFF >> 2))   //随机概率连续小于25%则层高增加(相当于4叉树)
+                ++rc;
+            rx_assert(rc <= MAX_LEVEL);
+            return rc;
+        }
+    };
 
     //---------------------------------------------------------
     //定义原始的跳表容器基类
@@ -77,7 +107,6 @@ namespace rx
                     break;
             }
         }
-
         //-----------------------------------------------------
         //查找指定key在每层对应的前趋,并记到update中
         //返回值:key对应的最底层的前趋节点
@@ -155,7 +184,6 @@ namespace rx
 
             return node;
         }
-
         //-----------------------------------------------------
         //直接删除给定key对应的一个节点(多个相同key节点存在时,先找到哪个删除哪个)
         template<class key_t>
@@ -198,7 +226,6 @@ namespace rx
             }
             return NULL;                                    //全部层级遍历完成,确实没找到
         }
-
         //-----------------------------------------------------
         //清空跳表,可以重新使用
         void clear()
