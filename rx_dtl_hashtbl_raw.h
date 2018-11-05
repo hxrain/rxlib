@@ -4,9 +4,25 @@
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
 #include "rx_ct_util.h"
+#include "rx_hash_data.h"
+#include "rx_hash_int.h"
+#include "rx_str_util.h"
 
 namespace rx
 {
+    //-----------------------------------------------------
+    //哈希表基础的哈希码计算封装
+    class hashtbl_fun_t
+    {
+    public:
+        template<class KT>
+        static uint32_t hash(const KT &k) { return rx_hash_murmur(&k, sizeof(k)); }
+        static uint32_t hash(const char *k) { return rx_hash_murmur(k, st::strlen(k)); }
+        static uint32_t hash(const wchar_t *k) { return rx_hash_murmur(k, st::strlen(k)) * sizeof(wchar_t); }
+        static uint32_t hash(const uint32_t &k) { return rx_hash_skeeto_3s(k); }
+        static uint32_t hash(const int32_t &k) { return rx_hash_skeeto_3s(k); }
+    };
+
     //-----------------------------------------------------
     //记录原始哈希表的工作状态(外置存放便于分离存储)
     typedef struct raw_hashtbl_stat_t

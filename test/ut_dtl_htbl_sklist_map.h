@@ -6,7 +6,8 @@
 #include "../rx_dtl_skiplist_raw.h"
 #include "../rx_dtl_skiplist.h"
 #include "../rx_dtl_hashtbl_raw.h"
-#include "../rx_dtl_hashtbl_tiny.h"
+#include "../rx_dtl_hashtbl.h"
+#include "../rx_dtl_hashlink.h"
 #include "../rx_tdd_tick.h"
 #include <map>
 #include <string>

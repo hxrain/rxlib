@@ -3,7 +3,7 @@
 
 #include "rx_os_file.h"
 #include "rx_os_mmap.h"
-#include "rx_dtl_hashtbl_tiny.h"
+#include "rx_dtl_hashtbl.h"
 
 namespace rx
 {
