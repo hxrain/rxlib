@@ -46,32 +46,60 @@ namespace rx_ut
     }
 
 
-    typedef rx::hashmap_t<1000000, int32_t, int32_t> ut2_hashmap_t;
-    //typedef rx::skiplist_int32_t ut2_hashmap_t;
-    //typedef std::map<int, int> ut2_hashmap_t;
-    ut2_hashmap_t ut2_m;
     //-----------------------------------------------------
-    inline void test_hashmap_base_2(rx_tdd_t &rt)
+    template<uint32_t total,class map_t>
+    inline void test_hashmap_base_2rx(rx_tdd_t &rt,map_t &m,const char* msg)
     {
-        ut2_m.clear();
+        tdd_tt(t,"hashmap vs stdmap",msg);
+        m.clear();
+        tdd_tt_hit(t,"clear");
 
-        const int32_t total = 10000 * 4000;
-        for (int32_t i = 0; i < total; ++i)
-        {
-            //ut2_m.insert(std::make_pair(rx_hash_skeeto_3s((uint32_t)i), i));
-            ut2_m.insert((int)rx_hash_skeeto_3s((uint32_t)i), i);
-        }
-        rt.tdd_assert(ut2_m.size() == total);
+        for (uint32_t i = 0; i < total; ++i)
+            m.insert(rx_hash_skeeto_3s(i), i);
+        rt.tdd_assert(m.size() == total);
+        tdd_tt_hit(t,"insert");
 
-        getchar();
+        for (uint32_t i = 0; i < total; ++i)
+            m.find(rx_hash_skeeto_3s(i));
+        tdd_tt_hit(t,"loop");
+
+        m.clear();
+    }
+    //-----------------------------------------------------
+    template<uint32_t total,class map_t>
+    inline void test_hashmap_base_2std(rx_tdd_t &rt,map_t &m,const char* msg)
+    {
+        tdd_tt(t,"hashmap vs stdmap",msg);
+        m.clear();
+        tdd_tt_hit(t,"clear");
+
+        for (uint32_t i = 0; i < total; ++i)
+            m.insert(std::make_pair(rx_hash_skeeto_3s(i), i));
+        rt.tdd_assert(m.size() == total);
+        tdd_tt_hit(t,"insert");
+
+        for (uint32_t i = 0; i < total; ++i)
+            m.find(rx_hash_skeeto_3s(i));
+        tdd_tt_hit(t,"loop");
+
+        m.clear();
     }
 }
 
 rx_tdd(skiplist_base)
 {
-    //rx_ut::test_hashmap_base_1(*this);
-    rx_ut::test_hashmap_base_2(*this);
-    rx_ut::test_hashmap_base_2(*this);
+    typedef rx::hashmap_t<100000, uint32_t, uint32_t> ut2_hashmap_t;
+    typedef rx::skiplist_uint32_t ut2_skiplist_t;
+    typedef std::map<uint32_t, uint32_t> ut2_stdmap_t;
+
+    static ut2_hashmap_t   ut2_hashmap;
+    static ut2_skiplist_t  ut2_skiplist;
+    static ut2_stdmap_t    ut2_stdmap;
+
+    rx_ut::test_hashmap_base_1(*this);
+    rx_ut::test_hashmap_base_2rx  <10000*100>(*this,ut2_hashmap,"hashmap");
+    rx_ut::test_hashmap_base_2rx  <10000*100>(*this,ut2_skiplist,"skiplist");
+    rx_ut::test_hashmap_base_2std <10000*100>(*this,ut2_stdmap,"stdmap");
 }
 
 #endif

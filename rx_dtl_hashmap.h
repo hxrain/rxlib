@@ -121,7 +121,8 @@ namespace rx
 
             uint32_t slot = next_slot(-1);
             rx_assert(slot<m_slot_size);
-            return iterator(*this, m_slots[slot].list.begin());  //返回初始槽位上的开始点
+            typename skiplist_t::iterator I=m_slots[slot].list.begin();
+            return iterator(*this, I);  //返回初始槽位上的开始点
         }
         //-------------------------------------------------
         //返回遍历的结束位置
@@ -146,7 +147,8 @@ namespace rx
             if (0 == m_node_size)
                 return end();
             uint32_t s = key_slot(key);
-            return iterator(*this, m_slots[s].list.find(key));
+            typename skiplist_t::iterator I=m_slots[s].list.find(key);
+            return iterator(*this, I);
         }
         template<class KT>
         iterator operator[](const KT &key) const { return find(key); }

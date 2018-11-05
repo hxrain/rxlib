@@ -324,7 +324,7 @@ namespace rx_ut
 
         uint32_t ec = 0;
 
-        tdd_tt(t, "tinyhashtbl_removed_adj_2", correct ? "correct" : "not correct");
+        //tdd_tt(t, "tinyhashtbl_removed_adj_2", correct ? "correct" : "not correct");
 
         for (uint32_t i = 0; i < loops; ++i)
         {
