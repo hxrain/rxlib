@@ -62,16 +62,16 @@ namespace rx
                 return NULL;
             return node;
         }
-    public:
         //-------------------------------------------------
         hashset_base_t() {}
         //构造的时候绑定节点空间
-        hashset_base_t(node_t* nodes,uint32_t max_node_count,raw_hashtbl_stat_t *st)
+        hashset_base_t(node_t* nodes, uint32_t max_node_count, raw_hashtbl_stat_t *st)
         {
             st->max_nodes = max_node_count;
             m_basetbl.bind(nodes, st);
         }
-        virtual ~hashset_base_t() {clear();}
+        virtual ~hashset_base_t() { clear(); }
+    public:
         //-------------------------------------------------
         //最大节点数量
         uint32_t capacity() const { return m_basetbl.capacity(); }
@@ -194,7 +194,12 @@ namespace rx
         void clear()
         {
             for (iterator i = begin(); i != end();)
-                erase(i);
+            {
+                node_t &node = *m_basetbl.node(i.m_pos);
+                ct::OD(&node.value);
+                m_basetbl.remove(&node, i.m_pos);
+                ++i;
+            }
         }
     };
 

@@ -77,7 +77,6 @@ namespace rx
         uint32_t    m_last;                                 //记录最后节点的位置
         //-------------------------------------------------
         raw_tbl_t   m_basetbl;                              //底层哈希功能封装
-    public:
         //-------------------------------------------------
         hashlink_base_t() {}
         //构造的时候绑定节点空间
@@ -87,6 +86,7 @@ namespace rx
             m_basetbl.bind(nodes,st);
         }
         virtual ~hashlink_base_t() {clear();}
+    public:
         //-------------------------------------------------
         //最大节点数量
         uint32_t capacity() const { return m_basetbl.capacity(); }
@@ -102,15 +102,15 @@ namespace rx
         //定义简单的只读迭代器
         class iterator
         {
-            const hashlink_base_t   &m_parent;
+            const hashlink_base_t   *m_parent;
             uint32_t                m_pos;
             friend class hashlink_base_t;
         public:
             //---------------------------------------------
-            iterator(const hashlink_base_t &s, uint32_t pos) :m_parent(s), m_pos(pos) {}
+            iterator(const hashlink_base_t &s, uint32_t pos) :m_parent(&s), m_pos(pos) {}
             iterator(const iterator &i):m_parent(i.m_parent),m_pos(i.m_pos) {}
             //---------------------------------------------
-            bool operator==(const iterator &i)const { return &m_parent == &i.m_parent&&m_pos == i.m_pos; }
+            bool operator==(const iterator &i)const { return m_parent == i.m_parent&&m_pos == i.m_pos; }
             bool operator!=(const iterator &i)const { return !(operator==(i));}
             //---------------------------------------------
             iterator& operator=(const iterator &i) {m_parent=i.m_parent; m_pos=i.m_pos; return *this;}
@@ -118,17 +118,17 @@ namespace rx
             //*提领运算符重载,用于获取当前节点的val值
             const val_t& operator*() const
             {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
-                          m_parent.m_basetbl.node(m_pos)->is_using());
-                return m_parent.m_basetbl.node(m_pos)->value.val;
+                rx_assert(m_pos<m_parent->m_basetbl.capacity() &&
+                          m_parent->m_basetbl.node(m_pos)->is_using());
+                return m_parent->m_basetbl.node(m_pos)->value.val;
             }
             //---------------------------------------------
             //()运算符重载,用于获取当前节点的key值
             const key_t& operator()() const
             {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
-                          m_parent.m_basetbl.node(m_pos)->is_using());
-                return m_parent.m_basetbl.node(m_pos)->value.key;
+                rx_assert(m_pos<m_parent->m_basetbl.capacity() &&
+                          m_parent->m_basetbl.node(m_pos)->is_using());
+                return m_parent->m_basetbl.node(m_pos)->value.key;
             }
             //获取当前迭代器在容器中对应的位置索引
             uint32_t pos() const { return m_pos; }
@@ -136,7 +136,7 @@ namespace rx
             //节点指向后移(前置运算符模式,未提供后置模式)
             iterator& operator++()
             {
-                m_pos=m_parent.m_basetbl.node(m_pos)->value.next_pos;//指向后趋的位置
+                m_pos=m_parent->m_basetbl.node(m_pos)->value.next_pos;//指向后趋的位置
                 return reinterpret_cast<iterator&>(*this);
             }
         };
@@ -248,8 +248,8 @@ namespace rx
         //返回值:被删除的节点指针
         node_t* erase_raw(iterator &i)
         {
-            rx_assert(i.m_pos<m_basetbl.capacity() && &i.m_parent==this);
-            if (i.m_pos>= m_basetbl.capacity() || &i.m_parent!=this)
+            rx_assert(i.m_pos<m_basetbl.capacity() && i.m_parent==this);
+            if (i.m_pos>= m_basetbl.capacity() || i.m_parent!=this)
                 return NULL;
 
             node_t &node = *m_basetbl.node(i.m_pos);

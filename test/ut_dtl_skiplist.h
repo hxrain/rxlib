@@ -48,11 +48,11 @@ namespace rx_ut
         rt.tdd_assert(sl.rbegin()()==8);
         rt.tdd_assert(sl.size()==5);
 
-        rx::skiplist_uint32_t::node_t *n=sl.find((uint32_t)3);
-        rt.tdd_assert(n&&n->key==3&&n->val==vals[3]);
+        rx::skiplist_uint32_t::iterator I = sl.find((uint32_t)3);
+        rt.tdd_assert(I != sl.end() && I() == 3 && *I == vals[3]);
 
-        n=sl.find((uint32_t)8);
-        rt.tdd_assert(n&&n->key==8&&n->val==vals[8]);
+        I = sl.find((uint32_t)8);
+        rt.tdd_assert(I != sl.end() && I() == 8 && *I == vals[8]);
 
         //-------------------------------------------------
         #if RX_RAW_SKIPLIST_DEBUG_PRINT
@@ -60,22 +60,23 @@ namespace rx_ut
         #endif
         //-------------------------------------------------
 
-        n=sl.find((uint32_t)5);
-        rt.tdd_assert(n&&n->key==5&&n->val==vals[5]);
+        I=sl.find((uint32_t)5);
+        rt.tdd_assert(I != sl.end() && I() == 5 && *I == vals[5]);
         rt.tdd_assert(sl.erase((uint32_t)5));
         rt.tdd_assert(*sl.begin()==2);
         rt.tdd_assert(sl.begin()()==2);
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==8);
-        n=sl.find((uint32_t)5);
-        rt.tdd_assert(n==NULL);
+        I=sl.find((uint32_t)5);
+        rt.tdd_assert(I==sl.end());
         rt.tdd_assert(!sl.erase((uint32_t)1));
-        rt.tdd_assert(!sl.insert((uint32_t)3,vals[4]));
+        bool dup = false;
+        rt.tdd_assert(sl.insert((uint32_t)3, vals[4], &dup) != sl.end() && dup);
 
-        n=sl.find((uint32_t)3);
-        rt.tdd_assert(n&&n->key==3&&n->val==vals[3]);
-        n=sl.find((uint32_t)2);
-        rt.tdd_assert(n&&n->key==2&&n->val==vals[2]);
+        I=sl.find((uint32_t)3);
+        rt.tdd_assert(I != sl.end() && I() == 3 && *I == vals[3]);
+        I=sl.find((uint32_t)2);
+        rt.tdd_assert(I != sl.end() && I() == 2 && *I == vals[2]);
 
         sl.clear();
 
@@ -92,61 +93,62 @@ namespace rx_ut
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
-        rt.tdd_assert(sl.insert("3",vals[3])>0);
+        rt.tdd_assert(sl.insert("3",vals[3])!=sl.end());
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()=="3");
         rt.tdd_assert(*sl.rbegin()==3);
         rt.tdd_assert(sl.rbegin()()=="3");
 
-        rt.tdd_assert(sl.insert("8",vals[8])>0);
+        rt.tdd_assert(sl.insert("8",vals[8])!=sl.end());
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()=="3");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()=="8");
         rt.tdd_assert(sl.size()==2);
 
-        rt.tdd_assert(sl.insert("5",vals[5])>0);
+        rt.tdd_assert(sl.insert("5",vals[5]) != sl.end());
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()=="3");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()=="8");
 
-        rt.tdd_assert(sl.insert("7",vals[7])>0);
+        rt.tdd_assert(sl.insert("7",vals[7]) != sl.end());
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()=="3");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()=="8");
 
-        rt.tdd_assert(sl.insert("2",vals[2])>0);
+        rt.tdd_assert(sl.insert("2",vals[2]) != sl.end());
         rt.tdd_assert(*sl.begin()==2);
         rt.tdd_assert(sl.begin()()=="2");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()=="8");
         rt.tdd_assert(sl.size()==5);
 
-        rx::skiplist_cstr_uint32_t::node_t *n=sl.find("3");
-        rt.tdd_assert(n&&n->key=="3"&&n->val==vals[3]);
+        rx::skiplist_cstr_uint32_t::iterator I=sl.find("3");
+        rt.tdd_assert(I != sl.end() && I() == "3" && *I == vals[3]);
 
-        n=sl.find("8");
-        rt.tdd_assert(n&&n->key=="8"&&n->val==vals[8]);
+        I=sl.find("8");
+        rt.tdd_assert(I != sl.end() && I() == "8" && *I == vals[8]);
 
-        n=sl.find("5");
-        rt.tdd_assert(n&&n->key=="5"&&n->val==vals[5]);
+        I=sl.find("5");
+        rt.tdd_assert(I != sl.end() && I() == "5" && *I == vals[5]);
         rt.tdd_assert(sl.erase("5"));
         rt.tdd_assert(*sl.begin()==2);
         rt.tdd_assert(sl.begin()()=="2");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()=="8");
 
-        n=sl.find("5");
-        rt.tdd_assert(n==NULL);
+        I=sl.find("5");
+        rt.tdd_assert(I==NULL&&I==sl.end());
         rt.tdd_assert(!sl.erase("1"));
-        rt.tdd_assert(!sl.insert("3",vals[4]));
+        bool dup = false;
+        rt.tdd_assert(sl.insert("3",vals[4],&dup)!=sl.end()&&dup);
 
-        n=sl.find("3");
-        rt.tdd_assert(n&&n->key=="3"&&n->val==vals[3]);
-        n=sl.find("2");
-        rt.tdd_assert(n&&n->key=="2"&&n->val==vals[2]);
+        I=sl.find("3");
+        rt.tdd_assert(I != sl.end() && I() == "3" && *I == vals[3]);
+        I=sl.find("2");
+        rt.tdd_assert(I != sl.end() && I() == "2" && *I == vals[2]);
 
         sl.clear();
 
@@ -163,61 +165,62 @@ namespace rx_ut
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
-        rt.tdd_assert(sl.insert(L"3",vals[3])>0);
+        rt.tdd_assert(sl.insert(L"3",vals[3])!=sl.end());
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==L"3");
         rt.tdd_assert(*sl.rbegin()==3);
         rt.tdd_assert(sl.rbegin()()==L"3");
 
-        rt.tdd_assert(sl.insert(L"8",vals[8])>0);
+        rt.tdd_assert(sl.insert(L"8",vals[8]) != sl.end());
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==L"3");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==L"8");
         rt.tdd_assert(sl.size()==2);
 
-        rt.tdd_assert(sl.insert(L"5",vals[5])>0);
+        rt.tdd_assert(sl.insert(L"5",vals[5]) != sl.end());
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==L"3");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==L"8");
 
-        rt.tdd_assert(sl.insert(L"7",vals[7])>0);
+        rt.tdd_assert(sl.insert(L"7",vals[7]) != sl.end());
         rt.tdd_assert(*sl.begin()==3);
         rt.tdd_assert(sl.begin()()==L"3");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==L"8");
 
-        rt.tdd_assert(sl.insert(L"2",vals[2])>0);
+        rt.tdd_assert(sl.insert(L"2",vals[2]) != sl.end());
         rt.tdd_assert(*sl.begin()==2);
         rt.tdd_assert(sl.begin()()==L"2");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==L"8");
         rt.tdd_assert(sl.size()==5);
 
-        rx::skiplist_wstr_uint32_t::node_t *n=sl.find(L"3");
-        rt.tdd_assert(n&&n->key==L"3"&&n->val==vals[3]);
+        rx::skiplist_wstr_uint32_t::iterator I=sl.find(L"3");
+        rt.tdd_assert(I != sl.end() && I() == L"3" && *I == vals[3]);
 
-        n=sl.find(L"8");
-        rt.tdd_assert(n&&n->key==L"8"&&n->val==vals[8]);
+        I=sl.find(L"8");
+        rt.tdd_assert(I != sl.end() && I() == L"8" && *I == vals[8]);
 
-        n=sl.find(L"5");
-        rt.tdd_assert(n&&n->key==L"5"&&n->val==vals[5]);
+        I=sl.find(L"5");
+        rt.tdd_assert(I != sl.end() && I() == L"5" && *I == vals[5]);
         rt.tdd_assert(sl.erase(L"5"));
         rt.tdd_assert(*sl.begin()==2);
         rt.tdd_assert(sl.begin()()==L"2");
         rt.tdd_assert(*sl.rbegin()==8);
         rt.tdd_assert(sl.rbegin()()==L"8");
 
-        n=sl.find(L"5");
-        rt.tdd_assert(n==NULL);
+        I=sl.find(L"5");
+        rt.tdd_assert(I==NULL);
         rt.tdd_assert(!sl.erase(L"1"));
-        rt.tdd_assert(!sl.insert(L"3",vals[4]));
+        bool dup = false;
+        rt.tdd_assert(sl.insert(L"3",vals[4],&dup)!=sl.end()&&dup);
 
-        n=sl.find(L"3");
-        rt.tdd_assert(n&&n->key==L"3"&&n->val==vals[3]);
-        n=sl.find(L"2");
-        rt.tdd_assert(n&&n->key==L"2"&&n->val==vals[2]);
+        I=sl.find(L"3");
+        rt.tdd_assert(I != sl.end() && I() == L"3" && *I == vals[3]);
+        I=sl.find(L"2");
+        rt.tdd_assert(I != sl.end() && I() == L"2" && *I == vals[2]);
 
         sl.clear();
 

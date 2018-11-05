@@ -4,6 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_mem_alloc.h"
 #include "rx_hash_rand.h"
+#include <time.h>
 
 namespace rx
 {

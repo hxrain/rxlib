@@ -43,14 +43,20 @@ namespace rx
             static int cmp(const skiplist_node_t &n,const KT &key){return n.key==key?0:(n.key<key?-1:1);}
 
             //---------------------------------------------
-            //计算key需要的扩展尺寸
+            //计算key与val需要的扩展尺寸
             template<class KT,class VT>
-            static uint32_t ext_size(const KT &k,const VT& v,uint32_t &es1,uint32_t &es2){return 0;}
+            static uint32_t ext_size(const KT &k, const VT& v, uint32_t &es1, uint32_t &es2) { return 0; }
+            //计算key需要的扩展尺寸
+            template<class KT>
+            static uint32_t ext_size(const KT &k, uint32_t &es1) { return 0; }
 
             //---------------------------------------------
             //进行定向构造并初始化
             template<class KT,class VT>
             void OC(uint32_t level,KT &k,VT &v,uint32_t es1,uint32_t es2){ct::OC(&key,k);ct::OC(&val,v);}
+            //进行定向构造并初始化
+            template<class KT>
+            void OC(uint32_t level, KT &k, uint32_t es1) { ct::OC(&key, k); ct::OC(&val);}
             //---------------------------------------------
             typedef kt node_key_t;                         //对节点内部真正的key与val的类型进行定义
             typedef vt node_val_t;
@@ -70,9 +76,11 @@ namespace rx
             template<class KT>
             static int cmp(const skiplist_node_t &n,const KT &key){return st::strcmp(n.key.c_str(),key);}
             //---------------------------------------------
-            //计算key需要的扩展尺寸
+            //计算key与val需要的扩展尺寸
             template<class KT,class VT>
             static uint32_t ext_size(const KT &k,const VT& v,uint32_t &es1,uint32_t &es2){es1=(st::strlen(k)+1) * sc<wchar_t>::char_size();return es1;}
+            template<class KT>
+            static uint32_t ext_size(const KT &k, uint32_t &es1) { es1 = (st::strlen(k) + 1) * sc<wchar_t>::char_size(); return es1; }
 
             //---------------------------------------------
             //进行定向构造并初始化
@@ -83,6 +91,14 @@ namespace rx
                 ct::OC(&val,v);
                 uint32_t cap = es1 / sc<wchar_t>::char_size();
                 key.bind((wchar_t*)&next[level],cap,k,cap-1);
+            }
+            template<class KT>
+            void OC(uint32_t level, KT &k, uint32_t es1)
+            {
+                ct::OC(&key);
+                ct::OC(&val);
+                uint32_t cap = es1 / sc<wchar_t>::char_size();
+                key.bind((wchar_t*)&next[level], cap, k, cap - 1);
             }
             //---------------------------------------------
             typedef tiny_string_head_t<wchar_t> node_key_t;//对节点内部真正的key与val的类型进行定义
@@ -103,7 +119,9 @@ namespace rx
             //---------------------------------------------
             //计算key需要的扩展尺寸
             template<class KT,class VT>
-            static uint32_t ext_size(const KT &k,const VT& v,uint32_t &es1,uint32_t &es2){es1=st::strlen(k)+1;return es1;}
+            static uint32_t ext_size(const KT &k, const VT& v, uint32_t &es1, uint32_t &es2) { es1 = st::strlen(k) + 1; return es1; }
+            template<class KT>
+            static uint32_t ext_size(const KT &k, uint32_t &es1) { es1 = st::strlen(k) + 1; return es1; }
 
             //---------------------------------------------
             //进行定向构造并初始化
@@ -113,6 +131,13 @@ namespace rx
                 ct::OC(&key);
                 ct::OC(&val,v);
                 key.bind((char*)&next[level],es1,k,es1-1);
+            }
+            template<class KT>
+            void OC(uint32_t level, KT &k, uint32_t es1)
+            {
+                ct::OC(&key);
+                ct::OC(&val);
+                key.bind((char*)&next[level], es1, k, es1 - 1);
             }
             //---------------------------------------------
             typedef tiny_string_head_t<char> node_key_t;    //对节点内部真正的key与val的类型进行定义
@@ -166,35 +191,16 @@ namespace rx
                 m_node=m_node->next[0];
                 return reinterpret_cast<iterator&>(*this);
             }
+            //---------------------------------------------
+            //判断当前迭代器是否无效
+            bool is_end() { return m_node == NULL; }
+            //---------------------------------------------
+            //尝试获取当前迭代器的后趋节点指针
+            const node_t* next() { return m_node->next[0]; }
         };
         //-------------------------------------------------
-        //在跳表中插入元素并赋值构造
-        //返回值:<0-内存不足;0-值重复;>0-成功
-        template<class KT>
-        int insert(const KT &key,const val_t &val)
-        {
-            uint32_t level=m_rnd_level.make();
-            bool duplication=false;
-            uint32_t es1=0,es2=0;
-            node_t *node=m_raw_list.insert_raw(key,duplication,node_t::ext_size(key,val,es1,es2),level);
-            if (duplication)
-                return 0;
-            if (!node)
-                return -1;
-            node->OC(level,key,val,es1,es2);
-            return 1;
-        }
-        //-------------------------------------------------
-        //查找元素是否存在
-        template<class KT>
-        node_t* find(const KT &key) const {return m_raw_list.find(key);}
-        //-------------------------------------------------
-        //删除元素并默认析构
-        template<class KT>
-        bool erase(const KT &key) {return m_raw_list.earse(key);}
-        //-------------------------------------------------
         //准备遍历跳表,返回遍历的初始位置
-        iterator begin() const{return iterator(m_raw_list.head());}
+        iterator begin() const { return iterator(m_raw_list.head()); }
         //-------------------------------------------------
         //返回遍历的结束位置
         iterator end() const { return iterator(NULL); }
@@ -206,14 +212,67 @@ namespace rx
         //返回值:是否删除了当前值
         bool erase(iterator &i)
         {
-            rx_assert(i.m_node!=NULL);
-            if (i.m_node==NULL)
+            rx_assert(i.m_node != NULL);
+            if (i.m_node == NULL)
                 return false;
 
-            bool rc=m_raw_list.earse(i.m_node.key);
+            bool rc = m_raw_list.earse(i.m_node.key);
             ++i;
             return rc;
         }
+        //-------------------------------------------------
+        //在跳表中插入元素并赋值构造,dup可获知是否重复
+        //返回值:end()-内存不足;其他成功
+        template<class KT>
+        iterator insert(const KT &key,const val_t &val, bool *dup = NULL)
+        {
+            uint32_t level=m_rnd_level.make();
+            bool duplication=false;
+            uint32_t es1=0,es2=0;
+            node_t *node=m_raw_list.insert_raw(key,duplication,node_t::ext_size(key,val,es1,es2),level);
+            if (!node)
+                return end();
+
+            if (dup) *dup = duplication;
+
+            if (duplication)
+                return iterator(node);
+
+            node->OC(level,key,val,es1,es2);
+            return iterator(node);
+        }
+        //-------------------------------------------------
+        //在跳表中插入元素key(首次val默认构造);dup可获取key是否重复;
+        //返回值:end()-内存不足;其他成功
+        template<class KT>
+        iterator insert(const KT &key, bool *dup=NULL)
+        {
+            uint32_t level = m_rnd_level.make();
+            bool duplication = false;
+            uint32_t es1 = 0;
+            node_t *node = m_raw_list.insert_raw(key, duplication, node_t::ext_size(key, es1), level);
+            if (!node)
+                return end();
+
+            if (dup) *dup = duplication;
+
+            if (duplication)
+            {//重复的时候,直接返回val指针
+                return iterator(node);
+            }
+
+            //新增的时候进行节点与key/val的初始化
+            node->OC(level, key, es1);
+            return iterator(node);
+        }
+        //-------------------------------------------------
+        //查找元素是否存在
+        template<class KT>
+        iterator find(const KT &key) const {return iterator(m_raw_list.find(key));}
+        //-------------------------------------------------
+        //删除元素并默认析构
+        template<class KT>
+        bool erase(const KT &key) {return m_raw_list.earse(key);}
         //-------------------------------------------------
         #if RX_RAW_SKIPLIST_DEBUG_PRINT
         void print(){m_raw_list.print();}

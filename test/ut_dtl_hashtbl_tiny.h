@@ -102,10 +102,12 @@ namespace rx_ut
         rt.tdd_assert(s.stat().collision_count == 0);
 
         raw_tinyhashtbl_base_loop1(rt, s);
-
-        rt.tdd_assert(s.find(4) != s.end());
+        cntr_t::iterator I = s.find(4);
+        rt.tdd_assert(s.find(4) != s.end() && I!=s.end());
         rt.tdd_assert(s[4] != s.end());
-        rt.tdd_assert(s.find(2) != s.end());
+
+        I = s.find(2);
+        rt.tdd_assert(s.find(2) != s.end()&&I!=s.end());
         rt.tdd_assert(s[2] != s.end());
 
         rt.tdd_assert(s.erase(2));

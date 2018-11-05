@@ -1,5 +1,7 @@
 #define RX_USE_TDD_TICK 0
 
+#include "../ut_dtl_hashmap.h"
+#include "../../rx_dtl_hashmap.h"
 //---------------------------------------------------------
 //基于内存文件映射的定长哈希表,可作为轻量级持久化k/v数据库
 #include "../ut_ext_hashtbl_mm.h"
