@@ -361,8 +361,11 @@ namespace rx_ut
 
 rx_tdd(hashtbl_tiny_base)
 {
-    //rx_ut::tinyhashtbl_removed_adj_2<true, 100000>(*this);
-    rx_ut::tinyhashtbl_removed_adj_2<false, 100000>(*this);
+    for (uint32_t seed = 1; seed < 100; ++seed)
+    {
+        rx_ut::tinyhashtbl_removed_adj_2<true, 10000>(*this,seed);
+        rx_ut::tinyhashtbl_removed_adj_2<false, 10000>(*this, seed);
+    }
 
     rx_ut::tinyhashtbl_removed_adj_1<true>(*this);
     rx_ut::tinyhashtbl_removed_adj_1<false>(*this);

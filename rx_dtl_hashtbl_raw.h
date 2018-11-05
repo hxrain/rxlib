@@ -36,7 +36,7 @@ namespace rx
         //判断给定的节点是否为空节点
         bool empty() const { return flag == node_flag_empty; }
         //判断给定的节点是否未被使用
-        bool is_unused() const { return flag == node_flag_empty || flag == node_flag_removed; }
+        bool is_unused() const { return flag != node_flag_using; }// { return flag == node_flag_empty || flag == node_flag_removed; }
         //判断给定的节点是否被删除
         bool is_deleted() const { return flag == node_flag_removed; }
         //判断给定的节点是否被使用
