@@ -446,6 +446,12 @@
 
     #define is_empty(str)                   (str==NULL||str[0]==0)          //判断字符串是否为空(空指针或首字节为0)
 
+    //将原始指针ptr从头部偏移offset的位置,转换为类型type的指针
+    #define rx_ptr_head_cast(ptr,offset,type) (type*)((uint8_t*)(ptr)+(offset))
+
+    //将内存长度为size的原始指针ptr从尾部偏移offset的位置,转换为类型type的指针
+    #define rx_ptr_tail_cast(ptr,size,offset,type) rx_ptr_head_cast(ptr,(size-offset),type)
+
     //-----------------------------------------------------
     //静态断言的实现(基于位域尺寸不能为0的特性,再结合结构体类型定义.)
     #define rx_static_assert(cond) struct RX_CT_SYM(rx_static_assert) {char static_assert_fail:(cond);}

@@ -63,7 +63,7 @@ namespace rx
         //内部定时器信息项
         typedef struct timer_item_t
         {
-            static const uint8_t size_mask = 0x03;          //本条目的句柄掩码,用于进行额外校验
+            static const uint8_t size_mask = 0x07;          //本条目的句柄掩码,用于进行额外校验
 
             //---------------------------------------------
             timer_tw_cb_t         u_cb_func;                //定时器委托回调

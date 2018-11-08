@@ -16,7 +16,7 @@ namespace rx
     class mem_allotter_i
     {
         //---------------------------------------------
-        //分配器的内存块结构:|info_t|pad_data|userdata|pad_data|
+        //分配器的内存块结构:|info_t|userdata|pad_data|
         #pragma pack(push,1)
         //标准内存分配器的存根
         typedef struct cookie_t
@@ -27,18 +27,25 @@ namespace rx
                 uint32_t item_count;                        //记录此内存块是否为数组,数组元素的数量
                 uint32_t mem_size;                          //此内存块的尺寸
             } info_t;
-
+        private:
             //---------------------------------------------
         #if RX_MEM_ALLOC_USE_CHECKING
-            static const uint32_t pad_data=0x12345678;      //填充数据,进行内存越界访问的检查
-            enum {ph_size=sizeof(pad_data)};
-            enum {pt_size=sizeof(pad_data)};
+            typedef uint32_t pad_data_t;
+            static const pad_data_t pad_data=0x12345678;    //填充数据,进行内存越界访问的检查
+            enum { cookie_size = sizeof(info_t) + sizeof(pad_data_t) };//全部存根的尺寸(存根信息+填充尾)
+            //从长度为mem_size的内存块R的尾部获取填充数据
+            #define RX_MEM_BLOCK_TAIL_PAD_GET(R,mem_size) *rx_ptr_tail_cast(R, mem_size, sizeof(pad_data), pad_data_t)
+            //对长度为mem_size的内存块R的尾部设置填充数据
+            #define RX_MEM_BLOCK_TAIL_PAD_SET(R,mem_size) RX_MEM_BLOCK_TAIL_PAD_GET(R, mem_size) = pad_data
+            //校验检查长度为mem_size的内存块R的尾部填充数据
+            #define RX_MEM_BLOCK_CHECK_PAD(R,mem_size) rx_fail_msg(RX_MEM_BLOCK_TAIL_PAD_GET(R,mem_size)==pad_data,"!!allotter memory block overflow!!")
         #else
-            enum {ph_size=0};
-            enum {pt_size=0};
+            enum { cookie_size = sizeof(info_t) };          //全部存根的尺寸(存根信息)
+            #define RX_MEM_BLOCK_TAIL_PAD_GET(R,mem_size)
+            #define RX_MEM_BLOCK_TAIL_PAD_SET(R,mem_size)
+            #define RX_MEM_BLOCK_CHECK_PAD(R,mem_size)
         #endif
-            enum {cookie_size=sizeof(info_t)+ph_size+pt_size};//全部存根的尺寸(信息体/填充头/填充尾)
-
+        public:
             //---------------------------------------------
             //获知包含存根和用户块的总空间尺寸
             static uint32_t memsize(uint32_t datsize){return datsize+cookie_size;}
@@ -49,69 +56,35 @@ namespace rx
             //返回值:用户可用的指针部分
             static void* set(void* R,uint32_t Count,uint32_t mem_size)
             {
-                info_t &ck=*(info_t*)R;
-                ck.item_count=Count;
-                ck.mem_size=mem_size;
-        #if RX_MEM_ALLOC_USE_CHECKING
-                *(uint32_t*)(((uint8_t*)R)+sizeof(info_t))=pad_data;          //填充头部
-                *(uint32_t*)(((uint8_t*)R)+(mem_size-pt_size))=pad_data;      //填充尾部
-        #endif
-                return ((uint8_t*)R)+sizeof(info_t)+ph_size;
-            }
-            //---------------------------------------------
-            //清空R所承载的cookie信息
-            static void clr(void* R)
-            {
-                info_t &ck=*(info_t*)R;
-#if RX_MEM_ALLOC_USE_CHECKING
-                uint32_t &ph=*(uint32_t*)(((uint8_t*)R)+sizeof(info_t));      //填充头部
-                rx_assert(ph==pad_data);//避免重复释放或访问已经释放后的内存块指针
-                uint32_t &pt=*(uint32_t*)(((uint8_t*)R)+(ck.mem_size-pt_size));//填充尾部
-                rx_assert_msg(pt==pad_data,"memory overflow!!");    //检查内存是否被越界覆盖
-                ph=0;
-                pt=0;
-#endif
-                ck.item_count=0;
-                ck.mem_size=0;
+                info_t &ck = *rx_ptr_head_cast(R, 0, info_t);//指向info对象
+                ck.item_count = Count;                      //进行info存根信息的记录
+                ck.mem_size = mem_size;
+                RX_MEM_BLOCK_TAIL_PAD_SET(R, mem_size);     //在内存块的尾部记录填充标记
+                return rx_ptr_head_cast(R, sizeof(info_t), void);
             }
             //---------------------------------------------
             //从R所持有的cookie_t中得到附加信息
             static info_t& get(void* R)
             {
-                info_t &ck=*(info_t*)R;
-        #if RX_MEM_ALLOC_USE_CHECKING
-                uint32_t ph=*(uint32_t*)(((uint8_t*)R)+sizeof(info_t));         //填充头部
-                rx_fail_msg(ph==pad_data,"illegal memory access!!");            //避免重复释放或访问已经释放后的内存块指针
-                uint32_t pt=*(uint32_t*)(((uint8_t*)R)+(ck.mem_size-pt_size));  //填充尾部
-                rx_fail_msg(pt==pad_data,"memory overflow!!");                  //检查内存是否被越界覆盖
-        #endif
+                info_t &ck = *rx_ptr_head_cast(R, 0, info_t);//指向info对象
+                RX_MEM_BLOCK_CHECK_PAD(R, ck.mem_size);
                 return ck;
             }
             //---------------------------------------------
             //根据R得到最终用户可用的指针部分
             static void* usrptr(void *R)
             {
-        #if RX_MEM_ALLOC_USE_CHECKING
-                info_t &ck=*(info_t*)R;
-                uint32_t ph=*(uint32_t*)(((uint8_t*)R)+sizeof(info_t));         //填充头部
-                rx_fail_msg(ph==pad_data,"illegal memory access!!");            //避免重复释放或访问已经释放后的内存块指针
-                uint32_t pt=*(uint32_t*)(((uint8_t*)R)+(ck.mem_size-pt_size));  //填充尾部
-                rx_fail_msg(pt==pad_data,"memory overflow!!");                  //检查内存是否被越界覆盖
-        #endif
-                return ((uint8_t*)R)+sizeof(info_t)+ph_size;
+                info_t &ck = *rx_ptr_head_cast(R, 0, info_t);
+                RX_MEM_BLOCK_CHECK_PAD(R, ck.mem_size);
+                return rx_ptr_head_cast(R, sizeof(info_t), void);
             }
             //---------------------------------------------
             //根据用户指针获取原始指针
             static void* rawptr(void *P)
             {
-                void *R=(uint8_t*)P-(sizeof(info_t)+ph_size);
-        #if RX_MEM_ALLOC_USE_CHECKING
-                info_t &ck=*(info_t*)R;
-                uint32_t ph=*(uint32_t*)(((uint8_t*)R)+sizeof(info_t));         //填充头部
-                rx_fail_msg(ph==pad_data,"illegal memory access!!");            //避免重复释放或访问已经释放后的内存块指针
-                uint32_t pt=*(uint32_t*)(((uint8_t*)R)+(ck.mem_size-pt_size));  //填充尾部
-                rx_fail_msg(pt==pad_data,"memory overflow!!");                  //检查内存是否被越界覆盖
-        #endif
+                void *R = rx_ptr_head_cast(P, -(int)sizeof(info_t), void);
+                info_t &ck = *rx_ptr_head_cast(R, 0, info_t);
+                RX_MEM_BLOCK_CHECK_PAD(R, ck.mem_size);
                 return R;
             }
         }cookie_t;
@@ -146,7 +119,6 @@ namespace rx
             cookie_t::info_t &ck=cookie_t::get(R);
             rx_assert_msg(!ck.item_count,"错误的使用了alloc/free函数匹配.");
             uint32_t memsize=ck.mem_size;
-            cookie_t::clr(R);
             base_free(R,memsize);
         }
         //-------------------------------------------------
@@ -232,7 +204,6 @@ namespace rx
             else
                 ct::AD(P,ck.item_count);                //是数组类型
             uint32_t memsize=ck.mem_size;
-            cookie_t::clr(R);
             base_free(R,memsize);
             return true;
         }
