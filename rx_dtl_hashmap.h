@@ -139,6 +139,16 @@ namespace rx
             if (I!=NULL && !d) ++m_node_size;
             return iterator(*this, I);
         }
+        template<class KT>
+        iterator insert(const KT &key, bool *dup = NULL)
+        {
+            uint32_t s = key_slot(key);
+            bool d = false;
+            typename skiplist_t::iterator I = m_slots[s].list.insert(key, &d);
+            if (dup) *dup = d;
+            if (I != NULL && !d) ++m_node_size;
+            return iterator(*this, I);
+        }
         //-------------------------------------------------
         //查找元素,通过返回迭代器是否与end()相同判断是否存在
         template<class KT>
