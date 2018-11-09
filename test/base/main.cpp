@@ -1,4 +1,5 @@
 #define RX_USE_TDD_TICK 0
+#include "../../rx_dtl_radix_bit.h"
 
 #include "../ut_dtl_hashmap.h"
 #include "../../rx_dtl_hashmap.h"
