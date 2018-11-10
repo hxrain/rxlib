@@ -1,7 +1,10 @@
 #define RX_USE_TDD_TICK 0
 
+#include "../../rx_dtl_raxbit_raw.h"
+
 //---------------------------------------------------------
-//key基于bit分段的基数定高树
+//key基于bit分段的基数树
+
 #include "../ut_dtl_radix_bit.h"
 #include "../../rx_dtl_radix_bit.h"
 
