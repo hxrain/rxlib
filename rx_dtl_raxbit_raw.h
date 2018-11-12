@@ -260,15 +260,18 @@ namespace rx
             }
         }
         //-------------------------------------------------
+        //进行内部数据初始化
         void m_init()
         {
+            m_leaf_count = 0;
+            m_limb_count = 0;
             for (uint32_t i = 0; i < OP::top_slots_shift; ++i)
                 m_slots[i] = 0;
         }
     public:
         //-------------------------------------------------
-        raw_raxbit_t() :m_mem(rx_global_mem_allotter()), m_leaf_count(0), m_limb_count(0) { m_init(); }
-        raw_raxbit_t(mem_allotter_i &m):m_mem(m), m_leaf_count(0), m_limb_count(0) { m_init(); }
+        raw_raxbit_t() :m_mem(rx_global_mem_allotter()) { m_init(); }
+        raw_raxbit_t(mem_allotter_i &m):m_mem(m) { m_init(); }
         //-------------------------------------------------
         //叶子节点的数量
         uint32_t size() const { return m_leaf_count; }
@@ -374,11 +377,12 @@ namespace rx
         //删除指定的叶子节点
         bool remove(leaf_t* leaf, looper_t &lp)
         {
-            rx_assert_ret(leaf != NULL);
+            if (!leaf) return false;
             rx_assert(lp.levels() >= 1);
             rx_assert(*lp.last().slot_ptr == leaf);
             m_reduce(lp);
             node_free(leaf);
+            --m_leaf_count;
             return true;
         }
 

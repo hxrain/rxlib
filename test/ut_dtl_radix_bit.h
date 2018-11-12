@@ -80,6 +80,7 @@ namespace rx_ut
 
         leaf4 = rax.insert(0x15); leaf4->key = 0x15;
         rt.tdd_assert(rax.limbs() == 2);
+        rt.tdd_assert(rax.size() == 4);
 
         rax_t::leaf_t *r = rax.find(0x15);
         rt.tdd_assert(r->key == 0x15);
@@ -95,7 +96,18 @@ namespace rx_ut
 
         rt.tdd_assert(rax.remove(2));
         rt.tdd_assert(rax.limbs() == 1);
+
+        rt.tdd_assert(rax.remove(0x15));
+        rt.tdd_assert(rax.limbs() == 0);
+
+        rt.tdd_assert(rax.remove(0x12));
+        rt.tdd_assert(rax.limbs() == 0);
+
+        rt.tdd_assert(!rax.remove(0x12));
+        rt.tdd_assert(rax.limbs() == 0);
+        rt.tdd_assert(rax.size() == 0);
     }
+
 }
 
 rx_tdd(radix_bit_base)
