@@ -119,7 +119,6 @@ namespace rx
             uint32_t levels() { return m_levels; }
         };
         typedef path_base_t<slot_t*> path_t;
-        typedef path_base_t<slot_t> _path_t;
 
     private:
         uint32_t        m_leaf_count;                       //叶子节点的数量
@@ -285,7 +284,8 @@ namespace rx
             }
             
             //现在,需要对顶层槽位指向的枝干进行深度优先全遍历,每层中顺便清理叶子节点
-            _path_t back_path;
+            typedef path_base_t<slot_t> back_path_t;
+            back_path_t back_path;
             limb_t *cur_limb = get_limb_ptr(ptr);
             uint32_t cur_idx = 0;
 
@@ -321,12 +321,12 @@ namespace rx
                     if (!back_path.levels())
                         break;
 
-                    _path_t::item_t &I = back_path.pop();
-                    cur_limb = get_limb_ptr(I.slot_ptr);
-                    cur_idx = I.slot_idx+1;
-                    //cur_limb->slots[cur_idx++] = NULL;
+                    back_path_t::item_t &I = back_path.pop();
+                    cur_limb = (limb_t*)I.slot_ptr;
+                    cur_idx = I.slot_idx;
+                    cur_limb->slots[cur_idx++] = NULL;
                 }
-            } while (back_path.levels());
+            } while (1);
         }
     public:
         //-------------------------------------------------
@@ -456,12 +456,14 @@ namespace rx
             for (uint32_t i = 0; i < OP::top_slots_size; ++i)
             {
                 if (m_slots[i])
+                {
                     m_clear(m_slots[i]);
+                    m_slots[i]=NULL;
+                }
             }
 
             rx_assert(m_leaf_count == 0);
             rx_assert(m_limb_count == 0);
-            m_init();
         }
     };
 

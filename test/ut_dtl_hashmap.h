@@ -99,7 +99,9 @@ rx_tdd(skiplist_base)
     rx_ut::test_hashmap_base_1(*this);
     rx_ut::test_hashmap_base_2rx  <10000*100>(*this,ut2_hashmap,"hashmap");
     rx_ut::test_hashmap_base_2rx  <10000*100>(*this,ut2_skiplist,"skiplist");
+#if RX_USE_TDD_TICK
     rx_ut::test_hashmap_base_2std <10000*100>(*this,ut2_stdmap,"stdmap");
+#endif
 }
 
 #endif
