@@ -512,18 +512,24 @@ namespace rx
         leaf_t* find(const KT &key, back_path_t& back_path)
         {
             back_path.reset();
-/*
-            int shift = OP::top_slots_shift - OP::limb_slots_bits;
-            slot_t ptr = m_top_limb.slots[OP::top_slot_idx(key)];
 
+            int shift = OP::top_slots_shift - OP::limb_slots_bits;
+            limb_t *limb = (limb_t*)&m_top_limb;
+            uint32_t slot_idx = OP::top_slot_idx(key);
+            
             while (1)
             {
+                slot_t ptr = limb->slots[slot_idx];
                 if (!ptr) return NULL;                      //槽位指向空,找不到
+                
+                back_path.push(limb, slot_idx);             //记录当前位置
 
                 if (is_limb_ptr(ptr))
                 {//槽位指向枝干节点,需要下移
                     rx_assert(shift >= 0);
-                    ptr = get_limb_ptr(ptr)->slots[OP::limb_slot_idx(key, shift)];
+                    limb = get_limb_ptr(ptr);
+                    slot_idx = OP::limb_slot_idx(key, shift);
+                    ptr = limb->slots[slot_idx];
                     shift -= OP::limb_slots_bits;
                 }
                 else
@@ -534,7 +540,7 @@ namespace rx
                     return node;                            //否则代表确实找到了目标key对应的节点
                 }
             }
-*/
+
             return NULL;
         }
         //-------------------------------------------------
