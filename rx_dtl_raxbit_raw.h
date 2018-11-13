@@ -91,7 +91,7 @@ namespace rx
         //顶层枝干节点类型
         typedef limb_base_t<OP::top_slots_size> top_limb_t;
         //根据条件获取枝干槽位数量
-        static uint32_t get_limb_slots_size(bool is_top) { return is_top ? OP::top_slots_size : OP::limb_slots_size; }
+        static uint32_t get_limb_slots_size(bool is_top) { return is_top ? (uint32_t)OP::top_slots_size : (uint32_t)OP::limb_slots_size; }
         //-------------------------------------------------
         //对rax树进行遍历使用的层级路径工具
         template<typename ST>
@@ -108,8 +108,8 @@ namespace rx
             uint32_t        m_levels;                       //当前层数
         public:
             path_base_t() :m_levels(0){}
-            void push(ST ptr,uint32_t idx) 
-            { 
+            void push(ST ptr,uint32_t idx)
+            {
                 rx_assert(m_levels < OP::rax_max_levels);
                 rx_assert(ptr!=NULL);
                 item_t &l = m_back_path[m_levels++];
@@ -286,7 +286,7 @@ namespace rx
                 --m_leaf_count;
                 return;
             }
-            
+
             //现在,需要对顶层槽位指向的枝干进行深度优先全遍历,每层中顺便清理叶子节点
             back_path_t back_path;
             limb_t *cur_limb = get_limb_ptr(ptr);
@@ -324,7 +324,7 @@ namespace rx
                     if (!back_path.levels())
                         break;
 
-                    back_path_t::item_t &I = back_path.pop();
+                    typename back_path_t::item_t &I = back_path.pop();
                     cur_limb = (limb_t*)I.slot_ptr;
                     cur_idx = I.slot_idx;
                     cur_limb->slots[cur_idx++] = NULL;
@@ -338,7 +338,7 @@ namespace rx
             rx_assert(back_path.levels()!=0);
 
             //现在,需要对最底层路径中槽位指向的枝干进行深度优先全遍历,查找左侧叶子节点
-            back_path_t::item_t &I = back_path.pop();
+            typename back_path_t::item_t &I = back_path.pop();
             limb_t *cur_limb = (limb_t*)I.slot_ptr;
             uint32_t cur_idx = I.slot_idx + is_next;
             uint32_t slots_size = get_limb_slots_size(cur_limb == (limb_t*)&m_top_limb);
@@ -370,7 +370,7 @@ namespace rx
                     if (!back_path.levels())
                         break;
 
-                    back_path_t::item_t &I = back_path.pop();
+                    typename back_path_t::item_t &I = back_path.pop();
                     cur_limb = (limb_t*)I.slot_ptr;
                     cur_idx = I.slot_idx+1;
                     slots_size = get_limb_slots_size(cur_limb == (limb_t*)&m_top_limb);
@@ -386,10 +386,9 @@ namespace rx
             rx_assert(back_path.levels() != 0);
 
             //现在,需要对最底层路径中槽位指向的枝干进行深度优先全遍历,查找左侧叶子节点
-            back_path_t::item_t &I = back_path.pop();
+            typename back_path_t::item_t &I = back_path.pop();
             limb_t *cur_limb = (limb_t*)I.slot_ptr;
             int32_t cur_idx = I.slot_idx - is_prev;
-            uint32_t slots_size = get_limb_slots_size(cur_limb == (limb_t*)&m_top_limb);
 
             do
             {
@@ -418,10 +417,9 @@ namespace rx
                     if (!back_path.levels())
                         break;
 
-                    back_path_t::item_t &I = back_path.pop();
+                    typename back_path_t::item_t &I = back_path.pop();
                     cur_limb = (limb_t*)I.slot_ptr;
                     cur_idx = I.slot_idx - 1;
-                    slots_size = get_limb_slots_size(cur_limb == (limb_t*)&m_top_limb);
                 }
 
             } while (1);
@@ -556,7 +554,7 @@ namespace rx
             {
                 slot_t &ptr=m_top_limb.slots[i];
                 if (!ptr) continue;
-                
+
                 m_clear(ptr);
                 ptr=NULL;
             }
