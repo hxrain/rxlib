@@ -37,6 +37,12 @@ namespace rx
         const uint32_t wheel_slots = 256;                   //每个轮子上的槽位数量
         const uint32_t slot_mask   = wheel_slots-1;         //槽位索引掩码,用于取模计算
         static const uint32_t max_wheel_count = 4;          //最大允许的轮子级数
+    #if RX_CC_BIT==32
+        static const uint8_t item_ptr_mask = 0x03;          //定时条目信息指针的掩码,用于进行额外校验
+    #else
+        static const uint8_t item_ptr_mask = 0x07;          //定时条目信息指针的掩码,用于进行额外校验
+    #endif
+
 
         //-------------------------------------------------
         //各级轮子对应的满轮滴答数掩码(满值减一,可用&方法取余)
@@ -63,8 +69,6 @@ namespace rx
         //内部定时器信息项
         typedef struct timer_item_t
         {
-            static const uint8_t size_mask = 0x07;          //本条目的句柄掩码,用于进行额外校验
-
             //---------------------------------------------
             timer_tw_cb_t         u_cb_func;                //定时器委托回调
             item_list_t::iterator w_slot_link;              //记录本节点在时间槽链表中的位置,结合slot_idx便于反向查找
@@ -76,7 +80,6 @@ namespace rx
             uint8_t               w_slot_idx;               //本条目所属的槽位索引
             uint8_t               c_ttl;                    //本条目的生存计数
             uint8_t               dummy;
-
             //---------------------------------------------
             //内部信息清除,准备再次复用
             void reset()
@@ -86,7 +89,7 @@ namespace rx
                 u_event_code=0;
                 u_repeat=0;
                 c_dst_tick=0;
-                c_ttl = (c_ttl + 1)&size_mask;              //生存计数不清零,递增取模
+                c_ttl = (c_ttl + 1)&item_ptr_mask;              //生存计数不清零,递增取模
 
                 w_wheel_idx = -1;
                 w_slot_idx = 0;
@@ -97,20 +100,20 @@ namespace rx
             size_t handle()
             {
                 size_t ret=(size_t)this;
-                rx_assert((ret&size_mask)==0);
+                rx_assert((ret&item_ptr_mask)==0);
                 return ret | c_ttl;                         //借用指针低5bit存放ttl,等待访问时来验证
             }
             //---------------------------------------------
             //校验对外句柄的有效性
             bool check(size_t handle)
             {
-                return (handle&size_mask)== c_ttl;
+                return (handle&item_ptr_mask)== c_ttl;
             }
             //---------------------------------------------
             //静态方法,根据定时器句柄计算内部信息对象指针
             static timer_item_t* to_ptr(size_t handle)
             {
-                timer_item_t *ret=(timer_item_t*)(handle&(~size_mask));
+                timer_item_t *ret=(timer_item_t*)(handle&(~item_ptr_mask));
                 if (ret->check(handle))
                     return ret;
                 return NULL;
@@ -132,6 +135,7 @@ namespace rx
             timer_item_t* alloc()
             {
                 timer_item_t *ret = super_t::get();
+                rx_assert((((size_t)ret)&item_ptr_mask)==0);
                 if (ret)
                     ++m_item_count;
                 return ret;
