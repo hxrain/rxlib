@@ -34,8 +34,10 @@ namespace rx
         class looper_t :public raw_rax_t::back_path_t
         {
             friend class iterator;
+            friend class raxbit_set_base_t;
             raw_rax_t       &m_rax;
             node_t          *m_node;
+            looper_t(raw_rax_t &r) :m_rax(r), m_node(NULL) {}
         public:
             looper_t(raxbit_set_base_t &set) :m_rax(set.m_rax), m_node(NULL) {}
         };
@@ -45,34 +47,36 @@ namespace rx
         class iterator
         {
             friend class raxbit_set_base_t;
-            const looper_t   &m_looper;                     //由于有辅助looper_t的存在,所以迭代器中仅记录辅助对象即可
+            const looper_t   *m_looper;                     //由于有辅助looper_t的存在,所以迭代器中仅记录辅助对象即可
         public:
             //---------------------------------------------
-            iterator(const looper_t &s) :m_looper(s) {}
-            iterator(const iterator &i) :m_looper(i.m_looper) {}
+            iterator(const looper_t &s) :m_looper(&s) {}
             //---------------------------------------------
-            bool operator==(const iterator &i)const { return m_looper.m_node == i.m_looper.m_node; }
+            bool operator==(const iterator &i)const { return m_looper->m_node == i.m_looper->m_node; }
             bool operator!=(const iterator &i)const { return !(operator==(i)); }
             //---------------------------------------------
             iterator& operator=(const iterator &i) { m_looper = i.m_looper; return *this; }
             //---------------------------------------------
             const val_t& operator*() const
             {
-                rx_assert(m_looper.m_node != NULL);
-                return m_looper.m_node->key;
+                rx_assert(m_looper!= NULL);
+                rx_assert(m_looper->m_node != NULL);
+                return m_looper->m_node->key;
             }
             //---------------------------------------------
             //节点指向后移(前置运算符模式,未提供后置模式)
             iterator& operator++()
             {
-                m_looper.m_node = m_looper.m_rax.next(m_looper);
+                typename raw_rax_t::back_path_t *path=(typename raw_rax_t::back_path_t*)m_looper;
+                ((looper_t*)m_looper)->m_node = m_looper->m_rax.next(*path);
                 return reinterpret_cast<iterator&>(*this);
             }
             //---------------------------------------------
             //节点指向后移(前置运算符模式,未提供后置模式)
             iterator& operator--()
             {
-                m_looper.m_node = m_looper.m_rax.prev(m_looper);
+                typename raw_rax_t::back_path_t *path=(typename raw_rax_t::back_path_t*)m_looper;
+                ((looper_t*)m_looper)->m_node = m_looper->m_rax.prev(*path);
                 return reinterpret_cast<iterator&>(*this);
             }
         };
@@ -81,8 +85,8 @@ namespace rx
         looper_t    m_dummy;                            //便于end()使用
     public:
         //-------------------------------------------------
-        raxbit_set_base_t() {}
-        raxbit_set_base_t(mem_allotter_i &m):m_rax(m) {}
+        raxbit_set_base_t():m_dummy(m_rax) {}
+        raxbit_set_base_t(mem_allotter_i &m):m_rax(m),m_dummy(m_rax) {}
         virtual ~raxbit_set_base_t() { clear(); }
         //-------------------------------------------------
         //枝干数量
@@ -119,7 +123,7 @@ namespace rx
         {
             looper.m_node = m_rax.find(val,looper);
             if (looper.m_node == NULL) return end();
-            return iterator(&looper);
+            return iterator(looper);
         }
         //-------------------------------------------------
         //删除元素并默认析构,可以指定是否进行删除后的空洞校正
@@ -181,7 +185,8 @@ namespace rx
             if (raw) m_rax.clear();
             else
             {
-                for (iterator i = begin(); i != end();)
+                looper_t looper(*this);
+                for (iterator i = begin(looper); i != end();)
                     erase(i);
             }
         }

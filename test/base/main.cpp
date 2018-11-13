@@ -2,8 +2,8 @@
 
 //---------------------------------------------------------
 //key基于bit分段的基数树
-#include "../../rx_dtl_raxbit_set.h"
 #include "../ut_dtl_radix_bit.h"
+#include "../../rx_dtl_raxbit_set.h"
 #include "../../rx_dtl_raxbit_raw.h"
 //---------------------------------------------------------
 //基于跳表的哈希映射容器,不限容量
