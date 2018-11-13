@@ -189,8 +189,8 @@ namespace rx
                 //获取向下行走的槽位指针
                 slot_ptr = &get_limb_ptr(ptr)->slots[slot_idx];
                 //调整槽位索引位移量
-                shift -= OP::limb_slots_bits;
                 rx_assert(shift >= 0 && shift%OP::limb_slots_bits == 0);
+                shift -= OP::limb_slots_bits;
             }
 
             if (OP::equ(key,*leaf))
@@ -460,7 +460,8 @@ namespace rx
         leaf_t* insert(const KT &key, bool &is_dup,uint32_t data_size=0)
         {
             is_dup=false;
-            slot_t *slot = m_insert(OP::top_slots_shift-OP::limb_slots_bits, &m_top_limb.slots[OP::top_slot_idx(key)], is_dup, key);
+            int32_t shift=OP::top_slots_shift-OP::limb_slots_bits;
+            slot_t *slot = m_insert(shift, &m_top_limb.slots[OP::top_slot_idx(key)], is_dup, key);
             if (is_dup)
                 return (leaf_t*)*slot;                      //重复key直接返回
             if (slot == NULL)
@@ -494,7 +495,7 @@ namespace rx
 
                 if (is_limb_ptr(ptr))
                 {//槽位指向枝干节点,需要下移
-                    rx_assert(shift >= 0);
+                    rx_assert(shift >= 0 && shift%OP::limb_slots_bits == 0);
                     ptr = get_limb_ptr(ptr)->slots[OP::limb_slot_idx(key, shift)];
                     shift -= OP::limb_slots_bits;
                 }
@@ -526,7 +527,7 @@ namespace rx
 
                 if (is_limb_ptr(ptr))
                 {//槽位指向枝干节点,需要下移
-                    rx_assert(shift >= 0);
+                    rx_assert(shift >= 0 && shift%OP::limb_slots_bits == 0);
                     limb = get_limb_ptr(ptr);
                     slot_idx = OP::limb_slot_idx(key, shift);
                     ptr = limb->slots[slot_idx];
@@ -607,7 +608,7 @@ namespace rx
                 {//槽位指向枝干节点,需要下移
                     back_path.push(slot_ptr);               //记录当前层级的枝干节点槽位指针
 
-                    rx_assert(shift >= 0);
+                    rx_assert(shift >= 0 && shift%OP::limb_slots_bits == 0);
                     limb_t *limb = get_limb_ptr(ptr);       //获取枝干节点指针
                     slot_idx = OP::limb_slot_idx(key, shift);//计算槽位分支索引
                     slot_ptr = &limb->slots[slot_idx];      //获取槽位指向
