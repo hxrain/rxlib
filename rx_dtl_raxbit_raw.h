@@ -353,7 +353,7 @@ namespace rx
         }
         //-------------------------------------------------
         //获取最左的叶子:back_path为层级路径;is_next告知是否为右移
-        leaf_t* m_left(back_path_t &back_path,uint32_t is_next=0)
+        leaf_t* m_left(back_path_t &back_path,uint32_t is_next=0) const
         {
             rx_assert(back_path.levels()!=0);
 
@@ -401,7 +401,7 @@ namespace rx
         }
         //-------------------------------------------------
         //获取最右的叶子:back_path为层级路径;is_prev告知是否为左移
-        leaf_t* m_right(back_path_t &back_path, uint32_t is_prev = 0)
+        leaf_t* m_right(back_path_t &back_path, uint32_t is_prev = 0) const
         {
             rx_assert(back_path.levels() != 0);
 
@@ -483,7 +483,7 @@ namespace rx
         //-------------------------------------------------
         //按照给定的key查找对应的叶子节点
         //返回值:NULL不存在;其他为叶子节点指针
-        leaf_t* find(const KT &key)
+        leaf_t* find(const KT &key) const
         {
             int shift = OP::top_slots_shift - OP::limb_slots_bits;
             slot_t ptr = m_top_limb.slots[OP::top_slot_idx(key)];
@@ -509,7 +509,7 @@ namespace rx
         }
         //-------------------------------------------------
         //查找指定key对应节点,并可进行后续迭代
-        leaf_t* find(const KT &key, back_path_t& back_path)
+        leaf_t* find(const KT &key, back_path_t& back_path) const
         {
             back_path.reset();
 
@@ -545,7 +545,7 @@ namespace rx
         }
         //-------------------------------------------------
         //获取左叶子(最小key)
-        leaf_t* left(back_path_t& back_path)
+        leaf_t* left(back_path_t& back_path) const
         {
             back_path.reset();
             for (uint32_t i = 0; i < OP::top_slots_size; ++i)
@@ -553,22 +553,22 @@ namespace rx
                 slot_t ptr = m_top_limb.slots[i];
                 if (!ptr) continue;
 
-                back_path.push(&m_top_limb, i);                 //记录顶层位置
+                back_path.push((limb_t*)&m_top_limb, i);    //记录顶层位置
 
                 if (!is_limb_ptr(ptr))
-                    return (leaf_t*)ptr;                        //顶层槽位指向一个叶子节点,直接返回
+                    return (leaf_t*)ptr;                    //顶层槽位指向一个叶子节点,直接返回
 
-                return m_left(back_path);                       //对当前枝干进行遍历,找到左边的叶子
+                return m_left(back_path);                   //对当前枝干进行遍历,找到左边的叶子
             }
             return NULL;
         }
-        leaf_t* left() { back_path_t back_path; return left(back_path); }
+        leaf_t* left() const { back_path_t back_path; return left(back_path); }
         //获取当前路径叶子右侧相邻的叶子(按key由小至大遍历)
-        leaf_t* next(back_path_t& back_path) { return m_left(back_path, 1); }
+        leaf_t* next(back_path_t& back_path) const { return m_left(back_path, 1); }
         //-------------------------------------------------
         //获取右叶子(最大key);
         //返回值:NULL没有叶子.
-        leaf_t* right(back_path_t& back_path)
+        leaf_t* right(back_path_t& back_path) const
         {
             back_path.reset();
             for (int32_t i = OP::top_slots_size - 1; i >= 0; --i)
@@ -576,7 +576,7 @@ namespace rx
                 slot_t ptr = m_top_limb.slots[i];
                 if (!ptr) continue;
 
-                back_path.push(&m_top_limb, i);                 //记录顶层位置
+                back_path.push((limb_t*)&m_top_limb, i);        //记录顶层位置
 
                 if (!is_limb_ptr(ptr))
                     return (leaf_t*)ptr;                        //顶层槽位指向一个叶子节点,直接返回
@@ -585,18 +585,18 @@ namespace rx
             }
             return NULL;
         }
-        leaf_t* right() { back_path_t back_path; return right(back_path); }
+        leaf_t* right() const { back_path_t back_path; return right(back_path); }
         //获取当前路径叶子左侧相邻的叶子(按key由大至小遍历)
         //返回值:NULL结束了.
-        leaf_t* prev(back_path_t& back_path) { return m_right(back_path, 1); }
+        leaf_t* prev(back_path_t& back_path) const { return m_right(back_path, 1); }
         //-------------------------------------------------
-        //查找指定key对应的叶子节点,同时记录中间枝干层级关系,用于删除
-        leaf_t* remove_find(const KT &key, ref_path_t& back_path)
+        //用于删除时查找指定key对应的叶子节点,同时记录中间枝干层级关系
+        leaf_t* remove_find(const KT &key, ref_path_t& back_path)  const
         {
             back_path.reset();
             int shift = OP::top_slots_shift - OP::limb_slots_bits;
             uint32_t slot_idx = OP::top_slot_idx(key);
-            slot_t *slot_ptr = &m_top_limb.slots[slot_idx];
+            slot_t *slot_ptr = (slot_t*)&m_top_limb.slots[slot_idx];
 
             while (1)
             {
@@ -624,7 +624,7 @@ namespace rx
             }
         }
         //-------------------------------------------------
-        //删除指定的叶子节点
+        //删除指定的叶子节点并收缩
         bool remove_reduce(leaf_t* leaf, ref_path_t &back_path)
         {
             if (!leaf) return false;

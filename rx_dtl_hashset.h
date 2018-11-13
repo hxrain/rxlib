@@ -51,18 +51,6 @@ namespace rx
         raw_tbl_t   m_basetbl;                              //底层哈希功能封装
 
         //-------------------------------------------------
-        //在集合中插入元素,原始动作,没有记录真正的值
-        template<class VT>
-        node_t *insert_raw(const VT &val)
-        {
-            uint32_t pos;
-            uint32_t hash_code = cmp_t::hash(val);
-            node_t *node = m_basetbl.push(hash_code, val ,pos);
-            if (!node)
-                return NULL;
-            return node;
-        }
-        //-------------------------------------------------
         hashset_base_t() {}
         //构造的时候绑定节点空间
         hashset_base_t(node_t* nodes, uint32_t max_node_count, raw_hashtbl_stat_t *st)
@@ -122,9 +110,10 @@ namespace rx
         template<class VT>
         bool insert(const VT &val)
         {
-            node_t *node=insert_raw(val);
-            if (!node)
-                return false;
+            uint32_t pos;
+            uint32_t hash_code = cmp_t::hash(val);
+            node_t *node = m_basetbl.push(hash_code, val, pos);
+            if (!node) return false;
             ct::OC(&node->value,val);
             return true;
         }
