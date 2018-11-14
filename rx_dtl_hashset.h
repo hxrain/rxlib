@@ -75,31 +75,32 @@ namespace rx
         //定义简单的只读迭代器
         class iterator
         {
-            const hashset_base_t   &m_parent;
+            const hashset_base_t   *m_parent;
             uint32_t                m_pos;
             friend class hashset_base_t;
 
         public:
             //---------------------------------------------
-            iterator(const hashset_base_t &s, uint32_t pos) :m_parent(s), m_pos(pos) {}
-            iterator(const iterator &i) :m_parent(i.m_parent), m_pos(i.m_pos) {}
+            iterator(const hashset_base_t &s, uint32_t pos) :m_parent(&s), m_pos(pos) {}
+            //iterator(const iterator &i) :m_parent(i.m_parent), m_pos(i.m_pos) {}
             //---------------------------------------------
-            bool operator==(const iterator &i)const { return &m_parent == &i.m_parent&&m_pos == i.m_pos; }
+            bool operator==(const iterator &i)const { return m_parent == i.m_parent&&m_pos == i.m_pos; }
             bool operator!=(const iterator &i)const { return !(operator==(i)); }
             //---------------------------------------------
             iterator& operator=(const iterator &i) { m_parent = i.m_parent; m_pos = i.m_pos; return *this; }
             //---------------------------------------------
             const val_t& operator*() const
             {
-                rx_assert(m_pos<m_parent.m_basetbl.capacity() &&
-                    m_parent.m_basetbl.node(m_pos)->is_using());
-                return m_parent.m_basetbl.node(m_pos)->value;
+                rx_assert(m_parent &&
+                    m_pos < m_parent->m_basetbl.capacity() &&
+                    m_parent->m_basetbl.node(m_pos)->is_using());
+                return m_parent->m_basetbl.node(m_pos)->value;
             }
             //---------------------------------------------
             //节点指向后移(前置运算符模式,未提供后置模式)
             iterator& operator++()
             {
-                m_pos = m_parent.m_basetbl.next(m_pos);        //尝试找到下一个有效的位置
+                m_pos = m_parent->m_basetbl.next(m_pos);        //尝试找到下一个有效的位置
                 return reinterpret_cast<iterator&>(*this);
             }
             //获取当前迭代器在容器中对应的位置索引
@@ -165,8 +166,8 @@ namespace rx
         //返回值:是否删除了当前值
         bool erase(iterator &i)
         {
-            rx_assert(i.m_pos<m_basetbl.capacity() && &i.m_parent==this);
-            if (i.m_pos>= m_basetbl.capacity() || &i.m_parent!=this)
+            rx_assert(i.m_pos<m_basetbl.capacity() && i.m_parent==this);
+            if (i.m_pos>= m_basetbl.capacity() || i.m_parent!=this)
                 return false;
 
             node_t &node = *m_basetbl.node(i.m_pos);

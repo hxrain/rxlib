@@ -82,11 +82,12 @@ namespace rx
         };
     protected:
         raw_rax_t   m_rax;                              //底层rax容器
-        looper_t    m_dummy;                            //便于end()使用
+        looper_t    m_dummy_end;                        //便于end()使用
+        looper_t    m_dummy_begin;                      //便于begin()使用
     public:
         //-------------------------------------------------
-        raxbit_set_base_t():m_dummy(m_rax) {}
-        raxbit_set_base_t(mem_allotter_i &m):m_rax(m),m_dummy(m_rax) {}
+        raxbit_set_base_t():m_dummy_end(m_rax), m_dummy_begin(m_rax){}
+        raxbit_set_base_t(mem_allotter_i &m):m_rax(m),m_dummy_end(m_rax), m_dummy_begin(m_rax) {}
         virtual ~raxbit_set_base_t() { clear(); }
         //-------------------------------------------------
         //枝干数量
@@ -143,8 +144,14 @@ namespace rx
             looper.m_node = m_rax.left(looper);
             return iterator(looper);
         }
+        //单线程简单使用的迭代器初始方法,迭代需要的looper使用内置对象
+        iterator begin() const
+        {
+            looper_t *looper = (looper_t*)&m_dummy_begin;
+            return begin(*looper);
+        }
         //尝试直接获取最小key对应的节点,不进行后续遍历
-        node_t* begin() const { return m_rax.left(); }
+        node_t* left() const { return m_rax.left(); }
         //-------------------------------------------------
         //获取最大key对应的迭代器;需要辅助的looper遍历器
         iterator rbegin(looper_t &looper) const
@@ -152,12 +159,18 @@ namespace rx
             looper.m_node = m_rax.right(looper);
             return iterator(looper);
         }
+        //单线程简单使用的迭代器初始方法,迭代需要的looper使用内置对象
+        iterator rbegin() const
+        {
+            looper_t *looper = (looper_t*)&m_dummy_begin;
+            return rbegin(*looper);
+        }
         //尝试直接获取最大key对应的节点,不进行后续遍历
-        node_t* rbegin() const { return m_rax.right(); }
+        node_t* right() const { return m_rax.right(); }
         //-------------------------------------------------
         //返回遍历的结束位置
-        iterator end() const { return iterator(m_dummy); }
-        iterator rend() const { return iterator(m_dummy); }
+        iterator end() const { return iterator(m_dummy_end); }
+        iterator rend() const { return iterator(m_dummy_end); }
         //-------------------------------------------------
         //删除指定位置的元素
         //返回值:是否删除了当前值

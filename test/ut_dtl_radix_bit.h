@@ -163,8 +163,8 @@ namespace rx_ut
     {
         typedef rx::raxbit_set_t<> cntr_t;
         cntr_t cntr;
-        rt.tdd_assert(cntr.begin()==NULL);
-        rt.tdd_assert(cntr.rbegin()==NULL);
+        rt.tdd_assert(cntr.left()==NULL);
+        rt.tdd_assert(cntr.right()==NULL);
 
         rt.tdd_assert(cntr.insert(2));
         rt.tdd_assert(cntr.insert(3));
@@ -181,8 +181,10 @@ namespace rx_ut
         rt.tdd_assert(cntr.find(20000));
 
         rt.tdd_assert(cntr.size()==6);
-        rt.tdd_assert(cntr.begin()->key==2);
-        rt.tdd_assert(cntr.rbegin()->key==200000);
+        rt.tdd_assert(cntr.left()->key==2);
+        rt.tdd_assert(cntr.right()->key==200000);
+        rt.tdd_assert(*cntr.begin() == 2);
+        rt.tdd_assert(*cntr.rbegin() == 200000);
 
         cntr_t::looper_t looper(cntr);
         cntr_t::iterator I=cntr.begin(looper);

@@ -63,7 +63,51 @@ namespace rx_ut
         rt.tdd_assert(s.stat().collision_count == 0);
         rt.tdd_assert(!s.find(2) && !s[2]);
     }
+    //-----------------------------------------------------
+    inline void ut_dtl_hashset_base_1(rx_tdd_t &rt)
+    {
+        typedef rx::tiny_hashset_t<10> cntr_t;
+        cntr_t cntr;
+        std::set<uint32_t> ss;
+        ss.insert(2);
+        ss.insert(3);
+        ss.insert(9);
+        ss.insert(200000);
+        ss.insert(100000);
+        ss.insert(20000);
 
+        rt.tdd_assert(cntr.insert(2));
+        rt.tdd_assert(cntr.insert(3));
+        rt.tdd_assert(cntr.insert(9));
+        rt.tdd_assert(cntr.insert(200000));
+        rt.tdd_assert(cntr.insert(100000));
+        rt.tdd_assert(cntr.insert(20000));
+
+        rt.tdd_assert(cntr.find(2));
+        rt.tdd_assert(cntr.find(3));
+        rt.tdd_assert(cntr.find(9));
+        rt.tdd_assert(cntr.find(200000));
+        rt.tdd_assert(cntr.find(100000));
+        rt.tdd_assert(cntr.find(20000));
+
+        rt.tdd_assert(cntr.size() == 6);
+
+        cntr_t::iterator I = cntr.begin();
+        rt.tdd_assert(ss.find(*I) != ss.end()); ++I;
+        rt.tdd_assert(ss.find(*I) != ss.end()); ++I;
+        rt.tdd_assert(ss.find(*I) != ss.end()); ++I;
+        rt.tdd_assert(ss.find(*I) != ss.end()); ++I;
+        rt.tdd_assert(ss.find(*I) != ss.end()); ++I;
+        rt.tdd_assert(ss.find(*I) != ss.end()); ++I;
+        rt.tdd_assert(I == cntr.end());
+
+        rt.tdd_assert(cntr.erase(3));
+        rt.tdd_assert(!cntr.erase(3));
+        rt.tdd_assert(!cntr.find(3));
+        rt.tdd_assert(cntr.find(9));
+
+        cntr.clear();
+    }
     //-----------------------------------------------------
     //¹şÏ£±í»ù´¡²âÊÔ
     template<class cntr_t>
@@ -365,6 +409,7 @@ namespace rx_ut
 
 rx_tdd(hashtbl_tiny_base)
 {
+    rx_ut::ut_dtl_hashset_base_1(*this);
     for (uint32_t seed = 1; seed < 100; ++seed)
     {
         rx_ut::tinyhashtbl_removed_adj_2<true, 10000>(*this,seed);
