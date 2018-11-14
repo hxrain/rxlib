@@ -2,8 +2,11 @@
 #define _RX_UT_DTL_RADIX_BIT_H_
 
 #include "../rx_tdd.h"
+#include "../rx_tdd_tick.h"
 #include "../rx_dtl_raxbit_raw.h"
 #include "../rx_dtl_raxbit_set.h"
+#include "../rx_hash_int.h"
+#include <set>
 
 namespace rx_ut
 {
@@ -209,6 +212,78 @@ namespace rx_ut
 
         cntr.clear();
     }
+
+    //-----------------------------------------------------
+    //raxbit_set与std::set进行插入与查找的简单对比,顺序值
+    inline void ut_dtl_raxbit_set_base_1_1(rx_tdd_t &rt,uint32_t count)
+    {
+        typedef std::set<uint32_t> set_st;
+        set_st scntr;
+        typedef rx::raxbit_set_t<> set_rt;
+        set_rt rcntr;
+        ///////////////
+        {tdd_tt(t, "cntr/set/insert", "std::set");
+            for (uint32_t i = 0; i < count; ++i)
+                scntr.insert(i);
+        }
+        ///////////////
+        {tdd_tt(t, "cntr/set/insert", "rax::set");
+            for (uint32_t i = 0; i < count; ++i)
+                rcntr.insert(i);
+        }
+        ///////////////
+        uint32_t ec = 0;
+        {tdd_tt(t, "cntr/set/find", "std::set");
+            for (uint32_t i = 0; i < count; ++i)
+                if (scntr.find(i)==scntr.end())
+                    ++ec;
+        }
+        rt.tdd_assert(ec==0);
+        ///////////////
+        ec = 0;
+        {tdd_tt(t, "cntr/set/find", "rax::set");
+            for (uint32_t i = 0; i < count; ++i)
+                if (!rcntr.find(i))
+                    ++ec;
+        }
+        rt.tdd_assert(ec == 0);
+        ///////////////
+    }
+    //raxbit_set与std::set进行插入与查找的简单对比,哈希值
+    inline void ut_dtl_raxbit_set_base_1_2(rx_tdd_t &rt, uint32_t count)
+    {
+        typedef std::set<uint32_t> set_st;
+        set_st scntr;
+        typedef rx::raxbit_set_t<> set_rt;
+        set_rt rcntr;
+        ///////////////
+        {tdd_tt(t, "cntr/set/hash/insert", "std::set");
+        for (uint32_t i = 0; i < count; ++i)
+            scntr.insert(rx_hash_skeeto_3sa(i));
+        }
+        ///////////////
+        {tdd_tt(t, "cntr/set/hash/insert", "rax::set");
+        for (uint32_t i = 0; i < count; ++i)
+            rcntr.insert(rx_hash_skeeto_3sa(i));
+        }
+        ///////////////
+        uint32_t ec = 0;
+        {tdd_tt(t, "cntr/set/hash/find", "std::set");
+        for (uint32_t i = 0; i < count; ++i)
+            if (scntr.find(rx_hash_skeeto_3sa(i)) == scntr.end())
+                ++ec;
+        }
+        rt.tdd_assert(ec == 0);
+        ///////////////
+        ec = 0;
+        {tdd_tt(t, "cntr/set/hash/find", "rax::set");
+        for (uint32_t i = 0; i < count; ++i)
+            if (!rcntr.find(rx_hash_skeeto_3sa(i)))
+                ++ec;
+        }
+        rt.tdd_assert(ec == 0);
+        ///////////////
+    }
 }
 
 rx_tdd(radix_bit_base)
@@ -217,6 +292,9 @@ rx_tdd(radix_bit_base)
     rx_ut::ut_dtl_radix_bit_base_2_1(*this);
     rx_ut::ut_dtl_radix_bit_base_3(*this);
     rx_ut::ut_dtl_radix_bit_base_2(*this);
+
+    rx_ut::ut_dtl_raxbit_set_base_1_1(*this, 10000 * 10);
+    rx_ut::ut_dtl_raxbit_set_base_1_2(*this, 10000 * 10);
 }
 
 #endif
