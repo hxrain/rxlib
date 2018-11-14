@@ -121,6 +121,7 @@
 //bit位操作
 #include "../ut_bits_op.h"
 #include "../../rx_ct_bitop.h"
+#include "../../rx_ct_bitarr.h"
 //---------------------------------------------------------
 //内存池基础功能
 #include "../ut_mem_pool.h"

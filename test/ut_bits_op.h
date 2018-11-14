@@ -2,6 +2,7 @@
 #define _UT_BITS_OP_H_
 
 #include "../rx_ct_bitop.h"
+#include "../rx_ct_bitarr.h"
 #include "../rx_tdd.h"
 
 //---------------------------------------------------------
