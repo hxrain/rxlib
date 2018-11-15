@@ -297,12 +297,13 @@ namespace rx
         }
         //-------------------------------------------------
         //清除指定的分支:ptr为顶层槽位
-        void m_clear(slot_t ptr)
+        void m_clear(slot_t ptr,bool free_leaf=true)
         {
             rx_assert(ptr != NULL);
             if (!is_limb_ptr(ptr))
             {//顶层槽位指向一个叶子节点,则直接清除
-                node_free(ptr);
+                if (free_leaf)
+                    node_free(ptr);
                 --m_leaf_count;
                 return;
             }
@@ -322,7 +323,8 @@ namespace rx
 
                     if (!is_limb_ptr(ptr))
                     {//叶子节点直接释放
-                        node_free(ptr);
+                        if (free_leaf)
+                            node_free(ptr);
                         --m_leaf_count;
                         cur_limb->slots[cur_idx] = NULL;
                     }
@@ -455,17 +457,21 @@ namespace rx
         //枝干节点的数量
         uint32_t limbs() const { return m_limb_count; }
         //-------------------------------------------------
+        //将指定的key插入到树中,建立或找到对应的枝干槽位指针
+        slot_t* insert_limb(const KT &key, bool &is_dup)
+        {
+            is_dup = false;
+            int32_t shift = OP::top_slots_shift - OP::limb_slots_bits;
+            return m_insert(shift, &m_top_limb.slots[OP::top_slot_idx(key)], is_dup, key);
+        }
         //根据指定的key找到或插入叶子节点:目标key;data_size告知额外需要分配的数据尺寸
         //返回值:NULL内存不足;其他为叶子节点指针
         leaf_t* insert(const KT &key, bool &is_dup,uint32_t data_size=0)
         {
-            is_dup=false;
-            int32_t shift=OP::top_slots_shift-OP::limb_slots_bits;
-            slot_t *slot = m_insert(shift, &m_top_limb.slots[OP::top_slot_idx(key)], is_dup, key);
+            slot_t *slot = insert_limb(key, is_dup);
+            if (slot == NULL) return NULL;                  //内存不足
             if (is_dup)
                 return (leaf_t*)*slot;                      //重复key直接返回
-            if (slot == NULL)
-                return NULL;                                //内存不足
 
             leaf_t *leaf = leaf_alloc(data_size);           //新的key,需要创建叶子节点
             if (leaf == NULL)
@@ -479,7 +485,21 @@ namespace rx
         leaf_t* insert(const KT &key, uint32_t data_size = 0)
         {
             bool is_dup;
-            return insert(key,is_dup,data_size);
+            return insert(key, is_dup, data_size);
+        }
+        //-------------------------------------------------
+        //扩展插入,叶子节点不是内部分配的,需要外部提供;调用remove/remove_reduce/clear的时候不应该free_leaf
+        //返回值:NULL失败;is_dup=true则为之前的叶子,否则为当前的叶子
+        leaf_t* insert_ex(const KT &key, bool &is_dup, leaf_t* leaf)
+        {
+            slot_t *slot = insert_limb(key, is_dup);
+            if (slot == NULL) return NULL;                  //内存不足
+            if (is_dup)
+                return (leaf_t*)*slot;                      //重复key直接返回
+
+            *slot = leaf;                                   //让目标槽位指向正确的叶子节点
+            ++m_leaf_count;
+            return leaf;
         }
         //-------------------------------------------------
         //按照给定的key查找对应的叶子节点
@@ -626,7 +646,7 @@ namespace rx
         }
         //-------------------------------------------------
         //删除指定的叶子节点并收缩
-        bool remove_reduce(leaf_t* leaf, ref_path_t &back_path)
+        bool remove_reduce(leaf_t* leaf, ref_path_t &back_path,bool free_leaf=true)
         {
             if (!leaf) return false;
             rx_assert(back_path.levels() >= 1);
@@ -635,30 +655,31 @@ namespace rx
             *back_path.pop() = NULL;                        //清空最后的槽位指向,摘除目标节点
             m_reduce(back_path);                            //收缩当前枝杈
 
-            node_free(leaf);                                //释放叶子节点
+            if (free_leaf)
+                node_free(leaf);                            //释放叶子节点
             --m_leaf_count;
             return true;
         }
         //-------------------------------------------------
         //便捷函数,删除指定的key对应的叶子节点
         //返回值:ture删除成功;false叶子不存在
-        bool remove(const KT &key)
+        bool remove(const KT &key, bool free_leaf = true)
         {
             ref_path_t back_path;
             leaf_t *leaf = remove_find(key, back_path);
             //外面可以分开调用,在这个时间点进行叶子数据的析构处理
-            return remove_reduce(leaf, back_path);
+            return remove_reduce(leaf, back_path, free_leaf);
         }
         //-------------------------------------------------
         //清理全部枝干与叶子节点,回归初始状态
-        void clear()
+        void clear(bool free_leaf = true)
         {
             for (uint32_t i = 0; i < OP::top_slots_size; ++i)
             {
                 slot_t &ptr=m_top_limb.slots[i];
                 if (!ptr) continue;
 
-                m_clear(ptr);
+                m_clear(ptr, free_leaf);
                 ptr=NULL;
             }
 
