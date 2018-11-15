@@ -1,4 +1,4 @@
-#define RX_USE_TDD_TICK 0
+#define RX_USE_TDD_TICK 1
 
 //---------------------------------------------------------
 //key基于bit分段的基数树

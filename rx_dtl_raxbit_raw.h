@@ -458,6 +458,7 @@ namespace rx
         uint32_t limbs() const { return m_limb_count; }
         //-------------------------------------------------
         //将指定的key插入到树中,建立或找到对应的枝干槽位指针
+        //返回值:NULL内存不足;否则为槽位指针的指针
         slot_t* insert_limb(const KT &key, bool &is_dup)
         {
             is_dup = false;

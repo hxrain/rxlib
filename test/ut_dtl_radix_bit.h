@@ -346,8 +346,10 @@ rx_tdd(radix_bit_base)
     rx_ut::ut_dtl_radix_bit_base_3(*this);
     rx_ut::ut_dtl_radix_bit_base_2(*this);
 
-    rx_ut::ut_dtl_raxbit_set_base_1_1(*this, 10000 * 10);
-    rx_ut::ut_dtl_raxbit_set_base_1_2(*this, 10000 * 10);
+    rx_ut::ut_dtl_raxbit_set_base_1_1(*this, 10000 * 50);
+    rx_ut::ut_dtl_raxbit_set_base_1_2(*this, 10000 * 50);
+    rx_ut::ut_dtl_raxbit_set_base_1_1(*this, 10000 * 50);
+    rx_ut::ut_dtl_raxbit_set_base_1_2(*this, 10000 * 50);
 }
 
 #endif
