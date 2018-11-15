@@ -12,9 +12,9 @@ inline void str_util_base_1(rx_tdd_t &rt)
     rx::tiny_string_head_ct &a=*rx::make_tiny_string(tmp1, sizeof(tmp1), "123");
     rx::tiny_string_head_ct &b=*rx::make_tiny_string(tmp2, sizeof(tmp2), "123");
     rx::tiny_string_head_ct &c=*rx::make_tiny_string(tmp3, sizeof(tmp3), "123");
-    rt.tdd_assert(a.length() == 0);
-    rt.tdd_assert(b.length() == 1);
-    rt.tdd_assert(c.length() == 2);
+    rt.tdd_assert(a.size() == 0);
+    rt.tdd_assert(b.size() == 1);
+    rt.tdd_assert(c.size() == 2);
     rt.tdd_assert(a < b);
     rt.tdd_assert(b < c);
     rt.tdd_assert(b <= c);

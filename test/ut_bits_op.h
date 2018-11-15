@@ -254,10 +254,19 @@ inline void ut_bits_op_base_2(rx_tdd_t &rt)
 }
 
 //---------------------------------------------------------
+inline void ut_bits_op_base_3(rx_tdd_t &rt)
+{
+    rt.tdd_assert(rx_ror((uint32_t)0x12345678, 4) == 0x81234567);
+    rt.tdd_assert(rx_rol((uint32_t)0x12345678, 4) == 0x23456781);
+    rt.tdd_assert(rx_ror((uint64_t)0x1234567812345678, 4) == 0x8123456781234567);
+    rt.tdd_assert(rx_rol((uint64_t)0x1234567812345678, 4) == 0x2345678123456781);
+}
+//---------------------------------------------------------
 rx_tdd(bits_op_base)
 {
     ut_bits_op_base_1(*this);
     ut_bits_op_base_2(*this);
+    ut_bits_op_base_3(*this);
 
 }
 

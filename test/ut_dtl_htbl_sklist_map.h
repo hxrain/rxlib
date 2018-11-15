@@ -128,7 +128,7 @@ public:
     class key_op_uint_hash_str
     {
     public:
-        static const char* key(uint32_t i){static rx::n2s ns;return ns(rx_hash_skeeto_3s(i));}
+        static const char* key(uint32_t i){static rx::n2s_t ns;return ns(rx_hash_skeeto_3s(i));}
     };
 };
 

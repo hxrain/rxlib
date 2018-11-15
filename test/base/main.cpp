@@ -69,15 +69,6 @@
 //测试用例与运行计时功能
 #include "../../rx_tdd_tick.h"
 //---------------------------------------------------------
-//内存分配器接口与内存分配容器
-#include "../ut_mem_alloc.h"
-#include "../../rx_mem_alloc_cntr.h"
-#include "../../rx_mem_alloc.h"
-//---------------------------------------------------------
-//固定内存块范围的内存分配器
-#include "../ut_mem_pool_h4.h"
-#include "../../rx_mem_pool_h4.h"
-//---------------------------------------------------------
 //基于bipbuffer算法的环形缓冲区
 #include "../ut_dtl_ringbuff.h"
 #include "../../rx_dtl_ringbuff.h"
@@ -108,10 +99,6 @@
 #include "../ut_hash_tlmap.h"
 #include "../../rx_hash_tlmap.h"
 //---------------------------------------------------------
-//内存池容器
-#include "../ut_mem_pool_cntr.h"
-#include "../../rx_mem_pool_cntr.h"
-//---------------------------------------------------------
 //整数哈希与数据块哈希
 #include "../ut_hash.h"
 #include "../../rx_hash_rand.h"
@@ -122,6 +109,19 @@
 #include "../ut_bits_op.h"
 #include "../../rx_ct_bitop.h"
 #include "../../rx_ct_bitarr.h"
+//---------------------------------------------------------
+//内存分配器接口与内存分配容器
+#include "../ut_mem_alloc.h"
+#include "../../rx_mem_alloc_cntr.h"
+#include "../../rx_mem_alloc.h"
+//---------------------------------------------------------
+//固定内存块范围的内存分配器
+#include "../ut_mem_pool_h4.h"
+#include "../../rx_mem_pool_h4.h"
+//---------------------------------------------------------
+//内存池容器
+#include "../ut_mem_pool_cntr.h"
+#include "../../rx_mem_pool_cntr.h"
 //---------------------------------------------------------
 //内存池基础功能
 #include "../ut_mem_pool.h"
