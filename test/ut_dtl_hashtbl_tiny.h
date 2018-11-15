@@ -66,9 +66,9 @@ namespace rx_ut
     //-----------------------------------------------------
     inline void ut_dtl_hashset_base_1(rx_tdd_t &rt)
     {
-        typedef rx::tiny_hashset_t<10> cntr_t;
+        typedef rx::tiny_hashset_t<10,int32_t> cntr_t;
         cntr_t cntr;
-        std::set<uint32_t> ss;
+        std::set<int32_t> ss;
         ss.insert(2);
         ss.insert(3);
         ss.insert(9);

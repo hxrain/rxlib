@@ -53,7 +53,7 @@ void test_cc_atomic_base_2(rx_tdd_t &rt)
     uint32_t tmp = 0;
     rt.tdd_assert(rx_atomic_add((int32_t*)&tmp, 1) == 0 && tmp == 1);
     rt.tdd_assert(rx_atomic_add((int32_t*)&tmp, (int)0x80000000) == 1 && tmp == 0x80000001);
-    rt.tdd_assert(rx_atomic_add((int32_t*)&tmp, 3) == 0x80000001 && tmp == 0x80000004);
+    rt.tdd_assert((uint32_t)rx_atomic_add((int32_t*)&tmp, 3) == 0x80000001 && tmp == 0x80000004);
 }
 
 rx_tdd(rx_cc_atomic)

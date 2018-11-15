@@ -3,6 +3,7 @@
 
 #include "../rx_tdd.h"
 #include "../rx_tdd_tick.h"
+#include "../rx_dtl_raxbit_map.h"
 #include "../rx_dtl_raxbit_raw.h"
 #include "../rx_dtl_raxbit_set.h"
 #include "../rx_hash_int.h"
@@ -212,6 +213,57 @@ namespace rx_ut
 
         cntr.clear();
     }
+    //-----------------------------------------------------
+    inline void ut_dtl_radix_bit_base_5(rx_tdd_t &rt)
+    {
+        typedef rx::raxbit_map_t<int,int> cntr_t;
+        cntr_t cntr;
+        rt.tdd_assert(cntr.left() == NULL);
+        rt.tdd_assert(cntr.right() == NULL);
+
+        rt.tdd_assert(cntr.insert(2,2)!=NULL);
+        rt.tdd_assert(cntr.insert(3,3) != NULL);
+        rt.tdd_assert(cntr.insert(9,9) != NULL);
+        rt.tdd_assert(cntr.insert(200000, 200000) != NULL);
+        rt.tdd_assert(cntr.insert(100000, 100000) != NULL);
+        rt.tdd_assert(cntr.insert(20000, 20000) != NULL);
+
+        rt.tdd_assert(cntr.find(2) != NULL);
+        rt.tdd_assert(cntr.find(3) != NULL);
+        rt.tdd_assert(cntr.find(9) != NULL);
+        rt.tdd_assert(cntr.find(200000) != NULL);
+        rt.tdd_assert(cntr.find(100000) != NULL);
+        rt.tdd_assert(cntr.find(20000) != NULL);
+
+        rt.tdd_assert(cntr.size() == 6);
+        rt.tdd_assert(cntr.left()->key == 2);
+        rt.tdd_assert(cntr.right()->key == 200000);
+        rt.tdd_assert(*cntr.begin() == 2);
+        rt.tdd_assert(*cntr.rbegin() == 200000);
+
+        cntr_t::looper_t looper(cntr);
+        cntr_t::iterator I = cntr.begin(looper);
+        rt.tdd_assert(*I == 2); ++I;
+        rt.tdd_assert(*I == 3); ++I;
+        rt.tdd_assert(*I == 9); ++I;
+        rt.tdd_assert(*I == 20000); ++I;
+        rt.tdd_assert(*I == 100000); ++I;
+        rt.tdd_assert(*I == 200000); ++I;
+        rt.tdd_assert(I == cntr.end());
+
+        rt.tdd_assert(cntr.erase(3));
+        rt.tdd_assert(!cntr.erase(3));
+
+        I = cntr.find(3, looper);
+        rt.tdd_assert(I == cntr.end());
+
+        I = cntr.find(9, looper);
+        rt.tdd_assert(I != cntr.end());
+        cntr.erase(I);
+        rt.tdd_assert(*I == 20000);
+
+        cntr.clear();
+    }
 
     //-----------------------------------------------------
     //raxbit_set与std::set进行插入与查找的简单对比,顺序值
@@ -288,6 +340,7 @@ namespace rx_ut
 
 rx_tdd(radix_bit_base)
 {
+    rx_ut::ut_dtl_radix_bit_base_5(*this);
     rx_ut::ut_dtl_radix_bit_base_4(*this);
     rx_ut::ut_dtl_radix_bit_base_2_1(*this);
     rx_ut::ut_dtl_radix_bit_base_3(*this);

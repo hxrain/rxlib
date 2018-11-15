@@ -3,6 +3,7 @@
 //---------------------------------------------------------
 //key基于bit分段的基数树
 #include "../ut_dtl_radix_bit.h"
+#include "../../rx_dtl_raxbit_map.h"
 #include "../../rx_dtl_raxbit_set.h"
 #include "../../rx_dtl_raxbit_raw.h"
 //---------------------------------------------------------
