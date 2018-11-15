@@ -14,32 +14,40 @@ namespace rx
     {
         //-------------------------------------------------
         template<class ct,uint16_t buff_size>
-        class str_head
+        class str_head                                      //缓冲区内置的小串
         {
         public:
             str_head():length(0){}
+            //内置缓冲区,无需绑定.仅用于接口兼容.
+            void bind(ct* buff, uint16_t size) { rx_alert("don't call this method."); }
+            //获取内置缓冲区的容量
             const uint16_t capacity()const{return buff_size;}
-            void bind(ct* buff,uint16_t size){rx_alert("don't call this method.");}
+
             uint16_t    length;                             //记录buff的实际长度.
             ct          buff[buff_size];                    //字符串缓冲器指针.
         };
 
         //-------------------------------------------------
         template<class ct>
-        class str_head<ct,0>
+        class str_head<ct,0>                                //特化,使用外置绑定的缓冲区
         {
         public:
             str_head():max_size(0),length(0),buff(NULL){}
+            //绑定缓冲区指针与容量
+            void bind(ct* buf, uint16_t size) { buff = buf; max_size = size; length = 0; }
+            //获知绑定的缓冲区的容量
             const uint16_t capacity()const{return max_size;}
-            void bind(ct* buf,uint16_t size){buff=buf;max_size=size;length=0;}
+
             uint16_t    max_size;                           //必须告知buff的可用容量
             uint16_t    length;                             //记录buff的实际长度.
             ct         *buff;                               //字符串缓冲器指针.
         };
+
         //-------------------------------------------------
-        str_head<CT,max_str_size>  m_tinystr;
+        str_head<CT,max_str_size>  m_tinystr;               //真正使用的小串缓冲区对象
     private:
         //-------------------------------------------------
+        //不禁用赋值运算符,默认的时候赋值就进行m_tinystr的硬拷贝:指针就指针;数组就数组.
         //tiny_string_head_t& operator=(const tiny_string_head_t&);
         tiny_string_head_t(const tiny_string_head_t&);
         //-------------------------------------------------
@@ -69,11 +77,15 @@ namespace rx
                 return m_tinystr.length;
             }
         }
+        //-------------------------------------------------
         //绑定缓冲器并进行字符串的赋值
         uint32_t bind(CT* buff,uint32_t cap,const CT* str,uint32_t len = 0){m_tinystr.bind(buff,cap);return set(str,len);}
         //-------------------------------------------------
+        //获知缓冲区容量
         uint32_t capacity()const { return m_tinystr.capacity(); }
-        uint32_t length()const { return m_tinystr.length; }
+        //获知缓冲区内数据长度
+        uint32_t size()const { return m_tinystr.length; }
+        //获知缓冲区内容
         const CT* c_str() const { return m_tinystr.buff; }
         operator const CT* ()const {return m_tinystr.buff;}
         //-------------------------------------------------
@@ -94,7 +106,10 @@ namespace rx
     };
 #pragma pack(pop)
 
+    //-------------------------------------------------------
+    //char类型的小串类
     typedef tiny_string_head_t<char> tiny_string_head_ct;
+    //wchar_t类型的小串类
     typedef tiny_string_head_t<wchar_t> tiny_string_head_wt;
 
     ////-----------------------------------------------------
@@ -114,24 +129,6 @@ namespace rx
         s->set(str,len);
         return s;
     }
-
-    //-----------------------------------------------------
-    //数字转为字符串的工具对象
-    template<class CT>
-    class n2str
-    {
-        CT  m_tinystr[32];
-    public:
-        n2str(){m_tinystr[0]=0;}
-        n2str(uint32_t n,uint32_t r=10){st::ultoa(n,m_tinystr,r);}
-        n2str(int64_t n,uint32_t r=10){st::itoa64(n,m_tinystr,r);}
-        operator CT* ()const {return m_tinystr;}
-        operator const CT* ()const {return m_tinystr;}
-        const CT* operator()(uint32_t n,uint32_t r=10){st::ultoa(n,m_tinystr,r);return m_tinystr;}
-        const CT* operator()(int64_t n,uint32_t r=10){st::itoa64(n,m_tinystr,r);return m_tinystr;}
-    };
-    typedef n2str<char>     n2s;
-    typedef n2str<wchar_t>  n2w;
 }
 
 

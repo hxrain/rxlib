@@ -1043,6 +1043,24 @@ namespace rx
             return true;                                    //全部的字符都检查完成了,说明当前串是合法的数字串.
         }
     };
+
+    //-----------------------------------------------------
+    //数字转为字符串的工具对象
+    template<class CT>
+    class n2str
+    {
+        CT  m_tinystr[32];
+    public:
+        n2str() { m_tinystr[0] = 0; }
+        n2str(uint32_t n, uint32_t r = 10) { st::ultoa(n, m_tinystr, r); }
+        n2str(int64_t n, uint32_t r = 10) { st::itoa64(n, m_tinystr, r); }
+        operator CT* ()const { return m_tinystr; }
+        operator const CT* ()const { return m_tinystr; }
+        const CT* operator()(uint32_t n, uint32_t r = 10) { st::ultoa(n, m_tinystr, r); return m_tinystr; }
+        const CT* operator()(int64_t n, uint32_t r = 10) { st::itoa64(n, m_tinystr, r); return m_tinystr; }
+    };
+    typedef n2str<char>     n2s_t;
+    typedef n2str<wchar_t>  n2w_t;
 }
 
 
