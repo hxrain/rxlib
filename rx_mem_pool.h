@@ -21,14 +21,6 @@ namespace rx
     };
 
     //------------------------------------------------------
-    //用于记录内存分配器的工作情况
-    typedef struct alloc_stat_t
-    {
-        uint32_t c_alloced;                                 //缓存已分配
-        uint32_t c_realsize;                                //缓存刚需量
-    } alloc_stat_t;
-
-    //------------------------------------------------------
     //用于记录内存池的工作情况
     typedef struct mempool_stat_t
     {

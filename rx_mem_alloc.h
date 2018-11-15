@@ -4,6 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
 #include "rx_ct_util.h"
+#include "rx_cc_atomic.h"
 #include <memory.h>
 
 //是否开启内存分配器的边界检查
@@ -11,6 +12,16 @@
 
 namespace rx
 {
+    //------------------------------------------------------
+    //用于记录内存分配器的工作情况
+    typedef struct alloc_stat_t
+    {
+        intptr_t alloc_size;                                //内存已分配(带有填充与补齐处理后,最终分配的尺寸)
+        intptr_t real_size;                                 //实际刚需量(实际需要的尺寸)
+        intptr_t using_size;                                //分配正使用(经过当前分配器分配出去的正在被使用的内存,free规划后减少)
+        alloc_stat_t():alloc_size(0), real_size(0), using_size(0){}
+    } alloc_stat_t;
+
     //======================================================
     //内存分配器接口类
     class mem_allotter_i
@@ -94,12 +105,18 @@ namespace rx
         //对象与数组的分配构造基础语句,可复用.
         #define __DESC_NEW_BASE__                                   \
             uint32_t MemSize=0;                                     \
-            uint8_t *R=(uint8_t*)base_alloc(MemSize,cookie_t::memsize(sizeof(VT)*Count));\
+            uint32_t Size=sizeof(VT)*Count;                         \
+            uint8_t *R=(uint8_t*)base_alloc(MemSize,cookie_t::memsize(Size));\
             if (R==NULL) return NULL;                               \
+            rx_atomic_add(&m_stat.real_size, (intptr_t)Size);       \
+            rx_atomic_add(&m_stat.alloc_size, (intptr_t)MemSize);   \
+            rx_atomic_add(&m_stat.using_size, (intptr_t)MemSize);   \
             VT* Ret=(VT*)cookie_t::set(R,Count,MemSize);            \
 
         mem_allotter_i& operator=(const mem_allotter_i&);
+        alloc_stat_t    m_stat;
     public:
+        const alloc_stat_t& stat() const { return m_stat; }
         //-------------------------------------------------
         //根据原始分配接口,得到内存块
         void* alloc(uint32_t Size)
@@ -108,6 +125,11 @@ namespace rx
             uint8_t *R=(uint8_t*)base_alloc(MemSize,cookie_t::memsize(Size));
             if (R==NULL)
                 return NULL;
+
+            rx_atomic_add(&m_stat.real_size, (intptr_t)Size);
+            rx_atomic_add(&m_stat.alloc_size, (intptr_t)MemSize);
+            rx_atomic_add(&m_stat.using_size, (intptr_t)MemSize);
+
             return cookie_t::set(R,0,MemSize);
         }
         //-------------------------------------------------
@@ -115,18 +137,22 @@ namespace rx
         void free(void* P)
         {
             rx_assert_msg(P!=NULL,"待释放内存错误!指针为空");
+
             uint8_t* R=(uint8_t*)cookie_t::rawptr(P);
             cookie_t::info_t &ck=cookie_t::get(R);
             rx_assert_msg(!ck.item_count,"错误的使用了alloc/free函数匹配.");
+
             uint32_t memsize=ck.mem_size;
             base_free(R,memsize);
+            rx_atomic_sub(&m_stat.using_size, (intptr_t)memsize);
         }
         //-------------------------------------------------
         //尝试基于现有内存分配扩展内存(暂时先使用数据拷贝的方式实现,等待进行优化)
         virtual void* realloc(void* P,uint32_t NewSize,uint32_t reserved=64)
         {
+            uint32_t Size = NewSize + reserved;
             if (P==NULL)                                    //没有原指针,直接分配(并进行预留)
-                return alloc(NewSize+reserved);
+                return alloc(Size);
 
             if (NewSize==0)                                 //有原指针,但要求新尺寸为0时,直接释放
             {
@@ -137,15 +163,19 @@ namespace rx
             //检查原指针的内存节点尺寸,够长的时候直接返回
             uint8_t* R=(uint8_t*)cookie_t::rawptr(P);
             cookie_t::info_t &ck=cookie_t::get(R);
-            if (cookie_t::usrsize(ck)>=NewSize+reserved)
+            if (cookie_t::usrsize(ck)>=Size)
                 return P;
 
             //现在发现,原指针确实不够长了,需要申请新空间
             uint32_t MemSize=0;
-            R=(uint8_t*)base_alloc(MemSize, cookie_t::memsize(NewSize+reserved));
+            R=(uint8_t*)base_alloc(MemSize, cookie_t::memsize(Size));
             if (R==NULL)
                 return NULL;
             void *Ret=cookie_t::set(R,0,MemSize);           //得到最终可返回的用户指针
+
+            rx_atomic_add(&m_stat.real_size, (intptr_t)Size);
+            rx_atomic_add(&m_stat.alloc_size, (intptr_t)MemSize);
+            rx_atomic_add(&m_stat.using_size, (intptr_t)MemSize);
 
             //拷贝原数据到新空间
             memcpy(Ret,P,cookie_t::usrsize(ck));
@@ -205,16 +235,17 @@ namespace rx
                 ct::AD(P,ck.item_count);                //是数组类型
             uint32_t memsize=ck.mem_size;
             base_free(R,memsize);
+            rx_atomic_sub(&m_stat.using_size, (intptr_t)memsize);
             return true;
         }
         //-------------------------------------------------
         template<class VT> bool del(void* P) {try {throw 1;} catch(...) {} rx_show_msg("此函数专为型别匹配使用!不应该被调用!请检查代码错误");}
         //-------------------------------------------------
-        virtual ~mem_allotter_i() {}
+        virtual ~mem_allotter_i() { rx_assert(m_stat.using_size == 0); }
     protected:
-#undef __DESC_NEW_BASE__
+        #undef __DESC_NEW_BASE__
         //-------------------------------------------------
-        //子类需给出最原始的分配接口
+        //子类需给出最原始的分配接口,如有必要.可以在其中进行锁保护
         virtual void* base_alloc(uint32_t &bksize, uint32_t size)=0;
         virtual void base_free(void* ptr,uint32_t size)=0;
     };
