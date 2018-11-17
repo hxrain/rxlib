@@ -210,9 +210,9 @@ namespace rx
     //节点为tiny_string类型的轻量级集合
     //-----------------------------------------------------
     template<uint32_t max_node_count,uint16_t max_str_size=12,bool correct=false,class CT=char,class cmp_t=hashset_cmp_t>
-    class tiny_hashset_st :public hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t ,correct>
+    class tiny_hashset_st :public hashset_base_t<tiny_string_t<CT,max_str_size>, cmp_t ,correct>
     {
-        typedef hashset_base_t<tiny_string_head_t<CT,max_str_size>, cmp_t ,correct> super_t;
+        typedef hashset_base_t<tiny_string_t<CT,max_str_size>, cmp_t ,correct> super_t;
         typename super_t::node_t    m_nodes[max_node_count];
         raw_hashtbl_stat_t          m_stat;
     public:

@@ -234,9 +234,9 @@ namespace rx
     //key为tiny_string类型的哈希映射(默认val为uint32_t)
     //-----------------------------------------------------
     template<uint32_t max_slot_count, class val_t = uint32_t, uint16_t max_str_size = 12, class CT = char, class cmp_t = hashmap_cmp_t, uint32_t MAX_LEVEL = 32, class rnd_t = skiplist_rnd_t>
-    class hashmap_st :public hashmap_base_t<tiny_string_head_t<CT, max_str_size>, val_t, cmp_t, MAX_LEVEL, rnd_t>
+    class hashmap_st :public hashmap_base_t<tiny_string_t<CT, max_str_size>, val_t, cmp_t, MAX_LEVEL, rnd_t>
     {
-        typedef hashmap_base_t<tiny_string_head_t<CT, max_str_size>, val_t, cmp_t, MAX_LEVEL, rnd_t> super_t;
+        typedef hashmap_base_t<tiny_string_t<CT, max_str_size>, val_t, cmp_t, MAX_LEVEL, rnd_t> super_t;
         typename super_t::slot_t    m_slots[max_slot_count];
     public:
         ~hashmap_st() { super_t::clear(); }

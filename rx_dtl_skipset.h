@@ -81,7 +81,7 @@ namespace rx
                 key.bind((char*)&next[level],es,val,es-1);
             }
             //---------------------------------------------
-            typedef tiny_string_head_t<char> node_key_t;
+            typedef tiny_string_t<char> node_key_t;
             node_key_t  key;
             struct skipset_node_t *next[1];                //跳表实现的关键:分层的节点后趋数组,必须放在节点的最后,用于弹性扩展访问
         };
@@ -108,7 +108,7 @@ namespace rx
                 key.bind((wchar_t*)&next[level],cap,val,cap-1);
             }
             //---------------------------------------------
-            typedef tiny_string_head_t<wchar_t> node_key_t;
+            typedef tiny_string_t<wchar_t> node_key_t;
             node_key_t  key;
             struct skipset_node_t *next[1];                 //跳表实现的关键:分层的节点后趋数组,必须放在节点的最后,用于弹性扩展访问
         };

@@ -101,11 +101,11 @@ namespace rx
                 key.bind((wchar_t*)&next[level], cap, k, cap - 1);
             }
             //---------------------------------------------
-            typedef tiny_string_head_t<wchar_t> node_key_t;//对节点内部真正的key与val的类型进行定义
+            typedef tiny_string_t<wchar_t> node_key_t;      //对节点内部真正的key与val的类型进行定义
             typedef vt node_val_t;
             node_key_t  key;
             node_val_t  val;
-            struct skiplist_node_t *next[1];               //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
+            struct skiplist_node_t *next[1];                //跳表实现的关键:分层的后趋节点指针,必须放在节点的最后,用于弹性扩展访问
         };
         //-------------------------------------------------
         template<class vt>
@@ -140,7 +140,7 @@ namespace rx
                 key.bind((char*)&next[level], es1, k, es1 - 1);
             }
             //---------------------------------------------
-            typedef tiny_string_head_t<char> node_key_t;    //对节点内部真正的key与val的类型进行定义
+            typedef tiny_string_t<char> node_key_t;    //对节点内部真正的key与val的类型进行定义
             typedef vt node_val_t;
             node_key_t  key;
             node_val_t  val;

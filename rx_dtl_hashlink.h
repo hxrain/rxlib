@@ -307,9 +307,9 @@ namespace rx
     //key为tiny_string类型的轻量级哈希链表(默认val为uint32_t)
     //-----------------------------------------------------
     template<uint32_t max_node_count,class val_t=uint32_t,uint16_t max_str_size=12,class CT=char,class cmp_t=hashtbl_cmp_t>
-    class tiny_hashlink_st :public hashlink_base_t<tiny_string_head_t<CT,max_str_size>,val_t, cmp_t >
+    class tiny_hashlink_st :public hashlink_base_t<tiny_string_t<CT,max_str_size>,val_t, cmp_t >
     {
-        typedef hashlink_base_t<tiny_string_head_t<CT,max_str_size>, val_t, cmp_t > super_t;
+        typedef hashlink_base_t<tiny_string_t<CT,max_str_size>, val_t, cmp_t > super_t;
         typename super_t::node_t    m_nodes[max_node_count];
         raw_hashtbl_stat_t          m_stat;
     public:
