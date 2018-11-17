@@ -1,5 +1,9 @@
 #define RX_USE_TDD_TICK 1
 
+//紧凑高效的gbk/unicode字符集转换功能
+#include "../ut_str_uni2gbk.h"
+#include "../../rx_str_cs_gbk2uni.h"
+#include "../../rx_str_cs_uni2gbk.h"
 //---------------------------------------------------------
 //key基于bit分段的基数树
 #include "../ut_dtl_radix_bit.h"
@@ -158,6 +162,7 @@
 //编译器预定义宏功能封装
 #include "../ut_cc_macro.h"
 #include "../../rx_cc_macro.h"
+
 //---------------------------------------------------------
 #include <stdio.h>
 #include <iostream>
