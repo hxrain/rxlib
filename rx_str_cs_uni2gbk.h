@@ -2292,13 +2292,57 @@ rx_uni2gbk_0x3e8,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NUL
 rx_uni2gbk_0x3f8,rx_uni2gbk_0x3f9,NULL,NULL,rx_uni2gbk_0x3fc,rx_uni2gbk_0x3fd,NULL,rx_uni2gbk_0x3ff };
 
 //---------------------------------------------------------
-//将给定的uni转换为对应的gbk码
+//将给定的uni字符转换为对应的gbk字符
 //返回值:-1未找到;其他为gbk码
 inline uint16_t rx_char_uni2gbk(const uint16_t uni) 
 {
     const uint16_t *page = rx_uni2gbk_tbl[uni >> 6];
     return page == NULL ? 0xFFFF : page[uni&0x03F];
 }
+//---------------------------------------------------------
+//估算,将uni串转换为gbk串对应的字符数
+inline uint32_t rx_chars_uni2gbk(const wchar_t *unistr)
+{
+    uint32_t rc = 0;
+    uint16_t uc;
+    while ((uc = (uint16_t)*unistr))
+    {
+        if ((uc & 0xFF00) == 0)
+            ++rc;
+        else
+            rc += 2;
+        ++unistr;
+    }
+    return rc;
+}
+//---------------------------------------------------------
+//将uni字符串转换成gbk字符串;bufsize为目标缓冲区尺寸(应该>=rx_chars_uni2gbk+1)
+//返回值:bufsize,目标缓冲区过小;其他为gbk实际内容长度
+inline uint32_t rx_str_uni2gbk(const wchar_t *unistr, char *buff, uint32_t bufsize)
+{
+    uint32_t rc = 0;
+    uint16_t uc;
+    while ((uc=(uint16_t)*unistr))
+    {
+        uint16_t gbk = rx_char_uni2gbk(uc);
+        if ((gbk & 0xFF00) == 0)
+        {//ascii
+            if (rc + 1 >= bufsize)
+                return bufsize;
+            buff[rc++] = (uint8_t)gbk;
+        }
+        else
+        {//not ascii
+            if (rc + 2 >= bufsize)
+                return bufsize;
+            buff[rc++] = (uint8_t)(gbk>>8);
+            buff[rc++] = (uint8_t)gbk;
+        }
+        ++unistr;
+    }
 
+    buff[rc] = 0;
+    return rc;
+}
 
 #endif

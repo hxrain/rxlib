@@ -2003,4 +2003,47 @@ inline uint16_t rx_char_gbk2uni(const uint16_t gbk)
     const uint16_t *page = rx_gbk2uni_tbl[gbk >> 6];
     return page == NULL ? 0xFFFF : page[gbk & 0x03F];
 }
+//---------------------------------------------------------
+//估算,将gbk串转换为uni串对应的字符数
+inline uint32_t rx_chars_gbk2uni(const char *gbk)
+{
+    uint32_t rc = 0;
+    char c;
+    while ((c = *gbk))
+    {
+        ++rc;
+        if ((c & 0x80) == 0)
+            ++gbk;
+        else
+            gbk += 2;
+    }
+    return rc;
+}
+//---------------------------------------------------------
+//将gbk字符串转换成unicode字符串;buff_chars为目标缓冲区wchar_t的字符数量(应该>=rx_chars_gbk2uni+1),而不是目标缓冲区的字节尺寸
+//返回值:buff_chars,目标缓冲区过小;其他为unicode串实际内容长度
+inline uint32_t rx_str_gbk2uni(const char *gbk,wchar_t *buff,uint32_t buff_chars)
+{
+    uint32_t rc = 0;
+    char c;
+    while ((c = *gbk))
+    {
+        if (rc + 2 > buff_chars)
+            return buff_chars;
+
+        if ((c & 0x80) == 0)
+        {
+            buff[rc++] = c;
+            ++gbk;
+        }
+        else
+        {
+            buff[rc++] = rx_char_gbk2uni(((((uint8_t)gbk[0]) << 8) | (uint8_t)gbk[1]));
+            gbk+=2;
+        }
+    }
+    buff[rc] = 0;
+    return rc;
+}
+
 #endif
