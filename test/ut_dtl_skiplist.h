@@ -1,6 +1,9 @@
 #ifndef _UT_OS_LOCK_H_
 #define _UT_OS_LOCK_H_
 
+#define RX_UT_TEST_SKIPSET      1
+#define RX_UT_TEST_SKIPLIST     0
+
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
 #include "../rx_tdd_tick.h"
@@ -9,6 +12,7 @@
 
 namespace rx_ut
 {
+#if RX_UT_TEST_SKIPLIST
     //-----------------------------------------------------
     inline void test_skiplist_base_1(rx_tdd_t &rt)
     {
@@ -55,10 +59,6 @@ namespace rx_ut
         rt.tdd_assert(I != sl.end() && I() == 8 && *I == vals[8]);
 
         //-------------------------------------------------
-        #if RX_RAW_SKIPLIST_DEBUG_PRINT
-        sl.print();
-        #endif
-        //-------------------------------------------------
 
         I=sl.find((uint32_t)5);
         rt.tdd_assert(I != sl.end() && I() == 5 && *I == vals[5]);
@@ -79,8 +79,8 @@ namespace rx_ut
         rt.tdd_assert(I != sl.end() && I() == 2 && *I == vals[2]);
 
         sl.clear();
-
     }
+
     //-----------------------------------------------------
     inline void test_skiplist_base_1c(rx_tdd_t &rt)
     {
@@ -151,8 +151,8 @@ namespace rx_ut
         rt.tdd_assert(I != sl.end() && I() == "2" && *I == vals[2]);
 
         sl.clear();
-
     }
+
     //-----------------------------------------------------
     inline void test_skiplist_base_1w(rx_tdd_t &rt)
     {
@@ -223,9 +223,23 @@ namespace rx_ut
         rt.tdd_assert(I != sl.end() && I() == L"2" && *I == vals[2]);
 
         sl.clear();
-
     }
+    //-----------------------------------------------------
+    inline void ut_skiplist_bd_base_make()
+    {
+        rx::skiplist_t<int, int> m;
 
+        tdd_tt(t, "ut_stdmap_base", "make");
+
+        for (int i = 0; i < 10000 * 4000; ++i)
+            m.insert(i, i);
+
+        tdd_tt_hit(t, "");
+        getchar();
+    }
+#endif
+
+#if RX_UT_TEST_SKIPSET
     //-----------------------------------------------------
     inline void test_skipset_base_1(rx_tdd_t &rt)
     {
@@ -258,10 +272,6 @@ namespace rx_ut
         rt.tdd_assert(sl.find(3));
         rt.tdd_assert(sl.find(8));
 
-        //-------------------------------------------------
-        #if RX_RAW_SKIPLIST_DEBUG_PRINT
-        sl.print();
-        #endif
         //-------------------------------------------------
 
         rt.tdd_assert(sl.find(5));
@@ -402,20 +412,8 @@ namespace rx_ut
 
         sl.clear();
     }
+#endif
 
-    //-----------------------------------------------------
-    inline void ut_skiplist_bd_base_make()
-    {
-        rx::skiplist_t<int, int> m;
-
-        tdd_tt(t, "ut_stdmap_base", "make");
-
-        for (int i = 0; i < 10000 * 4000; ++i)
-            m.insert(i, i);
-
-        tdd_tt_hit(t, "");
-        getchar();
-    }
 }
 
 rx_tdd(skiplist_base)
@@ -424,7 +422,7 @@ rx_tdd(skiplist_base)
     //    rx::test_skipset_base_1w(*this,i+1537538321);
 
     //rx_ut::ut_skiplist_bd_base_make();
-
+#if RX_UT_TEST_SKIPSET
     rx_ut::test_skipset_base_1w(*this,1537538337);
     rx_ut::test_skipset_base_1w(*this,1537760438);
 
@@ -434,9 +432,13 @@ rx_tdd(skiplist_base)
     rx_ut::test_skipset_base_1c(*this);
     rx_ut::test_skipset_base_1w(*this,0);
 
+#endif
+
+#if RX_UT_TEST_SKIPLIST
     rx_ut::test_skiplist_base_1(*this);
     rx_ut::test_skiplist_base_1c(*this);
     rx_ut::test_skiplist_base_1w(*this);
+#endif
 }
 
 

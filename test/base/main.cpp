@@ -53,13 +53,14 @@
 #include "../../rx_dtl_queue.h"
 //---------------------------------------------------------
 //哈希表与跳表以及std::map容器的对比测试
-#include "../ut_dtl_htbl_sklist_map.h"
+//#include "../ut_dtl_htbl_sklist_map.h"
 //---------------------------------------------------------
 //跳表与相关容器
 #include "../ut_dtl_skiplist.h"
 #include "../../rx_dtl_skipset.h"
-#include "../../rx_dtl_skiplist.h"
-#include "../../rx_dtl_skiplist_raw.h"
+//#include "../../rx_dtl_skiplist.h"
+//#include "../../rx_dtl_skiplist_raw.h"
+//#include "../../rx_dtl_skiplist_raw_.h"
 //---------------------------------------------------------
 //哈希表与哈希容器相关功能
 #include "../ut_dtl_hashtbl_tiny.h"
