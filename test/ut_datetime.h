@@ -11,7 +11,7 @@ inline void test_localtime(uint64_t dt, struct tm &tp, rx_tdd_t &rt)
 {
     char t1[20],t2[20];
     rx_localtime(dt, tp);
-    rx_iso_time(tp,t1);
+    rx_iso_datetime(tp,t1);
 
     struct tm *p = localtime((time_t*)&dt);
     if (p==NULL)
@@ -20,7 +20,7 @@ inline void test_localtime(uint64_t dt, struct tm &tp, rx_tdd_t &rt)
         return;
     }
     struct tm dp =*p;
-    rx_iso_time(dp,t2);
+    rx_iso_datetime(dp,t2);
 
     rt.msg_assert(tp.tm_year == dp.tm_year,"%llu -> %s -> %s",dt,t1,t2);
     rt.msg_assert(tp.tm_mon  == dp.tm_mon,"%llu -> %s -> %s",dt,t1,t2);
@@ -56,7 +56,7 @@ inline void test_localtime_loop(rx_tdd_t &rt)
         if (tp.tm_mday != tag)
         {
             tag = tp.tm_mday;
-            rx_iso_time(tp,tmp);
+            rx_iso_datetime(tp,tmp);
             printf("%s\r\n", tmp);
         }
     }

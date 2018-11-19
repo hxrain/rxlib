@@ -162,16 +162,132 @@
     }
     //-----------------------------------------------------
     //将日期时间结构格式化为字符串
-    inline void rx_iso_time(const struct tm& tp, char str[20])
+    inline void rx_iso_datetime(const struct tm& tp, char str[20])
     {
         snprintf(str,20,"%d-%02d-%02d %02d:%02d:%02d", tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec);
     }
     //将UTC时间转为标准时间字符串
-    inline void rx_iso_time(uint32_t utc_time,char str[20] , int32_t zone_offset_sec = 8 * 60 * 60)
+    inline void rx_iso_datetime(uint32_t utc_time,char str[20] , int32_t zone_offset_sec = 8 * 60 * 60)
     {
         struct tm tp;
         rx_localtime(utc_time,tp, zone_offset_sec);
-        rx_iso_time(tp,str);
+        rx_iso_datetime(tp,str);
     }
+    //-----------------------------------------------------
+    //计算指定的年份与月份的天数.
+    //返回值:0月份错误.其他为天数
+    inline int rx_moon_days(int Year, int Moon)
+    {
+        //闰年可以被4或者400整除 但是不能被100整除
+        switch (Moon)
+        {
+        case 1:return 31;
+        case 2:
+            if ((Year % 4 == 0 && Year % 100 != 0) || Year % 400 == 0)
+                return 29;
+            else
+                return 28;
+        case 3:return 31;
+        case 4:return 30;
+        case 5:return 31;
+        case 6:return 30;
+        case 7:return 31;
+        case 8:return 31;
+        case 9:return 30;
+        case 10:return 31;
+        case 11:return 30;
+        case 12:return 31;
+        }
+        return 0;
+    }
+    //-----------------------------------------------------
+    //转换标准日期串到tm格式
+    inline bool rx_iso_date(const char* DateStr,struct tm &Date)
+    {
+        if (is_empty(DateStr))
+            return false;
+            
+        char TmpBuf[30];
+        if (strlen(DateStr)<10)
+            return false;
+        strcpy(TmpBuf,DateStr);
 
+        char *text=TmpBuf;
+        char* Str=strchr(text,'-');                    //准备摘取年yyyy
+        if (!Str) return false;
+        *Str=0;
+        Date.tm_year=atoi(text);
+        
+        text=++Str;
+        Str=strchr(text,'-');                          //准备摘取月mm
+        if (!Str) return false;
+        *Str=0;
+        Date.tm_mon=atoi(text);
+        if (Date.tm_mon>12) return false;
+
+        text=++Str;
+        Str=strchr(text,' ');                          //准备摘取日dd
+        if (!Str) Str=strchr(text,'T');
+        
+        if (Str) *Str=0;
+        Date.tm_mday=atoi(text);
+        if (Date.tm_mday>31) 
+            return false;
+
+        //最后根据年份和月份校验当前的日期的范围是否合法
+        return Date.tm_mday<=rx_moon_days(Date.tm_year,Date.tm_mon);
+    }
+    //-----------------------------------------------------
+    //转换标准时间串到tm格式
+    inline bool rx_iso_time(const char* TimeStr,struct tm &Time,uint32_t *msec=NULL)
+    {
+        if (is_empty(TimeStr))
+            return false;
+            
+        char TmpBuf[30];
+        if (strlen(TimeStr)>20)
+            return false;
+        strcpy(TmpBuf,TimeStr);
+
+        char *text=TmpBuf;
+        char *Str=strchr(text,':');                    //准备摘取时hh
+        if (!Str) return false;
+        *Str++=0;
+        Time.tm_hour=atoi(text);
+        if (Time.tm_hour>23) return false;
+
+        text=Str;
+        Str=strchr(text,':');                          //准备摘取分mi
+        if (!Str) return false;
+        *Str++=0;
+        Time.tm_min=atoi(text);
+        if (Time.tm_min>59) return false;
+
+        text=Str;
+        Str=strchr(text,'.');
+        if (Str)
+            *Str++=0;
+        Time.tm_sec=atoi(text);                         //准备摘取秒
+        if (Time.tm_sec>59) return false;
+        
+        if (Str&&msec)
+        {                                               //准备摘取毫秒
+            *msec=atoi(Str); 
+            if (*msec>1000) return false;
+        }
+        return true;
+    }
+    //-----------------------------------------------------
+    //转换标准日期时间串到tm格式
+    inline bool rx_iso_datetime(const char* date_time_str,struct tm &Date, uint32_t *msec = NULL)
+    {
+        memset(&Date,0,sizeof(Date));
+        if (is_empty(date_time_str))
+            return false;
+        const char* TimeStr=strchr(date_time_str,' ');
+        if (!TimeStr) TimeStr=strchr(date_time_str,'T');     //适应XML/28181时间格式
+        if (!TimeStr) return true;
+
+        return rx_iso_date(date_time_str,Date)&&rx_iso_time(++TimeStr,Date, msec);
+    }
 #endif
