@@ -149,7 +149,7 @@ namespace rx
         static const wchar_t *  strrchr(const wchar_t *s, int c) {return ::wcsrchr(s,c);}
 
         //×Ö·û´®×ª»»Îª´óÐ´
-        template<class CT>  CT *strupr(CT *str)
+        template<class CT>  static CT *strupr(CT *str)
         {
             for(CT* s=str;*s;++s)
             {
@@ -161,7 +161,7 @@ namespace rx
 
 
         //×Ö·û´®×ª»»ÎªÐ¡Ð´
-        template<class CT>  CT *strlwr(CT *str)
+        template<class CT>  static CT *strlwr(CT *str)
         {
             for(CT* s=str;*s;++s)
             {
