@@ -63,6 +63,7 @@
 //---------------------------------------------------------
 //哈希表与哈希容器相关功能
 #include "../ut_dtl_hashtbl_tiny.h"
+#include "../../rx_dtl_hashtbl_ex.h"
 #include "../../rx_dtl_hashset.h"
 #include "../../rx_dtl_hashlink.h"
 #include "../../rx_dtl_hashtbl.h"
