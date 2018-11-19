@@ -54,18 +54,20 @@ namespace rx_ut
         gbk = str2code("啊");
         rt.tdd_assert(gbk == 0xb0a1);
 
+        //string:gbk2uni
         wchar_t ubuff[4];
         rt.tdd_assert(rx_str_gbk2uni("a啊", ubuff, sizeof(ubuff)/sizeof(wchar_t)) == 2);
+        //string:uni2gbk
         char gbuff[4];
         rt.tdd_assert(rx_str_uni2gbk(ubuff,gbuff, sizeof(gbuff)) == 3);
         rt.tdd_assert(strcmp(gbuff, "a啊") == 0);
+        //string:chars
         rt.tdd_assert(rx_chars_gbk2uni(gbuff) == 2);
         rt.tdd_assert(rx_chars_uni2gbk(ubuff) == 3);
 
+        //string:临界测试
         rt.tdd_assert(rx_str_uni2gbk(ubuff, gbuff, 3) == 3);
-
         rt.tdd_assert(rx_str_gbk2uni("a啊", ubuff, 3) == 2);
-
         //缓冲区不足,返回值与目标字符数相等了
         rt.tdd_assert(rx_str_gbk2uni("a啊", ubuff, 2) == 2);
     }
