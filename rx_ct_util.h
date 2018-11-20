@@ -244,8 +244,8 @@ namespace rx
 
     //=====================================================
     //取一个结构体T的成员F的相对于结构体起始地址的偏移量
-    #define field_offset(type,field) (size_t)(&((type*)0)->field)
-    
+    #define field_offset(type,field) ((size_t)&((type*)0)->field)
+
     //得到结构体T中F1字段开始到F2之前字段的空间占用尺寸(就是F1实际占用的尺寸)
     #define field_size(type,field1,field2) ((field_offset(type,field2))-(field_offset(type,field1)))
 
@@ -277,11 +277,11 @@ namespace rx
     #define equ_zero_5(p)  (equ_zero_4 (p)&&equ_zero_1(byte_ptr(p,4)))
     #define equ_zero_6(p)  (equ_zero_4 (p)&&equ_zero_2(byte_ptr(p,4)))
     #define equ_zero_7(p)  (equ_zero_4 (p)&&equ_zero_3(byte_ptr(p,4)))
-#if RX_CC_BIT==64         
+#if RX_CC_BIT==64
     #define equ_zero_8(p)  (*(uint64_t*)p==0)
-#else                     
+#else
     #define equ_zero_8(p)  (equ_zero_4(p)&&equ_zero_4(byte_ptr(p,4)))
-#endif                    
+#endif
     #define equ_zero_9(p)  (equ_zero_8 (p)&&equ_zero_1(byte_ptr(p,8)))
     #define equ_zero_10(p) (equ_zero_8 (p)&&equ_zero_2(byte_ptr(p,8)))
     #define equ_zero_11(p) (equ_zero_8 (p)&&equ_zero_3(byte_ptr(p,8)))
@@ -323,10 +323,10 @@ namespace rx
     #define equ_zero_47(p) (equ_zero_40(p)&&equ_zero_7(byte_ptr(p,40)))
     #define equ_zero_48(p) (equ_zero_40(p)&&equ_zero_8(byte_ptr(p,40)))
     #define equ_zero_n(p,n) RX_CT_CONCAT(equ_zero_,n)(p)
-    inline bool equ_zero_x(const void *p,size_t x) 
+    inline bool equ_zero_x(const void *p,size_t x)
     {
         for(size_t i=0;i<x;++i)
-            if (*(uint8_t*)p) 
+            if (*(uint8_t*)p)
                 return false;
         return true;
     }

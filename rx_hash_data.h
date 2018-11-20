@@ -444,7 +444,7 @@ inline uint32_t rx_hash_zob(const char *buf, uint32_t seed = 0x7ED5052A)
     for (uint32_t i = 0; buf[i]; i++)
     {
         int r = (i + 1) % 32;
-        uint32_t value = zob_map_table[ buf[i] ];
+        uint32_t value = zob_map_table[ (uint8_t)buf[i] ];
         hash ^= (value << r) | (value >> (32 - r));
     }
     return hash;

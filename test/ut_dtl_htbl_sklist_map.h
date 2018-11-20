@@ -176,7 +176,7 @@ public:
         }
         ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::skiplist_t<uint32_t, uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash>(rt, "     skiplist", "hash(int)/int");
         ut_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash >(rt,"     std::map","hash(int)/int");
-        
+
         ut_map_cntr_loop_1 <MaxSize, LoopCount, stdmap<std::string>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"     std::map","std::string(hash(int)/int");
         ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::skiplist_t<const char*,uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"     skiplist", "tinystr(hash(int))/int");
         ut_map_cntr_loop_1 <MaxSize, LoopCount, rx::skiplist_t<std::string,uint32_t>,tmp_cmp,tmp_cmp::key_op_uint_hash_str>(rt,"     skiplist", "std::string(hash(int))/int");

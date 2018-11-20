@@ -24,8 +24,8 @@ namespace rx
         bool make(uint32_t max_size,float space_factor=0.3)
         {
             clear();
-            max_size = (uint32_t)(max_size*(1+space_factor));
-            m_nodes = m_mem.new0(max_size);
+            max_size = (uint32_t)(max_size*(1 + space_factor));
+            m_nodes = m_mem.new0<typename super_t::node_t>(max_size);
             if (!m_nodes) return false;
             m_stat.max_nodes = max_size;
             super_t::m_basetbl.bind(m_nodes, m_stat);
@@ -62,7 +62,7 @@ namespace rx
         {
             clear();
             max_size = (uint32_t)(max_size*(1 + space_factor));
-            m_nodes = m_mem.new0(max_size);
+            m_nodes = m_mem.new0<typename super_t::node_t>(max_size);
             if (!m_nodes) return false;
             m_stat.max_nodes = max_size;
             super_t::m_basetbl.bind(m_nodes, m_stat);

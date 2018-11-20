@@ -46,7 +46,7 @@ namespace rx
                 return m_ptr[m_capacity + idx];
             }
         }
-        inline const T& operator [](uint32_t idx) const 
+        inline const T& operator [](uint32_t idx) const
         {
             array_i *This = (array_i*)this;
             return This->operator[](idx);
@@ -94,7 +94,7 @@ namespace rx
         virtual ~array_i(){}
         //-------------------------------------------------
     };
-    
+
     //-----------------------------------------------------
     //静态数组
     template<class T,uint32_t size>
@@ -108,9 +108,9 @@ namespace rx
         //赋值符重载:直接将数组元素数据进行复制
         array_ft& operator=(const super_t& S)
         {
-            uint32_t mincap = min(m_capacity,S.m_capacity);
+            uint32_t mincap = min(super_t::m_capacity,S.m_capacity);
             for (uint32_t i = 0; i<mincap; i++)
-                m_ptr[i] = S.m_ptr[i];
+                super_t::m_ptr[i] = S.m_ptr[i];
             return *this;
         }
     };
@@ -135,9 +135,9 @@ namespace rx
             rx_assert_msg(Count!=0,"不能初始化0长度的数组");
             if (!Count) return true;
 
-            m_capacity=Count;
-            m_ptr = m_mem.new0<T>(Count);
-            return m_ptr!=NULL;
+            super_t::m_capacity=Count;
+            super_t::m_ptr = m_mem.new0<T>(Count);
+            return super_t::m_ptr!=NULL;
         }
         //-------------------------------------------------
         template<class PT1>
@@ -147,29 +147,29 @@ namespace rx
             rx_assert_msg(Count != 0, "不能初始化0长度的数组");
             if (!Count) return true;
 
-            m_capacity = Count;
-            m_ptr = m_mem.new1<T>(Count,P1);
-            return m_ptr != NULL;
+            super_t::m_capacity = Count;
+            super_t::m_ptr = m_mem.new1<T>(Count,P1);
+            return super_t::m_ptr != NULL;
         }
         //-------------------------------------------------
         //完全清除数据
         inline void clear()
         {
-            if (m_ptr)
+            if (super_t::m_ptr)
             {
-                m_mem.del(m_ptr);
-                m_ptr = NULL;
-                m_capacity = 0;
+                m_mem.del(super_t::m_ptr);
+                super_t::m_ptr = NULL;
+                super_t::m_capacity = 0;
             }
         }
         //-------------------------------------------------
         //赋值符重载:直接将数组元素数据进行复制
         array_t& operator=(const super_t& S)
         {
-            if (m_capacity!=S.m_capacity)
+            if (super_t::m_capacity!=S.m_capacity)
                 make(S.m_capacity);
-            for(uint32_t i=0;i<m_capacity;i++)
-                m_ptr[i]=S.m_ptr[i];
+            for(uint32_t i=0;i<super_t::m_capacity;i++)
+                super_t::m_ptr[i]=S.m_ptr[i];
             return *this;
         }
         //-------------------------------------------------
