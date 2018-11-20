@@ -89,8 +89,8 @@ namespace rx_ut
 rx_tdd(skiplist_base)
 {
     typedef rx::hashmap_t<100000, uint32_t, uint32_t> ut2_hashmap_t;
-    typedef rx::skiplist_uint32_t ut2_skiplist_t;
-    typedef std::map<uint32_t, uint32_t> ut2_stdmap_t;
+    typedef rx::skiplist_ut                 ut2_skiplist_t;
+    typedef std::map<uint32_t, uint32_t>    ut2_stdmap_t;
 
     static ut2_hashmap_t   ut2_hashmap;
     static ut2_skiplist_t  ut2_skiplist;

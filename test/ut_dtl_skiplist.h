@@ -2,14 +2,19 @@
 #define _UT_OS_LOCK_H_
 
 #define RX_UT_TEST_SKIPSET      1
-#define RX_UT_TEST_SKIPLIST     0
+#define RX_UT_TEST_SKIPLIST     1
 
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
 #include "../rx_tdd_tick.h"
-#include "../rx_dtl_skiplist.h"
-#include "../rx_dtl_skipset.h"
 
+#if RX_UT_TEST_SKIPLIST
+    #include "../rx_dtl_skiplist.h"
+#endif
+
+#if RX_UT_TEST_SKIPSET
+    #include "../rx_dtl_skipset.h"
+#endif
 namespace rx_ut
 {
 #if RX_UT_TEST_SKIPLIST
@@ -21,7 +26,7 @@ namespace rx_ut
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        rx::skiplist_uint32_t sl;
+        rx::skiplist_ut sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
         sl.insert((uint32_t)3,vals[3]);
@@ -52,7 +57,7 @@ namespace rx_ut
         rt.tdd_assert(sl.rbegin()()==8);
         rt.tdd_assert(sl.size()==5);
 
-        rx::skiplist_uint32_t::iterator I = sl.find((uint32_t)3);
+        rx::skiplist_ut::iterator I = sl.find((uint32_t)3);
         rt.tdd_assert(I != sl.end() && I() == 3 && *I == vals[3]);
 
         I = sl.find((uint32_t)8);
@@ -89,7 +94,7 @@ namespace rx_ut
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        rx::skiplist_cstr_uint32_t sl;
+        rx::skiplist_ct sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -125,7 +130,7 @@ namespace rx_ut
         rt.tdd_assert(sl.rbegin()()=="8");
         rt.tdd_assert(sl.size()==5);
 
-        rx::skiplist_cstr_uint32_t::iterator I=sl.find("3");
+        rx::skiplist_ct::iterator I=sl.find("3");
         rt.tdd_assert(I != sl.end() && I() == "3" && *I == vals[3]);
 
         I=sl.find("8");
@@ -161,7 +166,7 @@ namespace rx_ut
         for(uint32_t i=0;i<vals_size;++i)
             vals[i]=i;
 
-        rx::skiplist_wstr_uint32_t sl;
+        rx::skiplist_wt sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -197,7 +202,7 @@ namespace rx_ut
         rt.tdd_assert(sl.rbegin()()==L"8");
         rt.tdd_assert(sl.size()==5);
 
-        rx::skiplist_wstr_uint32_t::iterator I=sl.find(L"3");
+        rx::skiplist_wt::iterator I=sl.find(L"3");
         rt.tdd_assert(I != sl.end() && I() == L"3" && *I == vals[3]);
 
         I=sl.find(L"8");
@@ -243,7 +248,7 @@ namespace rx_ut
     //-----------------------------------------------------
     inline void test_skipset_base_1(rx_tdd_t &rt)
     {
-        rx::skipset_int32_t sl;
+        rx::skipset_it sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -291,7 +296,7 @@ namespace rx_ut
     //-----------------------------------------------------
     inline void test_skipset_base_1c(rx_tdd_t &rt)
     {
-        rx::skipset_cstr_t sl;
+        rx::skipset_ct sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -339,7 +344,7 @@ namespace rx_ut
     //-----------------------------------------------------
     inline void test_skipset_base_1w(rx_tdd_t &rt,uint32_t seed)
     {
-        rx::skipset_wstr_t sl(seed);
+        rx::skipset_wt sl(seed);
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 
@@ -383,7 +388,7 @@ namespace rx_ut
     }
     inline void test_skipset_base_2w(rx_tdd_t &rt)
     {
-        rx::skipset_wstr_t sl;
+        rx::skipset_wt sl;
         rt.tdd_assert(sl.begin()==sl.end());
         rt.tdd_assert(sl.rbegin()==sl.end());
 

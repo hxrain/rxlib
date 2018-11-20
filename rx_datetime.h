@@ -3,6 +3,7 @@
 
     #include "rx_cc_macro.h"
     #include <stdio.h>
+    #include <stdlib.h>
     #include <time.h>
 
 #if defined(RX_OS_WIN)
