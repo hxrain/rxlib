@@ -1,5 +1,5 @@
 #define RX_USE_TDD_TICK 1
-/*
+
 #include "../../rx_dtl_array.h"
 
 //紧凑高效的gbk/unicode字符集转换功能
@@ -51,7 +51,7 @@
 #include "../../rx_dtl_list.h"
 #include "../../rx_dtl_stack.h"
 #include "../../rx_dtl_queue.h"
-*/
+
 //---------------------------------------------------------
 //哈希表与跳表以及std::map容器的对比测试
 #include "../ut_dtl_htbl_sklist_map.h"
@@ -177,6 +177,8 @@
 
 int main()
 {
+    //rx_show_msg("%d\n", sizeof(std::string));
+
     std::cout << "rxlib unit test!你好!Hello world!\n" << rx_cc_desc() << std::endl << std::endl;
 
     rx_static_assert(1);
