@@ -161,26 +161,37 @@ namespace rx
             ct::OC(&node->value.val,val);
             return iterator(*this, pos);
         }
+        template<class KT>
+        node_t* insert(const KT &key, const val_t &val, uint32_t &pos)
+        {
+            node_t *node = insert_raw(key, pos);
+            if (node == NULL)
+                return NULL;
+            ct::OC(&node->value.key, key);
+            ct::OC(&node->value.val, val);
+            return node;
+        }
         //-------------------------------------------------
         //查找元素,通过返回迭代器是否与end()相同判断是否存在
         template<class KT>
         iterator find(const KT &key) const
         {
             uint32_t pos;
-            return find(key,pos);
+            uint32_t hash_code = cmp_t::hash(key);
+            node_t *node = m_basetbl.find(hash_code, key, pos);
+            if (!node)
+                return end();
+            return iterator(*this, pos);
         }
         template<class KT>
         iterator operator[](const KT &key) const { return find(key); }
         //-------------------------------------------------
         //查找元素,同时获知元素的节点索引位置
         template<class KT>
-        iterator find(const KT &key,uint32_t &pos) const
+        node_t* find(const KT &key,uint32_t &pos) const
         {
             uint32_t hash_code = cmp_t::hash(key);
-            node_t *node = m_basetbl.find(hash_code, key, pos);
-            if (!node)
-                return end();
-            return iterator(*this, pos);
+            return m_basetbl.find(hash_code, key, pos);
         }
         //-------------------------------------------------
         //标记删除指定的元素(元素内容还没有被销毁)

@@ -39,6 +39,8 @@ namespace rx
         static const char  f() {return 'f';}
         static const char  x() {return 'x';}
         static const char  z() {return 'z';}
+        static       bool  is_atoz(char c) { return c >= 'a'&&c <= 'z'; }
+        static       bool  is_AtoZ(char c) { return c >= 'A'&&c <= 'Z'; }
     };
     template<> class sc<wchar_t>
     {
@@ -60,6 +62,8 @@ namespace rx
         static const wchar_t  f() {return L'f';}
         static const wchar_t  x() {return L'x';}
         static const wchar_t  z() {return L'z';}
+        static bool  is_atoz(wchar_t c) { return c >= L'a'&&c <= L'z'; }
+        static bool  is_AtoZ(wchar_t c) { return c >= L'A'&&c <= L'Z'; }
     };
 
     //-----------------------------------------------------
@@ -153,22 +157,48 @@ namespace rx
         {
             for(CT* s=str;*s;++s)
             {
-                if(*s >= sc<CT>::a() && *s <= sc<CT>::z())
+                if(sc<CT>::is_atoz(*s))
                     *s -= sc<CT>::a()-sc<CT>::A();
             }
             return str;
         }
-
+        template<class CT>  static uint32_t strupr(CT *buff,uint32_t buffsize,const CT *str)
+        {
+            uint32_t len = 0;
+            for (CT* s = str; *s&&len < buffsize; ++s,++len)
+            {
+                if (sc<CT>::is_atoz(*s))
+                    buff[len] = *s - (sc<CT>::a() - sc<CT>::A());
+                else
+                    buff[len] = *s;
+            }
+            buff[len] = 0;
+            return len;
+        }
 
         //字符串转换为小写
         template<class CT>  static CT *strlwr(CT *str)
         {
             for(CT* s=str;*s;++s)
             {
-                if(*s >= sc<CT>::A() && *s <= sc<CT>::Z())
+                if(sc<CT>::is_AtoZ(*s))
                     *s += sc<CT>::a()-sc<CT>::A();
             }
             return str;
+        }
+        template<class CT>  static uint32_t strlwr(CT *buff, uint32_t buffsize, const CT *str)
+        {
+            --buffsize;
+            uint32_t len = 0;
+            for (CT* s = str; *s&&len < buffsize; ++s, ++len)
+            {
+                if (sc<CT>::is_AtoZ(*s))
+                    buff[len] = *s + (sc<CT>::a() - sc<CT>::A());
+                else
+                    buff[len] = *s;
+            }
+            buff[len] = 0;
+            return len;
         }
 
         //字符串转换扩展,直接拷贝到目标缓冲器
@@ -1061,6 +1091,48 @@ namespace rx
     };
     typedef n2str<char>     n2s_t;
     typedef n2str<wchar_t>  n2w_t;
+
+    //-----------------------------------------------------
+    //进行字符串大小写转换的功能封装(mode=0-不转换;1-转为小写;2转为大写)
+    template<uint32_t max_size,typename CT,uint32_t mode>
+    class icstr;
+
+    //不转换
+    template<uint32_t max_size, typename CT>
+    class icstr<max_size,CT, 0>
+    {
+        const CT* m_src_str;
+    public:
+        icstr():m_src_str(NULL) {}
+        icstr(const CT *src) :m_src_str(src) {}
+        operator const CT* () { return m_src_str; }
+        const CT* to(const CT *src) { return src; }
+        const CT* c_str() { return m_src_str; }
+    };
+    //转为小写字母
+    template<uint32_t max_size, typename CT>
+    class icstr<max_size, CT, 1>
+    {
+        CT m_str[max_size];
+    public:
+        icstr() { m_str[0] = 0; }
+        icstr(const CT *src) {st::strlwr(m_str, max_size, src);}
+        operator const CT* () { return m_str; }
+        const CT* to(const CT *src) { st::strlwr(m_str, max_size, src); return m_str; }
+        const CT* c_str() { return m_str; }
+    };
+    //转为大写字母
+    template<uint32_t max_size, typename CT>
+    class icstr<max_size, CT, 2>
+    {
+        CT m_str[max_size];
+    public:
+        icstr() { m_str[0] = 0; }
+        icstr(const CT *src) { st::strupr(m_str, max_size, src); }
+        operator const CT* () { return m_str; }
+        const CT* to(const CT *src) { st::strupr(m_str, max_size, src); return m_str; }
+        const CT* c_str() { return m_str; }
+    };
 }
 
 

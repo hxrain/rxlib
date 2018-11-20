@@ -31,6 +31,8 @@ namespace rx
         uint32_t capacity() const { return m_capacity; }
         //直接获取数组指针
         T* array()const{return m_ptr;}
+        //直接访问数组元素
+        T& at(uint32_t idx)const { return m_ptr[idx]; }
         //-------------------------------------------------
         //根据索引访问元素;0<=idx<
         T& operator []( int32_t idx )
@@ -46,12 +48,6 @@ namespace rx
                 return m_ptr[m_capacity + idx];
             }
         }
-        inline const T& operator [](uint32_t idx) const
-        {
-            array_i *This = (array_i*)this;
-            return This->operator[](idx);
-        }
-
         //-------------------------------------------------
         //定义简单的只读迭代器
         class iterator

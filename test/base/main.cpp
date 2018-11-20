@@ -1,6 +1,8 @@
 #define RX_USE_TDD_TICK 1
 
+#include "../ut_dtl_array.h"
 #include "../../rx_dtl_array.h"
+#include "../../rx_dtl_array_ex.h"
 
 //紧凑高效的gbk/unicode字符集转换功能
 #include "../ut_str_uni2gbk.h"
