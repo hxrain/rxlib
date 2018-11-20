@@ -8,6 +8,7 @@
 #include "rx_dtl_skiplist_raw.h"
 #include <time.h>
 #include "rx_str_tiny.h"
+#include "rx_ct_util.h"
 
 /*本单元封装实现了基于原始跳表的跳表集
     //-----------------------------------------------------
@@ -42,10 +43,10 @@ namespace rx
             //比较节点与给定key的大小
             //返回值:n<key为<0;n==key为0;n>key为>0
             template<class KT>
-            static int cmp(const void *ptr, const KT &key) 
-            { 
-                const skipset_node_t &n = *(skipset_node_t*)ptr; 
-                return n.key == key ? 0 : (n.key < key ? -1 : 1); 
+            static int cmp(const void *ptr, const KT &key)
+            {
+                const skipset_node_t &n = *(skipset_node_t*)ptr;
+                return n.key == key ? 0 : (n.key < key ? -1 : 1);
             }
             //---------------------------------------------
             //计算key需要的扩展尺寸
@@ -128,16 +129,14 @@ namespace rx
         //-------------------------------------------------
         typedef skipset_node_t<key_t,void>  sk_node_t;      //定义最终使用的基础原始调整容器节点
         typedef raw_skiplist_t<sk_node_t>   sk_list_t;      //定义最终使用的基础原始跳表容器类型
-        //计算节点中在尾块之前需要保留的尺寸
-        static const uint32_t node_rsv_size = sizeof(sk_node_t::node_key_t);
         //-------------------------------------------------
         skiplist_rnd_level<rnd_t,MAX_LEVEL> m_rnd_level;    //随机层高生成器
         sk_list_t                           m_raw_list;     //原始的跳表容器
     public:
         typedef sk_node_t node_t;
         //-------------------------------------------------
-        skipset_t(mem_allotter_i &ma,uint32_t seed=1):m_rnd_level(seed),m_raw_list(ma, node_rsv_size){}
-        skipset_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(rx_global_mem_allotter(), node_rsv_size){}
+        skipset_t(mem_allotter_i &ma,uint32_t seed=1):m_rnd_level(seed),m_raw_list(ma, field_offset(sk_node_t, levels)){}
+        skipset_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(rx_global_mem_allotter(), field_offset(sk_node_t, levels)){}
         virtual ~skipset_t() {clear();}
         //-------------------------------------------------
         //定义简单的只读迭代器
@@ -161,7 +160,7 @@ namespace rx
             iterator& operator++()
             {
                 uint8_t *ptr = (uint8_t*)m_node->levels.next[0];
-                m_node = (node_t*)(ptr ? ptr - node_rsv_size : NULL);
+                m_node = (node_t*)(ptr ? ptr - field_offset(sk_node_t, levels) : NULL);
                 return reinterpret_cast<iterator&>(*this);
             }
         };
@@ -185,7 +184,7 @@ namespace rx
             rx_assert(i.m_node != NULL);
             if (i.m_node == NULL)
                 return false;
-            const node_t::node_key_t &key = i.m_node->key;
+            const typename node_t::node_key_t &key = i.m_node->key;
             ++i;
             return erase(key);
         }
@@ -213,7 +212,7 @@ namespace rx
         //-------------------------------------------------
         //删除元素并默认析构
         template<class val_t>
-        bool erase(const val_t &val) 
+        bool erase(const val_t &val)
         {
             node_t *node = (node_t*)m_raw_list.remove_find(val);
             if (!node) return false;

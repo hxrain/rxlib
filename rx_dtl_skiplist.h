@@ -8,6 +8,7 @@
 #include "rx_dtl_skiplist_raw.h"
 #include <time.h>
 #include "rx_str_tiny.h"
+#include "rx_ct_util.h"
 
 /*本单元封装实现了基于原始跳表的跳表集与跳表容器.
 
@@ -61,6 +62,7 @@ namespace rx
             //进行定向构造并初始化
             template<class KT>
             void OC(uint32_t level, KT &k, uint32_t es1) { ct::OC(&key, k); ct::OC(&val);}
+            void OD() { ct::OD(&key); ct::OD(&val);}
             //---------------------------------------------
             typedef kt node_key_t;                          //对节点内部真正的key与val的类型进行定义
             typedef vt node_val_t;
@@ -106,6 +108,7 @@ namespace rx
                 ct::OC(&val);
                 key.bind((char*)&levels.next[level], es1, k, es1 - 1);
             }
+            void OD() { ct::OD(&key); ct::OD(&val);}
             //---------------------------------------------
             typedef tiny_string_t<char> node_key_t;         //对节点内部真正的key与val的类型进行定义
             typedef vt node_val_t;
@@ -151,6 +154,7 @@ namespace rx
                 uint32_t cap = es1 / sc<wchar_t>::char_size();
                 key.bind((wchar_t*)&levels.next[level], cap, k, cap - 1);
             }
+            void OD() { ct::OD(&key); ct::OD(&val);}
             //---------------------------------------------
             typedef tiny_string_t<wchar_t> node_key_t;      //对节点内部真正的key与val的类型进行定义
             typedef vt node_val_t;
@@ -162,8 +166,6 @@ namespace rx
         //-------------------------------------------------
         typedef skiplist_node_t<key_t,val_t>   sk_node_t;   //定义最终使用的原始跳表节点类型
         typedef raw_skiplist_t<sk_node_t>      sk_list_t;   //定义最终使用的原始跳表容器类型
-        //计算节点中在尾块之前需要保留的尺寸
-        static const uint32_t node_rsv_size = sizeof(sk_node_t::node_key_t) + sizeof(sk_node_t::node_val_t);
         //-------------------------------------------------
         skiplist_rnd_level<rnd_t,MAX_LEVEL>    m_rnd_level; //随机层数生成器
         sk_list_t                              m_raw_list;  //最终使用的底层原始跳表容器
@@ -171,8 +173,8 @@ namespace rx
         typedef sk_node_t node_t;
         //-------------------------------------------------
         //构造的时候绑定节点空间
-        skiplist_t(mem_allotter_i &ma,uint32_t seed=1):m_rnd_level(seed),m_raw_list(ma, node_rsv_size){}
-        skiplist_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(rx_global_mem_allotter(), node_rsv_size){}
+        skiplist_t(mem_allotter_i &ma,uint32_t seed=1):m_rnd_level(seed),m_raw_list(ma, field_offset(sk_node_t, levels)){}
+        skiplist_t(uint32_t seed=1):m_rnd_level(seed),m_raw_list(rx_global_mem_allotter(), field_offset(sk_node_t, levels)){}
         virtual ~skiplist_t() {clear();}
         //-------------------------------------------------
         //定义简单的只读迭代器
@@ -206,10 +208,10 @@ namespace rx
             bool is_end() { return m_node == NULL; }
             //---------------------------------------------
             //尝试获取当前迭代器的后趋节点指针
-            const node_t* next() 
-            { 
+            const node_t* next()
+            {
                 uint8_t *ptr = (uint8_t*)m_node->levels.next[0];
-                return (node_t*)(ptr ? ptr - node_rsv_size : NULL);
+                return (node_t*)(ptr ? ptr - field_offset(sk_node_t, levels) : NULL);
             }
         };
         //-------------------------------------------------
@@ -232,7 +234,7 @@ namespace rx
             rx_assert(i.m_node != NULL);
             if (i.m_node == NULL)
                 return false;
-            const node_t::node_key_t &key = i.m_node->key;
+            const typename node_t::node_key_t &key = i.m_node->key;
             ++i;
             return erase(key);
         }
@@ -293,7 +295,7 @@ namespace rx
         {
             node_t *node = (node_t*)m_raw_list.remove_find(key);
             if (!node) return false;
-            ct::OD(node);
+            node->OD();
             m_raw_list.remove_free(node);
             return true;
         }
@@ -302,7 +304,7 @@ namespace rx
         void clear()
         {
             for (iterator I = begin(); I != end(); ++I)
-                ct::OD(I.m_node);
+                ((node_t*)I.m_node)->OD();
             m_raw_list.clear();
         }
     };
