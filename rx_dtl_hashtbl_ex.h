@@ -28,7 +28,7 @@ namespace rx
             m_nodes = m_mem.new0<typename super_t::node_t>(max_size);
             if (!m_nodes) return false;
             m_stat.max_nodes = max_size;
-            super_t::m_basetbl.bind(m_nodes, m_stat);
+            super_t::m_basetbl.bind(m_nodes, &m_stat);
             return true;
         }
         //-------------------------------------------------
@@ -65,7 +65,7 @@ namespace rx
             m_nodes = m_mem.new0<typename super_t::node_t>(max_size);
             if (!m_nodes) return false;
             m_stat.max_nodes = max_size;
-            super_t::m_basetbl.bind(m_nodes, m_stat);
+            super_t::m_basetbl.bind(m_nodes, &m_stat);
             return true;
         }
         //-------------------------------------------------

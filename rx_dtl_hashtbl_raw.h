@@ -17,8 +17,8 @@ namespace rx
     public:
         template<class KT>
         static uint32_t hash(const KT &k) { return rx_hash_murmur(&k, sizeof(k)); }
-        static uint32_t hash(const char *k) { return rx_hash_murmur(k, st::strlen(k)); }
-        static uint32_t hash(const wchar_t *k) { return rx_hash_murmur(k, st::strlen(k)) * sizeof(wchar_t); }
+        static uint32_t hash(const char *k) { return rx_hash_zob(k); }
+        static uint32_t hash(const wchar_t *k) { return rx_hash_zob(k); }
         static uint32_t hash(const uint32_t &k) { return rx_hash_skeeto_3s(k); }
         static uint32_t hash(const int32_t &k) { return rx_hash_skeeto_3s(k); }
     };
@@ -213,7 +213,7 @@ namespace rx
         //校正指定节点后的跟随节点,用于remove之后的空洞修复,避免频繁增删后空洞过少降低查询性能
         //此方法进行节点数据的直接赋值拷贝,begin_pos为刚刚被删除的节点索引
         //返回值:校正过程中调整过的节点数量
-        uint32_t correct_following(uint32_t begin_pos)
+        uint32_t correct(uint32_t begin_pos)
         {
             rx_assert_ret(m_nodes[begin_pos].is_deleted()); //要求初始节点必须是被删除的节点
 
