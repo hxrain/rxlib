@@ -152,7 +152,7 @@ namespace rx
             ct::OD(&node->value);
 
             if (correct)
-                m_basetbl.correct_following(pos);
+                m_basetbl.correct(pos);
             return true;
         }
         //-------------------------------------------------
