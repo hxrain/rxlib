@@ -15,7 +15,7 @@ namespace rx_ut
         rt.tdd_assert(cntr.capacity() == max_items);
         rt.tdd_assert(cntr.alias(0) == NULL);
         rt.tdd_assert(cntr.index("") == cntr.capacity());
-        rt.tdd_assert(cntr[1] != NULL);
+        rt.tdd_assert(cntr[1] == 0);
 
         rt.tdd_assert(cntr.bind(0, "0"));
         rt.tdd_assert(cntr.size() == 1);
@@ -33,10 +33,12 @@ namespace rx_ut
 rx_tdd(ut_dtl_array)
 {
     rx::alias_array_ft<10> farray;
+    farray.set(0);
     rx_ut::ut_dtl_array_1<rx::alias_array_ft<10>,10>(*this, farray);
 
     rx::alias_array_t<> array;
     array.make(10);
+    array.set(0);
     rx_ut::ut_dtl_array_1<rx::alias_array_t<>, 10>(*this, array);
 
 }

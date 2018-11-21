@@ -49,10 +49,10 @@ namespace rx
         {
             if (idx >= capacity())
                 return false;                               //下标越界
-            if (m_array.at(idx).alias_pos != (uint32_t)-1)
+            if (m_array[idx].alias_pos != (uint32_t)-1)
                 return false;                               //元素已经绑定过了
             //绑定元素对应的别名
-            return NULL != m_maps.insert(icstr_t(alias).c_str(), idx, m_array.at(idx).alias_pos);
+            return NULL != m_maps.insert(icstr_t(alias).c_str(), idx, m_array[idx].alias_pos);
         }
         //-------------------------------------------------
         //绑定过的名字数量
@@ -65,16 +65,14 @@ namespace rx
             typename base_map_t::node_t *node = m_maps.find(icstr_t(alias).c_str(), pos);
             if (!node) return false;                        //未找到别名对应的索引
             rx_assert(node->val < capacity());
-            rx_assert(m_array.at(node->val).alias_pos==pos);
-            return &m_array.at(node->val).item;
+            rx_assert(m_array[node->val].alias_pos==pos);
+            return &m_array[node->val].item;
         }
         //-------------------------------------------------
         //根据索引访问元素
-        DT* operator[](const uint32_t idx) const
+        DT& operator[](const uint32_t idx) const
         {
-            if (idx >= capacity())
-                return NULL;                                //下标越界
-            return &m_array.at(idx).item;
+            return m_array[idx].item;
         }
         //-------------------------------------------------
         //根据索引获取别名
@@ -82,7 +80,7 @@ namespace rx
         {
             if (idx >= capacity())
                 return NULL;                                //下标越界
-            uint32_t pos = m_array.at(idx).alias_pos;
+            uint32_t pos = m_array[idx].alias_pos;
             if (pos == (uint32_t)-1)
                 return NULL;                                //该元素未绑定别名
             return m_maps.at(pos)->value.key.c_str();
@@ -101,14 +99,21 @@ namespace rx
         void reset()
         {
             for (uint32_t i = 0; i < capacity(); ++i)
-                m_array.at(i).alias_pos = (uint32_t)-1;
+                m_array[i].alias_pos = (uint32_t)-1;
             m_maps.clear();
+        }
+        //-------------------------------------------------
+        //统一给数组元素赋值
+        void set(const DT &dat)
+        {
+            for (uint32_t i = 0; i < capacity(); ++i)
+                m_array[i].item = dat;
         }
     };
 
     //-----------------------------------------------------
     //固定容量的别名数组(factor为哈希表扩容百分比)
-    template<uint32_t max_items,typename DT=uint32_t, uint32_t max_alias_size = 32, uint32_t ic = 1,uint32_t factor=30, typename CT = char>
+    template<uint32_t max_items,typename DT=uint32_t, uint32_t max_alias_size = 32, uint32_t ic = 0,uint32_t factor=30, typename CT = char>
     class alias_array_ft:public alias_array_i<DT,max_alias_size,ic,CT>
     {
         //描述父类
@@ -123,12 +128,12 @@ namespace rx
         array_t     m_array;                                //定义数组容器实体
         hashtbl_t   m_hashtbl;                              //定义哈希容器实体
     public:
-        alias_array_ft() :super_t(m_array,m_hashtbl) {}
+        alias_array_ft() :super_t(m_array, m_hashtbl) {}
     };
 
     //-----------------------------------------------------
     //动态内存分配的别名数组
-    template<typename DT = uint32_t, uint32_t max_alias_size = 32, uint32_t ic = 1,typename CT = char>
+    template<typename DT = uint32_t, uint32_t max_alias_size = 32, uint32_t ic = 0,typename CT = char>
     class alias_array_t :public alias_array_i<DT, max_alias_size, ic, CT>
     {
         //描述父类

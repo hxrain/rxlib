@@ -33,6 +33,7 @@ namespace rx
         T* array()const{return m_ptr;}
         //直接访问数组元素
         T& at(uint32_t idx)const { return m_ptr[idx]; }
+        T& operator [](uint32_t idx) { return m_ptr[idx]; }
         //-------------------------------------------------
         //根据索引访问元素;0<=idx<
         T& operator []( int32_t idx )
@@ -47,6 +48,13 @@ namespace rx
                 rx_assert_msg(m_capacity + idx >= 0, "array_i 下标越界!");
                 return m_ptr[m_capacity + idx];
             }
+        }
+        //-------------------------------------------------
+        //统一给数组元素赋值
+        void set(const T &dat)
+        {
+            for (uint32_t i = 0; i < m_capacity; ++i)
+                m_ptr[i] = dat;
         }
         //-------------------------------------------------
         //定义简单的只读迭代器
