@@ -449,7 +449,19 @@ inline uint32_t rx_hash_zob(const char *buf, uint32_t seed = 0x7ED5052A)
     }
     return hash;
 }
-
+inline uint32_t rx_hash_zob(const wchar_t *buf, uint32_t seed = 0x7ED5052A)
+{
+    uint32_t hash = seed;
+    for (uint32_t i = 0; buf[i]; i++)
+    {
+        int r = (i + 1) % 32;
+        uint32_t value = zob_map_table[(uint8_t)buf[i]];
+        hash ^= (value << r) | (value >> (32 - r));
+        value = zob_map_table[(uint8_t)(buf[i]>>8)];
+        hash ^= (value << r) | (value >> (32 - r));
+    }
+    return hash;
+}
 //-----------------------------------------------------
 //可用的数据哈希函数类型
 typedef enum rx_data_hash32_type
