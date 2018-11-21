@@ -165,7 +165,7 @@ namespace rx
         template<class CT>  static uint32_t strupr(CT *buff,uint32_t buffsize,const CT *str)
         {
             uint32_t len = 0;
-            for (CT* s = str; *s&&len < buffsize; ++s,++len)
+            for (const CT* s = str; *s&&len < buffsize; ++s,++len)
             {
                 if (sc<CT>::is_atoz(*s))
                     buff[len] = *s - (sc<CT>::a() - sc<CT>::A());
@@ -190,7 +190,7 @@ namespace rx
         {
             --buffsize;
             uint32_t len = 0;
-            for (CT* s = str; *s&&len < buffsize; ++s, ++len)
+            for (const CT* s = str; *s&&len < buffsize; ++s, ++len)
             {
                 if (sc<CT>::is_AtoZ(*s))
                     buff[len] = *s + (sc<CT>::a() - sc<CT>::A());

@@ -8,11 +8,9 @@
 namespace rx_ut
 {
     //-----------------------------------------------------
-    inline void ut_dtl_array_1(rx_tdd_t &rt)
+    template<class array_t,uint32_t max_items>
+    inline void ut_dtl_array_1(rx_tdd_t &rt, array_t &cntr)
     {
-        const uint32_t max_items = 10;
-        typedef rx::alias_array_ft<max_items> array_t;
-        array_t cntr;
         rt.tdd_assert(cntr.size() == 0);
         rt.tdd_assert(cntr.capacity() == max_items);
         rt.tdd_assert(cntr.alias(0) == NULL);
@@ -34,7 +32,13 @@ namespace rx_ut
 
 rx_tdd(ut_dtl_array)
 {
-    rx_ut::ut_dtl_array_1(*this);
+    rx::alias_array_ft<10> farray;
+    rx_ut::ut_dtl_array_1<rx::alias_array_ft<10>,10>(*this, farray);
+
+    rx::alias_array_t<> array;
+    array.make(10);
+    rx_ut::ut_dtl_array_1<rx::alias_array_t<>, 10>(*this, array);
+
 }
 
 #endif

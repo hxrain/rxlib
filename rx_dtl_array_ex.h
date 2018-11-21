@@ -11,7 +11,7 @@ namespace rx
     //-----------------------------------------------------
     //带有关联别名的DT元素数组,在索引序号访问的基础上,增加了别名关联访问的功能
     //DT为数据元素;max_alias_size为别名的最大长度;ic告知字符串大小写敏感性(0敏感;1脱敏为小写;2脱敏为大写)
-    template<typename DT,uint32_t max_alias_size=32,uint32_t ic=0,typename CT=char>
+    template<typename DT,uint32_t max_alias_size,uint32_t ic,typename CT=char>
     class alias_array_i
     {
     protected:
@@ -97,18 +97,18 @@ namespace rx
             return node == NULL ? capacity() : node->value.val;
         }
         //-------------------------------------------------
-        //清理绑定关系
+        //清理绑定关系,之后可以重新绑定
         void reset()
         {
             for (uint32_t i = 0; i < capacity(); ++i)
-                m_array[i].alias_pos = -1;
+                m_array.at(i).alias_pos = (uint32_t)-1;
             m_maps.clear();
         }
     };
 
     //-----------------------------------------------------
     //固定容量的别名数组(factor为哈希表扩容百分比)
-    template<uint32_t max_items,typename DT=uint32_t, uint32_t max_alias_size = 32, uint32_t ic = 0,uint32_t factor=30, typename CT = char>
+    template<uint32_t max_items,typename DT=uint32_t, uint32_t max_alias_size = 32, uint32_t ic = 1,uint32_t factor=30, typename CT = char>
     class alias_array_ft:public alias_array_i<DT,max_alias_size,ic,CT>
     {
         //描述父类
@@ -125,6 +125,46 @@ namespace rx
     public:
         alias_array_ft() :super_t(m_array,m_hashtbl) {}
     };
+
+    //-----------------------------------------------------
+    //动态内存分配的别名数组
+    template<typename DT = uint32_t, uint32_t max_alias_size = 32, uint32_t ic = 1,typename CT = char>
+    class alias_array_t :public alias_array_i<DT, max_alias_size, ic, CT>
+    {
+        //描述父类
+        typedef alias_array_i<DT, max_alias_size, ic, CT> super_t;
+        //描述数组容器实体类
+        typedef array_t<typename super_t::array_node_t> array_t;
+        //描述哈希容器实体类
+        typedef hashtbl_st<uint32_t, max_alias_size, false, CT> hashtbl_t;
+
+        array_t     m_array;                                //定义数组容器实体
+        hashtbl_t   m_hashtbl;                              //定义哈希容器实体
+    public:
+        //-------------------------------------------------
+        alias_array_t() :super_t(m_array, m_hashtbl) {}
+        alias_array_t(mem_allotter_i &ma) :m_array(ma), m_hashtbl(ma),super_t(m_array, m_hashtbl) {}
+        //-------------------------------------------------
+        //动态生成别名数组,同时告知哈希表的扩容系数
+        bool make(uint32_t max_items,uint32_t factor=30)
+        {
+            clear();
+            if (!m_array.make(max_items))
+                return false;
+            if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
+                return false;
+            return true;
+        }
+        //-------------------------------------------------
+        //释放资源,需要再次make后才能使用
+        void clear()
+        {
+            super_t::reset();
+            m_hashtbl.clear();
+            m_array.clear();
+        }
+    };
+
 }
 
 #endif
