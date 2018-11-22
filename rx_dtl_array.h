@@ -34,7 +34,7 @@ namespace rx
         //直接访问数组元素
         T& at(uint32_t idx)const { return m_ptr[idx]; }
         //-------------------------------------------------
-        //根据索引访问元素;0<=idx<
+        //根据索引访问元素;idx从-1开始可以反向访问元素
         T& operator []( int32_t idx )
         {
             if (idx >= 0)
@@ -60,7 +60,7 @@ namespace rx
         class iterator
         {
             const array_i       *m_parent;
-            int32_t             m_pos;
+            uint32_t             m_pos;
         public:
             //---------------------------------------------
             iterator(const array_i &s, uint32_t pos) :m_parent(&s), m_pos(pos) {}
@@ -75,7 +75,7 @@ namespace rx
             const T& operator*() const
             {
                 rx_assert(m_pos<m_parent->capacity());
-                return (*m_parent)[m_pos];
+                return m_parent->at(m_pos);
             }
             //获取当前迭代器在容器中对应的位置索引
             uint32_t pos() const { return m_pos; }
@@ -113,7 +113,7 @@ namespace rx
         {
             uint32_t mincap = min(super_t::m_capacity,S.m_capacity);
             for (uint32_t i = 0; i<mincap; i++)
-                super_t::m_ptr[i] = S.m_ptr[i];
+                super_t::m_ptr.at(i) = S.m_ptr.at(i);
             return *this;
         }
     };
@@ -172,7 +172,7 @@ namespace rx
             if (super_t::m_capacity!=S.m_capacity)
                 make(S.m_capacity);
             for(uint32_t i=0;i<super_t::m_capacity;i++)
-                super_t::m_ptr[i]=S.m_ptr[i];
+                super_t::m_ptr.at(i)=S.m_ptr.at(i);
             return *this;
         }
         //-------------------------------------------------
