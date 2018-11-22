@@ -232,6 +232,8 @@ namespace rx
         //字符串转换为浮点数
         static double           atof(const char* s) {return ::atof(s);}
         static double           atof(const wchar_t* s) {return ::wcstod(s,NULL);}
+        static long double      atod(const char* s) { return ::strtold(s,NULL); }
+        static long double      atod(const wchar_t* s) { return ::wcstold(s, NULL); }
 
         //数字转换为字符串
 
@@ -339,7 +341,7 @@ namespace rx
         static bool             isalnum(wchar_t c) {return (c>=L'0'&&c<=L'9')||(c>=L'A'&&c<=L'Z')||(c>=L'a'&&c<=L'z');}
 
         //字符串格式化
-        //返回值:<0错误;>=0为输出内容长度
+        //返回值:<0错误;>=0为输出内容长度,需要与BufSize进行比较
         static int              snprintf(char * Buf,uint32_t BufSize, const char *Fmt,...)
         {
             va_list ap;

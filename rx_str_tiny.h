@@ -78,6 +78,25 @@ namespace rx
             }
         }
         //-------------------------------------------------
+        //格式化生成内部串
+        bool fmt(const CT *str, va_list arg)
+        {
+            m_head.length = 0;
+            m_head.buff[0] = 0;
+
+            int rc=st::vsnprintf(m_head.buff, m_head.capacity(), str, arg);
+            if (rc < 0 || rc >= m_head.capacity())
+                return false;
+            m_head.length = rc;
+            return true;
+        }
+        bool fmt(const CT *str,...)
+        {
+            va_list	ap;
+            va_start(ap, str);
+            return fmt(str, ap);
+        }
+        //-------------------------------------------------
         //绑定缓冲器并进行字符串的赋值
         uint32_t bind(CT* buff,uint32_t cap,const CT* str,uint32_t len = 0){m_head.bind(buff,cap);return set(str,len);}
         //-------------------------------------------------
