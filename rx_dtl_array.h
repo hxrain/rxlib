@@ -33,14 +33,13 @@ namespace rx
         T* array()const{return m_ptr;}
         //直接访问数组元素
         T& at(uint32_t idx)const { return m_ptr[idx]; }
-        T& operator [](uint32_t idx) { return m_ptr[idx]; }
         //-------------------------------------------------
         //根据索引访问元素;0<=idx<
         T& operator []( int32_t idx )
         {
             if (idx >= 0)
             {
-                rx_assert_msg(idx < m_capacity, "array_i 下标越界!");
+                rx_assert_msg((uint32_t)idx < m_capacity, "array_i 下标越界!");
                 return m_ptr[idx];
             }
             else
@@ -152,7 +151,7 @@ namespace rx
             if (!Count) return true;
 
             super_t::m_capacity = Count;
-            super_t::m_ptr = m_mem.new1<T>(Count,P1);
+            super_t::m_ptr = m_mem.new1<T>(P1, Count);
             return super_t::m_ptr != NULL;
         }
         //-------------------------------------------------

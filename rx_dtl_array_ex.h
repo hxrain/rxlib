@@ -21,6 +21,8 @@ namespace rx
             uint32_t    alias_pos;                          //指向maps中的别名位置
             DT          item;                               //数据元素
             array_node_t():alias_pos(-1){}
+            //特殊构造,给元素对象传递内存分配器
+            array_node_t(mem_allotter_i &ma) :alias_pos(-1),item(ma) {}
         }array_node_t;
 
         //字符串脱敏工具类型
@@ -143,18 +145,29 @@ namespace rx
         //描述哈希容器实体类
         typedef hashtbl_st<uint32_t, max_alias_size, false, CT> hashtbl_t;
 
-        array_t     m_array;                                //定义数组容器实体
-        hashtbl_t   m_hashtbl;                              //定义哈希容器实体
+        array_t         m_array;                            //定义数组容器实体
+        hashtbl_t       m_hashtbl;                          //定义哈希容器实体
+        mem_allotter_i  &m_mem;
     public:
         //-------------------------------------------------
-        alias_array_t() :super_t(m_array, m_hashtbl) {}
-        alias_array_t(mem_allotter_i &ma) :m_array(ma), m_hashtbl(ma),super_t(m_array, m_hashtbl) {}
+        alias_array_t() :m_mem(rx_global_mem_allotter()),super_t(m_array, m_hashtbl) {}
+        alias_array_t(mem_allotter_i &ma) :m_array(ma), m_hashtbl(ma), m_mem(ma),super_t(m_array, m_hashtbl) {}
         //-------------------------------------------------
         //动态生成别名数组,同时告知哈希表的扩容系数
         bool make(uint32_t max_items,uint32_t factor=30)
         {
             clear();
             if (!m_array.make(max_items))
+                return false;
+            if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
+                return false;
+            return true;
+        }
+        //动态生成别名数组,同时给元素提供内存分配器告知哈希表的扩容系数
+        bool make_ex(uint32_t max_items, uint32_t factor = 30)
+        {
+            clear();
+            if (!m_array.make(max_items,m_mem))
                 return false;
             if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
                 return false;
