@@ -248,9 +248,9 @@ namespace rx
         }
         //-------------------------------------------------
         //最大节点数量
-        uint32_t capacity() const { return m_stat->max_nodes; }
+        uint32_t capacity() const { return m_stat?m_stat->max_nodes:0; }
         //已经使用的节点数量
-        uint32_t size() const { return m_stat->using_count; }
+        uint32_t size() const { return m_stat?m_stat->using_count:0; }
         //只读获取内部状态
         const raw_hashtbl_stat_t& stat() const { return *m_stat; }
         //-------------------------------------------------
