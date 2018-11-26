@@ -158,13 +158,13 @@ namespace rx
 
         //--------------------------------------------------
         //进行递归锁的初始化,返回值0成功.
-        int m_init()
+        int m_init(bool is_recursive)
         {
             //初始化互斥锁的属性对象
             lock_attr la;
             if (!la()) return -1;
             if (!la.set_private()) return -2;
-            if (!la.set_recursive()) return -3;
+            if (is_recursive&&!la.set_recursive()) return -3;
             //初始化互斥锁,应用锁属性
             return pthread_mutex_init(&m_handle,&la.attr());
         }
@@ -179,7 +179,7 @@ namespace rx
     public:
         //--------------------------------------------------
         //构造函数,默认进行初始化
-        locker_t(){m_init();}
+        locker_t(bool is_recursive=true){m_init(is_recursive);}
         ~locker_t(){m_uninit();}
         pthread_mutex_t *handle(){return &m_handle;}
         //--------------------------------------------------
@@ -294,7 +294,7 @@ namespace rx
     public:
         //--------------------------------------------------
         //构造函数,默认进行初始化
-        locker_t() { m_init(); }
+        locker_t(bool is_recursive = true) { m_init(); }
         ~locker_t() { m_uninit(); }
         CRITICAL_SECTION *handle() { return &m_handle; }
         //--------------------------------------------------

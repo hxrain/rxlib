@@ -100,13 +100,14 @@ namespace rx
             if (m_pause_flag)
             {
                 GUARD(m_lock);
-                m_cond.wait(m_lock);
+                while(m_pause_flag)
+                    m_cond.wait(m_lock);
             }
 
             return task_t::need_break();
         }
     public:
-        task_ex_t(bool is_pause = false) :m_pause_flag(is_pause) {}
+        task_ex_t(bool is_pause = false) :m_lock(false),m_pause_flag(is_pause) {}
         //-------------------------------------------------
         //标记,让线程进入逻辑暂停
         void pause()
@@ -125,7 +126,7 @@ namespace rx
             {
                 GUARD(m_lock);
                 m_pause_flag = false;
-                m_cond.post();
+                m_cond.post(true);
             }
         }
         //-------------------------------------------------
