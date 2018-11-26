@@ -136,7 +136,7 @@ namespace rx
         {
             clear();
             rx_assert_msg(Count!=0,"不能初始化0长度的数组");
-            if (!Count) return true;
+            if (!Count) return false;
 
             super_t::m_capacity=Count;
             super_t::m_ptr = m_mem.new0<T>(Count);
