@@ -175,10 +175,12 @@ namespace rx
             return true;
         }
         //-------------------------------------------------
-        //释放资源,需要再次make后才能使用
-        void clear()
+        //释放资源,如果不是复位,则需要再次make后才能使用
+        void clear(bool reset_only=false)
         {
             super_t::reset();
+            if (reset_only)
+                return;
             m_hashtbl.clear();
             m_array.clear();
         }
