@@ -53,12 +53,12 @@ namespace rx
         //-------------------------------------------------
         //数据拷贝
         void set(const uint8_t &dat) { memset(m_ptr, dat, m_capacity); m_size = m_capacity; }
-        bool set(const uint8_t *dat, uint32_t size) 
-        { 
+        bool set(const uint8_t *dat, uint32_t size)
+        {
             if (size > m_capacity)
-                return false; 
-            memcpy(m_ptr, dat, size); 
-            m_size = size; 
+                return false;
+            memcpy(m_ptr, dat, size);
+            m_size = size;
             return true;
         }
         //-------------------------------------------------
@@ -79,13 +79,13 @@ namespace rx
 
     //-----------------------------------------------------
     //静态缓冲区,可按数据类型T访问
-    template<typename T,uint32_t size>
+    template<typename T,uint32_t max_size>
     class buff_ft :public buff_i
     {
         typedef buff_i super_t;
-        T       m_items[size];
+        T       m_items[max_size];
     public:
-        buff_ft() :super_t((uint8_t*)m_items, sizeof(T)*size){}
+        buff_ft() :super_t((uint8_t*)m_items, sizeof(T)*max_size){}
     };
 
     //-----------------------------------------------------

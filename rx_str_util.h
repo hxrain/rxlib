@@ -975,7 +975,7 @@ namespace rx
             if (is_empty(Str))
                 return NULL;
             CT* Ret=Str;
-            while(Str=strchr(Str,From))
+            while((Str=strchr(Str,From)))
                 *Str++=To;
             return Ret;
         }

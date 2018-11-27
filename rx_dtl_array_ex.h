@@ -150,8 +150,8 @@ namespace rx
         mem_allotter_i  &m_mem;
     public:
         //-------------------------------------------------
-        alias_array_t() :m_mem(rx_global_mem_allotter()),super_t(m_array, m_hashtbl) {}
-        alias_array_t(mem_allotter_i &ma) :m_array(ma), m_hashtbl(ma), m_mem(ma),super_t(m_array, m_hashtbl) {}
+        alias_array_t() :super_t(m_array, m_hashtbl),m_mem(rx_global_mem_allotter()) {}
+        alias_array_t(mem_allotter_i &ma) :super_t(m_array, m_hashtbl),m_array(ma), m_hashtbl(ma), m_mem(ma) {}
         ~alias_array_t() { clear(); }
         //-------------------------------------------------
         //动态生成别名数组,同时告知哈希表的扩容系数
