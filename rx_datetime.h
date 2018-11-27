@@ -214,20 +214,20 @@
         strcpy(TmpBuf,DateStr);
 
         char *text=TmpBuf;
-        char* Str=strchr(text,'-');                    //准备摘取年yyyy
+        char* Str=strchr(text,'-');                         //准备摘取年yyyy
         if (!Str) return false;
         *Str=0;
-        Date.tm_year=atoi(text);
+        Date.tm_year=atoi(text)-1900;                       //tm的年需要调整
         
         text=++Str;
-        Str=strchr(text,'-');                          //准备摘取月mm
+        Str=strchr(text,'-');                               //准备摘取月mm
         if (!Str) return false;
         *Str=0;
-        Date.tm_mon=atoi(text);
-        if (Date.tm_mon>12) return false;
+        Date.tm_mon=atoi(text)-1;                           //tm的月需要调整
+        if ((uint32_t)Date.tm_mon>=12) return false;
 
         text=++Str;
-        Str=strchr(text,' ');                          //准备摘取日dd
+        Str=strchr(text,' ');                               //准备摘取日dd
         if (!Str) Str=strchr(text,'T');
         
         if (Str) *Str=0;
@@ -236,7 +236,7 @@
             return false;
 
         //最后根据年份和月份校验当前的日期的范围是否合法
-        return Date.tm_mday<=rx_moon_days(Date.tm_year,Date.tm_mon);
+        return Date.tm_mday<=rx_moon_days(Date.tm_year+1900,Date.tm_mon+1);
     }
     //-----------------------------------------------------
     //转换标准时间串到tm格式
