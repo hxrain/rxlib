@@ -75,16 +75,20 @@ namespace rx
         uint32_t    m_max_size;
         uint32_t   &m_size;
         uint32_t    m_dummy_size;
+        uint32_t    m_err;
     public:
-        strcat_t(CT *buff, uint32_t max_size) :m_buff(buff),m_max_size(max_size), m_size(m_dummy_size), m_dummy_size(0){}
-        strcat_t(CT *buff, uint32_t max_size, uint32_t initsize) :m_buff(buff), m_max_size(max_size), m_size(m_dummy_size) { m_dummy_size = initsize; }
+        strcat_t(CT *buff, uint32_t max_size) :m_buff(buff),m_max_size(max_size), m_size(m_dummy_size), m_dummy_size(0),m_err(0){}
+        strcat_t(CT *buff, uint32_t max_size, uint32_t initsize) :m_buff(buff), m_max_size(max_size), m_size(m_dummy_size),m_err(0) { m_dummy_size = initsize; }
         uint32_t capacity() { return m_max_size; }
         uint32_t size() { return m_size; }
+        uint32_t err(){return m_err;}
         //拼装字符
         strcat_t& operator<<(const CT c)
         {
             if (m_size < m_max_size - 1)
                 m_buff[m_size++] = c;
+            else
+                ++m_err;
             m_buff[m_size] = 0;
             return *this;
         }
@@ -93,12 +97,25 @@ namespace rx
         {
             uint32_t rc = st::strcpy(m_buff + m_size, m_max_size - m_size, str);
             if (rc) m_size += rc;
+            else ++m_err;
             return *this;
         }
         //直接赋值
         strcat_t& operator=(const CT *str)
         {
             m_size = st::strcpy(m_buff, m_max_size, str);
+            if (!m_size) 
+                ++m_err;
+            else 
+                m_err=0;
+            return *this;
+        }
+        //拼装定长字符串
+        strcat_t& operator()(const CT *str,uint32_t len)
+        {
+            uint32_t rc = st::strcpy(m_buff + m_size, m_max_size - m_size, str, len);
+            if (rc) m_size += rc;
+            else ++m_err;
             return *this;
         }
     };
