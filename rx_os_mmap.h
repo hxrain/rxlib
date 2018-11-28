@@ -3,7 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
-#include "rx_str_util.h"
+#include "rx_str_util_std.h"
 #include "rx_os_file.h"
 #include "rx_os_misc.h"
 

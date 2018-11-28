@@ -1,9 +1,16 @@
 #define RX_USE_TDD_TICK 1
 
+//---------------------------------------------------------
+//简单的缓冲区功能封装
+#include "../../rx_dtl_buff.h"
+
+//---------------------------------------------------------
+//封装数组与别名数组
 #include "../ut_dtl_array.h"
 #include "../../rx_dtl_array.h"
 #include "../../rx_dtl_array_ex.h"
 
+//---------------------------------------------------------
 //紧凑高效的gbk/unicode字符集转换功能
 #include "../ut_str_uni2gbk.h"
 #include "../../rx_str_cs_gbk2uni.h"
@@ -77,7 +84,10 @@
 //字符串相关功能与极小字符串功能封装,便于容器内置使用
 #include "../ut_str_util.h"
 #include "../../rx_str_tiny.h"
-#include "../../rx_str_util.h"
+#include "../../rx_str_util_std.h"
+#include "../../rx_str_util_ex.h"
+#include "../../rx_str_util_bin.h"
+#include "../../rx_str_util_tiny.h"
 //---------------------------------------------------------
 //测试用例与运行计时功能
 #include "../../rx_tdd_tick.h"

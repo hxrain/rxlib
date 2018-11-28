@@ -6,7 +6,7 @@
 #include "rx_ct_util.h"
 #include "rx_hash_data.h"
 #include "rx_hash_int.h"
-#include "rx_str_util.h"
+#include "rx_str_util_std.h"
 
 namespace rx
 {

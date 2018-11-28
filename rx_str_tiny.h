@@ -2,7 +2,7 @@
 #define _RX_STR_TINY_H_
 
 #include "rx_cc_macro.h"
-#include "rx_str_util.h"
+#include "rx_str_util_std.h"
 
 namespace rx
 {
