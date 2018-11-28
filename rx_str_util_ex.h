@@ -71,6 +71,12 @@ namespace rx
             buff[len] = 0;
             return len;
         }
+        //字符串转换扩展,直接拷贝到目标缓冲器
+        template<class CT>
+        inline CT *             strupr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return strupr(TmpBuf);}
+        template<class CT>
+        inline CT *             strlwr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return strlwr(TmpBuf);}
+
         //-------------------------------------------------
         //判断是否为十进制数字字符
         inline bool             isnumber(char c) {return c>='0'&&c<='9';}
