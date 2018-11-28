@@ -141,9 +141,9 @@ namespace rx
 
         //字符串转换扩展,直接拷贝到目标缓冲器
         template<class CT>
-        inline CT *             strupr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return strupr(TmpBuf);}
+        inline CT *             strupr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return ::strupr(TmpBuf);}
         template<class CT>
-        inline CT *             strlwr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return strlwr(TmpBuf);}
+        inline CT *             strlwr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return ::strlwr(TmpBuf);}
 
         //字符串转为无符号整数
         inline uint32_t         atoul(const char* s,int radix=0) {return ::strtoul(s,NULL,radix);}
