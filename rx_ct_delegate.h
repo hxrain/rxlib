@@ -35,6 +35,7 @@ namespace rx
         {
         public:
             virtual RT operator()(PT1 P1) = 0;
+            virtual cb_func_t cb_func() { return NULL; }
         };
         //-------------------------------------------------
         //成员函数回调指针对应的委托对象
@@ -63,22 +64,24 @@ namespace rx
         template<class rt,class dummy>
         class delegate_t<void*,rt, dummy> :public delegate_i
         {
-            void           *owner;
+            void           *usrdat;
             cb_func_t       cb_std_func;
         public:
-            delegate_t(cb_func_t cf, void* obj = NULL) :owner(obj), cb_std_func(cf) {}
-            rt operator()(PT1 P1) { return cb_std_func(P1, owner); }
+            delegate_t(cb_func_t cf, void* dat = NULL) :usrdat(dat), cb_std_func(cf) {}
+            rt operator()(PT1 P1) { return cb_std_func(P1, usrdat); }
+            virtual cb_func_t cb_func() { return cb_std_func; }
         };
         //-------------------------------------------------
         //普通函数回调指针对应的委托对象(无返回值特化)
         template<class dummy>
         class delegate_t<void*,void, dummy> :public delegate_i
         {
-            void           *owner;
+            void           *usrdat;
             cb_func_t       cb_std_func;
         public:
-            delegate_t(cb_func_t cf, void* obj = NULL) :owner(obj), cb_std_func(cf) {}
-            void operator()(PT1 P1) { cb_std_func(P1, owner); }
+            delegate_t(cb_func_t cf, void* dat = NULL) :usrdat(dat), cb_std_func(cf) {}
+            void operator()(PT1 P1) { cb_std_func(P1, usrdat); }
+            virtual cb_func_t cb_func() { return cb_std_func; }
         };
         //-------------------------------------------------
         //委托对象实体需要的空间
@@ -95,10 +98,10 @@ namespace rx
         }
         //-------------------------------------------------
         //进行普通函数回调指针绑定,可附带绑定一个参数,在调用时内部给出.
-        void bind(cb_func_t cf, void* obj = NULL)
+        void bind(cb_func_t cf, void* dat = NULL)
         {
             rx_static_assert(sizeof(m_buff) >= sizeof(delegate_t<void*,RT, void>));
-            ct::OC((delegate_t<void*,RT, void>*)m_buff, cf, obj);//针对给定的函数指针,动态生成委托对象
+            ct::OC((delegate_t<void*,RT, void>*)m_buff, cf, dat);//针对给定的函数指针,动态生成委托对象
         }
         //-------------------------------------------------
         //判断当前回调委托对象是否有效(是否已经绑定过)
@@ -111,6 +114,13 @@ namespace rx
             delegate_i &cb = reinterpret_cast<delegate_i&>(*(delegate_i*)ptr);
             return cb(P1);
         }
+        //-------------------------------------------------
+        cb_func_t cb_func()
+        {
+            void *ptr = (void*)m_buff;
+            delegate_i &cb = reinterpret_cast<delegate_i&>(*(delegate_i*)ptr);
+            return cb.cb_func();
+        }
     };
     //-----------------------------------------------------
     template<class PT1, class RT=uint32_t>
@@ -121,7 +131,7 @@ namespace rx
     public:
         //-------------------------------------------------
         delegate1_t() { super::reset(); }
-        delegate1_t(cb_func_t f,void* obj = NULL) { super::reset(); super::bind(f,obj); }
+        delegate1_t(cb_func_t f,void* dat = NULL) { super::reset(); super::bind(f,dat); }
         template<class T>
         delegate1_t(T& owner, RT (T::*member_func)(PT1 P1)) { super::reset(); super::bind(owner, member_func); }
     };
@@ -145,6 +155,7 @@ namespace rx
         {
         public:
             virtual RT operator()(PT1 P1, PT2 P2) = 0;
+            virtual cb_func_t cb_func() { return NULL; }
         };
         //-------------------------------------------------
         template<class T,class rt, class dummy>
@@ -170,21 +181,23 @@ namespace rx
         template<class rt,class dummy>
         class delegate_t<void*,rt,dummy> :public delegate_i
         {
-            void           *owner;
+            void           *usrdat;
             cb_func_t       cb_std_func;
         public:
-            delegate_t(cb_func_t cf, void* obj = NULL) :owner(obj), cb_std_func(cf) {}
-            rt operator()(PT1 P1, PT2 P2) { return cb_std_func(P1, P2, owner); }
+            delegate_t(cb_func_t cf, void* dat = NULL) :usrdat(dat), cb_std_func(cf) {}
+            rt operator()(PT1 P1, PT2 P2) { return cb_std_func(P1, P2, usrdat); }
+            virtual cb_func_t cb_func() { return cb_std_func; }
         };
         //-------------------------------------------------
         template<class dummy>
         class delegate_t<void*,void, dummy> :public delegate_i
         {
-            void           *owner;
+            void           *usrdat;
             cb_func_t       cb_std_func;
         public:
-            delegate_t(cb_func_t cf, void* obj = NULL) :owner(obj), cb_std_func(cf) {}
-            void operator()(PT1 P1, PT2 P2) { cb_std_func(P1, P2, owner); }
+            delegate_t(cb_func_t cf, void* dat = NULL) :usrdat(dat), cb_std_func(cf) {}
+            void operator()(PT1 P1, PT2 P2) { cb_std_func(P1, P2, usrdat); }
+            virtual cb_func_t cb_func() { return cb_std_func; }
         };
         //-------------------------------------------------
         uint8_t m_buff[sizeof(delegate_t<delegate_i,void, void>)];
@@ -194,7 +207,7 @@ namespace rx
         template<class T>
         void bind(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2)){ct::OC((delegate_t<T,RT, void>*)m_buff, owner, member_func);}
         //-------------------------------------------------
-        void bind(cb_func_t cf, void* obj = NULL){ct::OC((delegate_t<void*,RT, void>*)m_buff, cf, obj);}
+        void bind(cb_func_t cf, void* dat = NULL){ct::OC((delegate_t<void*,RT, void>*)m_buff, cf, dat);}
         //-------------------------------------------------
         bool is_valid() { void *ptr = (void*)&m_buff[0]; return (*((size_t*)ptr) != 0); }
         //-------------------------------------------------
@@ -203,6 +216,13 @@ namespace rx
             void *ptr = (void*)m_buff;
             delegate_i &cb = reinterpret_cast<delegate_i&>(*(delegate_i*)ptr);
             return cb(P1, P2);
+        }
+        //-------------------------------------------------
+        cb_func_t cb_func()
+        {
+            void *ptr = (void*)m_buff;
+            delegate_i &cb = reinterpret_cast<delegate_i&>(*(delegate_i*)ptr);
+            return cb.cb_func();
         }
     };
 
@@ -214,7 +234,7 @@ namespace rx
         typedef typename super::cb_func_t cb_func_t;
     public:
         delegate2_t() { super::reset(); }
-        delegate2_t(cb_func_t cf,void* obj = NULL) { super::reset(); super::bind(cf,obj); }
+        delegate2_t(cb_func_t cf,void* dat = NULL) { super::reset(); super::bind(cf,dat); }
         template<class T>
         delegate2_t(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2)) { super::reset(); super::bind(owner, member_func); }
     };
@@ -237,6 +257,7 @@ namespace rx
         {
         public:
             virtual RT operator()(PT1 P1, PT2 P2, PT3 P3) = 0;
+            virtual cb_func_t cb_func() { return NULL; }
         };
         //-------------------------------------------------
         template<class T,class rt, class dummy>
@@ -262,21 +283,23 @@ namespace rx
         template<class rt,class dummy>
         class delegate_t<void*,rt, dummy> :public delegate_i
         {
-            void           *owner;
+            void           *usrdat;
             cb_func_t       cb_std_func;
         public:
-            delegate_t(cb_func_t cf, void* obj = NULL) :owner(obj), cb_std_func(cf) {}
-            rt operator()(PT1 P1, PT2 P2, PT3 P3) { return cb_std_func(P1, P2, P3, owner); }
+            delegate_t(cb_func_t cf, void* dat = NULL) :usrdat(dat), cb_std_func(cf) {}
+            rt operator()(PT1 P1, PT2 P2, PT3 P3) { return cb_std_func(P1, P2, P3, usrdat); }
+            virtual cb_func_t cb_func() { return cb_std_func; }
         };
         //-------------------------------------------------
         template<class dummy>
         class delegate_t<void*,void, dummy> :public delegate_i
         {
-            void           *owner;
+            void           *usrdat;
             cb_func_t       cb_std_func;
         public:
-            delegate_t(cb_func_t cf, void* obj = NULL) :owner(obj), cb_std_func(cf) {}
-            RT operator()(PT1 P1, PT2 P2, PT3 P3) { return cb_std_func(P1, P2, P3, owner); }
+            delegate_t(cb_func_t cf, void* dat = NULL) :usrdat(dat), cb_std_func(cf) {}
+            RT operator()(PT1 P1, PT2 P2, PT3 P3) { return cb_std_func(P1, P2, P3, usrdat); }
+            virtual cb_func_t cb_func() { return cb_std_func; }
         };
         //-------------------------------------------------
         uint8_t m_buff[sizeof(delegate_t<delegate_i,void, void>)];
@@ -286,7 +309,7 @@ namespace rx
         template<class T>
         void bind(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2, PT3 P3)){ct::OC((delegate_t<T,RT, void>*)m_buff, owner, member_func);}
         //-------------------------------------------------
-        void bind(cb_func_t cf, void* obj = NULL){ct::OC((delegate_t<void*,RT, void>*)m_buff, cf, obj);}
+        void bind(cb_func_t cf, void* dat = NULL){ct::OC((delegate_t<void*,RT, void>*)m_buff, cf, dat);}
         //-------------------------------------------------
         bool is_valid() { void *ptr = (void*)&m_buff[0]; return (*((size_t*)ptr) != 0); }
         //-------------------------------------------------
@@ -295,6 +318,13 @@ namespace rx
             void *ptr = (void*)m_buff;
             delegate_i &cb = reinterpret_cast<delegate_i&>(*(delegate_i*)ptr);
             return cb(P1, P2, P3);
+        }
+        //-------------------------------------------------
+        cb_func_t cb_func()
+        {
+            void *ptr = (void*)m_buff;
+            delegate_i &cb = reinterpret_cast<delegate_i&>(*(delegate_i*)ptr);
+            return cb.cb_func();
         }
     };
     //-----------------------------------------------------
@@ -306,7 +336,7 @@ namespace rx
     public:
         //-------------------------------------------------
         delegate3_t() { super::reset(); }
-        delegate3_t(cb_func_t cf,void* obj = NULL) { super::reset(); super::bind(cf,obj); }
+        delegate3_t(cb_func_t cf,void* dat = NULL) { super::reset(); super::bind(cf,dat); }
         template<class T>
         delegate3_t(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2, PT3 P3)) { super::reset(); super::bind(owner, member_func); }
     };
@@ -330,6 +360,7 @@ namespace rx
         {
         public:
             virtual RT operator()(PT1 P1, PT2 P2, PT3 P3,PT4 P4) = 0;
+            virtual cb_func_t cb_func() { return NULL; }
         };
         //-------------------------------------------------
         template<class T,class rt, class dummy>
@@ -355,21 +386,23 @@ namespace rx
         template<class rt,class dummy>
         class delegate_t<void*,rt, dummy> :public delegate_i
         {
-            void           *owner;
+            void           *usrdat;
             cb_func_t       cb_std_func;
         public:
-            delegate_t(cb_func_t cf,void* obj=NULL) :owner(obj),cb_std_func(cf) {}
-            rt operator()(PT1 P1, PT2 P2, PT3 P3,PT4 P4){return cb_std_func(P1,P2,P3,P4,owner);}
+            delegate_t(cb_func_t cf,void* dat=NULL) :usrdat(dat),cb_std_func(cf) {}
+            rt operator()(PT1 P1, PT2 P2, PT3 P3,PT4 P4){return cb_std_func(P1,P2,P3,P4, usrdat);}
+            virtual cb_func_t cb_func() { return cb_std_func; }
         };
         //-------------------------------------------------
         template<class dummy>
         class delegate_t<void*,void, dummy> :public delegate_i
         {
-            void           *owner;
+            void           *usrdat;
             cb_func_t       cb_std_func;
         public:
-            delegate_t(cb_func_t cf,void* obj=NULL) :owner(obj),cb_std_func(cf) {}
-            RT operator()(PT1 P1, PT2 P2, PT3 P3,PT4 P4){cb_std_func(P1,P2,P3,P4,owner);}
+            delegate_t(cb_func_t cf,void* dat=NULL) :usrdat(dat),cb_std_func(cf) {}
+            RT operator()(PT1 P1, PT2 P2, PT3 P3,PT4 P4){cb_std_func(P1,P2,P3,P4, usrdat);}
+            virtual cb_func_t cb_func() { return cb_std_func; }
         };
         //-------------------------------------------------
         uint8_t m_buff[sizeof(delegate_t<delegate_i,void, void>)];
@@ -380,7 +413,7 @@ namespace rx
         template<class T>
         void bind(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2, PT3 P3,PT4 P4)){ct::OC((delegate_t<T,RT, void>*)m_buff, owner, member_func);}
         //-------------------------------------------------
-        void bind(cb_func_t cf,void* obj=NULL){ct::OC((delegate_t<void*,RT, void>*)m_buff,cf,obj);}
+        void bind(cb_func_t cf,void* dat=NULL){ct::OC((delegate_t<void*,RT, void>*)m_buff,cf,dat);}
         //-------------------------------------------------
         bool is_valid() { void *ptr = (void*)&m_buff[0]; return (*((size_t*)ptr) != 0); }
         //-------------------------------------------------
@@ -389,6 +422,13 @@ namespace rx
             void *ptr = (void*)m_buff;
             delegate_i &cb = reinterpret_cast<delegate_i&>(*(delegate_i*)ptr);
             return cb(P1,P2,P3,P4);
+        }
+        //-------------------------------------------------
+        cb_func_t cb_func()
+        {
+            void *ptr = (void*)m_buff;
+            delegate_i &cb = reinterpret_cast<delegate_i&>(*(delegate_i*)ptr);
+            return cb.cb_func();
         }
     };
     //-----------------------------------------------------
@@ -400,7 +440,7 @@ namespace rx
     public:
         //-------------------------------------------------
         delegate4_t() { super::reset(); }
-        delegate4_t(cb_func_t cf,void* obj = NULL) { super::reset(); super::bind(cf,obj); }
+        delegate4_t(cb_func_t cf,void* dat = NULL) { super::reset(); super::bind(cf,dat); }
         template<class T>
         delegate4_t(T& owner, RT (T::*member_func)(PT1 P1, PT2 P2, PT3 P3, PT4 P4)) { super::reset(); super::bind(owner, member_func); }
     };
