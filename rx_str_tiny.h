@@ -57,10 +57,10 @@ namespace rx
     public:
         tiny_string_t(uint32_t cap, CT* buff){m_head.bind(buff,cap);}
         tiny_string_t(){}
-        tiny_string_t(const CT* str) 
-        { 
+        tiny_string_t(const CT* str)
+        {
             rx_static_assert(max_str_size!=0);              //要求必须是内置缓冲区模式,才可以直接赋值
-            set(str); 
+            set(str);
         }
         //-------------------------------------------------
         //使用给定的字符串进行赋值
@@ -155,12 +155,12 @@ namespace rx
         {
             if (m_head.length < m_head.capacity() - 1)
             {
-                m_buff[m_head.length++] = c;
-                m_buff[m_head.length] = 0;
+                m_head.buff[m_head.length++] = c;
+                m_head.buff[m_head.length] = 0;
             }
             else
                 m_head.length = m_head.capacity();          //容量不足,标记错误
-            
+
             return *this;
         }
         //-------------------------------------------------
@@ -168,10 +168,10 @@ namespace rx
         tiny_string_t& operator<<(const CT *str)
         {
             //尝试在剩余的空间中放入指定字符串
-            uint32_t rc = st::strcpy(m_buff + m_head.length, m_head.capacity() - m_head.length, str);
-            if (rc) 
+            uint32_t rc = st::strcpy(m_head.buff + m_head.length, m_head.capacity() - m_head.length, str);
+            if (rc)
                 m_head.length += rc;
-            else 
+            else
                 m_head.length = m_head.capacity();          //容量不足,标记错误
             return *this;
         }
@@ -180,8 +180,8 @@ namespace rx
         tiny_string_t& operator()(const CT *str, uint32_t len)
         {
             //尝试在剩余的空间中放入指定字符串
-            uint32_t rc = st::strcpy(m_buff + m_head.length, m_head.capacity() - m_head.length, str, len);
-            if (rc) 
+            uint32_t rc = st::strcpy(m_head.buff + m_head.length, m_head.capacity() - m_head.length, str, len);
+            if (rc)
                 m_head.length += rc;
             else
                 m_head.length = m_head.capacity();          //容量不足,标记错误

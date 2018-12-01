@@ -58,6 +58,36 @@ namespace rx
             dst[SrcLen] = 0;								//标记串结束符
             return SrcLen;
         }
+        //-------------------------------------------------
+        //将Src拼接到Dst的后面,不论Src与Dst为什么情况,拼接后的分隔符只有一个SP
+        template<class CT>
+        inline CT* strcat(CT* Dst, const CT* Src, const CT SP)
+        {
+            if (is_empty(Dst) || !Src)
+                return NULL;
+
+            int DstLen = strlen(Dst);
+            if (Dst[DstLen - 1] == SP)
+            {
+                //目标已经是SP结束了
+                if (Src[0] == SP)
+                    strcpy(&Dst[DstLen], &Src[1]);
+                else
+                    strcpy(&Dst[DstLen], Src);
+            }
+            else
+            {
+                //目标不是SP结束
+                if (Src[0] == SP)
+                    strcpy(&Dst[DstLen], Src);
+                else
+                {
+                    Dst[DstLen++] = SP;
+                    strcpy(&Dst[DstLen], Src);
+                }
+            }
+            return Dst;
+        }
         //将str1和str2仅用sp分隔后拼接到dest中
         //返回值:拼接后的实际长度.0目标缓冲器不足
         template<class CT>
@@ -155,10 +185,10 @@ namespace rx
         {
             uint32_t DestLen=strlen(Dest);                  //计算得到目标现在已有的串长度
             if (SrcLen==0)
-                SrcLen=strlen(Src);              //计算得到原串现在已有的长度
+                SrcLen=strlen(Src);                         //计算得到原串现在已有的长度
             uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
             if (SrcLen>DestRemainLen-1)
-                return 0;           //空间不足,不能连接了
+                return 0;                                   //空间不足,不能连接了
             strncpy(&Dest[DestLen],Src,SrcLen);             //拼接拷贝
             uint32_t NewLen=SrcLen+DestLen;                 //目标现在的长度
             Dest[NewLen]=0;                                 //确保目标正确结束
@@ -192,7 +222,7 @@ namespace rx
             uint32_t Src2Len=strlen(Src2);                  //计算得到原串现在已有的长度
             uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
             if (Src2Len>DestRemainLen-1)
-                return 0;          //空间不足,不能连接了
+                return 0;                                   //空间不足,不能连接了
             strncpy(&Dest[DestLen],Src2,Src2Len);           //拼接拷贝
             uint32_t NewLen=Src2Len+DestLen;                //目标现在的长度
             Dest[NewLen]=0;                                 //确保目标正确结束
@@ -205,10 +235,10 @@ namespace rx
         inline uint32_t strcat(CT *Dest,uint32_t &DestLen,uint32_t DestMaxSize,const CT* Src,uint32_t SrcLen=0)
         {
             if (SrcLen==0)
-                SrcLen=strlen(Src);              //计算得到原串现在已有的长度
+                SrcLen=strlen(Src);                         //计算得到原串现在已有的长度
             uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
             if (SrcLen>DestRemainLen-1)
-                return 0;           //空间不足,不能连接了
+                return 0;                                   //空间不足,不能连接了
             strncpy(&Dest[DestLen],Src,SrcLen);             //拼接拷贝
             DestLen+=SrcLen;                                //目标现在的长度
             Dest[DestLen]=0;                                //确保目标正确结束
@@ -219,43 +249,11 @@ namespace rx
         {
             uint32_t DestRemainLen=DestMaxSize-DestLen;     //计算目标可用容量
             if (DestRemainLen<2)
-                return 0;                //空间不足,不能连接了
+                return 0;                                   //空间不足,不能连接了
             Dest[DestLen]=Src;                              //拼接拷贝
             Dest[++DestLen]=0;                              //确保目标正确结束
             return DestLen;
         }
-
-        //-------------------------------------------------
-        //将Src拼接到Dst的后面,不论Src与Dst为什么情况,拼接后的分隔符只有一个SP
-        template<class CT>
-        inline CT* strcat(CT* Dst, const CT* Src, const CT SP)
-        {
-            if (is_empty(Dst) || !Src)
-                return NULL;
-
-            int DstLen = strlen(Dst);
-            if (Dst[DstLen - 1] == SP)
-            {
-                //目标已经是SP结束了
-                if (Src[0] == SP)
-                    strcpy(&Dst[DstLen], &Src[1]);
-                else
-                    strcpy(&Dst[DstLen], Src);
-            }
-            else
-            {
-                //目标不是SP结束
-                if (Src[0] == SP)
-                    strcpy(&Dst[DstLen], Src);
-                else
-                {
-                    Dst[DstLen++] = SP;
-                    strcpy(&Dst[DstLen], Src);
-                }
-            }
-            return Dst;
-        }
-
         //-------------------------------------------------
         //统计给定的串S中指定字符Char的数量
         template<class CT>
@@ -488,7 +486,7 @@ namespace rx
                 uint32_t SegLen=uint32_t(Pos-Src);          //当前目标前面的部分,需要放入结果缓冲区
 
                 if (DstLen+SegLen>=DstSize)
-                    return NULL;    //目标缓冲区不足,退出
+                    return NULL;                            //目标缓冲区不足,退出
                 strncpy(&Dst[DstLen],Src,SegLen);           //将当前段之前的部分拷贝到目标缓冲区
                 DstLen+=SegLen;                             //目标长度增加
 
