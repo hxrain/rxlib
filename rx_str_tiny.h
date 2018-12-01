@@ -12,9 +12,11 @@ namespace rx
     template<class CT=char,uint16_t max_str_size=0>
     struct tiny_string_t
     {
+    protected:
         //-------------------------------------------------
+        //缓冲区内置的串模式
         template<class ct,uint16_t buff_size>
-        class head_t                                        //缓冲区内置的小串
+        class head_t
         {
         public:
             head_t():length(0){}
@@ -28,8 +30,9 @@ namespace rx
         };
 
         //-------------------------------------------------
+        //特化,使用外置绑定的缓冲区
         template<class ct>
-        class head_t<ct,0>                                  //特化,使用外置绑定的缓冲区
+        class head_t<ct,0>
         {
         public:
             head_t():max_size(0),length(0),buff(NULL){}
@@ -54,7 +57,11 @@ namespace rx
     public:
         tiny_string_t(uint32_t cap, CT* buff){m_head.bind(buff,cap);}
         tiny_string_t(){}
-        tiny_string_t(const CT* str){set(str);}
+        tiny_string_t(const CT* str) 
+        { 
+            rx_static_assert(max_str_size!=0);              //要求必须是内置缓冲区模式,才可以直接赋值
+            set(str); 
+        }
         //-------------------------------------------------
         //使用给定的字符串进行赋值
         //返回值:真正拷贝的串尺寸.
@@ -98,7 +105,12 @@ namespace rx
         }
         //-------------------------------------------------
         //绑定缓冲器并进行字符串的赋值
-        uint32_t bind(CT* buff,uint32_t cap,const CT* str,uint32_t len = 0){m_head.bind(buff,cap);return set(str,len);}
+        uint32_t bind(CT* buff,uint32_t cap,const CT* str,uint32_t len = 0)
+        {
+            rx_static_assert(max_str_size == 0);            //要求必须为缓冲区绑定模式,才可以重新绑定
+            m_head.bind(buff,cap);
+            return set(str,len);
+        }
         //-------------------------------------------------
         //获知缓冲区容量
         uint32_t capacity()const { return m_head.capacity(); }
@@ -122,32 +134,32 @@ namespace rx
         bool operator >= (const CT *str) const {return st::strcmp(m_head.buff, (is_empty(str)?sc<CT>::empty():str)) >= 0;}
         bool operator != (const CT *str) const {return st::strcmp(m_head.buff, (is_empty(str)?sc<CT>::empty():str)) != 0;}
         //-------------------------------------------------
+        //在给定的buff内存块上构造简易串对象并进行初始化
+        //返回值:NULL失败;其他为串头对象指针
+        static tiny_string_t* make(void* buff, uint32_t buffsize, const CT* str, uint32_t len = 0)
+        {
+            if (buffsize <= sizeof(tiny_string_t))       //检查最小尺寸
+                return NULL;
+
+            //在给定的缓冲区上构造简易字符串对象
+            uint32_t cap = buffsize - sizeof(tiny_string_t);
+            CT *strbuf = (CT*)((uint8_t*)buff + sizeof(tiny_string_t));
+            tiny_string_t *s = ct::OC<tiny_string_t >((tiny_string_t*)buff, cap, strbuf);
+            s->set(str, len);
+            return s;
+        }
     };
 #pragma pack(pop)
 
-    //-------------------------------------------------------
+    //-----------------------------------------------------
     //char类型的小串类
-    typedef tiny_string_t<char> tiny_string_head_ct;
+    typedef tiny_string_t<char> tiny_string_ct;
     //wchar_t类型的小串类
-    typedef tiny_string_t<wchar_t> tiny_string_head_wt;
+    typedef tiny_string_t<wchar_t> tiny_string_wt;
 
-    ////-----------------------------------------------------
-    //在给定的buff内存块上构造简易串对象并进行初始化
-    //返回值:NULL失败;其他为串头对象指针
-    template<class CT>
-    tiny_string_t<CT>* make_tiny_string(void* buff,uint32_t buffsize,const CT* str,uint32_t len=0)
-    {
-        typedef struct tiny_string_t<CT> string_t;
-        if (buffsize <= sizeof(string_t))       //检查最小尺寸
-            return NULL;
+    //-----------------------------------------------------
 
-        //在给定的缓冲区上构造简易字符串对象
-        uint32_t cap = buffsize - sizeof(string_t);
-        CT *strbuf=(CT*)((uint8_t*)buff+sizeof(string_t));
-        string_t *s=ct::OC<string_t >((string_t*)buff, cap,strbuf);
-        s->set(str,len);
-        return s;
-    }
+
 }
 
 

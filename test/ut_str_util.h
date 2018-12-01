@@ -10,10 +10,10 @@
 //---------------------------------------------------------
 inline void str_util_base_1(rx_tdd_t &rt)
 {
-    uint8_t tmp1[1+sizeof(rx::tiny_string_head_ct)],tmp2[2+sizeof(rx::tiny_string_head_ct)],tmp3[3+sizeof(rx::tiny_string_head_ct)];
-    rx::tiny_string_head_ct &a=*rx::make_tiny_string(tmp1, sizeof(tmp1), "123");
-    rx::tiny_string_head_ct &b=*rx::make_tiny_string(tmp2, sizeof(tmp2), "123");
-    rx::tiny_string_head_ct &c=*rx::make_tiny_string(tmp3, sizeof(tmp3), "123");
+    uint8_t tmp1[1+sizeof(rx::tiny_string_ct)],tmp2[2+sizeof(rx::tiny_string_ct)],tmp3[3+sizeof(rx::tiny_string_ct)];
+    rx::tiny_string_ct &a=*rx::tiny_string_ct::make(tmp1, sizeof(tmp1), "123");
+    rx::tiny_string_ct &b=*rx::tiny_string_ct::make(tmp2, sizeof(tmp2), "123");
+    rx::tiny_string_ct &c=*rx::tiny_string_ct::make(tmp3, sizeof(tmp3), "123");
     rt.tdd_assert(a.size() == 0);
     rt.tdd_assert(b.size() == 1);
     rt.tdd_assert(c.size() == 2);
@@ -32,7 +32,7 @@ inline void str_util_base_1(rx_tdd_t &rt)
 typedef struct tmp_tiny_str_t
 {
     int a;
-    rx::tiny_string_head_ct s;
+    rx::tiny_string_ct s;
     tmp_tiny_str_t(uint16_t c,char* s):s(c,s){}
 }tmp_tiny_str_t;
 #pragma pack(pop)
