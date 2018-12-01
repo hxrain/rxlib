@@ -55,7 +55,7 @@ namespace rx
         tiny_string_t(const tiny_string_t&);
         //-------------------------------------------------
     public:
-        tiny_string_t(uint32_t cap, CT* buff){m_head.bind(buff,cap);}
+        tiny_string_t(uint32_t cap, CT* buff, uint32_t init_len = 0) { m_head.bind(buff, cap); m_head.length = init_len; }
         tiny_string_t(){}
         tiny_string_t(const CT* str)
         {
@@ -187,6 +187,9 @@ namespace rx
                 m_head.length = m_head.capacity();          //ÈÝÁ¿²»×ã,±ê¼Ç´íÎó
             return *this;
         }
+        //-------------------------------------------------
+        //×Ö·û´®¿½±´¸³Öµ
+        tiny_string_t& operator=(const CT *str) { set(str); return *this; }
 
     };
 #pragma pack(pop)
