@@ -129,9 +129,11 @@ namespace rx
     typedef queue_t<uint32_t>        queue_uint32_t;
     typedef queue_t<int32_t>         queue_int32_t;
     //语法糖,定义一个便于使用的const char*内容持有队列
-    typedef queue_t<const char*>     queue_cstr_t;
+    typedef queue_t<const char*>     queue_ct;
     //语法糖,定义一个便于使用的const wchar_t*内容持有队列
-    typedef queue_t<const wchar_t*>  queue_wstr_t;
+    typedef queue_t<const wchar_t*>  queue_wt;
+
+
 
     //-----------------------------------------------------
     //利用队列容器封装一个简单的对象缓存池
@@ -152,7 +154,7 @@ namespace rx
             ct::OC(&m_cache,ma);
             return true;
         }
-        virtual ~object_cache_t(){clear();}
+        virtual ~object_cache_t() { rx_assert(m_cache.size()==0); clear(); }
         //-------------------------------------------------
         obj_t* get()
         {

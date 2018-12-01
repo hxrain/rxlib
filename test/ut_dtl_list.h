@@ -162,23 +162,23 @@ rx_tdd(dtl_list_base)
 {
     //测试stack_t的栈操作
     test_dtl_stack_base_1<rx::stack_int32_t,tst_list_data<int> >(*this);
-    test_dtl_stack_base_1<rx::stack_cstr_t, tst_list_data<const char*> >(*this);
+    test_dtl_stack_base_1<rx::stack_ct, tst_list_data<const char*> >(*this);
 
     //测试queue_t的栈操作
     test_dtl_stack_base_1<rx::queue_int32_t,tst_list_data<int> >(*this);
-    test_dtl_stack_base_1<rx::queue_cstr_t, tst_list_data<const char*> >(*this);
+    test_dtl_stack_base_1<rx::queue_ct, tst_list_data<const char*> >(*this);
 
     //测试list_t的栈操作
     test_dtl_stack_base_1<rx::list_int32_t,tst_list_data<int> >(*this);
-    test_dtl_stack_base_1<rx::list_cstr_t, tst_list_data<const char*> >(*this);
+    test_dtl_stack_base_1<rx::list_ct, tst_list_data<const char*> >(*this);
 
     //测试queue_t的队列操作
     test_dtl_queue_base_1<rx::queue_int32_t,tst_list_data<int> >(*this);
-    test_dtl_queue_base_1<rx::queue_cstr_t,tst_list_data<const char*> >(*this);
+    test_dtl_queue_base_1<rx::queue_ct,tst_list_data<const char*> >(*this);
 
     //测试list_t的队列操作
     test_dtl_queue_base_1<rx::list_int32_t,tst_list_data<int> >(*this);
-    test_dtl_queue_base_1<rx::list_cstr_t,tst_list_data<const char*> >(*this);
+    test_dtl_queue_base_1<rx::list_ct,tst_list_data<const char*> >(*this);
 }
 
 #endif

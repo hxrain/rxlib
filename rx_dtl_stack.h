@@ -168,9 +168,9 @@ namespace rx
     typedef stack_t<uint32_t>        stack_uint32_t;
     typedef stack_t<int32_t>         stack_int32_t;
     //语法糖,定义一个便于使用的const char*内容持有栈
-    typedef stack_t<const char*>     stack_cstr_t;
+    typedef stack_t<const char*>     stack_ct;
     //语法糖,定义一个便于使用的const wchar_t*内容持有栈
-    typedef stack_t<const wchar_t*>  stack_wstr_t;
+    typedef stack_t<const wchar_t*>  stack_wt;
 }
 
 #endif

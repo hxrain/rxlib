@@ -236,13 +236,13 @@ namespace rx
         }
     };
 
-    //语法糖,定义一个便于使用的整数队列
+    //语法糖,定义一个便于使用的整数链表
     typedef list_t<uint32_t>        list_uint32_t;
     typedef list_t<int32_t>         list_int32_t;
-    //语法糖,定义一个便于使用的const char*内容持有队列
-    typedef list_t<const char*>     list_cstr_t;
-    //语法糖,定义一个便于使用的const wchar_t*内容持有队列
-    typedef list_t<const wchar_t*>  list_wstr_t;
+    //语法糖,定义一个便于使用的const char*内容持有链表
+    typedef list_t<const char*>     list_ct;
+    //语法糖,定义一个便于使用的const wchar_t*内容持有链表
+    typedef list_t<const wchar_t*>  list_wt;
 }
 
 #endif

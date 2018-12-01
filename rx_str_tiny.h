@@ -55,15 +55,17 @@ namespace rx
         tiny_string_t(const tiny_string_t&);
         //-------------------------------------------------
     public:
-        tiny_string_t(uint32_t cap, CT* buff, uint32_t init_len = 0) { m_head.bind(buff, cap); m_head.length = init_len; }
-        tiny_string_t(){}
-        tiny_string_t(const CT* str)
+        tiny_string_t() {}
+        //绑定缓冲区,并告知缓冲区内部已有内容偏移
+        tiny_string_t(uint32_t cap, CT* buff, uint32_t init_offset = 0) { m_head.bind(buff, cap); m_head.length = init_offset; }
+        //对于内置缓冲区模式,可以直接进行串赋值
+        tiny_string_t(const CT* str,uint32_t len=0)
         {
             rx_static_assert(max_str_size!=0);              //要求必须是内置缓冲区模式,才可以直接赋值
-            set(str);
+            set(str,len);
         }
         //-------------------------------------------------
-        //使用给定的字符串进行赋值
+        //使用给定的字符串进行赋值(能放多少放多少)
         //返回值:真正拷贝的串尺寸.
         uint32_t set(const CT* str, uint32_t len = 0)
         {
@@ -190,19 +192,15 @@ namespace rx
         //-------------------------------------------------
         //字符串拷贝赋值
         tiny_string_t& operator=(const CT *str) { set(str); return *this; }
-
     };
 #pragma pack(pop)
 
     //-----------------------------------------------------
-    //char类型的小串类
+    //char类型的小串类(需要外面绑定缓冲区)
     typedef tiny_string_t<char> tiny_string_ct;
-    //wchar_t类型的小串类
+    //wchar_t类型的小串类(需要外面绑定缓冲区)
     typedef tiny_string_t<wchar_t> tiny_string_wt;
-
     //-----------------------------------------------------
-
-
 }
 
 
