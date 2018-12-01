@@ -116,16 +116,16 @@ inline void test_localtime_base_1(rx_tdd_t &rt)
 
 inline void test_tick_base_1(rx_tdd_t &rt)
 {
-    rx_tick_us_t tu;
-    rx_tick_us_t::TickType BT=tu.update();
-    rx_tick_us_t::TickType ET=tu.update();
+    rx::tick_us_t tu;
+    rx::tick_us_t::TickType BT=tu.update();
+    rx::tick_us_t::TickType ET=tu.update();
     rt.tdd_assert(ET-BT<100);
 
-    rx_tick_meter_us_t tmu(1);
+    rx::meter_us_t tmu(1);
     rx_thread_yield_us(10);
     rt.tdd_assert(tmu.is_timing());
 
-    rx_speed_meter_us_t smu;
+    rx::speeder_us_t smu;
     smu.set(10);
     rt.tdd_assert(!smu.hit(100));
     rt.tdd_assert(smu.count()==1);
@@ -137,7 +137,6 @@ inline void test_tick_base_1(rx_tdd_t &rt)
     rt.tdd_assert(smu.count()==2);
     rt.tdd_assert(smu.total()==110);
     rt.tdd_assert(smu.value()==110);
-
 }
 
 rx_tdd(localtime_base)

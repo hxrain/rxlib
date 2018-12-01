@@ -48,7 +48,7 @@ namespace rx
 
     //-----------------------------------------------------
     //滴答增量计时器,用于记录代码段执行用时
-    template<class tick_type=rx_tick_us_t>
+    template<class tick_type=tick_us_t>
     class tdd_tick_t
     {
         tick_type    m_tick_meter;                          //滴答计数器
