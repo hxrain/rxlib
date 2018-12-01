@@ -70,7 +70,7 @@ namespace rx
     //统一封装了对原始字符串处理的函数
     namespace st
     {
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //长度
         inline uint32_t         strlen(const char* Str) {return (uint32_t)::strlen(Str);}
         inline uint32_t         strlen(const wchar_t* Str) {return (uint32_t)::wcslen(Str);}

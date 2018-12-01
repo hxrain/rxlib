@@ -114,12 +114,13 @@ namespace rx
         //-------------------------------------------------
         //获知缓冲区容量
         uint32_t capacity()const { return m_head.capacity(); }
-        //获知缓冲区内数据长度
+        //获知缓冲区内数据长度,如果等于容量,则说明出现了拼装溢出错误
         uint32_t size()const { return m_head.length; }
         //获知缓冲区内容
         const CT* c_str() const { return m_head.buff; }
         operator const CT* ()const {return m_head.buff;}
         //-------------------------------------------------
+        //比较运算符重载
         bool operator <  (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) < 0;}
         bool operator <= (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) <= 0;}
         bool operator == (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) == 0;}
@@ -148,6 +149,45 @@ namespace rx
             s->set(str, len);
             return s;
         }
+        //-------------------------------------------------
+        //拼装字符
+        tiny_string_t& operator<<(const CT c)
+        {
+            if (m_head.length < m_head.capacity() - 1)
+            {
+                m_buff[m_head.length++] = c;
+                m_buff[m_head.length] = 0;
+            }
+            else
+                m_head.length = m_head.capacity();          //容量不足,标记错误
+            
+            return *this;
+        }
+        //-------------------------------------------------
+        //拼装字符串
+        tiny_string_t& operator<<(const CT *str)
+        {
+            //尝试在剩余的空间中放入指定字符串
+            uint32_t rc = st::strcpy(m_buff + m_head.length, m_head.capacity() - m_head.length, str);
+            if (rc) 
+                m_head.length += rc;
+            else 
+                m_head.length = m_head.capacity();          //容量不足,标记错误
+            return *this;
+        }
+        //-------------------------------------------------
+        //拼装定长字符串
+        tiny_string_t& operator()(const CT *str, uint32_t len)
+        {
+            //尝试在剩余的空间中放入指定字符串
+            uint32_t rc = st::strcpy(m_buff + m_head.length, m_head.capacity() - m_head.length, str, len);
+            if (rc) 
+                m_head.length += rc;
+            else
+                m_head.length = m_head.capacity();          //容量不足,标记错误
+            return *this;
+        }
+
     };
 #pragma pack(pop)
 

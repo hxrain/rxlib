@@ -11,6 +11,67 @@ namespace rx
     namespace st
     {
         //-------------------------------------------------
+        //根据长度拷贝字符串(目标缓冲区不足则失败)
+        //入口:dst目标缓冲区;dstMaxSize目标的最大容量;Src源串;SrcLen源串的长度
+        //返回值:0失败,参数错误或目标缓冲区不足;其他为实际拷贝的长度
+        template<class CT>
+        inline uint32_t strcpy(CT* dst, uint32_t dstMaxSize, const CT* Src, uint32_t SrcLen = 0)
+        {
+            if (!dstMaxSize)
+                return 0;
+
+            dst[0] = 0;
+            if (is_empty(Src))
+                return 0;
+
+            if (SrcLen == 0)
+                SrcLen = strlen(Src);
+
+            if (SrcLen>dstMaxSize - 1)                      //总要保证缓冲区的最后要有一个0串结束符的位置
+                return 0;
+
+            strncpy(dst, Src, SrcLen);
+            dst[SrcLen] = 0;                                //标记串结束符
+            return SrcLen;
+        }
+
+        //不超过目标容量,尽量拷贝(能放多少放多少)
+        //dst目标缓冲区;MaxSize目标最大容量;Src原串
+        //返回值:实际拷贝的长度
+        template<class CT>
+        inline uint32_t strcpy2(CT* dst, uint32_t dstMaxSize, const CT* Src, uint32_t SrcLen = 0)
+        {
+            if (!dstMaxSize)
+                return 0;
+
+            dst[0] = 0;
+            if (is_empty(Src))
+                return 0;
+
+            if (SrcLen == 0)
+                SrcLen = strlen(Src);
+
+            if (SrcLen>--dstMaxSize)
+                SrcLen = dstMaxSize;	                    //总要保证缓冲区的最后要有一个0串结束符的位置
+
+            strncpy(dst, Src, SrcLen);
+            dst[SrcLen] = 0;								//标记串结束符
+            return SrcLen;
+        }
+        //将str1和str2仅用sp分隔后拼接到dest中
+        //返回值:拼接后的实际长度.0目标缓冲器不足
+        template<class CT>
+        inline uint32_t strcpy(CT *Dest, uint32_t DestMaxSize, const CT* Src1, const CT* Src2, const CT SP)
+        {
+            uint32_t L1 = strcpy(Dest, DestMaxSize, Src1);
+            if (!L1)
+                return 0;
+            uint32_t L2 = strlen(Src2);
+            if (L1 + L2 > DestMaxSize)
+                return 0;
+            return strlen(strcat(Dest, Src2, SP));
+        }
+        //-------------------------------------------------
         //尾部拷贝(取src的后n位)
         template<class CT>
         inline CT*              strrcpy(CT* dst,const CT* src,uint32_t n,uint32_t srclen=0)
@@ -78,23 +139,6 @@ namespace rx
         inline CT *             strlwr(const CT *s,CT* TmpBuf) {strcpy(TmpBuf,s); return strlwr(TmpBuf);}
 
         //-------------------------------------------------
-        //判断是否为十进制数字字符
-        inline bool             isnumber(char c) {return c>='0'&&c<='9';}
-        inline bool             isnumber(wchar_t c) {return c>=L'0'&&c<=L'9';}
-        template<class CT>
-        inline bool             isnumber(const CT* s)
-        {
-            if (s==NULL)
-                return false;
-            for(; *s; ++s)
-                if (!isnumber(*s))
-                    return false;
-            return true;
-        }
-        //判断是否为十进制数字和字母
-        inline bool             isalnum(char c) {return (c>='0'&&c<='9')||(c>='A'&&c<='Z')||(c>='a'&&c<='z');}
-        inline bool             isalnum(wchar_t c) {return (c>=L'0'&&c<=L'9')||(c>=L'A'&&c<=L'Z')||(c>=L'a'&&c<=L'z');}
-        //-------------------------------------------------
         //语法糖,对输入S进行判断,如果是空值则返回给定的默认值
         template<class CT>
         inline const CT* value(const CT* S,const CT* DefValue)
@@ -103,7 +147,7 @@ namespace rx
                 return DefValue;
             return S;
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就失败了.
         //返回值:0失败;或新串的完整长度
         template<class CT>
@@ -121,7 +165,7 @@ namespace rx
             return NewLen;
         }
 
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就只能拼接一部分.
         //返回值:新串的完整长度
         template<class CT>
@@ -138,7 +182,7 @@ namespace rx
             Dest[NewLen]=0;                                 //确保目标正确结束
             return NewLen;
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //串连接,将Src1和Src2都拼装到Dest中.
         //返回值:0失败;其他为新结果的长度
         template<class CT>
@@ -154,7 +198,7 @@ namespace rx
             Dest[NewLen]=0;                                 //确保目标正确结束
             return NewLen;
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //将原Src串拼接到Dest(已有内容)中,Dest最大容量为DestMaxSize,Src如果太长就失败了.
         //返回值:0失败;或新串的完整长度
         template<class CT>
@@ -181,7 +225,7 @@ namespace rx
             return DestLen;
         }
 
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //将Src拼接到Dst的后面,不论Src与Dst为什么情况,拼接后的分隔符只有一个SP
         template<class CT>
         inline CT* strcat(CT* Dst, const CT* Src, const CT SP)
@@ -211,56 +255,6 @@ namespace rx
             }
             return Dst;
         }
-        //将str1和str2仅用sp分隔后拼接到dest中
-        //返回值:拼接后的实际长度.0目标缓冲器不足
-        template<class CT>
-        inline uint32_t strcpy(CT *Dest, uint32_t DestMaxSize, const CT* Src1, const CT* Src2,const CT SP)
-        {
-            uint32_t L1 = strcpy(Dest, DestMaxSize, Src1);
-            if (!L1)
-                return 0;
-            uint32_t L2 = strlen(Src2);
-            if (L1 + L2 > DestMaxSize)
-                return 0;
-            return strlen(strcat(Dest, Src2, SP));
-        }
-        //-----------------------------------------------------
-        //根据长度拷贝字符串
-        //入口:dst目标缓冲区;dstMaxSize目标的最大容量;Src源串;SrcLen源串的长度
-        //返回值:0失败,参数错误或目标缓冲区不足;其他为实际拷贝的长度
-        template<class CT>
-        inline uint32_t strcpy(CT* dst,uint32_t dstMaxSize,const CT* Src,uint32_t SrcLen=0)
-        {
-            dst[0]=0;
-            if (is_empty(Src))
-                return 0;
-            if (SrcLen==0)
-                SrcLen=strlen(Src);
-            if (SrcLen>dstMaxSize-1)                        //总要保证缓冲区的最后要有一个0串结束符的位置
-                return 0;
-            strncpy(dst,Src,SrcLen);
-            dst[SrcLen]=0;                                  //标记串结束符
-            return SrcLen;
-        }
-
-        //不超过目标容量,尽量拷贝
-        //dst目标缓冲区;MaxSize目标最大容量;Src原串
-        //返回值:实际拷贝的长度
-        template<class CT>
-        inline uint32_t strcpy2(CT* dst,uint32_t dstMaxSize,const CT* Src,uint32_t SrcLen=0)
-        {
-            dst[0]=0;
-            if (is_empty(Src))
-                return 0;
-            if (SrcLen==0)
-                SrcLen=strlen(Src);
-            if (SrcLen>--dstMaxSize)
-                SrcLen=dstMaxSize;								//总要保证缓冲区的最后要有一个0串结束符的位置
-            strncpy(dst,Src,SrcLen);
-            dst[SrcLen]=0;										//标记串结束符
-            return SrcLen;
-        }
-
 
         //-------------------------------------------------
         //统计给定的串S中指定字符Char的数量
@@ -294,7 +288,7 @@ namespace rx
             return Ret;
         }
 
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //尝试在Str串指定的偏移位置后面,定位查找SubStr子串
         //返回值:-1未找到;其他为结果偏移量(相对于Str而不是相对于StartIdx)
         template<class CT>
@@ -306,7 +300,7 @@ namespace rx
             const CT* P=strstr(StartStr,SubStr);
             return (P==NULL?-1:P-Str);
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //在src串中顺序查找A与B开始的位置,比如在"abc=[123]456"中查找定位'['与']'出现的位置
         //如果A为NULL,则从src头开始;B为NULL则到src结尾
         //返回值:<0错误;>=0查找成功,为A串的长度
@@ -355,7 +349,7 @@ namespace rx
                 return false;
             return pos(src,strlen(src),A,B,PA,PB)>=0;
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //找到在A串和B串之间的字符串,结果中不包含A与B(A为空则从头开始截取,B为空则到尾结束)
         //返回值:0失败;>0为截取的内容长度
         template<class CT>
@@ -384,11 +378,11 @@ namespace rx
                 return false;
             return sub(src,strlen(src),AStr,BStr,Result,ResultMaxSize);
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //将src中AStr后面的内容放入结果
         template<class CT>
         inline uint32_t sub(const CT* src,const CT* AStr,CT* Result,uint32_t ResultMaxSize) {return sub(src,AStr,NULL,Result,ResultMaxSize);}
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //截取Str中从首部到SP分隔符之前的内容到Result,Str在截取后调整到SP之后
         //返回值:<0错误;>=0截取到的内容长度
         template<class CT>
@@ -413,7 +407,7 @@ namespace rx
             }
             return -3;
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //截取Str中从首部到SP分隔符之前的内容并转换到整数Result,Str在截取后调整到SP之后
         //返回值:<0错误;>=0截取到的内容长度
         template<class CT>
@@ -447,7 +441,6 @@ namespace rx
             return Ret;
         }
         //-------------------------------------------------
-        //-----------------------------------------------------
         //对一个串进Str行遍历,用To替换掉里面所有的From字符
         template<class CT>
         inline CT* replace(CT *Str,CT From,CT To)
@@ -527,10 +520,27 @@ namespace rx
             uint32_t ToLen=is_empty(To)?0:strlen(To);
             return replace(SrcStr,From,FromLen,To,ToLen,Dst,DstSize,SrcLen);
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
+        //判断是否为十进制数字字符
+        inline bool             isnumber10(char c) { return c >= '0'&&c <= '9'; }
+        inline bool             isnumber10(wchar_t c) { return c >= L'0'&&c <= L'9'; }
+        template<class CT>
+        inline bool             isnumber10(const CT* s)
+        {
+            if (s == NULL)
+                return false;
+            for (; *s; ++s)
+                if (!isnumber(*s))
+                    return false;
+            return true;
+        }
+        //判断是否为十进制数字和字母
+        inline bool             isalnum(char c) { return (c >= '0'&&c <= '9') || (c >= 'A'&&c <= 'Z') || (c >= 'a'&&c <= 'z'); }
+        inline bool             isalnum(wchar_t c) { return (c >= L'0'&&c <= L'9') || (c >= L'A'&&c <= L'Z') || (c >= L'a'&&c <= L'z'); }
+        //-------------------------------------------------
         //判断给定的字符串是否全部都为数字(十进制或十六进制整形)
         template<class CT>
-        inline bool isnumber_str(const CT* Str,uint32_t StrLen=0,bool IsHex=false)
+        inline bool isnumber(const CT* Str,uint32_t StrLen=0,bool IsHex=false)
         {
             if (is_empty(Str))
                 return false;

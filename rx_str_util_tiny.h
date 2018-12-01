@@ -65,63 +65,6 @@ namespace rx
         const CT* to(const CT *src) { st::strupr(m_str, max_size, src); return m_str; }
         const CT* c_str() { return m_str; }
     };
-
-    //-----------------------------------------------------
-    //¼òÒ×µÄ×Ö·û´®Æ´×°Æ÷
-    template<class CT>
-    class strcat_t
-    {
-        CT         *m_buff;
-        uint32_t    m_max_size;
-        uint32_t   &m_size;
-        uint32_t    m_dummy_size;
-        uint32_t    m_err;
-    public:
-        strcat_t(CT *buff, uint32_t max_size) :m_buff(buff),m_max_size(max_size), m_size(m_dummy_size), m_dummy_size(0),m_err(0){}
-        strcat_t(CT *buff, uint32_t max_size, uint32_t initsize) :m_buff(buff), m_max_size(max_size), m_size(m_dummy_size),m_err(0) { m_dummy_size = initsize; }
-        uint32_t capacity() { return m_max_size; }
-        uint32_t size() { return m_size; }
-        uint32_t err(){return m_err;}
-        //Æ´×°×Ö·û
-        strcat_t& operator<<(const CT c)
-        {
-            if (m_size < m_max_size - 1)
-                m_buff[m_size++] = c;
-            else
-                ++m_err;
-            m_buff[m_size] = 0;
-            return *this;
-        }
-        //Æ´×°×Ö·û´®
-        strcat_t& operator<<(const CT *str)
-        {
-            uint32_t rc = st::strcpy(m_buff + m_size, m_max_size - m_size, str);
-            if (rc) m_size += rc;
-            else ++m_err;
-            return *this;
-        }
-        //Ö±½Ó¸³Öµ
-        strcat_t& operator=(const CT *str)
-        {
-            m_size = st::strcpy(m_buff, m_max_size, str);
-            if (!m_size) 
-                ++m_err;
-            else 
-                m_err=0;
-            return *this;
-        }
-        //Æ´×°¶¨³¤×Ö·û´®
-        strcat_t& operator()(const CT *str,uint32_t len)
-        {
-            uint32_t rc = st::strcpy(m_buff + m_size, m_max_size - m_size, str, len);
-            if (rc) m_size += rc;
-            else ++m_err;
-            return *this;
-        }
-    };
-
-    typedef strcat_t<char> strcat_ct;
-    typedef strcat_t<wchar_t> strcat_wt;
 }
 
 

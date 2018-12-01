@@ -94,8 +94,8 @@ namespace rx
         rt.tdd_assert(str1[2]==sc<CT>::A());
         rt.tdd_assert(str1[3]==0);
 
-        rt.tdd_assert(st::isnumber_str(sc<CT>::hex_upr(),0,true));
-        rt.tdd_assert(st::isnumber_str(sc<CT>::hex_lwr(),0,true));
+        rt.tdd_assert(st::isnumber(sc<CT>::hex_upr(),0,true));
+        rt.tdd_assert(st::isnumber(sc<CT>::hex_lwr(),0,true));
     }
 }
 //---------------------------------------------------------
