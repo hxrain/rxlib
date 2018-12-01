@@ -63,7 +63,7 @@ namespace rx
             {
                 char *buf=(char*)ext_buff;
                 ct::OC(&data,ext_size,buf);
-                data.set(val,ext_size-1);
+                data.reset(val,ext_size-1);
             }
         };
 
@@ -85,12 +85,12 @@ namespace rx
                 wchar_t *buf=(wchar_t*)ext_buff;
                 uint32_t cap=ext_size / sc<wchar_t>::char_size();
                 ct::OC(&data,cap,buf);
-                data.set(val,cap-1);
+                data.reset(val,cap-1);
             }
         };
     public:
         //-------------------------------------------------
-        typedef raw_node_t<DT,void>     node_t;             //最终使用的原始栈节点类型    
+        typedef raw_node_t<DT,void>     node_t;             //最终使用的原始栈节点类型
     protected:
         //-------------------------------------------------
         typedef raw_list_t<node_t>      cntr_t;             //最终使用的原始栈容器类型

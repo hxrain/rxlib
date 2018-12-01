@@ -62,12 +62,12 @@ namespace rx
         tiny_string_t(const CT* str,uint32_t len=0)
         {
             rx_static_assert(max_str_size!=0);              //要求必须是内置缓冲区模式,才可以直接赋值
-            set(str,len);
+            reset(str,len);
         }
         //-------------------------------------------------
         //使用给定的字符串进行赋值(能放多少放多少)
         //返回值:真正拷贝的串尺寸.
-        uint32_t set(const CT* str, uint32_t len = 0)
+        uint32_t reset(const CT* str=NULL, uint32_t len = 0)
         {
             if (is_empty(str)|| m_head.capacity()==1)
             {
@@ -111,7 +111,7 @@ namespace rx
         {
             rx_static_assert(max_str_size == 0);            //要求必须为缓冲区绑定模式,才可以重新绑定
             m_head.bind(buff,cap);
-            return set(str,len);
+            return reset(str,len);
         }
         //-------------------------------------------------
         //获知缓冲区容量
@@ -148,7 +148,7 @@ namespace rx
             uint32_t cap = buffsize - sizeof(tiny_string_t);
             CT *strbuf = (CT*)((uint8_t*)buff + sizeof(tiny_string_t));
             tiny_string_t *s = ct::OC<tiny_string_t >((tiny_string_t*)buff, cap, strbuf);
-            s->set(str, len);
+            s->reset(str, len);
             return s;
         }
         //-------------------------------------------------
@@ -191,7 +191,7 @@ namespace rx
         }
         //-------------------------------------------------
         //字符串拷贝赋值
-        tiny_string_t& operator=(const CT *str) { set(str); return *this; }
+        tiny_string_t& operator=(const CT *str) { reset(str); return *this; }
     };
 #pragma pack(pop)
 

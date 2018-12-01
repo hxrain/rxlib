@@ -62,7 +62,7 @@ namespace rx
             {
                 char *buf=(char*)ext_buff;
                 ct::OC(&data,ext_size,buf);
-                data.set(val,ext_size-1);
+                data.reset(val,ext_size-1);
             }
         };
 
@@ -83,7 +83,7 @@ namespace rx
                 wchar_t *buf=(wchar_t*)ext_buff;
                 uint32_t cap=ext_size / sc<wchar_t>::char_size();
                 ct::OC(&data,cap,buf);
-                data.set(val,cap-1);
+                data.reset(val,cap-1);
             }
         };
     public:
