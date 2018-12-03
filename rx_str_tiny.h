@@ -195,12 +195,6 @@ namespace rx
     };
 #pragma pack(pop)
 
-    //-----------------------------------------------------
-    //char类型的小串类(需要外面绑定缓冲区)
-    typedef tiny_string_t<char> tiny_string_ct;
-    //wchar_t类型的小串类(需要外面绑定缓冲区)
-    typedef tiny_string_t<wchar_t> tiny_string_wt;
-    //-----------------------------------------------------
 }
 
 

@@ -50,7 +50,7 @@ namespace rx
         template<typename dummy_t>
         struct raw_node_t<const char*,dummy_t>
         {
-            typedef tiny_string_ct node_data_t;
+            typedef tiny_string_t<char> node_data_t;
             struct raw_node_t* volatile prev;	            //节点的前趋
             struct raw_node_t* volatile next;	            //节点的后趋
             node_data_t  data;
@@ -71,7 +71,7 @@ namespace rx
         template<typename dummy_t>
         struct raw_node_t<const wchar_t*,dummy_t>
         {
-            typedef tiny_string_wt node_data_t;
+            typedef tiny_string_t<wchar_t> node_data_t;
             struct raw_node_t* volatile prev;	            //节点的前趋
             struct raw_node_t* volatile next;	            //节点的后趋
             node_data_t  data;
