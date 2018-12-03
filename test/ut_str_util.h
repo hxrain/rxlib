@@ -44,7 +44,7 @@ inline void str_util_base_2(rx_tdd_t &rt)
     char *strbuf=(char*)buff+sizeof(tmp_tiny_str_t);
     tmp_tiny_str_t &t=*rx::ct::OC<tmp_tiny_str_t>((tmp_tiny_str_t*)buff,cap,strbuf);
 
-    t.s.reset("haha");
+    t.s.assign("haha");
 
     rt.tdd_assert(t.s=="haha");
     rt.tdd_assert(strcmp((char*)buff+sizeof(tmp_tiny_str_t),"haha")==0);
