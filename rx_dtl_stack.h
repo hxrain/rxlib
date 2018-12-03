@@ -32,6 +32,7 @@ namespace rx
     class stack_t
     {
         //-------------------------------------------------
+        //普通数据节点
         template<class dt,typename dummy_t>
         struct raw_node_t
         {
@@ -47,6 +48,7 @@ namespace rx
         };
 
         //-------------------------------------------------
+        //字符串内部持有的数据节点,char模式
         template<typename dummy_t>
         struct raw_node_t<const char*,dummy_t>
         {
@@ -67,6 +69,7 @@ namespace rx
         };
 
         //-------------------------------------------------
+        //字符串内部持有的数据节点,wchar_t模式
         template<typename dummy_t>
         struct raw_node_t<const wchar_t*,dummy_t>
         {
@@ -164,6 +167,7 @@ namespace rx
         }
     };
 
+    //-----------------------------------------------------
     //语法糖,定义一个便于使用的整数栈
     typedef stack_t<uint32_t>        stack_uint32_t;
     typedef stack_t<int32_t>         stack_int32_t;
