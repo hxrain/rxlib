@@ -19,7 +19,7 @@ namespace rx
         class head_t
         {
         public:
-            head_t():length(0){}
+            head_t() :length(0) { buff[0] = 0; }
             //内置缓冲区,无需绑定.仅用于接口兼容.
             void bind(ct* buff, uint16_t size) { rx_alert("don't call this method."); }
             //获取内置缓冲区的容量
