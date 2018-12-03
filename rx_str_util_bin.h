@@ -42,7 +42,6 @@ namespace rx
             result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
             num/=10;
             result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
-            num/=10;
             return result;
         }
 
@@ -58,7 +57,6 @@ namespace rx
             result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
             num/=10;
             result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
-            num/=10;
             return result;
         }
         //-----------------------------------------------------
@@ -81,7 +79,6 @@ namespace rx
             result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
             num/=10;
             result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
-            num/=10;
             return result;
         }
 
@@ -112,7 +109,6 @@ namespace rx
             result[1]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
             result[0]=sc<CT>::hex_upr(num&0xf);
-            num>>=4;
             return result;
         }
 
@@ -128,7 +124,6 @@ namespace rx
             result[1]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
             result[0]=sc<CT>::hex_upr(num&0xf);
-            num>>=4;
             return result;
         }
         //-----------------------------------------------------
@@ -151,7 +146,6 @@ namespace rx
             result[1]=sc<CT>::hex_upr(num&0xf);
             num>>=4;
             result[0]=sc<CT>::hex_upr(num&0xf);
-            num>>=4;
             return result;
         }
         //-----------------------------------------------------
