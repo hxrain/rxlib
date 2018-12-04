@@ -169,20 +169,13 @@ namespace rx
         }
         //-------------------------------------------------
         //拼装字符串
-        tiny_string_t& operator<<(const CT *str)
-        {
-            //尝试在剩余的空间中放入指定字符串
-            uint32_t rc = st::strcpy(m_head.buff + m_head.length, m_head.capacity() - m_head.length, str);
-            if (rc)
-                m_head.length += rc;
-            else
-                m_head.length = m_head.capacity();          //容量不足,标记错误
-            return *this;
-        }
+        tiny_string_t& operator<<(const CT *str) { return (*this)(str,st::strlen(str)); }
         //-------------------------------------------------
         //拼装定长字符串
         tiny_string_t& operator()(const CT *str, uint32_t len)
         {
+            if (len == 0)
+                return *this;
             //尝试在剩余的空间中放入指定字符串
             uint32_t rc = st::strcpy(m_head.buff + m_head.length, m_head.capacity() - m_head.length, str, len);
             if (rc)

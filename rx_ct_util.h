@@ -127,9 +127,9 @@ namespace rx
     template <class T>
     inline const T& Max(const T& A, const T& B) {  return  A < B ? B : A; }
     template <class T>
-    inline const T& Min(const T& A, const T& B,const T& ValueC) { return Min(Min(A,B),ValueC); }
+    inline const T& Min(const T& A, const T& B,const T& C) { return Min(Min(A,B),C); }
     template <class T>
-    inline const T& Max(const T& A, const T& B,const T& ValueC) { return Max(Max(A,B),ValueC); }
+    inline const T& Max(const T& A, const T& B,const T& C) { return Max(Max(A,B),C); }
 
     template <class T>
     inline void Swap(const T& A, const T& B) { T C(A); A = B; B = C; }
