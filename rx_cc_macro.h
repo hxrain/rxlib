@@ -471,29 +471,6 @@
     //-----------------------------------------------------
     //定义指针类型
     typedef void* ptr_t;
-
-    //-----------------------------------------------------
-    //构造rx_cc_desc()宏或函数,便于获取当前编译期信息
-    #if RX_CC == RX_CC_VC
-	    #include <stdio.h>
-        #if (RX_CC_VER_MAJOR<19)
-            #define snprintf _snprintf
-        #endif
-
-	    //visual studio, eg : "CPU:X64(LE)/Microsoft Visual Studio(19.0.1900.1)/64Bit"
-	    inline const char* rx_cc_desc()
-	    {
-		    static char desc[128];
-		    snprintf(desc,sizeof(desc),"OS:%s/CPU:%s(%s)/CC:%s(%d.%d.%d.%d)/WordLength:%dBit",RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
-		    return desc;
-	    }
-    #else
-        //自动拼装编译器和CPU信息描述. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
-        #define RX_CC_DESC ("OS:" RX_OS_NAME "/CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/CC:" RX_CC_NAME "(" RX_CT_N2S(RX_CC_VER_MAJOR) "." RX_CT_N2S(RX_CC_VER_MINOR) "." RX_CT_N2S(RX_CC_VER_PATCH) "." RX_CT_N2S(RX_CC_VER_BUILD) ")/WordLength:" RX_CT_N2S(RX_CC_BIT) "Bit")
-
-        inline const char* rx_cc_desc() {return RX_CC_DESC;}
-    #endif
-
     //-----------------------------------------------------
     //根据上面的各类分析,引入各个平台的开发基础头文件
     #if RX_OS_WIN
@@ -502,6 +479,7 @@
         #endif
 
         #define WIN32_LEAN_AND_MEAN
+        #define _CRT_SECURE_NO_WARNINGS 1
 
         #include <windows.h>
 
@@ -516,6 +494,30 @@
         #define RX_CC_LIBTAG "d"
     #else
         #define RX_CC_LIBTAG "r"
+    #endif
+
+
+    //-----------------------------------------------------
+    //构造rx_cc_desc()宏或函数,便于获取当前编译期信息
+    #if RX_CC == RX_CC_VC
+        #include <stdio.h>
+        #if (RX_CC_VER_MAJOR<19)
+            #define snprintf _snprintf
+        #endif
+
+
+	    //visual studio, eg : "CPU:X64(LE)/Microsoft Visual Studio(19.0.1900.1)/64Bit"
+	    inline const char* rx_cc_desc()
+	    {
+		    static char desc[128];
+		    snprintf(desc,sizeof(desc),"OS:%s/CPU:%s(%s)/CC:%s(%d.%d.%d.%d)/WordLength:%dBit",RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
+		    return desc;
+	    }
+    #else
+        //自动拼装编译器和CPU信息描述. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
+        #define RX_CC_DESC ("OS:" RX_OS_NAME "/CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/CC:" RX_CC_NAME "(" RX_CT_N2S(RX_CC_VER_MAJOR) "." RX_CT_N2S(RX_CC_VER_MINOR) "." RX_CT_N2S(RX_CC_VER_PATCH) "." RX_CT_N2S(RX_CC_VER_BUILD) ")/WordLength:" RX_CT_N2S(RX_CC_BIT) "Bit")
+
+        inline const char* rx_cc_desc() {return RX_CC_DESC;}
     #endif
 
     #include <stdint.h>
