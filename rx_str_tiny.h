@@ -103,7 +103,9 @@ namespace rx
         {
             va_list	ap;
             va_start(ap, str);
-            return fmt(str, ap);
+            bool ret = fmt(str, ap);
+            va_end(ap);
+            return ret;
         }
         //-------------------------------------------------
         //绑定缓冲器并进行字符串的赋值

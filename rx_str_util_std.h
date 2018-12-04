@@ -259,13 +259,17 @@ namespace rx
         {
             va_list ap;
             va_start(ap, Fmt);
-            return ::vsnprintf(Buf,BufSize,Fmt,ap);
+            int ret = ::vsnprintf(Buf,BufSize,Fmt,ap);
+            va_end(ap);
+            return ret;
         }
         inline int              snprintf(wchar_t * Buf,uint32_t BufSize, const wchar_t *Fmt,...)
         {
             va_list ap;
             va_start(ap, Fmt);
-            return ::vswprintf(Buf,BufSize,Fmt,ap);
+            int ret = ::vswprintf(Buf,BufSize,Fmt,ap);
+            va_end(ap);
+            return ret;
         }
         inline int              vsnprintf(char * Buf,uint32_t BufSize, const char *Fmt,va_list arglist) {return ::vsnprintf(Buf,BufSize,Fmt,arglist);}
         inline int              vsnprintf(wchar_t * Buf,uint32_t BufSize, const wchar_t *Fmt,va_list arglist) {return ::vswprintf(Buf,BufSize,Fmt,arglist);}
@@ -275,13 +279,17 @@ namespace rx
         {
             va_list ap;
             va_start(ap, format);
-            return vfprintf(stream,format,ap);
+            int ret = vfprintf(stream,format,ap);
+            va_end(ap);
+            return ret;
         }
         inline int              fprintf(FILE *stream, const wchar_t *format,...)
         {
             va_list ap;
             va_start(ap, format);
-            return vfwprintf(stream,format,ap);
+            int ret = vfwprintf(stream,format,ap);
+            va_end(ap);
+            return ret;
         }
         inline int              vfprintf(FILE *stream, const char *format,va_list ap) {return ::vfprintf(stream,format,ap);}
         inline int              vfprintf(FILE *stream, const wchar_t *format,va_list ap) {return ::vfwprintf(stream,format,ap);}

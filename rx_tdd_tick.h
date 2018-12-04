@@ -126,6 +126,7 @@ namespace rx
             va_start(ap, msg_c);
             char tmp1[512];
             vsnprintf(tmp1, sizeof(tmp1), msg_c, ap);
+            va_end(ap);
 
             char tmp[512];
             snprintf(tmp, sizeof(tmp), "<tdd_tt>{ %s }:%s:%s (%.1f)ms {%s} : (%s:%u).", m_msg_a,(is_hit?"hit":"seg"), tab_str, m_last_hit_elapsed  / 1000.0, tmp1, file, lineno);
@@ -174,6 +175,7 @@ namespace rx
             va_list ap;
             va_start(ap, msg_c);
             vsnprintf(m_msg,sizeof(m_msg),msg_c,ap);
+            va_end(ap);
 
             ++m_tdd_tick.tab_deep();
         }
@@ -213,6 +215,7 @@ namespace rx
             va_list ap;
             va_start(ap, fmt);
             vsnprintf(m_msg, sizeof(m_msg), fmt, ap);
+            va_end(ap);
         }
         ~tdd_tick_for_t() 
         { 

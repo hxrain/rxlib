@@ -249,6 +249,7 @@ namespace rx
             va_start(ap, Fmt);
             char Buff[BuffSize];
             int R = st::vsnprintf(Buff, BuffSize, Fmt, ap);
+            va_end(ap);
             if (R < 0)
                 return false;
             return write(Buff, R);
@@ -506,6 +507,7 @@ namespace rx
             va_start(ap, Fmt);
             char Buff[BuffSize];
             int R = st::vsnprintf(Buff, BuffSize, Fmt, ap);
+            va_end(ap);
             if (R < 0)
                 return false;
             return write(Buff, R);
