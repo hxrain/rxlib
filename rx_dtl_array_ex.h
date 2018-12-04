@@ -156,23 +156,34 @@ namespace rx
         ~alias_array_t() { clear(); }
         //-------------------------------------------------
         //动态生成别名数组,同时告知哈希表的扩容系数
-        bool make(uint32_t max_items,uint32_t factor=30)
+        bool make(uint32_t max_items, bool can_reuse = false, uint32_t factor=30)
         {
-            clear();
-            if (!m_array.make(max_items))
-                return false;
-            if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
-                return false;
+            if (can_reuse && max_items <= capacity())
+                clear(true);
+            else
+            {
+                clear();
+                if (!m_array.make(max_items))
+                    return false;
+                if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
+                    return false;
+            }
             return true;
+
         }
         //动态生成别名数组,同时给元素提供内存分配器告知哈希表的扩容系数
-        bool make_ex(uint32_t max_items, uint32_t factor = 30)
+        bool make_ex(uint32_t max_items, bool can_reuse = false, uint32_t factor = 30)
         {
-            clear();
-            if (!m_array.make(max_items,m_mem))             //让用户数据元素使用内存分配器对象进行构造初始化
-                return false;
-            if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
-                return false;
+            if (can_reuse && max_items <= capacity())
+                clear(true);
+            else
+            {
+                clear();
+                if (!m_array.make(max_items, m_mem))             //让用户数据元素使用内存分配器对象进行构造初始化
+                    return false;
+                if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
+                    return false;
+            }
             return true;
         }
         //-------------------------------------------------

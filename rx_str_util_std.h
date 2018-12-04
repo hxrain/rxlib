@@ -72,8 +72,8 @@ namespace rx
     {
         //-------------------------------------------------
         //³¤¶È
-        inline uint32_t         strlen(const char* Str) {return (uint32_t)::strlen(Str);}
-        inline uint32_t         strlen(const wchar_t* Str) {return (uint32_t)::wcslen(Str);}
+        inline uint32_t         strlen(const char* Str) { return Str == NULL ? 0 : (uint32_t)::strlen(Str); }
+        inline uint32_t         strlen(const wchar_t* Str) {return Str == NULL ? 0 : (uint32_t)::wcslen(Str);}
 
         //¿½±´
         inline char*            strcpy(char* dst,const char* src) {return ::strcpy(dst,src);}
