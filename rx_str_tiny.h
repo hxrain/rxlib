@@ -65,6 +65,52 @@ namespace rx
             assign(str,len);
         }
         //-------------------------------------------------
+        //获知缓冲区容量
+        uint32_t capacity()const { return m_head.capacity(); }
+        //获知缓冲区内数据长度,如果等于容量,则说明出现了拼装溢出错误
+        uint32_t size()const { return m_head.length; }
+        //获知缓冲区内容
+        const CT* c_str() const { return m_head.buff; }
+        operator const CT* ()const { return m_head.buff; }
+        //-------------------------------------------------
+        //比较运算符重载
+        bool operator <  (const tiny_string_t& str) const { return st::strcmp(m_head.buff, str.m_head.buff) < 0; }
+        bool operator <= (const tiny_string_t& str) const { return st::strcmp(m_head.buff, str.m_head.buff) <= 0; }
+        bool operator == (const tiny_string_t& str) const { return st::strcmp(m_head.buff, str.m_head.buff) == 0; }
+        bool operator >  (const tiny_string_t& str) const { return st::strcmp(m_head.buff, str.m_head.buff) > 0; }
+        bool operator >= (const tiny_string_t& str) const { return st::strcmp(m_head.buff, str.m_head.buff) >= 0; }
+        bool operator != (const tiny_string_t& str) const { return st::strcmp(m_head.buff, str.m_head.buff) != 0; }
+        //-------------------------------------------------
+        bool operator <  (const CT *str) const { return st::strcmp(m_head.buff, (is_empty(str) ? sc<CT>::empty() : str)) < 0; }
+        bool operator <= (const CT *str) const { return st::strcmp(m_head.buff, (is_empty(str) ? sc<CT>::empty() : str)) <= 0; }
+        bool operator == (const CT *str) const { return st::strcmp(m_head.buff, (is_empty(str) ? sc<CT>::empty() : str)) == 0; }
+        bool operator >  (const CT *str) const { return st::strcmp(m_head.buff, (is_empty(str) ? sc<CT>::empty() : str)) > 0; }
+        bool operator >= (const CT *str) const { return st::strcmp(m_head.buff, (is_empty(str) ? sc<CT>::empty() : str)) >= 0; }
+        bool operator != (const CT *str) const { return st::strcmp(m_head.buff, (is_empty(str) ? sc<CT>::empty() : str)) != 0; }
+        //-------------------------------------------------
+        //绑定缓冲器并进行字符串的赋值
+        uint32_t bind(CT* buff, uint32_t cap, const CT* str, uint32_t len = 0)
+        {
+            rx_static_assert(max_str_size == 0);            //要求必须为缓冲区绑定模式,才可以重新绑定
+            m_head.bind(buff, cap);
+            return assign(str, len);
+        }
+        //-------------------------------------------------
+        //在给定的buff内存块上构造简易串对象并进行初始化
+        //返回值:NULL失败;其他为串头对象指针
+        static tiny_string_t* make(void* buff, uint32_t buffsize, const CT* str, uint32_t len = 0)
+        {
+            if (buffsize <= sizeof(tiny_string_t))       //检查最小尺寸
+                return NULL;
+
+            //在给定的缓冲区上构造简易字符串对象
+            uint32_t cap = buffsize - sizeof(tiny_string_t);
+            CT *strbuf = (CT*)((uint8_t*)buff + sizeof(tiny_string_t));
+            tiny_string_t *s = ct::OC<tiny_string_t >((tiny_string_t*)buff, cap, strbuf);
+            s->assign(str, len);
+            return s;
+        }
+        //-------------------------------------------------
         //使用给定的字符串进行赋值(能放多少放多少)
         //返回值:真正拷贝的串尺寸.
         uint32_t assign(const CT* str=NULL, uint32_t len = 0)
@@ -85,6 +131,12 @@ namespace rx
                 m_head.buff[m_head.length] = 0;
                 return m_head.length;
             }
+        }
+        //-------------------------------------------------
+        tiny_string_t& repleace(CT from, CT to)
+        {
+            st::replace(m_head.buff, from, to);
+            return *this;
         }
         //-------------------------------------------------
         //格式化生成内部串
@@ -108,52 +160,6 @@ namespace rx
             return ret;
         }
         //-------------------------------------------------
-        //绑定缓冲器并进行字符串的赋值
-        uint32_t bind(CT* buff,uint32_t cap,const CT* str,uint32_t len = 0)
-        {
-            rx_static_assert(max_str_size == 0);            //要求必须为缓冲区绑定模式,才可以重新绑定
-            m_head.bind(buff,cap);
-            return assign(str,len);
-        }
-        //-------------------------------------------------
-        //获知缓冲区容量
-        uint32_t capacity()const { return m_head.capacity(); }
-        //获知缓冲区内数据长度,如果等于容量,则说明出现了拼装溢出错误
-        uint32_t size()const { return m_head.length; }
-        //获知缓冲区内容
-        const CT* c_str() const { return m_head.buff; }
-        operator const CT* ()const {return m_head.buff;}
-        //-------------------------------------------------
-        //比较运算符重载
-        bool operator <  (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) < 0;}
-        bool operator <= (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) <= 0;}
-        bool operator == (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) == 0;}
-        bool operator >  (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) > 0;}
-        bool operator >= (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) >= 0;}
-        bool operator != (const tiny_string_t& str) const {return st::strcmp(m_head.buff, str.m_head.buff) != 0;}
-        //-------------------------------------------------
-        bool operator <  (const CT *str) const {return st::strcmp(m_head.buff, (is_empty(str)?sc<CT>::empty():str)) < 0;}
-        bool operator <= (const CT *str) const {return st::strcmp(m_head.buff, (is_empty(str)?sc<CT>::empty():str)) <= 0;}
-        bool operator == (const CT *str) const {return st::strcmp(m_head.buff, (is_empty(str)?sc<CT>::empty():str)) == 0;}
-        bool operator >  (const CT *str) const {return st::strcmp(m_head.buff, (is_empty(str)?sc<CT>::empty():str)) > 0;}
-        bool operator >= (const CT *str) const {return st::strcmp(m_head.buff, (is_empty(str)?sc<CT>::empty():str)) >= 0;}
-        bool operator != (const CT *str) const {return st::strcmp(m_head.buff, (is_empty(str)?sc<CT>::empty():str)) != 0;}
-        //-------------------------------------------------
-        //在给定的buff内存块上构造简易串对象并进行初始化
-        //返回值:NULL失败;其他为串头对象指针
-        static tiny_string_t* make(void* buff, uint32_t buffsize, const CT* str, uint32_t len = 0)
-        {
-            if (buffsize <= sizeof(tiny_string_t))       //检查最小尺寸
-                return NULL;
-
-            //在给定的缓冲区上构造简易字符串对象
-            uint32_t cap = buffsize - sizeof(tiny_string_t);
-            CT *strbuf = (CT*)((uint8_t*)buff + sizeof(tiny_string_t));
-            tiny_string_t *s = ct::OC<tiny_string_t >((tiny_string_t*)buff, cap, strbuf);
-            s->assign(str, len);
-            return s;
-        }
-        //-------------------------------------------------
         //拼装字符
         tiny_string_t& operator<<(const CT c)
         {
@@ -169,10 +175,10 @@ namespace rx
         }
         //-------------------------------------------------
         //拼装字符串
-        tiny_string_t& operator<<(const CT *str) { return (*this)(str,st::strlen(str)); }
+        tiny_string_t& operator<<(const CT *str) { return (*this)(st::strlen(str),str); }
         //-------------------------------------------------
         //拼装定长字符串
-        tiny_string_t& operator()(const CT *str, uint32_t len)
+        tiny_string_t& operator()(uint32_t len,const CT *str)
         {
             if (len == 0)
                 return *this;
@@ -182,6 +188,32 @@ namespace rx
                 m_head.length += rc;
             else
                 m_head.length = m_head.capacity();          //容量不足,标记错误
+            return *this;
+        }
+        //-------------------------------------------------
+        //格式化拼装字符串
+        tiny_string_t& operator()(const CT *str,...)
+        {
+            if (is_empty(str))
+                return *this;
+
+            va_list ap;
+            va_start(ap, str);
+            (*this)(str,ap);
+            va_end(ap);
+
+            return *this;
+        }
+        tiny_string_t& operator()(const CT *str, va_list ap)
+        {
+            if (is_empty(str))
+                return *this;
+            //尝试在剩余的空间中放入指定字符串
+            int32_t rc = st::vsnprintf(m_head.buff + m_head.length, m_head.capacity() - m_head.length, str, ap);
+            if (rc>0)
+                m_head.length += rc;
+            else
+                m_head.length = m_head.capacity();          //标记错误
             return *this;
         }
         //-------------------------------------------------
