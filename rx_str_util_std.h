@@ -195,16 +195,30 @@ namespace rx
 
 
         #if RX_CC==RX_CC_GCC
-        inline char *           itoa64(int value, char *string, int radix=10)
+        inline char *           itoa64(int64_t value, char *string, int radix=10)
         {
             const char* fmt="%lld";
             if (radix==16) fmt="%llx";
             sprintf(string,fmt,value);
             return string;
         }
-        inline wchar_t *           itoa64(int value, wchar_t *string, int radix=10)
+        inline char *           utoa64(uint64_t value, char *string, int radix=10)
+        {
+            const char* fmt="%llu";
+            if (radix==16) fmt="%llx";
+            sprintf(string,fmt,value);
+            return string;
+        }
+        inline wchar_t *        itoa64(int64_t value, wchar_t *string, int radix=10)
         {
             const wchar_t* fmt=L"%lld";
+            if (radix==16) fmt=L"%llx";
+            wprintf(string,fmt,value);
+            return string;
+        }
+        inline wchar_t *        utoa64(uint64_t value, wchar_t *string, int radix=10)
+        {
+            const wchar_t* fmt=L"%llu";
             if (radix==16) fmt=L"%llx";
             wprintf(string,fmt,value);
             return string;
@@ -212,6 +226,8 @@ namespace rx
         #else
         inline char *           itoa64(int64_t value, char *string, int radix=10) {return ::_i64toa(value,string,radix);}
         inline wchar_t *        itoa64(int64_t value, wchar_t *string, int radix=10) {return ::_i64tow(value,string,radix);}
+        inline char *           utoa64(uint64_t value, char *string, int radix=10) {return ::_ui64toa(value,string,radix);}
+        inline wchar_t *        utoa64(uint64_t value, wchar_t *string, int radix=10) {return ::_ui64tow(value,string,radix);}
         #endif
 
 
