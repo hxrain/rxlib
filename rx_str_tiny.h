@@ -73,6 +73,17 @@ namespace rx
         const CT* c_str() const { return m_head.buff; }
         operator const CT* ()const { return m_head.buff; }
         //-------------------------------------------------
+        //开放对外的缓冲区访问方法
+        CT* ptr() { return m_head.buff; }
+        bool end(uint32_t pos) 
+        {
+            if (pos >= m_head.capacity())
+                return false;
+            m_head.buff[pos] = 0;
+            m_head.length = pos;
+            return true;
+        }
+        //-------------------------------------------------
         //比较运算符重载
         bool operator <  (const tiny_string_t& str) const { return st::strcmp(m_head.buff, str.m_head.buff) < 0; }
         bool operator <= (const tiny_string_t& str) const { return st::strcmp(m_head.buff, str.m_head.buff) <= 0; }
