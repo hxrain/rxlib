@@ -266,8 +266,8 @@ namespace rx
         inline CT*              ultox(uint32_t value,CT* Buff) {Buff[0]=sc<CT>::zero(); Buff[1]=sc<CT>::x(); ultoa(value,&Buff[2],16); return Buff;}
 
         //浮点数转为字符串
-        inline char*            ftoa(const double& f,char* string,const char* Fmt=NULL) {if (!Fmt) Fmt="%.2f"; sprintf(string,Fmt,f); return string;}
-        inline wchar_t*         ftoa(const double& f,wchar_t* string,const wchar_t* Fmt=NULL) {if (!Fmt) Fmt=L"%.2f"; wprintf(string,Fmt,f); return string;}
+        inline char*            ftoa(const double& f,char* string,const char* Fmt=NULL) {if (!Fmt) Fmt="%.8f"; sprintf(string,Fmt,f); return string;}
+        inline wchar_t*         ftoa(const double& f,wchar_t* string,const wchar_t* Fmt=NULL) {if (!Fmt) Fmt=L"%.8f"; wprintf(string,Fmt,f); return string;}
 
         //字符串格式化
         //返回值:<0错误;>=0为输出内容长度,需要与BufSize进行比较

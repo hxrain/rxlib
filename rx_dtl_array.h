@@ -132,8 +132,11 @@ namespace rx
         virtual ~array_t() { clear(); }
 
         //-------------------------------------------------
-        bool make(uint32_t Count)
+        bool make(uint32_t Count, bool can_reuse=false)
         {
+            if (can_reuse&&Count < super_t::m_capacity)
+                return true;                                //可复用且容量大于要求,则直接返回
+
             clear();
             rx_assert_msg(Count!=0,"不能初始化0长度的数组");
             if (!Count) return false;
@@ -144,8 +147,11 @@ namespace rx
         }
         //-------------------------------------------------
         template<class PT1>
-        bool make(uint32_t Count,PT1& P1)
+        bool make(uint32_t Count,PT1& P1, bool can_reuse = false)
         {
+            if (can_reuse&&Count < super_t::m_capacity)
+                return true;                                //可复用且容量大于要求,则直接返回
+
             clear();
             rx_assert_msg(Count != 0, "不能初始化0长度的数组");
             if (!Count) return true;
