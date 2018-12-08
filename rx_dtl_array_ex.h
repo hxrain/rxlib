@@ -158,7 +158,7 @@ namespace rx
         //动态生成别名数组,同时告知哈希表的扩容系数
         bool make(uint32_t max_items, bool can_reuse = false, uint32_t factor=30)
         {
-            if (can_reuse && max_items <= capacity())
+            if (can_reuse && max_items <= super_t::capacity())
                 clear(true);
             else
             {
@@ -174,7 +174,7 @@ namespace rx
         //动态生成别名数组,同时给元素提供内存分配器告知哈希表的扩容系数
         bool make_ex(uint32_t max_items, bool can_reuse = false, uint32_t factor = 30)
         {
-            if (can_reuse && max_items <= capacity())
+            if (can_reuse && max_items <= super_t::capacity())
                 clear(true);
             else
             {
