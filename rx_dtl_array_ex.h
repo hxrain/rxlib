@@ -165,7 +165,7 @@ namespace rx
                 clear();
                 if (!m_array.make(max_items))
                     return false;
-                if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
+                if (!m_hashtbl.make(max_items+3, (float)(factor / 100.0)))
                     return false;
             }
             return true;
@@ -181,7 +181,7 @@ namespace rx
                 clear();
                 if (!m_array.make(max_items, m_mem))             //让用户数据元素使用内存分配器对象进行构造初始化
                     return false;
-                if (!m_hashtbl.make(max_items, (float)(factor / 100.0)))
+                if (!m_hashtbl.make(max_items+3, (float)(factor / 100.0)))
                     return false;
             }
             return true;
