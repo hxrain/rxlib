@@ -32,21 +32,18 @@ namespace rx
         //直接获取数组指针
         T* array()const{return m_ptr;}
         //直接访问数组元素
-        T& at(uint32_t idx)const { return m_ptr[idx]; }
+        T& at(uint32_t idx) const
+        {
+            rx_assert_msg((uint32_t)idx < m_capacity, "array_i 下标越界!");
+            return m_ptr[idx];
+        }
         //-------------------------------------------------
         //根据索引访问元素;idx从-1开始可以反向访问元素
-        T& operator []( int32_t idx )
+        T& operator []( int32_t idx ) const
         {
-            if (idx >= 0)
-            {
-                rx_assert_msg((uint32_t)idx < m_capacity, "array_i 下标越界!");
-                return m_ptr[idx];
-            }
-            else
-            {
-                rx_assert_msg(m_capacity + idx >= 0, "array_i 下标越界!");
-                return m_ptr[m_capacity + idx];
-            }
+            idx = (m_capacity + idx) % m_capacity;
+            rx_assert_msg((uint32_t)idx < m_capacity, "array_i 下标越界!");
+            return m_ptr[idx];
         }
         //-------------------------------------------------
         //统一给数组元素赋值
