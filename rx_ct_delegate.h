@@ -127,8 +127,8 @@ namespace rx
     class delegate1_t:public delegate1_rt<PT1,RT>           //(完整独立功能单参数的委托类)
     {
         typedef delegate1_rt<PT1,RT> super;
-        typedef typename super::cb_func_t cb_func_t;
     public:
+        typedef typename super::cb_func_t cb_func_t;
         //-------------------------------------------------
         delegate1_t() { super::reset(); }
         delegate1_t(cb_func_t f,void* dat = NULL) { super::reset(); super::bind(f,dat); }
@@ -231,8 +231,8 @@ namespace rx
     class delegate2_t:public delegate2_rt<PT1,PT2,RT>
     {
         typedef delegate2_rt<PT1,PT2,RT> super;
-        typedef typename super::cb_func_t cb_func_t;
     public:
+        typedef typename super::cb_func_t cb_func_t;
         delegate2_t() { super::reset(); }
         delegate2_t(cb_func_t cf,void* dat = NULL) { super::reset(); super::bind(cf,dat); }
         template<class T>
@@ -332,8 +332,8 @@ namespace rx
     class delegate3_t:public delegate3_rt<PT1,PT2,PT3,RT>
     {
         typedef delegate3_rt<PT1,PT2,PT3,RT> super;
-        typedef typename super::cb_func_t cb_func_t;
     public:
+        typedef typename super::cb_func_t cb_func_t;
         //-------------------------------------------------
         delegate3_t() { super::reset(); }
         delegate3_t(cb_func_t cf,void* dat = NULL) { super::reset(); super::bind(cf,dat); }
@@ -436,8 +436,8 @@ namespace rx
     class delegate4_t:public delegate4_rt<PT1,PT2,PT3,PT4,RT>
     {
         typedef delegate4_rt<PT1,PT2,PT3,PT4,RT> super;
-        typedef typename super::cb_func_t cb_func_t;
     public:
+        typedef typename super::cb_func_t cb_func_t;
         //-------------------------------------------------
         delegate4_t() { super::reset(); }
         delegate4_t(cb_func_t cf,void* dat = NULL) { super::reset(); super::bind(cf,dat); }
