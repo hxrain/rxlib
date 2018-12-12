@@ -7,8 +7,111 @@
 //-----------------------------------------------------
 //data hash function
 typedef uint32_t (*rx_data_hash32_t)(const void *data, uint32_t len, uint32_t seed);
-//-----------------------------------------------------
+typedef uint32_t(*rx_str_hash32_t)(const char* str, uint32_t seed);
+typedef uint32_t(*rx_wstr_hash32_t)(const wchar_t* str, uint32_t seed);
+typedef uint32_t(*rx_str2_hash32_t)(const char* str, uint32_t seed1, uint32_t seed2);
+typedef uint32_t(*rx_wstr2_hash32_t)(const wchar_t* str, uint32_t seed1, uint32_t seed2);
 
+//-----------------------------------------------------
+// BKDR Hash Function
+inline uint32_t rx_hash_bkdr(const void* data, uint32_t Len, uint32_t seed = 131)
+{
+    uint32_t hash = seed;// 31 131 1313 13131 131313 etc..
+    for (uint32_t i = 0; i<Len; i++)
+        hash = hash*seed + ((uint8_t*)data)[i];
+    return hash;
+}
+template<class CT>
+inline uint32_t rx_hash_bkdr(const CT* str, uint32_t seed = 131)
+{
+    uint32_t hash = seed;// 31 131 1313 13131 131313 etc..
+    while (*str)
+        hash = hash*seed + (*str++);
+    return hash;
+}
+//二重BKDR哈希算法,用两个种子生成两倍的结果
+template<class CT>
+inline uint64_t rx_hash_bkdr2(const CT* str, uint32_t seed1 = 131, uint32_t seed2 = 13131)
+{
+    uint32_t hash1 = seed1;
+    uint32_t hash2 = seed2;
+    CT c;
+    while ((c = *str++))
+    {
+        hash1 = hash1*seed1 + c;
+        hash2 = hash2*seed2 + c;
+    }
+
+    return (uint64_t)hash1 << 32 | hash2;
+}
+template<class CT>
+inline void rx_hash_bkdr2(const CT* str,uint32_t &hash1,uint32_t &hash2, uint32_t seed1 = 131, uint32_t seed2 = 13131)
+{
+    CT c;
+    while ((c = *str++))
+    {
+        hash1 = hash1*seed1 + c;
+        hash2 = hash2*seed2 + c;
+    }
+}
+//-----------------------------------------------------
+//FNV Hash
+inline uint32_t rx_hash_fnv(const void* data, uint32_t Len, uint32_t seed = 0)
+{
+    uint32_t fnv_prime = 0x811C9DC5;
+    uint32_t hash = seed;
+    for (uint32_t i = 0; i < Len; i++)
+    {
+        hash *= fnv_prime;
+        hash ^= ((uint8_t*)data)[i];
+    }
+    return hash;
+}
+template<class CT>
+inline uint32_t rx_hash_fnv(const CT* Str, uint32_t seed = 0)
+{
+    uint32_t fnv_prime = 0x811C9DC5;
+    uint32_t hash = seed;
+    while (*Str)
+    {
+        hash *= fnv_prime;
+        hash ^= (*Str++);
+    }
+    return hash;
+}
+//二重FNV哈希算法,用两个种子生成两倍的结果
+template<class CT>
+inline uint32_t rx_hash_fnv2(const CT* Str, uint32_t seed1 = 0, uint32_t seed2 = 31)
+{
+    uint32_t fnv_prime = 0x811C9DC5;
+    uint32_t hash1 = seed1;
+    uint32_t hash2 = seed2;
+    CT c;
+    while ((c = *Str++))
+    {
+        hash1 *= fnv_prime;
+        hash1 ^= c;
+
+        hash2 *= fnv_prime;
+        hash2 ^= c;
+    }
+    return (uint64_t)hash1 << 32 | hash2;
+}
+template<class CT>
+inline void rx_hash_fnv2(const CT* Str, uint32_t &hash1, uint32_t &hash2, uint32_t seed1 = 0, uint32_t seed2 = 31)
+{
+    uint32_t fnv_prime = 0x811C9DC5;
+    CT c;
+    while ((c = *Str++))
+    {
+        hash1 *= fnv_prime;
+        hash1 ^= c;
+
+        hash2 *= fnv_prime;
+        hash2 ^= c;
+    }
+}
+//-----------------------------------------------------
 // RS Hash Function
 inline uint32_t rx_hash_rs(const void* data,uint32_t Len, uint32_t seed = 0)
 {
@@ -125,24 +228,6 @@ inline uint32_t rx_hash_elf(const CT* str,uint32_t seed=0)
 }
 
 //-----------------------------------------------------
-// BKDR Hash Function
-inline uint32_t rx_hash_bkdr(const void* data,uint32_t Len, uint32_t seed = 131)
-{
-    uint32_t hash = seed;// 31 131 1313 13131 131313 etc..
-    for(uint32_t i=0; i<Len; i++)
-        hash = hash*seed + ((uint8_t*)data)[i];
-    return hash;
-}
-template<class CT>
-inline uint32_t rx_hash_bkdr(const CT* str, uint32_t seed = 131)
-{
-    uint32_t hash = seed ;// 31 131 1313 13131 131313 etc..
-    while (*str)
-        hash = hash*seed + (*str ++ );
-    return hash;
-}
-
-//-----------------------------------------------------
 // SDBM Hash Function
 inline uint32_t rx_hash_sdbm(const void* data,uint32_t Len, uint32_t seed = 0)
 {
@@ -238,31 +323,6 @@ inline uint32_t rx_hash_bp(const CT* Str, uint32_t seed = 0)
     uint32_t hash=seed;
     while(*Str)
         hash = (hash << 7) ^ (*Str++);
-    return hash;
-}
-//-----------------------------------------------------
-//FNV Hash
-inline uint32_t rx_hash_fnv(const void* data,uint32_t Len, uint32_t seed = 0)
-{
-    uint32_t fnv_prime = 0x811C9DC5;
-    uint32_t hash = seed;
-    for(uint32_t i = 0; i < Len; i++)
-    {
-        hash *= fnv_prime;
-        hash ^= ((uint8_t*)data)[i];
-    }
-    return hash;
-}
-template<class CT>
-inline uint32_t rx_hash_fnv(const CT* Str, uint32_t seed = 0)
-{
-    uint32_t fnv_prime = 0x811C9DC5;
-    uint32_t hash = seed;
-    while(*Str)
-    {
-        hash *= fnv_prime;
-        hash ^= (*Str++);
-    }
     return hash;
 }
 

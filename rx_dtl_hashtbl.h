@@ -7,6 +7,7 @@
 #include "rx_hash_int.h"
 #include "rx_ct_util.h"
 #include "rx_str_tiny.h"
+#include "rx_str_util_bin.h"
 
 /*
     <定长哈希表>
@@ -29,6 +30,42 @@
 
 namespace rx
 {
+    //-----------------------------------------------------
+    //别名越长,对应源串的冲突概率越小
+    //将指定的串str计算哈希码后转换为对应的定长哈希别名(8个字符的结果)
+    template<typename CT>
+    inline CT* string_alias1x8(const CT *str, CT name[8 + 1])
+    {
+        st::hex8(rx_hash_bkdr(str), name);
+        name[8] = 0;
+        return name;
+    }
+    //将指定的串str计算哈希码后转换为对应的定长哈希别名(16个字符的结果)
+    template<typename CT>
+    inline CT* string_alias2x8(const CT *str, CT name[16 + 1])
+    {
+        uint32_t h1, h2;
+        rx_hash_bkdr(str,h1,h2);
+        st::hex8(h1, name);
+        st::hex8(h2, name+8);
+        name[16] = 0;
+        return name;
+    }
+    //将指定的串str计算哈希码后转换为对应的定长哈希别名(32个字符的结果)
+    template<typename CT>
+    inline CT* string_alias4x8(const CT *str, CT name[32 + 1])
+    {
+        uint32_t h1, h2;
+        rx_hash_bkdr2(str, h1, h2);
+        st::hex8(h1, name);
+        st::hex8(h2, name + 8);
+
+        rx_hash_fnv2(str, h1, h2);
+        st::hex8(h1, name + 16);
+        st::hex8(h2, name + 24);
+        name[32] = 0;
+        return name;
+    }
     //-----------------------------------------------------
     //简单哈希表使用的节点比较器
     class hashtbl_cmp_t:public hashtbl_fun_t
