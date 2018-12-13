@@ -17,7 +17,7 @@ namespace rx
         template<class CT>
         inline uint32_t strcpy(CT* dst, uint32_t dstMaxSize, const CT* Src, uint32_t SrcLen = 0)
         {
-            if (!dstMaxSize)
+            if (!dstMaxSize || !dst)
                 return 0;
 
             dst[0] = 0;
@@ -41,7 +41,7 @@ namespace rx
         template<class CT>
         inline uint32_t strcpy2(CT* dst, uint32_t dstMaxSize, const CT* Src, uint32_t SrcLen = 0)
         {
-            if (!dstMaxSize)
+            if (!dstMaxSize || !dst)
                 return 0;
 
             dst[0] = 0;
@@ -57,6 +57,36 @@ namespace rx
             strncpy(dst, Src, SrcLen);
             dst[SrcLen] = 0;								//标记串结束符
             return SrcLen;
+        }
+
+        //将src拷贝到dst中,src中的某个字符如果在EndChars中则直接结束
+        //返回值:实际拷贝的长度
+        template<class CT>
+        inline uint32_t strcpy2(CT* dst, uint32_t dstMaxSize, const CT* Src, const CT* EndChars)
+        {
+            if (!dstMaxSize||!dst)
+                return 0;
+            dst[0] = 0;
+
+            if (EndChars == NULL)
+                EndChars = "";
+
+            if (is_empty(Src))
+                return 0;
+
+            uint32_t Len = 0;
+            CT c;
+            while ((c = Src[Len]))
+            {//对源串进行逐一遍历
+                if (Len+1 >= dstMaxSize)
+                    break;                              //如果目标不够了则结束
+                if (strchr(EndChars, c))
+                    break;                              //如果遇到结束字符了
+                dst[Len++] = c;
+            }
+
+            dst[Len] = 0;								//标记串结束符
+            return Len;
         }
         //-------------------------------------------------
         //将Src拼接到Dst的后面,不论Src与Dst为什么情况,拼接后的分隔符只有一个SP
@@ -437,6 +467,15 @@ namespace rx
             strncpy(Result,S,len);
             Result[len]=0;
             return Ret;
+        }
+        //-------------------------------------------------
+        //在串str的指定长度len范围内查找指定的字符c
+        //返回值:len未找到;其他为c出现的位置
+        template<typename CT>
+        uint32_t strnchr(const CT *str, uint32_t len, CT c)
+        {
+            for (uint32_t i = 0; i < len; ++i) if (str[i] == c) return i;
+            return len;
         }
         //-------------------------------------------------
         //对一个串进Str行遍历,用To替换掉里面所有的From字符
