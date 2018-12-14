@@ -56,11 +56,11 @@ namespace rx
     inline CT* string_alias4x8(const CT *str, CT name[32 + 1])
     {
         uint32_t h1, h2;
-        rx_hash_bkdr2(str, h1, h2);
+        rx_hash_bkdr2(h1, h2, str);
         st::hex8(h1, name);
         st::hex8(h2, name + 8);
 
-        rx_hash_fnv2(str, h1, h2);
+        rx_hash_fnv2(h1, h2, str);
         st::hex8(h1, name + 16);
         st::hex8(h2, name + 24);
         name[32] = 0;

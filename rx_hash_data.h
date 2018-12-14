@@ -45,7 +45,7 @@ inline uint64_t rx_hash_bkdr2(const CT* str, uint32_t seed1 = 131, uint32_t seed
     return (uint64_t)hash1 << 32 | hash2;
 }
 template<class CT>
-inline void rx_hash_bkdr2(const CT* str,uint32_t &hash1,uint32_t &hash2, uint32_t seed1 = 131, uint32_t seed2 = 13131)
+inline void rx_hash_bkdr2(uint32_t &hash1, uint32_t &hash2, const CT* str, uint32_t seed1 = 131, uint32_t seed2 = 13131)
 {
     CT c;
     while ((c = *str++))
@@ -98,7 +98,7 @@ inline uint32_t rx_hash_fnv2(const CT* Str, uint32_t seed1 = 0, uint32_t seed2 =
     return (uint64_t)hash1 << 32 | hash2;
 }
 template<class CT>
-inline void rx_hash_fnv2(const CT* Str, uint32_t &hash1, uint32_t &hash2, uint32_t seed1 = 0, uint32_t seed2 = 31)
+inline void rx_hash_fnv2(uint32_t &hash1, uint32_t &hash2, const CT* Str, uint32_t seed1 = 0, uint32_t seed2 = 31)
 {
     uint32_t fnv_prime = 0x811C9DC5;
     CT c;
