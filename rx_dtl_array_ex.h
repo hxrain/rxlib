@@ -142,11 +142,11 @@ namespace rx
         //描述父类
         typedef alias_array_i<DT, max_alias_size, ic, CT> super_t;
         //描述数组容器实体类
-        typedef array_t<typename super_t::array_node_t> array_t;
+        typedef array_t<typename super_t::array_node_t> cntr_t;
         //描述哈希容器实体类
         typedef hashtbl_st<uint32_t, max_alias_size, false, CT> hashtbl_t;
 
-        array_t         m_array;                            //定义数组容器实体
+        cntr_t           m_array;                            //定义数组容器实体
         hashtbl_t       m_hashtbl;                          //定义哈希容器实体
         mem_allotter_i  &m_mem;
     public:

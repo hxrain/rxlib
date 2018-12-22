@@ -3,6 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_str_util_std.h"
+#include "rx_str_util_ex.h"
 
 namespace rx
 {
@@ -75,7 +76,7 @@ namespace rx
         //-------------------------------------------------
         //开放对外的缓冲区访问方法
         CT* ptr() { return m_head.buff; }
-        bool end(uint32_t pos) 
+        bool end(uint32_t pos)
         {
             if (pos >= m_head.capacity())
                 return false;
@@ -144,7 +145,7 @@ namespace rx
             }
         }
         //-------------------------------------------------
-        tiny_string_t& repleace(CT from, CT to)
+        tiny_string_t& replace(CT from, CT to)
         {
             st::replace(m_head.buff, from, to);
             return *this;

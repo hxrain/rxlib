@@ -34,11 +34,11 @@ namespace rx
     class hashmap_base_t
     {
     public:
-        typedef skiplist_t<key_t, val_t, MAX_LEVEL, rnd_t>      skiplist_t;
+        typedef skiplist_t<key_t, val_t, MAX_LEVEL, rnd_t>      list_t;
 
         typedef struct slot_t
         {
-            skiplist_t list;
+            list_t list;
         }slot_t;
 
     protected:
@@ -74,12 +74,12 @@ namespace rx
         class iterator
         {
             const hashmap_base_t           *m_parent;
-            typename skiplist_t::iterator   m_itr;
+            typename list_t::iterator   m_itr;
             friend class hashmap_base_t;
         public:
             //---------------------------------------------
             iterator(const hashmap_base_t &s) :m_parent(&s), m_itr(NULL) {}
-            iterator(const hashmap_base_t &s, typename skiplist_t::iterator &it) :m_parent(&s), m_itr(it) {}
+            iterator(const hashmap_base_t &s, typename list_t::iterator &it) :m_parent(&s), m_itr(it) {}
             iterator(const iterator &i) :m_parent(i.m_parent), m_itr(i.m_itr) {}
             //---------------------------------------------
             bool operator==(const iterator &i)const { return m_parent == i.m_parent && m_itr == i.m_itr; }
@@ -121,7 +121,7 @@ namespace rx
 
             uint32_t slot = next_slot(-1);
             rx_assert(slot<m_slot_size);
-            typename skiplist_t::iterator I=m_slots[slot].list.begin();
+            typename list_t::iterator I=m_slots[slot].list.begin();
             return iterator(*this, I);  //返回初始槽位上的开始点
         }
         //-------------------------------------------------
@@ -134,7 +134,7 @@ namespace rx
         {
             uint32_t s = key_slot(key);
             bool d = false;
-            typename skiplist_t::iterator I = m_slots[s].list.insert(key, val, &d);
+            typename list_t::iterator I = m_slots[s].list.insert(key, val, &d);
             if (dup) *dup = d;
             if (I!=NULL && !d) ++m_node_size;
             return iterator(*this, I);
@@ -144,7 +144,7 @@ namespace rx
         {
             uint32_t s = key_slot(key);
             bool d = false;
-            typename skiplist_t::iterator I = m_slots[s].list.insert(key, &d);
+            typename list_t::iterator I = m_slots[s].list.insert(key, &d);
             if (dup) *dup = d;
             if (I != NULL && !d) ++m_node_size;
             return iterator(*this, I);
@@ -157,7 +157,7 @@ namespace rx
             if (0 == m_node_size)
                 return end();
             uint32_t s = key_slot(key);
-            typename skiplist_t::iterator I=m_slots[s].list.find(key);
+            typename list_t::iterator I=m_slots[s].list.find(key);
             return iterator(*this, I);
         }
         template<class KT>

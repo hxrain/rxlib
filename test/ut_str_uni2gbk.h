@@ -24,7 +24,7 @@ namespace rx_ut
         //单独校验原始查找算法
         rt.tdd_assert(rx_raw_uni2gbk(0x554a) == 0xb0a1);
         rt.tdd_assert(rx_char_uni2gbk(0x554a) == 0xb0a1);
-        
+
         rt.tdd_assert(rx_raw_gbk2uni(0xb0a1) == 0x554a);
 
         //校验全部uni代码的查找
@@ -48,10 +48,7 @@ namespace rx_ut
         rt.tdd_assert(rc == 0);
 
         //进行gbk字符内存字节序的测试
-        uint16_t gbk = '啊';
-        rt.tdd_assert(gbk == 0xb0a1);
-
-        gbk = str2code("啊");
+        uint16_t gbk = str2code("啊");
         rt.tdd_assert(gbk == 0xb0a1);
 
         //string:gbk2uni
