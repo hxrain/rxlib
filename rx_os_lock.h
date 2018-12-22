@@ -10,7 +10,7 @@
     #include <unistd.h>
 
     //让线程休眠指定的时间(毫秒)
-    void rx_thread_yield(uint32_t ms)
+    inline void rx_thread_yield(uint32_t ms)
     {
         if (!ms)
             sched_yield();
@@ -18,7 +18,7 @@
             usleep(ms*1000);
     }
     //尝试进行微秒级休眠
-    void rx_thread_yield_us(uint32_t us)
+    inline void rx_thread_yield_us(uint32_t us)
     {
         if (!us)
             sched_yield();
@@ -26,9 +26,9 @@
             usleep(us);
     }
     //让当前线程让步给本核上的其他线程,返回值告知是否切换成功
-    bool rx_thread_yield() { return !sched_yield(); }
+    inline bool rx_thread_yield() { return !sched_yield(); }
     //获取当前线程ID
-    uint64_t rx_thread_id() { return pthread_self(); }
+    inline uint64_t rx_thread_id() { return pthread_self(); }
 
     #define rx_mm_pause() __asm__ __volatile__ ("pause\n")
 
@@ -36,16 +36,16 @@
 
     #include <process.h>
     //让线程休眠指定的时间(毫秒)
-    void rx_thread_yield(uint32_t ms) { Sleep(ms); }
+    inline void rx_thread_yield(uint32_t ms) { Sleep(ms); }
     //尝试进行微秒级休眠(win上不准确)
-    void rx_thread_yield_us(uint32_t us)
+    inline void rx_thread_yield_us(uint32_t us)
     {
         Sleep((us+999)/1000);
     }
     //让当前线程让步给本核上的其他线程,返回值告知是否切换成功
-    bool rx_thread_yield() {return !!SwitchToThread();}
+    inline bool rx_thread_yield() {return !!SwitchToThread();}
     //获取当前线程ID
-    uint64_t rx_thread_id() { return GetCurrentThreadId(); }
+    inline uint64_t rx_thread_id() { return GetCurrentThreadId(); }
 
     #if RX_CC_MINGW||(RX_CC==RX_CC_GCC)
         #define rx_mm_pause() __asm__ __volatile__ ("pause\n")
