@@ -43,26 +43,26 @@
 
     //-----------------------------------------------------
     //循环左移
-    uint32_t rx_rol(uint32_t value, int count)
+    inline uint32_t rx_rol(uint32_t value, int count)
     {
         int r = count % 32;
         return (value << r) | (value >> (32 - r));
     }
 
-    uint64_t rx_rol(uint64_t value, int count)
+    inline uint64_t rx_rol(uint64_t value, int count)
     {
         int r = count % 64;
         return (value << r) | (value >> (64 - r));
     }
     //-----------------------------------------------------
     //循环右移
-    uint32_t rx_ror(uint32_t value, int count)
+    inline uint32_t rx_ror(uint32_t value, int count)
     {
         int r = count % 32;
         return (value >> r) | (value << (32 - r));
     }
 
-    uint64_t rx_ror(uint64_t value, int count)
+    inline uint64_t rx_ror(uint64_t value, int count)
     {
         int r = count % 64;
         return (value >> r) | (value << (64 - r));
