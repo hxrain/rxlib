@@ -294,7 +294,7 @@ namespace rx
         //清空全部的元素
         void clear()
         {
-            if (!m_basetbl.is_valid())
+            if (!m_basetbl.is_valid() || m_basetbl.size()==0)
                 return;
             for (iterator i = begin(); i != end();)
             {

@@ -34,12 +34,12 @@ namespace rx
         //-------------------------------------------------
         void clear()
         {
-            if (m_nodes)
-            {
-                super_t::clear();
-                m_mem.del(m_nodes);
-                m_nodes = NULL;
-            }
+            if (!m_nodes) return;
+
+            super_t::clear();
+            m_mem.del(m_nodes);
+            m_nodes = NULL;
+            super_t::m_basetbl.bind(NULL,NULL,false);            
         }
     };
 
@@ -71,12 +71,12 @@ namespace rx
         //-------------------------------------------------
         void clear()
         {
-            if (m_nodes)
-            {
-                super_t::clear();
-                m_mem.del(m_nodes);
-                m_nodes = NULL;
-            }
+            if (!m_nodes) return;
+            
+            super_t::clear();
+            m_mem.del(m_nodes);
+            m_nodes = NULL;
+            super_t::m_basetbl.bind(NULL,NULL,false);
         }
     };
 }

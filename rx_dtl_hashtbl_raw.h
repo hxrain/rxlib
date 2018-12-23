@@ -258,10 +258,13 @@ namespace rx
         //返回值:下一个节点的位置;与容器的容量相同时代表结束
         uint32_t next(uint32_t pos) const
         {
-            while (++pos < capacity())
-                if (m_nodes[pos].is_using())
-                    return pos;
-            return capacity();
+            uint32_t end=capacity();
+            for(uint32_t i=pos+1;i<end;++i)
+            {
+                if (m_nodes[i].is_using())
+                    return i;
+            }
+            return end;
         }
         //-------------------------------------------------
         //清理全部节点,回归初始状态.
