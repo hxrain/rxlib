@@ -2297,7 +2297,7 @@ rx_uni2gbk_0x3f8,rx_uni2gbk_0x3f9,NULL,NULL,rx_uni2gbk_0x3fc,rx_uni2gbk_0x3fd,NU
 inline uint16_t rx_char_uni2gbk(const uint16_t uni) 
 {
     const uint16_t *page = rx_uni2gbk_tbl[uni >> 6];
-    return page == NULL ? RX_BAD_UNI_CODE : page[uni&0x03F];
+    return page == NULL ? RX_CS_BAD_CHAR : page[uni&0x03F];
 }
 //---------------------------------------------------------
 //估算,将uni串转换为gbk串对应的字符数

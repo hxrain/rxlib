@@ -71,7 +71,7 @@ namespace rx_ut
     }
 
     //-----------------------------------------------------
-    //生成uni2gbk的两级map表
+    //生成uni2gbk的两级hashmap表
     inline void ut_str_uni2gbk_raw_u2g(rx_tdd_t &rt)
     {
         const uint32_t highs = 256 * 4;
@@ -79,7 +79,7 @@ namespace rx_ut
         const uint32_t shift = rx::LOG2<lows>::result;
 
         uint16_t map[highs*lows];
-        memset(map, 0xff, sizeof(map));
+        for (int i = 0; i < highs*lows; ++i) map[i] = RX_CS_BAD_CHAR;
 
         for (uint16_t i = 0; i < rx_uni_gbk_base_table_items; ++i)
             map[rx_uni_gbk_base_table[i].uni] = rx_uni_gbk_base_table[i].gbk;
@@ -94,7 +94,7 @@ namespace rx_ut
             {
                 uint32_t idx = (h << shift) | l;
                 lmap[l] = map[idx];
-                if (lmap[l] == RX_BAD_UNI_CODE)
+                if (lmap[l] == RX_CS_BAD_CHAR)
                     ++emp;
             }
             if (emp == lows)
@@ -120,14 +120,14 @@ namespace rx_ut
         printf("\n");
     }
     //-----------------------------------------------------
-    //生成gbk2uni的两级map表
+    //生成gbk2uni的两级hashmap表
     inline void ut_str_uni2gbk_raw_g2u(rx_tdd_t &rt)
     {
         const uint32_t highs = 256 * 4;
         const uint32_t lows = 256 / 4;
         const uint32_t shift = rx::LOG2<lows>::result;
         uint16_t map[highs*lows];
-        memset(map, 0xff, sizeof(map));
+        for (int i = 0; i < highs*lows; ++i) map[i] = RX_CS_BAD_CHAR;
 
         for (uint16_t i = 0; i < rx_uni_gbk_base_table_items; ++i)
             map[rx_uni_gbk_base_table[i].gbk] = rx_uni_gbk_base_table[i].uni;
@@ -142,7 +142,7 @@ namespace rx_ut
             {
                 uint32_t idx = (h << shift) | l;
                 lmap[l] = map[idx];
-                if (lmap[l] == RX_BAD_UNI_CODE)
+                if (lmap[l] == RX_CS_BAD_CHAR)
                     ++emp;
             }
             if (emp == lows)
@@ -188,6 +188,8 @@ namespace rx_ut
         return rc;
     }
 }
+
+#define RX_UT_MAKE_CS_GBK 0
 
 rx_tdd(str_uni2gbk_raw)
 {

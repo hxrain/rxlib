@@ -10,7 +10,7 @@
     rx_uni_gbk_base_table字典数据占用96272字节,差距(60288+52736-96272)只有16752字节.(32bit环境)
 */
 
-#define RX_BAD_UNI_CODE uint16_t(0xfffd)
+#define RX_CS_BAD_CHAR uint16_t(0xfffd)
 //---------------------------------------------------------
 //用二分法,找到unicode码对应的gbk码
 //返回值:-1不存在;其他为gbk码
