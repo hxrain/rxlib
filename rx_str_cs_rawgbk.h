@@ -2,26 +2,28 @@
 #define _RX_STR_UNI2GBK_RAW_H_
 #include "rx_cc_macro.h"
 
-/*本文件仅作为基础数据,用于生成其他快速转换码表
-    unicode转为gbk的时候,请使用"rx_str_cs_uni2gbk.h"中的rx_char_uni2gbk方法.
-    gbk转为unicode的时候,请使用"rx_str_cs_gbk2uni.h"中的rx_char_gbk2uni方法.
+/*本文件作为基础数据,用于生成其他快速转换码表:
+    unicode转为gbk的时候,请使用"rx_str_cs_uni2gbk.h"中的rx_char_uni2gbk方法(字典数据占用60288字节).
+    gbk转为unicode的时候,请使用"rx_str_cs_gbk2uni.h"中的rx_char_gbk2uni方法(字典数据占用52736字节).
 
-    当然了,如果实在要求对空间占用少占用,则使用本文件中的方法就是最佳方案了.
-    rx_char_uni2gbk占用60288字节;rx_char_gbk2uni占用52736字节;base方式占用96272字节,差距只有16752字节.(32bit环境)
+    当然了,如果实在要求最小空间占,则使用本文件中的方法就是最佳方案了.
+    rx_uni_gbk_base_table字典数据占用96272字节,差距(60288+52736-96272)只有16752字节.(32bit环境)
 */
 
+#define RX_BAD_UNI_CODE uint16_t(0xfffd)
 //---------------------------------------------------------
 //用二分法,找到unicode码对应的gbk码
 //返回值:-1不存在;其他为gbk码
 inline uint16_t rx_raw_uni2gbk(uint16_t uni);
 
 //---------------------------------------------------------
-//用遍历的方式,找到gbk码对应的unicode码;此方法仅可用于带有预处理缓存的方式,不建议实时快速访问
+//用遍历的方式,找到gbk码对应的unicode码;此方法应配合预处理缓存使用,不建议实时快速访问
 //返回值:-1不存在;其他为unicode码
 inline uint16_t rx_raw_gbk2uni(uint16_t gbk);
 
 //---------------------------------------------------------
-//根据gbkuni30.txt生成的基础unicode2gbk的映射表
+//http://icu-project.org/repos/icu/data/trunk/charset/source/gb18030/gbkuni30.txt
+//根据gbkuni30.txt(uni:gbk)生成的基础unicode2gbk的映射表
 typedef struct rx_uni_gbk_item
 {
     uint16_t uni;
@@ -1536,7 +1538,7 @@ static const rx_uni_gbk_item rx_uni_gbk_base_table[] = {
     { 0xffe2,0xa956 },{ 0xffe3,0xa3fe },{ 0xffe4,0xa957 },{ 0xffe5,0xa3a4 }
 };
 //unicode2gbk基础表的元素数量
-const uint16_t rx_uni_gbk_base_table_size = sizeof(rx_uni_gbk_base_table) / sizeof(rx_uni_gbk_base_table[0]);
+const uint16_t rx_uni_gbk_base_table_items = sizeof(rx_uni_gbk_base_table) / sizeof(rx_uni_gbk_base_table[0]);
 
 //---------------------------------------------------------
 //用二分法,找到unicode码对应的gbk码
@@ -1544,7 +1546,7 @@ const uint16_t rx_uni_gbk_base_table_size = sizeof(rx_uni_gbk_base_table) / size
 inline uint16_t rx_raw_uni2gbk(uint16_t uni) 
 {
     int left = 0;
-    int right = rx_uni_gbk_base_table_size - 1;
+    int right = rx_uni_gbk_base_table_items - 1;
 
     while (left <= right) 
     {
@@ -1566,7 +1568,7 @@ inline uint16_t rx_raw_uni2gbk(uint16_t uni)
 //返回值:-1不存在;其他为unicode码
 inline uint16_t rx_raw_gbk2uni(uint16_t gbk)
 {
-    for (uint16_t i = 0; i < rx_uni_gbk_base_table_size; ++i)
+    for (uint16_t i = 0; i < rx_uni_gbk_base_table_items; ++i)
         if (rx_uni_gbk_base_table[i].gbk == gbk)
             return rx_uni_gbk_base_table[i].uni;
     return -1;

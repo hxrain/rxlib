@@ -2,8 +2,7 @@
 #define _RX_STR_GBK2UNI_H_
 
 //---------------------------------------------------------
-//gbkuni30.txt使用两级hash映射表进行gbk2unicode的转换,可实时调用
-//将给定的gbk转换为对应的uni码
+//将给定的gbk转换为对应的uni码(使用两级hash映射进行gbk2unicode的转换,可实时调用)
 //返回值:-1未找到;其他为uni码
 inline uint16_t rx_char_gbk2uni(const uint16_t gbk);
 
@@ -2000,8 +1999,8 @@ NULL,rx_gbk2uni_0x3f9,rx_gbk2uni_0x3fa,rx_gbk2uni_0x3fb,NULL,NULL,NULL,NULL };
 //返回值:-1未找到;其他为uni码
 inline uint16_t rx_char_gbk2uni(const uint16_t gbk)
 {
-    const uint16_t *page = rx_gbk2uni_tbl[gbk >> 6];
-    return page == NULL ? 0xFFFF : page[gbk & 0x03F];
+    const uint16_t *page = rx_gbk2uni_tbl[gbk >> 6];        //进行第一级映射,用高10bit进行分区
+    return page == NULL ? 0xFFFF : page[gbk & 0x03F];       //进行第二级映射,用低6bit进行区内定位
 }
 //---------------------------------------------------------
 //估算,将gbk串转换为uni串对应的字符数
@@ -2012,16 +2011,13 @@ inline uint32_t rx_chars_gbk2uni(const char *gbk)
     while ((c = *gbk))
     {
         ++rc;
-        if ((c & 0x80) == 0)
-            ++gbk;
-        else
-            gbk += 2;
+        gbk += (c & 0x80) ? 2 : 1;
     }
     return rc;
 }
 //---------------------------------------------------------
 //将gbk字符串转换成unicode字符串;buff_chars为目标缓冲区wchar_t的字符数量(应该>=rx_chars_gbk2uni+1),而不是目标缓冲区的字节尺寸
-//返回值:buff_chars,目标缓冲区过小;其他为unicode串实际内容长度
+//返回值:错误时为buff_chars,目标缓冲区过小;其他成功,为unicode串实际内容长度
 inline uint32_t rx_str_gbk2uni(const char *gbk,wchar_t *buff,uint32_t buff_chars)
 {
     uint32_t rc = 0;
@@ -2031,15 +2027,15 @@ inline uint32_t rx_str_gbk2uni(const char *gbk,wchar_t *buff,uint32_t buff_chars
         if (rc + 2 > buff_chars)
             return buff_chars;
 
-        if ((c & 0x80) == 0)
-        {
-            buff[rc++] = c;
-            ++gbk;
-        }
-        else
+        if ((c & 0x80))
         {
             buff[rc++] = rx_char_gbk2uni(((((uint8_t)gbk[0]) << 8) | (uint8_t)gbk[1]));
             gbk+=2;
+        }
+        else
+        {
+            buff[rc++] = c;
+            ++gbk;
         }
     }
     buff[rc] = 0;

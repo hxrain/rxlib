@@ -2,6 +2,7 @@
 #define _RX_UT_STR_UNI2GBK_H_
 
 #include "../rx_tdd.h"
+#include "../rx_str_cs_utf8.h"
 #include "../rx_str_cs_rawgbk.h"
 #include "../rx_str_cs_uni2gbk.h"
 #include "../rx_str_cs_gbk2uni.h"
@@ -14,7 +15,7 @@ namespace rx_ut
     inline void ut_str_uni2gbk_raw_1(rx_tdd_t &rt)
     {
         uint16_t rc = 0;
-        for (uint16_t i = 1; i < rx_uni_gbk_base_table_size; ++i)
+        for (uint16_t i = 1; i < rx_uni_gbk_base_table_items; ++i)
         {//检验原始的uni2gbk码表,要求按照uni进行升序排列
             if (rx_uni_gbk_base_table[i].uni < rx_uni_gbk_base_table[i - 1].uni)
                 ++rc;
@@ -29,20 +30,20 @@ namespace rx_ut
 
         //校验全部uni代码的查找
         rc = 0;
-        for (uint16_t i = 1; i < rx_uni_gbk_base_table_size; ++i)
+        for (uint16_t i = 1; i < rx_uni_gbk_base_table_items; ++i)
             if (rx_raw_uni2gbk(rx_uni_gbk_base_table[i].uni) != rx_uni_gbk_base_table[i].gbk)
                 ++rc;
         rt.tdd_assert(rc == 0);
 
         rc = 0;
-        for (uint16_t i = 1; i < rx_uni_gbk_base_table_size; ++i)
+        for (uint16_t i = 1; i < rx_uni_gbk_base_table_items; ++i)
             if (rx_char_uni2gbk(rx_uni_gbk_base_table[i].uni) != rx_uni_gbk_base_table[i].gbk)
                 ++rc;
         rt.tdd_assert(rc == 0);
 
         //校验全部gbk代码的查找
         rc = 0;
-        for (uint16_t i = 1; i < rx_uni_gbk_base_table_size; ++i)
+        for (uint16_t i = 1; i < rx_uni_gbk_base_table_items; ++i)
             if (rx_char_gbk2uni(rx_uni_gbk_base_table[i].gbk) != rx_uni_gbk_base_table[i].uni)
                 ++rc;
         rt.tdd_assert(rc == 0);
@@ -80,7 +81,7 @@ namespace rx_ut
         uint16_t map[highs*lows];
         memset(map, 0xff, sizeof(map));
 
-        for (uint16_t i = 0; i < rx_uni_gbk_base_table_size; ++i)
+        for (uint16_t i = 0; i < rx_uni_gbk_base_table_items; ++i)
             map[rx_uni_gbk_base_table[i].uni] = rx_uni_gbk_base_table[i].gbk;
 
         uint16_t list[highs] = { 0 };
@@ -93,7 +94,7 @@ namespace rx_ut
             {
                 uint32_t idx = (h << shift) | l;
                 lmap[l] = map[idx];
-                if (lmap[l] == 0xffff)
+                if (lmap[l] == RX_BAD_UNI_CODE)
                     ++emp;
             }
             if (emp == lows)
@@ -128,7 +129,7 @@ namespace rx_ut
         uint16_t map[highs*lows];
         memset(map, 0xff, sizeof(map));
 
-        for (uint16_t i = 0; i < rx_uni_gbk_base_table_size; ++i)
+        for (uint16_t i = 0; i < rx_uni_gbk_base_table_items; ++i)
             map[rx_uni_gbk_base_table[i].gbk] = rx_uni_gbk_base_table[i].uni;
 
         uint16_t list[highs] = { 0 };
@@ -141,7 +142,7 @@ namespace rx_ut
             {
                 uint32_t idx = (h << shift) | l;
                 lmap[l] = map[idx];
-                if (lmap[l] == 0xffff)
+                if (lmap[l] == RX_BAD_UNI_CODE)
                     ++emp;
             }
             if (emp == lows)
