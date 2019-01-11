@@ -8,9 +8,169 @@
 #include "../rx_str_cs_gbk2uni.h"
 #include "../rx_ct_util.h"
 #include "../rx_assert.h"
+#include "../rx_tdd_tick.h"
 
 namespace rx_ut
 {
+
+    inline uint8_t utf8_encode(uint32_t ch,char *s) {
+        if (ch < 0x80) {
+            s[0] = (char)ch;
+            return 1;
+        }
+        if (ch <= 0x7FF) {
+            s[1] = (char)((ch | 0x80) & 0xBF);
+            s[0] = (char)((ch >> 6) | 0xC0);
+            return 2;
+        }
+        if (ch <= 0xFFFF) {
+        three:
+            s[2] = (char)((ch | 0x80) & 0xBF);
+            s[1] = (char)(((ch >> 6) | 0x80) & 0xBF);
+            s[0] = (char)((ch >> 12) | 0xE0);
+            return 3;
+        }
+        if (ch <= 0x1FFFFF) {
+            s[3] = (char)((ch | 0x80) & 0xBF);
+            s[2] = (char)(((ch >> 6) | 0x80) & 0xBF);
+            s[1] = (char)(((ch >> 12) | 0x80) & 0xBF);
+            s[0] = (char)((ch >> 18) | 0xF0);
+            return 4;
+        }
+        if (ch <= 0x3FFFFFF) {
+            s[4] = (char)((ch | 0x80) & 0xBF);
+            s[3] = (char)(((ch >> 6) | 0x80) & 0xBF);
+            s[2] = (char)(((ch >> 12) | 0x80) & 0xBF);
+            s[1] = (char)(((ch >> 18) | 0x80) & 0xBF);
+            s[0] = (char)((ch >> 24) | 0xF8);
+            return 5;
+        }
+        if (ch <= 0x7FFFFFFF) {
+            s[5] = (char)((ch | 0x80) & 0xBF);
+            s[4] = (char)(((ch >> 6) | 0x80) & 0xBF);
+            s[3] = (char)(((ch >> 12) | 0x80) & 0xBF);
+            s[2] = (char)(((ch >> 18) | 0x80) & 0xBF);
+            s[1] = (char)(((ch >> 24) | 0x80) & 0xBF);
+            s[0] = (char)((ch >> 30) | 0xFC);
+            return 6;
+        }
+
+        /* fallback */
+        ch = 0xFFFD;
+        goto three;
+    }
+    inline uint8_t utf8_decode(const char *s, const char *e, uint32_t &uc) {
+        uint32_t ch;
+
+        if (s >= e) {
+            uc = 0;
+            return 0;
+        }
+
+        ch = (unsigned char)s[0];
+        if (ch < 0xC0) goto fallback;
+        if (ch < 0xE0) {
+            if (s + 1 >= e || (s[1] & 0xC0) != 0x80)
+                goto fallback;
+            uc = ((ch & 0x1F) << 6) |
+                (s[1] & 0x3F);
+            return 2;
+        }
+        if (ch < 0xF0) {
+            if (s + 2 >= e || (s[1] & 0xC0) != 0x80
+                || (s[2] & 0xC0) != 0x80)
+                goto fallback;
+            uc = ((ch & 0x0F) << 12) |
+                ((s[1] & 0x3F) << 6) |
+                (s[2] & 0x3F);
+            return 3;
+        }
+        {
+            int count = 0; /* to count number of continuation bytes */
+            uc = 0;
+            while ((ch & 0x40) != 0) { /* still have continuation bytes? */
+                int cc = (unsigned char)s[++count];
+                if ((cc & 0xC0) != 0x80) /* not a continuation byte? */
+                    goto fallback; /* invalid byte sequence, fallback */
+                uc = (uc << 6) | (cc & 0x3F); /* add lower 6 bits from cont. byte */
+                ch <<= 1; /* to test next bit */
+            }
+            if (count > 5)
+                goto fallback; /* invalid byte sequence */
+            uc |= ((ch & 0x7F) << (count * 5)); /* add first byte */
+            return count + 1;
+        }
+
+    fallback:
+        uc = ch;
+        return 1;
+    }
+    //-----------------------------------------------------
+    //进行utf8字符编解码对比验证测试
+    inline void ut_str_cs_utf8_base_1(rx_tdd_t &rt,uint32_t max_uni_code= 0x03FFFFFF)
+    {
+        uint8_t buff1[10]="";
+        uint8_t buff2[10]="";
+        uint32_t enc_bad_count = 0;
+        uint32_t dec_bad_count = 0;
+        for (uint32_t i = 0; i <= max_uni_code; ++i)
+        {
+            uint8_t r1 = rx_utf8_char_encode(i, buff1); buff1[r1] = 0;
+            uint8_t r2 = utf8_encode(i, (char*)buff2); buff2[r2] = 0;
+            if (r1 != r2)
+                ++enc_bad_count;
+            else if (strcmp((char*)buff1, (char*)buff2))
+                ++enc_bad_count;
+            else
+            {
+                uint32_t u1, u2;
+                uint8_t d1 = rx_utf8_char_decode(buff1, u1);
+                uint8_t d2 = utf8_decode((char*)buff1, (char*)buff1 + r2, u2);
+                if (d1 != d2)
+                    ++dec_bad_count;
+                else if (u1 != u2)
+                    ++dec_bad_count;
+            }
+        }
+        rt.tdd_assert(enc_bad_count==0);
+        rt.tdd_assert(dec_bad_count == 0);
+    }
+    //-----------------------------------------------------
+    //进行utf8字符串编解码对比性能测试
+    inline void ut_str_cs_utf8_base_2(rx_tdd_t &rt, uint32_t max_uni_code = 0x13FFFFFF)
+    {
+        uint8_t buff1[10] = "";
+        uint32_t u1;
+        uint8_t r1;
+        tdd_tt(t, "ut_str_cs", "utf8_base_2");
+
+        tdd_tt_hit(t, "begin");
+        for (uint32_t i = 0; i <= max_uni_code; ++i)
+        {
+            r1 = utf8_encode(i, (char*)buff1); buff1[r1] = 0;
+        }
+        tdd_tt_hit(t, "utf8_encode");
+
+        for (uint32_t i = 0; i <= max_uni_code; ++i)
+        {
+            utf8_decode((char*)buff1, (char*)buff1 + r1, u1);
+        }
+        tdd_tt_hit(t, "utf8_decode");
+
+        for (uint32_t i = 0; i <= max_uni_code; ++i)
+        {
+            r1 = rx_utf8_char_encode(i, buff1); buff1[r1] = 0;
+        }
+        tdd_tt_hit(t, "rx_utf8_char_encode");
+
+        for (uint32_t i = 0; i <= max_uni_code; ++i)
+        {
+            rx_utf8_char_decode(buff1, u1);
+        }
+        tdd_tt_hit(t, "rx_utf8_char_decode");
+
+    }
+
     //-----------------------------------------------------
     inline void ut_str_uni2gbk_raw_1(rx_tdd_t &rt)
     {
@@ -79,7 +239,7 @@ namespace rx_ut
         const uint32_t shift = rx::LOG2<lows>::result;
 
         uint16_t map[highs*lows];
-        for (int i = 0; i < highs*lows; ++i) map[i] = RX_CS_BAD_CHAR;
+        for (uint32_t i = 0; i < highs*lows; ++i) map[i] = RX_CS_BAD_CHAR;
 
         for (uint16_t i = 0; i < rx_uni_gbk_base_table_items; ++i)
             map[rx_uni_gbk_base_table[i].uni] = rx_uni_gbk_base_table[i].gbk;
@@ -127,7 +287,7 @@ namespace rx_ut
         const uint32_t lows = 256 / 4;
         const uint32_t shift = rx::LOG2<lows>::result;
         uint16_t map[highs*lows];
-        for (int i = 0; i < highs*lows; ++i) map[i] = RX_CS_BAD_CHAR;
+        for (uint32_t i = 0; i < highs*lows; ++i) map[i] = RX_CS_BAD_CHAR;
 
         for (uint16_t i = 0; i < rx_uni_gbk_base_table_items; ++i)
             map[rx_uni_gbk_base_table[i].gbk] = rx_uni_gbk_base_table[i].uni;
@@ -199,6 +359,9 @@ rx_tdd(str_uni2gbk_raw)
     rx_ut::ut_str_uni2gbk_raw_g2u(*this);
     rx_ut::ut_str_uni2gbk_raw_u2g(*this);
 #endif
+
+    rx_ut::ut_str_cs_utf8_base_1(*this);
+    rx_ut::ut_str_cs_utf8_base_2(*this);
     rx_ut::ut_str_uni2gbk_raw_1(*this);
 }
 
