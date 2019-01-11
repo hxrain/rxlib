@@ -12,10 +12,52 @@
    0x04000000-0x7FFFFFFF | 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
 */
 
+/*
     //-----------------------------------------------------
-    //进行unicode字符ch的utf8编码,结果放入s中
+    //单个unicode字符ch的utf8编码,结果放入s
     //返回值:ch对应的utf8串长度
-    inline uint8_t rx_utf8_char_encode(uint32_t ch, uint8_t *s)
+    inline uint8_t rx_utf8_encode(uint32_t ch, uint8_t *s);
+
+    //-----------------------------------------------------
+    //unicode字符串str编码为utf8串(外部需确保缓冲区足够长,必要时可调用rx_utf8_encode_size获取)
+    //返回值:0错误;其他为utf8串长度
+    inline uint32_t rx_utf8_encode(const wchar_t *str,uint8_t *utf8);
+
+    //-----------------------------------------------------
+    //计算unicode字符ch编码后占用的utf8串长度
+    //返回值:0错误;其他为串长度
+    inline uint8_t rx_utf8_encode_size(uint32_t ch);
+
+    //-----------------------------------------------------
+    //计算unicode字符串str编码后的utf8串长度
+    //返回值:0错误;其他为串长度
+    inline uint32_t rx_utf8_encode_size(const wchar_t *str);
+
+    //-----------------------------------------------------
+    //对utf8字符串s解码,得到单独的一个unicode字符uc;(错误处理简化,仅依赖前导1的比特数)
+    //返回值:消耗的字节数(1~6)
+    inline uint8_t rx_utf8_decode(const uint8_t *s, uint32_t &uc);
+
+    //-----------------------------------------------------
+    //对utf8字符串s解码得到unicode字符串ustr(外部需确保缓冲器足够长,必要时可使用rx_utf8_decode_size计算所需长度)
+    //返回值:0出错;其他为unicode串的字符数量
+    inline uint32_t rx_utf8_decode(const uint8_t *s,wchar_t* ustr);
+
+    //-----------------------------------------------------
+    //计算utf8字符串s解码后消耗的字节数量
+    //返回值:消耗的字节数;0错误(s不是一个正确的utf8开始字节).
+    inline uint8_t rx_utf8_decode_size(const uint8_t *s);
+
+    //-----------------------------------------------------
+    //计算utf8字符串s解码后的unicode字符数量
+    //返回值:s的长度
+    inline uint32_t rx_utf8_decode_size(const uint8_t *s,uint32_t &uni_chars);
+*/
+
+    //-----------------------------------------------------
+    //单个unicode字符ch的utf8编码,结果放入s
+    //返回值:ch对应的utf8串长度
+    inline uint8_t rx_utf8_encode(uint32_t ch, uint8_t *s)
     {
         //获取前导比特0的数量
         uint8_t zbit_count = rx_clz(ch);
@@ -61,48 +103,102 @@
             return 3;
         }
     }
+
     //-----------------------------------------------------
-    //计算unicode字符ch占用的utf8串长度
+    //计算unicode字符ch编码后占用的utf8串长度
     //返回值:0错误;其他为串长度
-    inline uint8_t rx_utf8_chars(uint32_t ch)
+    inline uint8_t rx_utf8_encode_size(uint32_t ch)
     {
         //获取前导比特0的数量
         uint8_t zbit_count = rx_clz(ch);
-        static uint8_t chars_size[] = {0,6,6,6,6,6,5,5,5,5,5,4,4,4,4,4,3,3,3,3,3,2,2,2,2,1,1,1,1,1,1,1,1};
+        const static uint8_t chars_size[] = {0,6,6,6,6,6,5,5,5,5,5,4,4,4,4,4,3,3,3,3,3,2,2,2,2,1,1,1,1,1,1,1,1};
         rx_assert(zbit_count<=32);
         return chars_size[zbit_count];
     }
+
     //-----------------------------------------------------
-    //对utf8字符串s解码,内容放入uc;(错误处理简化,仅依赖前导1的比特数)
-    //返回值:消耗的字节数
-    inline uint8_t rx_utf8_char_decode(const uint8_t *s, uint32_t &uc)
+    //计算unicode字符串str编码后的utf8串长度
+    //返回值:0错误;其他为串长度
+    inline uint32_t rx_utf8_encode_size(const wchar_t *str)
+    {
+        if (!str) return 0;
+        wchar_t ch;
+        uint32_t rc=0;
+        while((ch=*str))
+        {
+            uint8_t sl = rx_utf8_encode_size(ch);
+            rc += (sl==0?3:sl);
+        }
+        return rc;
+    }
+
+    //-----------------------------------------------------
+    //unicode字符串str编码为utf8串(外部需确保缓冲区足够长,必要时可调用rx_utf8_encode_size获取)
+    //返回值:0错误;其他为utf8串长度
+    inline uint32_t rx_utf8_encode(const wchar_t *str,uint8_t *utf8)
+    {
+    }
+
+    //-----------------------------------------------------
+    //对utf8字符串s解码,得到单独的一个unicode字符放入uc;(错误处理简化,仅依赖前导1的比特数)
+    //返回值:消耗的字节数(1~6)
+    inline uint8_t rx_utf8_decode(const uint8_t *s, uint32_t &uc)
     {
         rx_assert(s!=NULL);
 
-        //获取首字节前导bit置位数
         uc = s[0];
-        uint8_t sbit_count = rx_clz((~uc)&0xFF)-24;
-
-        switch (sbit_count)
+        switch (rx_clz((~uc)&0xFF)-24)                      //获取首字节前导bit置位数,进行分类处理
         {
-        case 2:
-            uc = ((s[0] & 0x1F) << 6) | (s[1] & 0x3F);
+        case 2: uc = ((s[0] & 0x1F) << 6) | (s[1] & 0x3F);
             return 2;
-        case 3:
-            uc = ((s[0] & 0x0F) << 12) | (s[1] & 0x3F) << 6 | (s[2] & 0x3F);
+        case 3: uc = ((s[0] & 0x0F) << 12) | (s[1] & 0x3F) << 6 | (s[2] & 0x3F);
             return 3;
-        case 4:
-            uc = ((s[0] & 0x07) << 18) | (s[1] & 0x3F) << 12 | (s[2] & 0x3F) << 6 | (s[3] & 0x3F);
+        case 4: uc = ((s[0] & 0x07) << 18) | (s[1] & 0x3F) << 12 | (s[2] & 0x3F) << 6 | (s[3] & 0x3F);
             return 4;
-        case 5:
-            uc = ((s[0] & 0x03) << 24) | (s[1] & 0x3F) << 18 | (s[2] & 0x3F) << 12 | (s[3] & 0x3F) << 6 | (s[4] & 0x3F);
+        case 5: uc = ((s[0] & 0x03) << 24) | (s[1] & 0x3F) << 18 | (s[2] & 0x3F) << 12 | (s[3] & 0x3F) << 6 | (s[4] & 0x3F);
             return 5;
-        case 6:
-            uc = ((s[0] & 0x03) << 30) | (s[1] & 0x3F) << 24 | (s[2] & 0x3F) << 18 | (s[3] & 0x3F) << 12 | (s[4] & 0x3F) << 6 | (s[5] & 0x3F);
+        case 6: uc = ((s[0] & 0x03) << 30) | (s[1] & 0x3F) << 24 | (s[2] & 0x3F) << 18 | (s[3] & 0x3F) << 12 | (s[4] & 0x3F) << 6 | (s[5] & 0x3F);
             return 6;
         default:
-            return 1;
+            return 1;                                       //格式错误或单一字节,都告知消耗1字节
         }
+    }
+
+    //-----------------------------------------------------
+    //对utf8字符串s解码得到unicode字符串ustr(外部需确保缓冲器足够长,必要时可使用rx_utf8_decode_size计算所需长度)
+    //返回值:0出错;其他为unicode串的字符数量
+    inline uint32_t rx_utf8_decode(const uint8_t *s,wchar_t* ustr)
+    {
+    }
+
+    //-----------------------------------------------------
+    //计算utf8字符串s解码后消耗的字节数量
+    //返回值:消耗的字节数;0错误(s不是一个正确的utf8开始字节).
+    inline uint8_t rx_utf8_decode_size(const uint8_t *s)
+    {
+        rx_assert(s!=NULL);
+        const static uint8_t chars_size[]={1,0,2,3,4,5,6};
+        uint8_t bc = rx_clz((~(uint32_t)*s)&0xFF)-24;       //获取首字节前导bit置位数
+        return (bc<=6?chars_size[bc]:0);
+    }
+
+    //-----------------------------------------------------
+    //计算utf8字符串s解码后的unicode字符数量
+    //返回值:s的长度
+    inline uint32_t rx_utf8_decode_size(const uint8_t *s,uint32_t &uni_chars)
+    {
+        uni_chars=0;
+        if (s==NULL) 
+            return 0;
+
+        const uint8_t *o=s;
+        while(*s)
+        {
+            uint8_t sc=rx_utf8_decode_size(s);
+            s+=(sc==0?1:sc);
+            ++uni_chars;
+        }
+        return s-o;
     }
 
 #endif

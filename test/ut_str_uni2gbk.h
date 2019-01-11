@@ -115,16 +115,16 @@ namespace rx_ut
         uint32_t dec_bad_count = 0;
         for (uint32_t i = 0; i <= max_uni_code; ++i)
         {
-            uint8_t r1 = rx_utf8_char_encode(i, buff1); buff1[r1] = 0;
+            uint8_t r1 = rx_utf8_encode(i, buff1); buff1[r1] = 0;
             uint8_t r2 = utf8_encode(i, (char*)buff2); buff2[r2] = 0;
-            if (r1 != r2 || r1 != rx_utf8_chars(i))
+            if (r1 != r2 || r1 != rx_utf8_encode_size(i))
                 ++enc_bad_count;
             else if (strcmp((char*)buff1, (char*)buff2))
                 ++enc_bad_count;
             else
             {
                 uint32_t u1, u2;
-                uint8_t d1 = rx_utf8_char_decode(buff1, u1);
+                uint8_t d1 = rx_utf8_decode(buff1, u1);
                 uint8_t d2 = utf8_decode((char*)buff1, (char*)buff1 + r2, u2);
                 if (d1 != d2)
                     ++dec_bad_count;
@@ -156,8 +156,8 @@ namespace rx_ut
 
         for (uint32_t i = 0; i <= max_uni_code; ++i)
         {
-            u8len = rx_utf8_char_encode(i, u8str); u8str[u8len] = 0;
-            rx_utf8_char_decode(u8str, ucode);
+            u8len = rx_utf8_encode(i, u8str); u8str[u8len] = 0;
+            rx_utf8_decode(u8str, ucode);
             if (ucode!=i)
                 ++bad;
         }
