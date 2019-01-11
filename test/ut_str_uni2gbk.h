@@ -139,36 +139,31 @@ namespace rx_ut
     //进行utf8字符串编解码对比性能测试
     inline void ut_str_cs_utf8_base_2(rx_tdd_t &rt, uint32_t max_uni_code = 0x13FFFFFF)
     {
-        uint8_t buff1[10] = "";
-        uint32_t u1;
-        uint8_t r1;
+        uint8_t u8str[10] = "";
+        uint32_t ucode;
+        uint8_t u8len;
+        uint32_t bad=0;
         tdd_tt(t, "ut_str_cs", "utf8_base_2");
 
-        tdd_tt_hit(t, "begin");
         for (uint32_t i = 0; i <= max_uni_code; ++i)
         {
-            r1 = utf8_encode(i, (char*)buff1); buff1[r1] = 0;
+            u8len = utf8_encode(i, (char*)u8str); u8str[u8len] = 0;
+            utf8_decode((char*)u8str, (char*)u8str + u8len, ucode);
+            if (ucode!=i)
+                ++bad;
         }
-        tdd_tt_hit(t, "utf8_encode");
+        tdd_tt_hit(t, "utf8_encode/decode");
 
         for (uint32_t i = 0; i <= max_uni_code; ++i)
         {
-            utf8_decode((char*)buff1, (char*)buff1 + r1, u1);
+            u8len = rx_utf8_char_encode(i, u8str); u8str[u8len] = 0;
+            rx_utf8_char_decode(u8str, ucode);
+            if (ucode!=i)
+                ++bad;
         }
-        tdd_tt_hit(t, "utf8_decode");
+        tdd_tt_hit(t, "rx_utf8_char_encode/decode");
 
-        for (uint32_t i = 0; i <= max_uni_code; ++i)
-        {
-            r1 = rx_utf8_char_encode(i, buff1); buff1[r1] = 0;
-        }
-        tdd_tt_hit(t, "rx_utf8_char_encode");
-
-        for (uint32_t i = 0; i <= max_uni_code; ++i)
-        {
-            rx_utf8_char_decode(buff1, u1);
-        }
-        tdd_tt_hit(t, "rx_utf8_char_decode");
-
+        rt.tdd_assert(bad==0);
     }
 
     //-----------------------------------------------------

@@ -63,11 +63,12 @@
     }
     //-----------------------------------------------------
     //计算unicode字符ch占用的utf8串长度
+    //返回值:0错误;其他为串长度
     inline uint8_t rx_utf8_chars(uint32_t ch)
     {
         //获取前导比特0的数量
         uint8_t zbit_count = rx_clz(ch);
-        static uint8_t chars_size[] = {3,6,6,6,6,6,5,5,5,5,5,4,4,4,4,4,3,3,3,3,3,2,2,2,2,1,1,1,1,1,1,1,1};
+        static uint8_t chars_size[] = {0,6,6,6,6,6,5,5,5,5,5,4,4,4,4,4,3,3,3,3,3,2,2,2,2,1,1,1,1,1,1,1,1};
         rx_assert(zbit_count<=32);
         return chars_size[zbit_count];
     }
