@@ -117,7 +117,7 @@ namespace rx_ut
         {
             uint8_t r1 = rx_utf8_char_encode(i, buff1); buff1[r1] = 0;
             uint8_t r2 = utf8_encode(i, (char*)buff2); buff2[r2] = 0;
-            if (r1 != r2)
+            if (r1 != r2 || r1 != rx_utf8_chars(i))
                 ++enc_bad_count;
             else if (strcmp((char*)buff1, (char*)buff2))
                 ++enc_bad_count;
