@@ -9,11 +9,12 @@
 #include "../rx_ct_util.h"
 #include "../rx_assert.h"
 #include "../rx_tdd_tick.h"
+#include "../rx_str_util_std.h"
 
 namespace rx_ut
 {
 
-    inline uint8_t utf8_encode(uint32_t ch,char *s) {
+    inline uint8_t utf8_encode(uint32_t ch, char *s) {
         if (ch < 0x80) {
             s[0] = (char)ch;
             return 1;
@@ -107,10 +108,10 @@ namespace rx_ut
     }
     //-----------------------------------------------------
     //进行utf8字符编解码对比验证测试
-    inline void ut_str_cs_utf8_base_1(rx_tdd_t &rt,uint32_t max_uni_code= 0x03FFFFFF)
+    inline void ut_str_cs_utf8_base_1(rx_tdd_t &rt, uint32_t max_uni_code = 0x03FFFFFF)
     {
-        uint8_t buff1[10]="";
-        uint8_t buff2[10]="";
+        uint8_t buff1[10] = "";
+        uint8_t buff2[10] = "";
         uint32_t enc_bad_count = 0;
         uint32_t dec_bad_count = 0;
         for (uint32_t i = 0; i <= max_uni_code; ++i)
@@ -126,13 +127,13 @@ namespace rx_ut
                 uint32_t u1, u2;
                 uint8_t d1 = rx_utf8_decode(buff1, u1);
                 uint8_t d2 = utf8_decode((char*)buff1, (char*)buff1 + r2, u2);
-                if (d1 != d2)
+                if (d1 != d2 || d1 != rx_utf8_decode_size(buff1))
                     ++dec_bad_count;
                 else if (u1 != u2)
                     ++dec_bad_count;
             }
         }
-        rt.tdd_assert(enc_bad_count==0);
+        rt.tdd_assert(enc_bad_count == 0);
         rt.tdd_assert(dec_bad_count == 0);
     }
     //-----------------------------------------------------
@@ -142,14 +143,14 @@ namespace rx_ut
         uint8_t u8str[10] = "";
         uint32_t ucode;
         uint8_t u8len;
-        uint32_t bad=0;
+        uint32_t bad = 0;
         tdd_tt(t, "ut_str_cs", "utf8_base_2");
 
         for (uint32_t i = 0; i <= max_uni_code; ++i)
         {
             u8len = utf8_encode(i, (char*)u8str); u8str[u8len] = 0;
             utf8_decode((char*)u8str, (char*)u8str + u8len, ucode);
-            if (ucode!=i)
+            if (ucode != i)
                 ++bad;
         }
         tdd_tt_hit(t, "utf8_encode/decode");
@@ -158,14 +159,34 @@ namespace rx_ut
         {
             u8len = rx_utf8_encode(i, u8str); u8str[u8len] = 0;
             rx_utf8_decode(u8str, ucode);
-            if (ucode!=i)
+            if (ucode != i)
                 ++bad;
         }
         tdd_tt_hit(t, "rx_utf8_char_encode/decode");
 
-        rt.tdd_assert(bad==0);
+        rt.tdd_assert(bad == 0);
     }
+    //-----------------------------------------------------
+    //进行unicode/utf8字符串编解码测试
+    inline void ut_str_cs_utf8_base_3(rx_tdd_t &rt)
+    {
+        const char *gstr= "今天天气不错~挺风和日丽的!我们下午没有课~想也挺好的?";
+        wchar_t ustr[128];
+        uint32_t gsc = rx_str_gbk2uni(gstr, ustr, sizeof(ustr));
+        rt.tdd_assert(24 + 4 == gsc);
 
+        uint8_t utf8[256];
+        uint32_t u8sc = rx_utf8_encode(ustr, utf8);
+        rt.tdd_assert(24 * 3 + 4 * 1 == u8sc);
+
+        wchar_t ubuf[128];
+        uint32_t usc = rx_utf8_decode(utf8, ubuf);
+
+        rt.tdd_assert(gsc == usc);
+        rt.tdd_assert(rx::st::strcmp(ustr,ubuf)==0);
+        rt.tdd_assert(rx::st::strlen(ustr) == usc);
+
+    }
     //-----------------------------------------------------
     inline void ut_str_uni2gbk_raw_1(rx_tdd_t &rt)
     {
@@ -175,7 +196,7 @@ namespace rx_ut
             if (rx_uni_gbk_base_table[i].uni < rx_uni_gbk_base_table[i - 1].uni)
                 ++rc;
         }
-        rt.tdd_assert(rc==0);
+        rt.tdd_assert(rc == 0);
 
         //单独校验原始查找算法
         rt.tdd_assert(rx_raw_uni2gbk(0x554a) == 0xb0a1);
@@ -209,10 +230,10 @@ namespace rx_ut
 
         //string:gbk2uni
         wchar_t ubuff[4];
-        rt.tdd_assert(rx_str_gbk2uni("a啊", ubuff, sizeof(ubuff)/sizeof(wchar_t)) == 2);
+        rt.tdd_assert(rx_str_gbk2uni("a啊", ubuff, sizeof(ubuff) / sizeof(wchar_t)) == 2);
         //string:uni2gbk
         char gbuff[4];
-        rt.tdd_assert(rx_str_uni2gbk(ubuff,gbuff, sizeof(gbuff)) == 3);
+        rt.tdd_assert(rx_str_uni2gbk(ubuff, gbuff, sizeof(gbuff)) == 3);
         rt.tdd_assert(strcmp(gbuff, "a啊") == 0);
         //string:chars
         rt.tdd_assert(rx_chars_gbk2uni(gbuff) == 2);
@@ -308,17 +329,17 @@ namespace rx_ut
             for (uint16_t i = 0; i < lows; ++i)
             {
                 if (i&&i % 16 == 0) printf("\n");
-                printf("0x%04x%s", lmap[i], i == lows-1 ? "};" : ",");
+                printf("0x%04x%s", lmap[i], i == lows - 1 ? "};" : ",");
             }
         }
-        printf("\nstatic const uint16_t* rx_gbk2uni_tbl[%d]={",highs);
+        printf("\nstatic const uint16_t* rx_gbk2uni_tbl[%d]={", highs);
         for (uint32_t i = 0; i < highs; ++i)
         {
             if (i&&i % 8 == 0) printf("\n");
             if (list[i] != i)
-                printf("NULL%s", i == highs-1 ? "};" : ",");
+                printf("NULL%s", i == highs - 1 ? "};" : ",");
             else
-                printf("rx_gbk2uni_0x%03x%s", list[i], i == highs-1 ? "};" : ",");
+                printf("rx_gbk2uni_0x%03x%s", list[i], i == highs - 1 ? "};" : ",");
         }
         printf("\n");
     }
@@ -355,6 +376,7 @@ rx_tdd(str_uni2gbk_raw)
     rx_ut::ut_str_uni2gbk_raw_u2g(*this);
 #endif
 
+    rx_ut::ut_str_cs_utf8_base_3(*this);
     rx_ut::ut_str_cs_utf8_base_1(*this);
     rx_ut::ut_str_cs_utf8_base_2(*this);
     rx_ut::ut_str_uni2gbk_raw_1(*this);

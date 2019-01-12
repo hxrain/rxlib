@@ -137,6 +137,18 @@
     //返回值:0错误;其他为utf8串长度
     inline uint32_t rx_utf8_encode(const wchar_t *str,uint8_t *utf8)
     {
+        if (str == NULL || utf8 == NULL)
+            return 0;
+        uint32_t uc;
+        uint8_t *o = utf8;
+        while ((uc=*str))
+        {
+            uint8_t sc = rx_utf8_encode(uc, utf8);
+            utf8 += sc;
+            ++str;
+        }
+        *utf8 = 0;
+        return uint32_t(utf8 - o);
     }
 
     //-----------------------------------------------------
@@ -169,6 +181,18 @@
     //返回值:0出错;其他为unicode串的字符数量
     inline uint32_t rx_utf8_decode(const uint8_t *s,wchar_t* ustr)
     {
+        if (s == NULL || ustr == NULL) return 0;
+        uint32_t rc = 0;
+        
+        while (*s)
+        {
+            uint32_t uc = 0;
+            uint8_t sc = rx_utf8_decode(s, uc);             //单字符解码
+            s += (sc > 1 && (s[sc - 1] & 0xC0) != 0x80) ? 1 : sc;//进行简化判断,要求utf8串的最后字节符合编码规范,否则只跳过首字节
+            ustr[rc++] = (wchar_t)uc;                       //无论对错,都进行unicode字符串的输出处理
+        }
+        ustr[rc] = 0;
+        return rc;
     }
 
     //-----------------------------------------------------
@@ -195,10 +219,11 @@
         while(*s)
         {
             uint8_t sc=rx_utf8_decode_size(s);
-            s+=(sc==0?1:sc);
+            s += (sc == 0 ? 1 : sc);                        //解码错误的时候仅跳跃一个字节,否则正常前进.
             ++uni_chars;
         }
-        return s-o;
+        rx_assert(s >= o);
+        return uint32_t(s-o);
     }
 
 #endif
