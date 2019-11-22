@@ -152,7 +152,7 @@ namespace rx
         }
         //-------------------------------------------------
         //格式化生成内部串
-        bool fmt(const CT *str, va_list arg)
+        bool vfmt(const CT *str, va_list arg)
         {
             m_head.length = 0;
             m_head.buff[0] = 0;
@@ -167,7 +167,7 @@ namespace rx
         {
             va_list	ap;
             va_start(ap, str);
-            bool ret = fmt(str, ap);
+            bool ret = vfmt(str, ap);
             va_end(ap);
             return ret;
         }

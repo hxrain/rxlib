@@ -112,8 +112,8 @@ namespace rx
                 rx_alert("repeat init!");
                 return false;
             }
-            if (BlockSize<sizeof(struct mp_block_t))
-                BlockSize=sizeof(struct mp_block_t);        //固定池内每个节点的最小尺寸为需要包含块头
+            if (BlockSize<sizeof(mp_block_t))
+                BlockSize=sizeof(mp_block_t);        //固定池内每个节点的最小尺寸为需要包含块头
 
             //记录内存块尺寸
             m_block_size=BlockSize;
