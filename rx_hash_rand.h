@@ -180,21 +180,20 @@ namespace rx
         rnd_t   m_rnd;
         double  m_lambda;
     public:
-        rand_poisson_t(uint32_t s = 0 , double lambda = 10) { seed(s,lambda); }
+        rand_poisson_t(uint32_t s = 0 , double lmbda = 1) { seed(s);lambda(lmbda); }
         //-------------------------------------------------
-        //初始化种子并设置概率分布参数(在单位时间内,lambda为事件发生的平均频率或平均数)
-        virtual void seed(uint32_t s, double lambda = 1.0)
-        { 
-            m_rnd.seed(s);
-            m_lambda = -lambda;
-        }
+        //设置概率分布参数(在单位时间内,lambda为事件发生的平均频率或平均数)
+        void lambda(double l){m_lambda = -l;}
+        //-------------------------------------------------
+        //初始化种子
+        virtual void seed(uint32_t s){m_rnd.seed(s);}
         //-------------------------------------------------
         //生成泊松分布随机数(在单位时间内事件发生的次数),范围在[Min,Max](默认为[0,(2^31)-1])
         virtual uint32_t get(uint32_t Max = 0x7ffffffe, uint32_t Min = 0)
         {
             uint32_t k = -1;
             double p=0;
-            
+
             do
             {
                 ++k;
@@ -208,7 +207,7 @@ namespace rx
     typedef rand_poisson_t<rand_skl_t> rand_poisson_skt;
 
     //-----------------------------------------------------
-    //方便快速使用随机数发生器的便捷函数(单线程安全)
+    //快速使用随机数发生器的便捷函数(单线程安全)
     template<class rnd_t>
     rand_i& rnd() {static rnd_t rd; return rd;}
 
