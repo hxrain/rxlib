@@ -92,9 +92,9 @@
         #define mem_barrier()    __sync_synchronize()
 
         //32bit--------------------------------------------
-        template<> inline void      rx_atomic_store (int32_t *ptr, const int32_t v)   { __atomic_store_4(ptr,v,__ATOMIC_SEQ_CST); }
-        template<> inline int32_t   rx_atomic_load  (const int32_t *ptr)              { return __atomic_load_4(ptr,__ATOMIC_SEQ_CST); }
-        template<> inline int32_t   rx_atomic_swap  (int32_t *ptr, const int32_t v)   { return __atomic_exchange_4(ptr, v,__ATOMIC_SEQ_CST); }
+        template<> inline void      rx_atomic_store (int32_t *ptr, const int32_t v)   { __atomic_store_n(ptr,v,__ATOMIC_SEQ_CST); }
+        template<> inline int32_t   rx_atomic_load  (const int32_t *ptr)              { return __atomic_load_n(ptr,__ATOMIC_SEQ_CST); }
+        template<> inline int32_t   rx_atomic_swap  (int32_t *ptr, const int32_t v)   { return __atomic_exchange_n(ptr, v,__ATOMIC_SEQ_CST); }
         template<> inline int32_t   rx_atomic_add   (int32_t *ptr, const int32_t v)   { return __sync_fetch_and_add (ptr, v); }
         template<> inline int32_t   rx_atomic_sub   (int32_t *ptr, const int32_t v)   { return __sync_fetch_and_sub (ptr, v); }
         template<> inline int32_t   rx_atomic_and   (int32_t *ptr, const int32_t v)   { return __sync_fetch_and_and (ptr, v); }
@@ -102,18 +102,18 @@
         template<> inline int32_t   rx_atomic_xor   (int32_t *ptr, const int32_t v)   { return __sync_fetch_and_xor (ptr, v); }
         template<> inline bool      rx_atomic_cas   (int32_t* ptr, int32_t* expected, const int32_t desired)
         {
-            return __atomic_compare_exchange_4(ptr, expected,desired, 0,__ATOMIC_SEQ_CST,__ATOMIC_SEQ_CST);
+            return __atomic_compare_exchange_n(ptr, expected,desired, 0,__ATOMIC_SEQ_CST,__ATOMIC_SEQ_CST);
         }
         template<> inline bool      rx_atomic_cas(int32_t* ptr, const int32_t expected, const int32_t desired)
         {
-            return __atomic_compare_exchange_4(ptr, (void*)&expected,desired,0,__ATOMIC_SEQ_CST,__ATOMIC_SEQ_CST);
+            return __atomic_compare_exchange_n(ptr, (int32_t*)&expected,desired,0,__ATOMIC_SEQ_CST,__ATOMIC_SEQ_CST);
         }
 
         //64bit--------------------------------------------
         #define RX_ATOMIC64     1
-        template<> inline void      rx_atomic_store (int64_t *ptr, const int64_t v)   { __atomic_store_8(ptr,v,__ATOMIC_SEQ_CST); }
-        template<> inline int64_t   rx_atomic_swap  (int64_t *ptr, const int64_t v)   { return __atomic_exchange_8(ptr, v,__ATOMIC_SEQ_CST); }
-        template<> inline int64_t   rx_atomic_load  (const int64_t *ptr)              { return __atomic_load_8(ptr,__ATOMIC_SEQ_CST); }
+        template<> inline void      rx_atomic_store (int64_t *ptr, const int64_t v)   { __atomic_store_n(ptr,v,__ATOMIC_SEQ_CST); }
+        template<> inline int64_t   rx_atomic_swap  (int64_t *ptr, const int64_t v)   { return __atomic_exchange_n(ptr, v,__ATOMIC_SEQ_CST); }
+        template<> inline int64_t   rx_atomic_load  (const int64_t *ptr)              { return __atomic_load_n(ptr,__ATOMIC_SEQ_CST); }
         template<> inline int64_t   rx_atomic_add   (int64_t *ptr, const int64_t v)   { return __sync_fetch_and_add ((volatile long long*)ptr, v); }
         template<> inline int64_t   rx_atomic_sub   (int64_t *ptr, const int64_t v)   { return __sync_fetch_and_sub ((volatile long long*)ptr, v); }
         template<> inline int64_t   rx_atomic_and   (int64_t *ptr, const int64_t v)   { return __sync_fetch_and_and ((volatile long long*)ptr, v); }
@@ -121,11 +121,11 @@
         template<> inline int64_t   rx_atomic_xor   (int64_t *ptr, const int64_t v)   { return __sync_fetch_and_xor ((volatile long long*)ptr, v); }
         template<> inline bool      rx_atomic_cas   (int64_t* ptr, int64_t* expected, const int64_t desired)
         {
-            return __atomic_compare_exchange_8(ptr, expected,desired, 0,__ATOMIC_SEQ_CST,__ATOMIC_SEQ_CST);
+            return __atomic_compare_exchange_n(ptr, expected,desired, 0,__ATOMIC_SEQ_CST,__ATOMIC_SEQ_CST);
         }
         template<> inline bool      rx_atomic_cas(int64_t* ptr, const int64_t expected, const int64_t desired)
         {
-            return __atomic_compare_exchange_8(ptr, (void*)&expected,desired,0,__ATOMIC_SEQ_CST,__ATOMIC_SEQ_CST);
+            return __atomic_compare_exchange_n(ptr, (int64_t*)&expected,desired,0,__ATOMIC_SEQ_CST,__ATOMIC_SEQ_CST);
         }
         //-------------------------------------------------
     #endif
