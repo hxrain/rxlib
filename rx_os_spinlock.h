@@ -5,6 +5,11 @@
 #include "rx_cc_atomic.h"
 #include "rx_os_lock.h"
 
+#if RX_CC==RX_CC_CLANG
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace rx
 {
     enum { CPU_CACHELINE_SIZE = 64 };                       // 进行CACH-LINE高速缓存的优化填充
@@ -75,5 +80,8 @@ namespace rx
         }
     };
 }
+#if RX_CC==RX_CC_CLANG
+    #pragma GCC diagnostic pop
+#endif
 
 #endif
