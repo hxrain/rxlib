@@ -8,7 +8,7 @@
     #endif
 
     #if RX_BAN_INLINE
-        #define RX_INLINE
+        #define rx_inline
     #endif
 
     //-----------------------------------------------------
@@ -19,9 +19,9 @@
     #define RX_CC_GCC                       3               //Standard GCC/G++
     #define RX_CC_VC                        4               //Microsoft Visual Studio
     #define RX_CC_CLANG                     5               //CLang (LLVM) compiler
-    #define RX_CC_CYGWIN                    6               //Cygwin (x86)
-    #define RX_CC_MINGW32                   7               //MingW32 (x86) compiler for windows
-    #define RX_CC_MINGW64                   8               //MingW64 (x64) compiler for windows
+    #define RX_ENV_CYGWIN                   6               //Cygwin (x86)
+    #define RX_ENV_MINGW32                  7               //MingW32 (x86) compiler for windows
+    #define RX_ENV_MINGW64                  8               //MingW64 (x64) compiler for windows
     #define RX_CC_LCC                       9               //LCC
     #define RX_CC_TINYC                     10              //Tiny C
     #define RX_CC_ULTIMATE                  11              //Ultimate C/C++
@@ -31,20 +31,27 @@
     #define RX_CC_KEIL                      15              //Keil (uVision)
 
     //-----------------------------------------------------
-    //进行编译器类型的自动侦测
-    #ifndef RX_CC
-        #define RX_CC                       RX_CC_UNKNOWN
+    //进行编译器环境的自动侦测
+    #ifndef RX_CC_ENV
+        #if defined(__MINGW64__)
+            #define RX_CC_ENV               RX_ENV_MINGW64
+            #define RX_CC_ENV_NAME          "mingw64"
+        #elif defined(__MINGW32__)
+            #define RX_CC_ENV               RX_ENV_MINGW32
+            #define RX_CC_ENV_NAME          "mingw32"
+        #elif defined(__CYGWIN__)
+            #define RX_CC_ENV               RX_ENV_CYGWIN
+            #define RX_CC_ENV_NAME          "cygwin"
+        #else
+            #define RX_CC_ENV               RX_CC_UNKNOWN
+            #define RX_CC_ENV_NAME          "native"
+        #endif
     #endif
 
-    #if RX_CC == RX_CC_UNKNOWN
-        #undef RX_CC
-        #if defined(__MINGW32__)
-            #define RX_CC                   RX_CC_MINGW32
-        #elif defined(__MINGW64__)
-            #define RX_CC                   RX_CC_MINGW64
-        #elif defined(__CYGWIN__)
-            #define RX_CC                   RX_CC_CYGWIN
-        #elif defined(__KEIL__) || (defined(__CC_ARM) && defined(__EDG__))
+    //-----------------------------------------------------
+    //进行编译器类型的自动侦测
+    #ifndef RX_CC
+        #if defined(__KEIL__) || (defined(__CC_ARM) && defined(__EDG__))
             #define RX_CC                   RX_CC_KEIL
         #elif defined(__clang__) || defined(__llvm__)
             #define RX_CC                   RX_CC_CLANG
@@ -68,14 +75,13 @@
             #define RX_CC                   RX_CC_IAR
         #elif defined(_UCC)
             #define RX_CC                   RX_CC_ULTIMATE
-
         #else
             #define RX_CC                   RX_CC_UNKNOWN
         #endif
     #endif
 
     //-----------------------------------------------------
-    //自动侦测编译器的版本信息
+    //根据编译器类型,侦测编译器的版本信息
     #undef RX_CC_NAME
     #undef RX_CC_TESTED
     #undef RX_CC_VER_MAJOR
@@ -98,14 +104,6 @@
         #define RX_CC_VER_MAJOR             __clang_major__
         #define RX_CC_VER_MINOR             __clang_minor__
         #define RX_CC_VER_PATCH             __clang_patchlevel__
-        #define DEPRECATED(msg)             __attribute__((deprecated(msg)))
-    #elif RX_CC == RX_CC_CYGWIN
-        #define RX_CC_NAME                  "Cygwin"
-        #define RX_CC_VER_MAJOR             __GNUC__
-        #define RX_CC_VER_MINOR             __GNUC_MINOR__
-        #ifdef __GNUC_PATCHLEVEL__
-            #define RX_CC_VER_PATCH         __GNUC_PATCHLEVEL__
-        #endif
         #define DEPRECATED(msg)             __attribute__((deprecated(msg)))
     #elif RX_CC == RX_CC_GCC
         #define RX_CC_NAME                  "GCC"
@@ -164,28 +162,12 @@
         #pragma diag_remark 83              // Turn off warning: type qualifier specified more than once
         #pragma diag_remark 767             // Turn off warning: conversion from pointer to smaller integer
         #pragma diag_remark 188             // Turn off warning: enumerated type mixed with another type
-        #ifndef RX_INLINE                   // Get the Keil definition for inline
-            #define RX_INLINE               __inline
+        #ifndef rx_inline                   // Get the Keil definition for inline
+            #define rx_inline               __inline
         #endif
         #define __LITTLE_IF_NOT_BIG__       //Defines __BIG_ENDIAN but not __LITTLE_ENDIAN
     #elif RX_CC == RX_CC_LCC
         #define RX_CC_NAME                  "LCC"
-    #elif RX_CC == RX_CC_MINGW32
-        #define RX_CC_NAME                  "MingW32"
-        #define RX_CC_VER_MAJOR             __GNUC__
-        #define RX_CC_VER_MINOR             __GNUC_MINOR__
-        #ifdef __GNUC_PATCHLEVEL__
-            #define RX_CC_VER_PATCH         __GNUC_PATCHLEVEL__
-        #endif
-        #define DEPRECATED(msg)             __attribute__((deprecated(msg)))
-    #elif RX_CC == RX_CC_MINGW64
-        #define RX_CC_NAME                  "MingW64"
-        #define RX_CC_VER_MAJOR             __GNUC__
-        #define RX_CC_VER_MINOR             __GNUC_MINOR__
-        #ifdef __GNUC_PATCHLEVEL__
-            #define RX_CC_VER_PATCH         __GNUC_PATCHLEVEL__
-        #endif
-        #define DEPRECATED(msg)             __attribute__((deprecated(msg)))
     #elif RX_CC == RX_CC_TINYC
         #define RX_CC_NAME                  "Tiny C"
     #elif RX_CC == RX_CC_TC
@@ -257,14 +239,11 @@
     #if !RX_CC_TESTED
     #endif
 
-    #if RX_CC==RX_CC_MINGW32||RX_CC==RX_CC_MINGW64
+    #if RX_CC_ENV==RX_ENV_MINGW32||RX_CC_ENV==RX_ENV_MINGW64
         #define RX_CC_MINGW 1
     #endif
     //-----------------------------------------------------
     //定义常用CPU的类型
-    #ifndef RX_CPU
-        #define RX_CPU                      RX_CPU_UNKNOWN
-    #endif
     #define RX_CPU_UNKNOWN                  0       //Unknown cpu
     #define RX_CPU_CORTEX_Mx                0x01    //Cortex Mx
     #define RX_CPU_X86                      0x10    //Intel x86
@@ -275,8 +254,7 @@
     #define RX_CPU_SPARC                    0x22    //Sparc
 
     //自动侦测当前编译器使用的后端CPU类型(类型标识/架构名称/运算位长)
-    #if RX_CPU == RX_CPU_UNKNOWN
-        #undef RX_CPU
+    #ifndef RX_CPU
         #if defined(__ia64) || defined(__itanium__) || defined(_M_IA64)
             #define RX_CPU                  RX_CPU_IA64
             #define RX_CPU_ARCH             "IA64"
@@ -362,8 +340,8 @@
         #define DEPRECATED(msg)
     #endif
 
-    #ifndef RX_INLINE
-        #define RX_INLINE                   inline
+    #ifndef rx_inline
+        #define rx_inline                   inline
     #endif
 
     #if RX_CPU_ENDIAN==RX_CPU_ENDIAN_LITTLE
@@ -382,7 +360,6 @@
     #define RX_OS_MACOS                     8
 
     //进行OS的自动侦测
-    #undef  RX_OS
     #if defined(__POSIX__)
         #define RX_OS_POSIX                 5
     #endif
@@ -499,26 +476,22 @@
 
     //-----------------------------------------------------
     //构造rx_cc_desc()宏或函数,便于获取当前编译期信息
+    #include <stdio.h>
     #if RX_CC == RX_CC_VC
-        #include <stdio.h>
         #if (RX_CC_VER_MAJOR<19)
             #define snprintf _snprintf
         #endif
-
-
-	    //visual studio, eg : "CPU:X64(LE)/Microsoft Visual Studio(19.0.1900.1)/64Bit"
-	    inline const char* rx_cc_desc()
-	    {
-		    static char desc[128];
-		    snprintf(desc,sizeof(desc),"OS:%s/CPU:%s(%s)/CC:%s(%d.%d.%d.%d)/WordLength:%dBit",RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME, RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
-		    return desc;
-	    }
-    #else
-        //自动拼装编译器和CPU信息描述. eg : "CPU:X86(LE)/MingW32(5.1.0.0)/32Bit"
-        #define RX_CC_DESC ("OS:" RX_OS_NAME "/CPU:" RX_CPU_ARCH "(" RX_CPU_LEBE ")/CC:" RX_CC_NAME "(" RX_CT_N2S(RX_CC_VER_MAJOR) "." RX_CT_N2S(RX_CC_VER_MINOR) "." RX_CT_N2S(RX_CC_VER_PATCH) "." RX_CT_N2S(RX_CC_VER_BUILD) ")/WordLength:" RX_CT_N2S(RX_CC_BIT) "Bit")
-
-        inline const char* rx_cc_desc() {return RX_CC_DESC;}
     #endif
+
+    //visual studio, eg : "CPU:X64(LE)/Microsoft Visual Studio(19.0.1900.1)/64Bit"
+    inline const char* rx_cc_desc()
+    {
+        static char desc[128];
+        snprintf(desc,sizeof(desc),"CCENV=%s/OS=%s/CPU=%s(%s)/CC=%s<%d.%d.%d.%d>/WORDS=%dBit",
+                 RX_CC_ENV_NAME,RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME,
+                 RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
+        return desc;
+    }
 
     #include <stdint.h>
 
