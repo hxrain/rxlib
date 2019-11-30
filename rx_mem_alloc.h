@@ -239,7 +239,7 @@ namespace rx
             return true;
         }
         //-------------------------------------------------
-        template<class VT> bool del(void* P) {try {throw 1;} catch(...) {} rx_show_msg("此函数专为型别匹配使用!不应该被调用!请检查代码错误");}
+        template<class VT> bool del(void* P) {try {throw 1;} catch(...) {} rx_show_msg("This function is designed for type matching! Should not be called!");}
         //-------------------------------------------------
         virtual ~mem_allotter_i() { rx_assert(m_stat.using_size == 0); }
     protected:

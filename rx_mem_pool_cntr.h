@@ -37,12 +37,12 @@ namespace rx
         {
             if (m_pool_array)
             {
-                rx_alert("该内存池已经初始化过了!");
+                rx_alert("The memory pool has been initialized!");
                 return false;
             }
             if(cfg_t::MinNodeSize<8||cfg_t::MinNodeSize%4||cfg_t::MaxNodeSize%4||cfg_t::MaxNodeSize%cfg_t::MinNodeSize)
             {
-                rx_alert("使用错误的参数进行初始化!");
+                rx_alert("Initialize with the wrong parameters!");
                 return false;
             }
             return on_init();
