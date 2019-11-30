@@ -211,7 +211,7 @@ int main()
 {
     //rx_show_msg("%d\n", sizeof(std::string));
 
-    std::cout << "rxlib unit test!ÄãºÃ!Hello world!\n" << rx_cc_desc() << std::endl << std::endl;
+    std::cout << "Hello RX TDD!\n" << rx_cc_desc() << std::endl << std::endl;
 
     rx_static_assert(1);
 

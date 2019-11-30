@@ -11,9 +11,15 @@
 #include "../rx_tdd_tick.h"
 #include "../rx_str_util_std.h"
 
+#if RX_CC==RX_CC_CLANG
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Winvalid-source-encoding"
+#endif
+
+
 namespace rx_ut
 {
-
+    //经典utf8编码算法
     inline uint8_t utf8_encode(uint32_t ch, char *s) {
         if (ch < 0x80) {
             s[0] = (char)ch;
@@ -60,6 +66,7 @@ namespace rx_ut
         ch = 0xFFFD;
         goto three;
     }
+    //经典utf8解码算法
     inline uint8_t utf8_decode(const char *s, const char *e, uint32_t &uc) {
         uint32_t ch;
 
@@ -153,7 +160,7 @@ namespace rx_ut
             if (ucode != i)
                 ++bad;
         }
-        tdd_tt_hit(t, "utf8_encode/decode");
+        tdd_tt_hit(t, "classic utf8_encode/decode");
 
         for (uint32_t i = 0; i <= max_uni_code; ++i)
         {
@@ -162,7 +169,7 @@ namespace rx_ut
             if (ucode != i)
                 ++bad;
         }
-        tdd_tt_hit(t, "rx_utf8_char_encode/decode");
+        tdd_tt_hit(t, "rx utf8_encode/decode");
 
         rt.tdd_assert(bad == 0);
     }
@@ -382,6 +389,9 @@ rx_tdd(str_uni2gbk_raw)
     rx_ut::ut_str_uni2gbk_raw_1(*this);
 }
 
+#if RX_CC==RX_CC_CLANG
+    #pragma GCC diagnostic pop
+#endif
 
 
 #endif
