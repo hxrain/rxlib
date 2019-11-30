@@ -14,7 +14,7 @@
 #define RX_STR_USE_FILE 1
 #endif
 
-#if RX_CC==RX_CC_GCC || defined(RX_CC_MINGW)
+#if RX_CC==RX_CC_GCC
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
     #pragma GCC diagnostic ignored "-Wstringop-overflow"
@@ -105,7 +105,7 @@ namespace rx
         #else
         inline int              stricmp(const char *s1, const char *s2) {return ::_strcmpi(s1,s2);}
         #endif
-        #if RX_CC==RX_CC_GCC
+        #if RX_CC==RX_CC_GCC && RX_CC_VER_MAJOR<9
         inline int              stricmp(const wchar_t *s1, const wchar_t *s2) {return ::wcscasecmp(s1,s2);}
         #else
         inline int              stricmp(const wchar_t *s1, const wchar_t *s2) {return ::_wcsicmp(s1,s2);}
@@ -119,7 +119,7 @@ namespace rx
         #if RX_CC==RX_CC_BCC
         inline int              strncmpi(const char *s1, const char *s2, uint32_t n) {return ::strncmpi(s1,s2,n);}
         inline int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n) {return ::wcsncmpi(s1,s2,n);}
-        #elif RX_CC==RX_CC_GCC
+        #elif RX_CC==RX_CC_GCC && RX_CC_VER_MAJOR<9
         inline int              strncmpi(const char *s1, const char *s2, uint32_t n) {return ::strncasecmp(s1,s2,n);}
         inline int              strncmpi(const wchar_t *s1, const wchar_t *s2, uint32_t n) {return ::wcsncasecmp(s1,s2,n);}
         #else
@@ -319,7 +319,7 @@ namespace rx
     }
 }
 
-#if RX_CC==RX_CC_GCC || defined(RX_CC_MINGW)
+#if RX_CC==RX_CC_GCC
     #pragma GCC diagnostic pop
 #endif
 
