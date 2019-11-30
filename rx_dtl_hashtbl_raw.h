@@ -31,16 +31,16 @@ namespace rx
         uint32_t    using_count;                            //当前节点的数量
         uint32_t    collision_count;                        //节点哈希冲突总数
         uint32_t    collision_length;                       //节点哈希冲突总长度
-        raw_hashtbl_stat_t():using_count(0), collision_count(0), collision_length(0){}
+        raw_hashtbl_stat_t(uint32_t _max_nodes):max_nodes(_max_nodes),using_count(0), collision_count(0), collision_length(0){}
     }raw_hashtbl_stat_t;
 
     //-----------------------------------------------------
     //哈希表节点基类,使用的时候必须继承于此
     typedef struct raw_hashtbl_node_t
     {
-        uint16_t    flag;                               //节点标记:0未使用;1使用中;2被删除.
-        uint16_t    step;                               //记录冲突的步数0~n
-                                                        //节点状态标记的类型定义
+        uint16_t    flag;                                   //节点标记:0未使用;1使用中;2被删除.
+        uint16_t    step;                                   //记录冲突的步数0~n
+                                                            //节点状态标记的类型定义
         enum
         {
             node_flag_empty = 0,
@@ -91,7 +91,7 @@ namespace rx
         {
             m_nodes=nodes;
             if (m_nodes&&clear)
-                memset(m_nodes,0,sizeof(node_t)*stat->max_nodes);
+                memset((void*)m_nodes,0,sizeof(node_t)*stat->max_nodes);
             m_stat = stat;
         }
         bool is_valid() {return m_nodes&&m_stat;}
@@ -106,9 +106,10 @@ namespace rx
         template<class key_t>
         node_t *push(uint32_t hash_code,const key_t &value,uint32_t &pos,bool *is_dup=NULL)
         {
-            for(uint32_t i=0; i<capacity(); ++i)
+            uint32_t caps=capacity();
+            for(uint32_t i=0; i<caps; ++i)
             {
-                pos=(hash_code+i)%capacity();               //计算位置
+                pos=(hash_code+i)%caps;                     //计算位置
                 node_t &node = m_nodes[pos];                //得到节点
                 if (node.is_unused())
                 {
@@ -141,9 +142,10 @@ namespace rx
         template<class key_t>
         node_t *find(uint32_t hash_code,const key_t &value,uint32_t &pos) const
         {
-            for(uint32_t i=0; i<capacity(); ++i)
+            uint32_t caps=capacity();
+            for(uint32_t i=0; i<caps; ++i)
             {
-                uint32_t I=(hash_code+i)%capacity();        //计算位置
+                uint32_t I=(hash_code+i)%caps;              //计算位置
                 node_t &node = m_nodes[I];                  //得到节点
                 if (node.empty())
                     return NULL;                            //直接就碰到空档了,不用继续了
@@ -189,10 +191,11 @@ namespace rx
             */
 
             //需要校正的情况有:pos占用了后面某个节点的位置;
-            for(uint32_t i=1; i<capacity(); ++i)
+            uint32_t caps=capacity();
+            for(uint32_t i=1; i<caps; ++i)
             {
                 //得到当前遍历位置
-                uint32_t curr_pos = (begin_pos + i) % capacity();
+                uint32_t curr_pos = (begin_pos + i) % caps;
                 //当前位置位空,结束
                 if (m_nodes[curr_pos].empty()||curr_pos==abort_pos)
                     return -1;
@@ -228,12 +231,12 @@ namespace rx
                     correct_empty(begin_pos);               //开始点可以被置空了
                     break;
                 }
-                    
+
                 ++rc;
                 //进行节点内容的复制
                 node_t &dst_node = m_nodes[begin_pos];
                 node_t &src_node = m_nodes[next_pos];
-                
+
                 dst_node.value = src_node.value;
                 dst_node.flag = src_node.flag;
                 rx_assert(dst_node.is_using());
@@ -248,7 +251,7 @@ namespace rx
         }
         //-------------------------------------------------
         //最大节点数量
-        uint32_t capacity() const { return m_stat?m_stat->max_nodes:0; }
+        uint32_t capacity() const {return m_stat?m_stat->max_nodes:0;}
         //已经使用的节点数量
         uint32_t size() const { return m_stat?m_stat->using_count:0; }
         //只读获取内部状态
@@ -270,7 +273,8 @@ namespace rx
         //清理全部节点,回归初始状态.
         void clear()
         {
-            for(uint32_t pos=next(-1);pos<capacity();pos=next(pos))
+            uint32_t caps=capacity();
+            for(uint32_t pos=next(-1);pos<caps;pos=next(pos))
             {
                 node_t &node=m_nodes[pos];
                 ct::OD(&node.value);

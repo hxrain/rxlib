@@ -123,18 +123,18 @@ public:
     {
         if (rtl<m_level||(only_curr_level&&rtl!=m_level))
         {
-            rx_tdd_stat_t::get().out("RX TDD::<SKIP> {%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
+            rx_tdd_stat_t::get().out("TDD::<*SKIP* %s> at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
             return;
         }
 
-        rx_tdd_stat_t::get().out("RX TDD::{%s} at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
+        rx_tdd_stat_t::get().out("TDD::<       %s> at <%s:%d>\r\n",m_tdd_name,m_file_name,m_line_no);
         try
         {
             on_exec();
         }
         catch(...)
         {
-            rx_tdd_stat_t::get().out("RX TDD::<EXCEPTION> {%s} at <%s:%d> => throw exception!\r\n",m_tdd_name,m_file_name,m_line_no);
+            rx_tdd_stat_t::get().out("TDD::<*EXCEPTION* %s> at <%s:%d> => throw exception!\r\n",m_tdd_name,m_file_name,m_line_no);
             ++rx_tdd_stat_t::get()._failed;                   //捕捉异常时记录失败次数
         }
         ++rx_tdd_stat_t::get()._perform;                      //执行过的用例数增加
@@ -151,7 +151,7 @@ public:
             return;
         ++s._failed;
 
-        s.out("RX TDD::<*FAIL*>         {%s} at <%s : %d>\r\n",m_tdd_name,m_file_name,_line_no);
+        s.out("TDD::<*FAIL*>         {%s} at <%s : %d>\r\n",m_tdd_name,m_file_name,_line_no);
         if (msg&&msg[0])
         {
             s.out("    ");
@@ -184,18 +184,18 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
     rx_tdd_stat_t &s=rx_tdd_stat_t::get();
     rx_tdd_t *node=s.head;
 
-    s.out("RX TDD::BEGIN===============================\r\n");
+    s.out("TDD::******************************[BEGIN]******************************\r\n");
     while(node)
     {
         node->exec(rtl, only_curr_level);
         node=node->m_next;
     }
-    s.out("RX TDD::END=================================\r\n");
 
     s.out(
-        "       OBJECT total <%4u> : perform <%4u>\r\n"
-        "       ASSERT total <%4u> : failed  <%4u>\r\n"
-        "RX TDD::COMPLETE============================\r\n",
+        "TDD::******************************[STATE]******************************\r\n"
+        "                OBJECT total <%6u> : perform <%6u>\r\n"
+        "                ASSERT total <%6u> : failed  <%6u>\r\n"
+        "TDD::******************************[ END ]******************************\r\n",
         s._total,s._perform,s._assert,s._failed);
 }
 

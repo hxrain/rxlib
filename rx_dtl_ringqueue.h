@@ -4,6 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_os_spinlock.h"
 #include "rx_ct_util.h"
+#include "rx_ct_bitop.h"
 
 namespace rx
 {

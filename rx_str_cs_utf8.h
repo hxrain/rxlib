@@ -2,6 +2,7 @@
 #define _RX_STR_CS_UTF8_H_
 
 #include "rx_ct_bitop.h"
+#include "rx_assert.h"
 /*
         UNICODE          =>                 UTF8
    0x00000000-0x0000007F | 0xxxxxxx
@@ -183,7 +184,7 @@
     {
         if (s == NULL || ustr == NULL) return 0;
         uint32_t rc = 0;
-        
+
         while (*s)
         {
             uint32_t uc = 0;
@@ -213,7 +214,7 @@
     inline uint32_t rx_utf8_decode_size(const uint8_t *s,uint32_t &uni_chars)
     {
         uni_chars=0;
-        if (s==NULL) 
+        if (s==NULL)
             return 0;
 
         const uint8_t *o=s;

@@ -17,7 +17,7 @@ namespace rx
         raw_hashtbl_stat_t          m_stat;
         mem_allotter_i              &m_mem;
     public:
-        hashtbl_t() :m_nodes(NULL),m_mem(rx_global_mem_allotter()){}
+        hashtbl_t() :m_nodes(NULL),m_stat(0),m_mem(rx_global_mem_allotter()){}
         hashtbl_t(mem_allotter_i &ma) :m_nodes(NULL), m_mem(ma) {}
         ~hashtbl_t() { clear(); }
         //-------------------------------------------------
@@ -39,7 +39,7 @@ namespace rx
             super_t::clear();
             m_mem.del(m_nodes);
             m_nodes = NULL;
-            super_t::m_basetbl.bind(NULL,NULL,false);            
+            super_t::m_basetbl.bind(NULL,NULL,false);
         }
     };
 
@@ -54,7 +54,7 @@ namespace rx
         raw_hashtbl_stat_t          m_stat;
         mem_allotter_i              &m_mem;
     public:
-        hashtbl_st() :m_nodes(NULL), m_mem(rx_global_mem_allotter()) {}
+        hashtbl_st() :m_nodes(NULL),m_stat(0), m_mem(rx_global_mem_allotter()) {}
         hashtbl_st(mem_allotter_i &ma) :m_nodes(NULL), m_mem(ma) {}
         ~hashtbl_st() { clear(); }
         //-------------------------------------------------
@@ -72,7 +72,7 @@ namespace rx
         void clear()
         {
             if (!m_nodes) return;
-            
+
             super_t::clear();
             m_mem.del(m_nodes);
             m_nodes = NULL;

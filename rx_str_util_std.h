@@ -14,6 +14,12 @@
 #define RX_STR_USE_FILE 1
 #endif
 
+#if RX_CC==RX_CC_GCC || defined(RX_CC_MINGW)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstringop-truncation"
+    #pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+
 namespace rx
 {
     //-----------------------------------------------------
@@ -313,5 +319,8 @@ namespace rx
     }
 }
 
+#if RX_CC==RX_CC_GCC || defined(RX_CC_MINGW)
+    #pragma GCC diagnostic pop
+#endif
 
 #endif

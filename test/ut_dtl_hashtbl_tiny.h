@@ -8,6 +8,7 @@
 #include "../rx_dtl_hashtbl.h"
 #include "../rx_dtl_hashset.h"
 #include "../rx_dtl_hashlink.h"
+#include "../rx_hash_rand.h"
 
 #include <set>
 

@@ -8,6 +8,7 @@
 inline void test_dtl_ringbuff_base_1(rx_tdd_t &rt)
 {
     uint8_t tmp[5];
+    memset(tmp,0,sizeof(tmp));
     rx::ringbuff_fixed_t<17> rb;
 
     rt.tdd_assert(rb.empty());

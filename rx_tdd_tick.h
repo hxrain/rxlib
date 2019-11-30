@@ -129,7 +129,7 @@ namespace rx
             va_end(ap);
 
             char tmp[512];
-            snprintf(tmp, sizeof(tmp), "<tdd_tt>{ %s }:%s:%s (%.1f)ms {%s} : (%s:%u).", m_msg_a,(is_hit?"hit":"seg"), tab_str, m_last_hit_elapsed  / 1000.0, tmp1, file, lineno);
+            snprintf(tmp, sizeof(tmp), "   ::< %s >:%s:%s (%.1f)ms {%s} : (%s:%u).", m_msg_a,(is_hit?"hit":"seg"), tab_str, m_last_hit_elapsed  / 1000.0, tmp1, file, lineno);
             on_output(tmp);
         }
         //-------------------------------------------------
@@ -143,7 +143,7 @@ namespace rx
                 return;
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"<tdd_tt>{ %s }:end: (%.1f)ms {%s} : (%s:%u).",m_msg_a, m_total_elapsed /1000.0,m_msg_b,m_file,m_lineno);
+            snprintf(tmp,sizeof(tmp),"   ::< %s >:end: (%.1f)ms {%s} : (%s:%u).",m_msg_a, m_total_elapsed /1000.0,m_msg_b,m_file,m_lineno);
             on_output(tmp);
             m_enable=false;
         }
@@ -211,14 +211,14 @@ namespace rx
             m_for_count = count;
             m_for_idx = 0;
             m_begin_time = m_tdd_tick.curr_time();
-            
+
             va_list ap;
             va_start(ap, fmt);
             vsnprintf(m_msg, sizeof(m_msg), fmt, ap);
             va_end(ap);
         }
-        ~tdd_tick_for_t() 
-        { 
+        ~tdd_tick_for_t()
+        {
             uint32_t usetime = uint32_t(m_tdd_tick.curr_time() - m_begin_time);
 
             char tab_str[32];
@@ -231,7 +231,7 @@ namespace rx
             char tmp[512];
 
             double total_ms = usetime / 1000.0;
-            snprintf(tmp, sizeof(tmp), "<tdd_tt>{ %s }:for:%s (%.1f)ms/%d=(%.1f)ms {%s} : (%s:%u).", m_tdd_tick.msg_a(), tab_str, total_ms,m_for_count,total_ms/m_for_count, m_msg, m_file, m_lineno);
+            snprintf(tmp, sizeof(tmp), "   ::< %s >:for:%s (%.1f)ms/%d=(%.1f)ms {%s} : (%s:%u).", m_tdd_tick.msg_a(), tab_str, total_ms,m_for_count,total_ms/m_for_count, m_msg, m_file, m_lineno);
             m_tdd_tick.on_output(tmp);
         }
         //-------------------------------------------------

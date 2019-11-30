@@ -300,7 +300,7 @@ namespace rx
         typename super_t::node_t    m_nodes[max_node_count];
         raw_hashtbl_stat_t          m_stat;
     public:
-        tiny_hashlink_t():super_t(m_nodes, max_node_count,&m_stat) {}
+        tiny_hashlink_t():super_t(m_nodes, max_node_count,&m_stat),m_stat(max_node_count) {}
     };
 
     //-----------------------------------------------------
@@ -313,7 +313,7 @@ namespace rx
         typename super_t::node_t    m_nodes[max_node_count];
         raw_hashtbl_stat_t          m_stat;
     public:
-        tiny_hashlink_st():super_t(m_nodes, max_node_count,&m_stat) {}
+        tiny_hashlink_st():super_t(m_nodes, max_node_count,&m_stat),m_stat(max_node_count) {}
     };
 }
 

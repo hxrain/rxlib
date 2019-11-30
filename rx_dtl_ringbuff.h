@@ -25,7 +25,7 @@ namespace rx
     class bipbuff_t
     {
     protected:
-        uint8_t     b_inuse;                                //标记B区域是否被使用了
+        uint32_t    b_inuse;                                //标记B区域是否被使用了
         uint32_t    b_end;                                  //记录B区域的结束点位置
         uint32_t    a_start;                                //记录A区域的开始点位置
         uint32_t    a_end;                                  //记录A区域的结束点位置
