@@ -136,11 +136,11 @@ namespace rx
         //释放内存
         void free(void* P)
         {
-            rx_assert_msg(P!=NULL,"待释放内存错误!指针为空");
+            rx_assert_msg(P!=NULL,"memory pointer is empty!");
 
             uint8_t* R=(uint8_t*)cookie_t::rawptr(P);
             cookie_t::info_t &ck=cookie_t::get(R);
-            rx_assert_msg(!ck.item_count,"错误的使用了alloc/free函数匹配.");
+            rx_assert_msg(!ck.item_count,"the alloc/free function was incorrectly matched!");
 
             uint32_t memsize=ck.mem_size;
             base_free(R,memsize);
@@ -225,7 +225,7 @@ namespace rx
         //将new系列函数分配的对象或数组进行析构并收回内存
         template<class VT> bool del(VT* P)
         {
-            rx_assert_msg(P!=NULL,"待释放内存错误!指针为空");
+            rx_assert_msg(P!=NULL,"memory pointer is empty!");
 
             uint8_t* R=(uint8_t*)cookie_t::rawptr(P);
             cookie_t::info_t &ck=cookie_t::get(R);

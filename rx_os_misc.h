@@ -35,13 +35,13 @@ namespace rx
                 //初始化安全描述符
                 if (!InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION))
                 {
-                    rx_alert("InitializeSecurityDescriptor 初始化失败!"); throw 1;
+                    rx_alert("InitializeSecurityDescriptor FAIL!"); throw 1;
                 }
 
                 //得到授权用户组的SID
                 if (!AllocateAndInitializeSid(&SiaWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, &psidEveryone))
                 {
-                    rx_alert("AllocateAndInitializeSid 初始化失败!"); throw 2;
+                    rx_alert("AllocateAndInitializeSid FAIL!"); throw 2;
                 }
 
                 //计算ACL的长度
@@ -49,22 +49,22 @@ namespace rx
 
                 //给ACL分配内存
                 ACL_Ptr = (PACL)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwAclLength);
-                if (ACL_Ptr == NULL) { rx_alert("HeapAlloc 内存分配失败!"); throw 3; }
+                if (ACL_Ptr == NULL) { rx_alert("HeapAlloc FAIL!"); throw 3; }
 
                 if (!InitializeAcl(ACL_Ptr, dwAclLength, ACL_REVISION))
                 {
-                    rx_alert("InitializeAcl 失败!"); throw 4;
+                    rx_alert("InitializeAcl FAIL!"); throw 4;
                 }
 
                 // GENERIC_READ, GENERIC_WRITE, and GENERIC_EXECUTE access
                 if (!AddAccessAllowedAce(ACL_Ptr, ACL_REVISION, GENERIC_ALL, psidEveryone))
                 {
-                    rx_alert("AddAccessAllowedAce 失败"); throw 5;
+                    rx_alert("AddAccessAllowedAce FAIL!"); throw 5;
                 }
 
                 if (!SetSecurityDescriptorDacl(pSD, TRUE, ACL_Ptr, FALSE))
                 {
-                    rx_alert("SetSecurityDescriptorDacl 失败!"); throw 6;
+                    rx_alert("SetSecurityDescriptorDacl FAIL!"); throw 6;
                 }
 
                 bResult = TRUE;
@@ -97,7 +97,7 @@ namespace rx
             m_SA.lpSecurityDescriptor = &m_SD;
             m_SA.bInheritHandle = FALSE; // build a restricted security descriptor
             m_SDPtr = MakeSD(&m_SD);
-            rx_assert_msg(m_SDPtr != NULL, "os_security_desc_t初始化失败!");
+            rx_assert_msg(m_SDPtr != NULL, "os_security_desc_t init FAIL!");
         }
         //-------------------------------------------------
         virtual ~os_security_desc_t() { Free(m_SDPtr); }

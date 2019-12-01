@@ -202,6 +202,8 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
 
 rx_tdd(ut_timer_base)
 {
+    ut_timer_tw_base1<3>(*this, 256 * 256 + 424);
+
     ut_timer_tw_base2<1>(*this);
 
     ut_timer_tw_base1<1>(*this,2);

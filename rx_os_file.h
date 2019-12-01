@@ -184,7 +184,7 @@ namespace rx
                 OM = FILE_END;
                 break;
             default:
-                rx_alert("文件指针偏移类型错误");
+                rx_alert("offset type error");
                 break;
             }
             OM = SetFilePointer(m_handle, pos, NULL, OM);
@@ -564,11 +564,11 @@ namespace rx
     {
         os_file_t f;
         error_code ec=f.open(filename, "r");
-        if (ec) 
+        if (ec)
             return ec;
 
         uint32_t fsize;
-        if (!f.size(fsize)) 
+        if (!f.size(fsize))
             return ec_file_op;
 
         try { str.resize(fsize); }

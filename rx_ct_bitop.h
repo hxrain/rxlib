@@ -68,7 +68,7 @@
         return (value >> r) | (value << (64 - r));
     }
 
-#if ( RX_CC==RX_CC_GCC||RX_CC==RX_CC_MINGW32||RX_CC==RX_CC_MINGW64)
+#if ( RX_CC==RX_CC_GCC||RX_CC==RX_CC_CLANG)
     //GCC系列编译器有完整的内建函数
     //-----------------------------------------------------
     //计算前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)

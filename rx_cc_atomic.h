@@ -87,7 +87,7 @@
         #endif
         //-------------------------------------------------
 
-    #elif (RX_CC==RX_CC_GCC||RX_CC==RX_CC_CLANG||RX_CC==RX_CC_CYGWIN||RX_CC==RX_CC_MINGW32||RX_CC==RX_CC_MINGW64)
+    #elif (RX_CC==RX_CC_GCC||RX_CC==RX_CC_CLANG)
         //ÄÚ´æÀ¸Õ¤Ö¸Áî
         #define mem_barrier()    __sync_synchronize()
 

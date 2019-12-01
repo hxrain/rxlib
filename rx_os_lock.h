@@ -47,7 +47,7 @@
     //获取当前线程ID
     inline uint64_t rx_thread_id() { return GetCurrentThreadId(); }
 
-    #if RX_CC_MINGW||(RX_CC==RX_CC_GCC)
+    #if (RX_CC==RX_CC_CLANG)||(RX_CC==RX_CC_GCC)
         #define rx_mm_pause() __asm__ __volatile__ ("pause\n")
     #else
         #define rx_mm_pause() _mm_pause()

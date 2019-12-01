@@ -47,7 +47,7 @@
 
     #define type_of(...) to::decode_t<type_extract(to::encode((__VA_ARGS__)))>::type_t
 
-#elif RX_CC==RX_CC_GCC || RX_CC_MINGW
+#elif RX_CC==RX_CC_GCC || RX_CC_CLANG
     #define type_of(...) __typeof((__VA_ARGS__))
 #endif
 
