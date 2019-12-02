@@ -7,6 +7,7 @@
 
 const bool ut_show_timer_tw_debug = false;
 
+//tw定时器事件处理器
 class ut_timer_tw_result
 {
 public:
@@ -17,24 +18,34 @@ public:
         ++hits;
     }
 };
+#define evt_obj(obj) obj,cf_ptr(ut_timer_tw_result,on_timer)
 
 template<uint32_t wheels>
 inline void ut_timer_tw_base1(rx_tdd_t &rt,uint32_t cycle)
 {
+    //定义事件处理器对象
     ut_timer_tw_result tr;
+    //定义tw定时器管理器
     rx::timing_wheel_t<wheels> w;
-    size_t h;
-    uint64_t curr_time = 128;
+
+    //定义初始时间点并初始化定时器管理器
+    uint64_t curr_time = 0;
     rt.tdd_assert(w.wheels_init(curr_time));
     rt.tdd_assert(tr.hits == 0);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), cycle, 0, 1);
+    //创建一个定时器,使用tr对象进行事件触发的处理,定时周期是cycle,事件码0,重复次数1
+    size_t h = w.timer_insert(evt_obj(tr), cycle, 0, 1);
     rt.tdd_assert(h > 0);
+
+    //模拟当前时间即将到达触发时间之前的时间点
     curr_time += cycle-2;
+    //给出时间流逝跨度,不应该被触发
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 0);
+    //时间流逝到达触发点,应被触发
     rt.tdd_assert(w.wheels_step(++curr_time) == 1);
     rt.tdd_assert(tr.hits == 1);
+    //时间流逝超过了触发点,不应该被触发
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 1);
 }
@@ -49,7 +60,7 @@ inline void ut_timer_tw_base2(rx_tdd_t &rt)
     rt.tdd_assert(w.wheels_init(++curr_time));
     rt.tdd_assert(tr.hits == 0);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 255, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 255, 0, 1);
     rt.tdd_assert(h > 0);
     curr_time += 253;
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
@@ -59,7 +70,7 @@ inline void ut_timer_tw_base2(rx_tdd_t &rt)
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 1);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 256, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 256, 0, 1);
     rt.tdd_assert(h > 0);
     curr_time += 254;
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
@@ -69,7 +80,7 @@ inline void ut_timer_tw_base2(rx_tdd_t &rt)
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 2);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 257, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 257, 0, 1);
     rt.tdd_assert(h > 0);
     curr_time += 255;
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
@@ -91,28 +102,28 @@ inline void ut_timer_tw_base3(rx_tdd_t &rt)
     rt.tdd_assert(w.wheels_init(++curr_time));
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 0);
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 1, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 1, 0, 1);
     rt.tdd_assert(h > 0);
     rt.tdd_assert(w.wheels_step(++curr_time) == 1);
     rt.tdd_assert(tr.hits==1);
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 1);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 1, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 1, 0, 1);
     rt.tdd_assert(h > 0);
     rt.tdd_assert(w.timer_update(h));
     rt.tdd_assert(w.timer_remove(h));
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 1);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 2, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 2, 0, 1);
     rt.tdd_assert(h > 0);
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 1);
     rt.tdd_assert(w.wheels_step(++curr_time) == 1);
     rt.tdd_assert(tr.hits == 2);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 255, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 255, 0, 1);
     rt.tdd_assert(h > 0);
     curr_time += 254;
     rt.tdd_assert(w.wheels_step(++curr_time) == 1);
@@ -120,7 +131,7 @@ inline void ut_timer_tw_base3(rx_tdd_t &rt)
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 3);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 257, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 257, 0, 1);
     rt.tdd_assert(h > 0);
     curr_time += 256;
     rt.tdd_assert(w.wheels_step(++curr_time) == 1);
@@ -128,7 +139,7 @@ inline void ut_timer_tw_base3(rx_tdd_t &rt)
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 4);
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 2, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 2, 0, 1);
     rt.tdd_assert(h > 0);
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 4);
@@ -139,7 +150,7 @@ inline void ut_timer_tw_base3(rx_tdd_t &rt)
     rt.tdd_assert(tr.hits == 5);
 
 
-    h = w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), 256, 0, 1);
+    h = w.timer_insert(evt_obj(tr), 256, 0, 1);
     rt.tdd_assert(h > 0);
     curr_time += 254;
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
@@ -169,7 +180,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
     uint32_t hc=rnd.get(hit_limit);
 
     need_hits+=hc;
-    h=w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), inv, 0, hc);
+    h=w.timer_insert(evt_obj(tr), inv, 0, hc);
     if (h==0)
         ++err_count;
 
@@ -186,7 +197,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
             hc=rnd.get(hit_limit,1);
 
             need_hits+=hc;
-            h=w.timer_insert(mr_obj(ut_timer_tw_result, tr, on_timer), inv, 0, hc);
+            h=w.timer_insert(evt_obj(tr), inv, 0, hc);
             if (h==0)
                 ++err_count;
         }
@@ -202,6 +213,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
 
 rx_tdd(ut_timer_base)
 {
+    ut_timer_tw_base1<3>(*this, 256 * 256 + 256+1);
     ut_timer_tw_base1<3>(*this, 256 * 256 + 424);
 
     ut_timer_tw_base2<1>(*this);

@@ -46,7 +46,7 @@ namespace rx
 
         //-------------------------------------------------
         //各级轮子对应的满轮滴答数掩码(满值减一,可用&方法取余)
-        static uint32_t ticks_mask(uint32_t i)
+        static rx_inline uint32_t ticks_mask(uint32_t i)
         {
             rx_assert(i<max_wheel_count-1);
             static const uint32_t tbl[max_wheel_count-1] = { 0xFF, 0xFFFF, 0xFFFFFF };
@@ -54,10 +54,10 @@ namespace rx
         }
         //-------------------------------------------------
         //获取各层级轮子的满轮滴答数
-        static uint32_t ticks_round(uint32_t i) { return ticks_mask(i) + 1; }
+        static rx_inline uint32_t ticks_round(uint32_t i) { return ticks_mask(i) + 1; }
         //-------------------------------------------------
         //各级轮子对应的满轮滴答数移位(可用>>移位法取商)
-        static uint8_t ticks_shift(uint32_t i)
+        static rx_inline uint8_t ticks_shift(uint32_t i)
         {
             rx_assert(i<max_wheel_count-1);
             static const uint8_t tbl[max_wheel_count-1] = { 8, 16, 24};
@@ -448,23 +448,27 @@ namespace rx
         void m_calc_item_pos(size_t inv_tick, uint8_t &wheel_idx, uint8_t &slot_idx)
         {
             //从上至下逐层查找正确的位置
-            for (int i = max_level_wheel; i >= 1; --i)
+            for (int wheel_level = max_level_wheel; wheel_level >= 1; --wheel_level)
             {
                 //下一层级序号
-                uint32_t ll = i - 1;
+                uint32_t next_level = wheel_level - 1;
                 //计算周期滴答数在当前层的下一层轮子上的溢出倍数(用位移计算除法)
-                size_t over=inv_tick >> tw::ticks_shift(ll);
-
-                //校正:剩余滴答与下一层剩余时槽滴答,与当前轮时槽滴答数的倍数关系
+                size_t over=inv_tick >> tw::ticks_shift(next_level);
 
                 if (over)
                 {//如果安装在下层有溢出,则需要挂接到当前层
-                    uint32_t ll_mod = inv_tick & tw::ticks_mask(ll);                //触发周期对于下级时间轮的时槽尾数(用&运算取模)
-                    uint32_t ll_rem = tw::wheel_slots - m_wheels[ll].slot_ptr();    //下级时间轮在本轮剩余的时槽数
-                    if (ll_mod>=ll_rem)
-                        over += 1;                          //**关键点**:如果时槽尾数大于等于剩余时槽数,则安装的时槽序号后移一格
+                    //计算触发周期对于下级时间轮的时槽尾数(用&运算取模)
+                    uint32_t ll_mod = inv_tick & tw::ticks_mask(next_level);
 
-                    wheel_idx = i;
+                    //下级时间轮剩余的时槽数
+                    uint32_t ll_rem = tw::wheel_slots - m_wheels[next_level].slot_ptr();
+                    
+                    //**关键点**:如果时槽尾数大于等于剩余时槽数,则安装的时槽序号后移一格
+                    if (ll_mod>=ll_rem)
+                        over += 1;               
+
+                    //计算得到最终的安装位置
+                    wheel_idx = wheel_level;
                     slot_idx = uint8_t(m_wheels[wheel_idx].slot_ptr() + over);
                     return;
                 }
@@ -486,7 +490,7 @@ namespace rx
 
         //-------------------------------------------------
         //时间轮初始化:给出初始时间点;内部时间槽的时间单位(默认1ms);时间轮使用的内存分配器.
-        bool wheels_init(uint64_t curr_time_ms,uint32_t tick_unit_ms=1,mem_allotter_i& mem=rx_global_mem_allotter())
+        bool wheels_init(uint64_t begin_time_ms,uint32_t tick_unit_ms=1,mem_allotter_i& mem=rx_global_mem_allotter())
         {
             if (!m_items_cache.bind(mem))
                 return false;
@@ -494,15 +498,18 @@ namespace rx
             for(uint32_t i=0;i<wheel_count;++i)
             {
                 tw::wheel_t  &w=m_wheels[i];
-                if (!w.init(i,mem))                                 //逐一初始化各级轮子
+                if (!w.init(i,mem))                         //逐一初始化各级轮子
                     return false;
 
-                w.cb_round.bind(mr_this(timing_wheel_t, on_cb_round));//给当前时间轮挂接轮子转动事件
-                w.cb_item.bind(mr_this(timing_wheel_t, on_cb_item));  //给当前时间轮挂接条目处理事件
+                //给当前时间轮挂接轮子转动事件
+                w.cb_round.bind(*this,cf_ptr(timing_wheel_t, on_cb_round));
+
+                //给当前时间轮挂接条目处理事件
+                w.cb_item.bind(*this, cf_ptr(timing_wheel_t, on_cb_item));
             }
 
-            m_curr_tick = curr_time_ms/tick_unit_ms;
-            m_curr_time = curr_time_ms;                        //记录最后的行走时间和最底层时间槽单位
+            m_curr_tick = begin_time_ms /tick_unit_ms;
+            m_curr_time = begin_time_ms;                    //记录最后的行走时间和最底层时间槽单位
             m_tick_unit_ms = tick_unit_ms;
 
             return true;
