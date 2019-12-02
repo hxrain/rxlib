@@ -37,8 +37,10 @@ inline void ut_timer_tw_base1(rx_tdd_t &rt,uint32_t cycle, uint64_t curr_time = 
     rt.tdd_assert(h > 0);
 
     //模拟当前时间即将到达触发时间之前的时间点
-    curr_time += cycle-2;
+    curr_time += cycle-3;
     //给出时间流逝跨度,不应该被触发
+    rt.tdd_assert(w.wheels_step(++curr_time) == 0);
+    rt.tdd_assert(tr.hits == 0);
     rt.tdd_assert(w.wheels_step(++curr_time) == 0);
     rt.tdd_assert(tr.hits == 0);
     //时间流逝到达触发点,应被触发
@@ -102,7 +104,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt,uint32_t inv_limit,uint32_t hit_limit
 template<uint32_t wheels>
 void tw_timer_test_B1(rx_tdd_t &rt)
 {
-    ut_timer_tw_base1<wheels>(rt, 2);
+    ut_timer_tw_base1<wheels>(rt, 3);
 
     ut_timer_tw_base1<wheels>(rt, 255);
 
@@ -121,6 +123,10 @@ void tw_timer_test_B1(rx_tdd_t &rt)
     ut_timer_tw_base1<wheels>(rt, 256 * 256);
 
     ut_timer_tw_base1<wheels>(rt, 256 * 256 + 1);
+
+    ut_timer_tw_base1<wheels>(rt, 256 * 256 + 256+1);
+
+    ut_timer_tw_base1<wheels>(rt, 256 * 256 + 256+168);
 }
 rx_tdd(ut_timer_base)
 {
@@ -128,8 +134,6 @@ rx_tdd(ut_timer_base)
     tw_timer_test_B1<2>(*this);
     tw_timer_test_B1<3>(*this);
     tw_timer_test_B1<4>(*this);
-    //ut_timer_tw_base1<3>(*this, 256 * 256 + 256+1);
-    //ut_timer_tw_base1<3>(*this, 256 * 256 + 256+168);
 }
 
 rx_tdd_rtl(ut_timer_base,tdd_level_slow)

@@ -215,7 +215,7 @@ int main()
 
     rx_static_assert(1);
 
-    rx_tdd_run(tdd_level_std);
+    rx_tdd_run(tdd_level_slow);
 
     getchar();
     return 0;

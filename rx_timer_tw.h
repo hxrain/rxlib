@@ -176,13 +176,9 @@ namespace rx
                     ++I;                                    //迭代器预先后移,避免在cb_step中item被删除时产生干扰.
 
                     //下一层级轮子的满轮滴答数,就是当前层级轮子的单时槽滴答数
-                    //uint32_t lvl = m_wheel_idx ? m_wheel_idx - 1 : 0;
-                    //if ((item->c_dst_tick - curr_tick) >= ticks_round(lvl))
-                    //    continue;                           //如果当前定时器条目的触发时间还没到达,则放过.
-                    if ((item->c_dst_tick > curr_tick))
-                        continue;                           //如果当前定时器条目的触发时间还没到达,则放过.
-
-                    rx_assert(item->c_dst_tick <= curr_tick);
+                    uint32_t lvl = m_wheel_idx ? m_wheel_idx - 1 : 0;
+                    if ((item->c_dst_tick - curr_tick) >= ticks_round(lvl))
+                        continue;                           //如果当前定时器条目的触发时间还没到达.
 
                     if (cb_item(item))                      //触发定时器事件动作
                         ++rc;
@@ -514,7 +510,7 @@ namespace rx
             for(uint32_t i=0;i<wheel_count;++i)
             {
                 tw::wheel_t  &w=m_wheels[i];
-                if (!w.init(i, mem, i==0?0:0))       //逐一初始化各级轮子
+                if (!w.init(i, mem))                        //逐一初始化各级轮子
                     return false;
 
                 //给当前时间轮挂接轮子转动事件
@@ -555,9 +551,9 @@ namespace rx
             }
 
             //计算流逝时间
-            size_t delta= size_t(curr_time_ms-m_curr_time);
+            size_t delta = size_t(curr_time_ms - m_curr_time);
             //计算应该走动的步数
-            uint32_t step_count=uint32_t(delta/m_tick_unit_ms);
+            uint32_t step_count = uint32_t(delta / m_tick_unit_ms);
 
             uint32_t rc=0;
             //驱动最低级时间轮行走(在round满圈回调中会同步驱动上级时间轮)
@@ -565,7 +561,7 @@ namespace rx
             {
                 m_curr_time += m_tick_unit_ms;
                 ++m_curr_tick;
-                rc += m_wheels[min_level_wheel].step(m_curr_tick,true);
+                rc += m_wheels[min_level_wheel].step(m_curr_tick, true);
             }
 
             return rc;
