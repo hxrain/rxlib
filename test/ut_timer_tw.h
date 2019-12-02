@@ -128,6 +128,15 @@ void tw_timer_test_B1(rx_tdd_t &rt)
 
     ut_timer_tw_base1<wheels>(rt, 256 * 256 + 256+168);
 }
+
+template<uint32_t wheels>
+void tw_timer_test_B4(rx_tdd_t &rt)
+{
+    ut_timer_tw_base4<wheels>(rt, 3, 10, 20);
+    ut_timer_tw_base4<wheels>(rt, 10, 10, 50);
+    ut_timer_tw_base4<wheels>(rt, 5, 3, 1000);
+}
+
 rx_tdd(ut_timer_base)
 {
     tw_timer_test_B1<1>(*this);
@@ -138,20 +147,19 @@ rx_tdd(ut_timer_base)
 
 rx_tdd_rtl(ut_timer_base,tdd_level_slow)
 {
-    for (uint32_t i = 2; i<256 * 256; ++i)
+    for (uint32_t i = 3; i<256 * 256 * 2 + 1024; i+=37)
     {
         ut_timer_tw_base1<1>(*this, i);
         ut_timer_tw_base1<2>(*this, i);
         ut_timer_tw_base1<3>(*this, i);
         ut_timer_tw_base1<4>(*this, i);
     }
-
-    for (uint32_t i = 256 * 256; i< 256 * 256 + 1024; ++i)
-    {
-        ut_timer_tw_base1<1>(*this, i);
-        ut_timer_tw_base1<2>(*this, i);
-        ut_timer_tw_base1<3>(*this, i);
-        ut_timer_tw_base1<4>(*this, i);
-    }
+}
+rx_tdd_rtl(ut_timer_base, tdd_level_slow)
+{
+    tw_timer_test_B4<1>(*this);
+    tw_timer_test_B4<2>(*this);
+    tw_timer_test_B4<3>(*this);
+    tw_timer_test_B4<4>(*this);
 }
 #endif
