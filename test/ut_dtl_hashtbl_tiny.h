@@ -411,10 +411,10 @@ namespace rx_ut
 rx_tdd(hashtbl_tiny_base)
 {
     rx_ut::ut_dtl_hashset_base_1(*this);
-    for (uint32_t seed = 1; seed < 100; ++seed)
+    for (uint32_t seed = 1; seed < 10; ++seed)
     {
-        rx_ut::tinyhashtbl_removed_adj_2<true, 10000>(*this,seed);
-        rx_ut::tinyhashtbl_removed_adj_2<false, 10000>(*this, seed);
+        rx_ut::tinyhashtbl_removed_adj_2<true, 100>(*this,seed);
+        rx_ut::tinyhashtbl_removed_adj_2<false, 100>(*this, seed);
     }
 
     rx_ut::tinyhashtbl_removed_adj_1<true>(*this);
@@ -424,15 +424,31 @@ rx_tdd(hashtbl_tiny_base)
     rx_ut::raw_tinyhashtbl_base_1(*this);
     rx_ut::raw_tinyhashlink_base_1(*this);
 
-    rx_ut::ut_hashtbl_ext_test_1<10000,8000,rx_ut::ut_htcmp_t1>(*this);
-    rx_ut::ut_hashtbl_ext_test_1<10000,8000,rx_ut::ut_htcmp_t2>(*this);
-    rx_ut::ut_hashtbl_ext_test_1<10000,8000,rx_ut::ut_htcmp_t3>(*this);
-    rx_ut::ut_hashtbl_ext_test_1<10000,8000,rx_ut::ut_htcmp_t4>(*this);
-    rx_ut::ut_hashtbl_ext_test_1<10000,9000,rx_ut::ut_htcmp_t1>(*this);
-    rx_ut::ut_hashtbl_ext_test_1<10000,9000,rx_ut::ut_htcmp_t2>(*this);
-    rx_ut::ut_hashtbl_ext_test_1<10000,9000,rx_ut::ut_htcmp_t3>(*this);
-    rx_ut::ut_hashtbl_ext_test_1<10000,9000,rx_ut::ut_htcmp_t4>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<100, 80, rx_ut::ut_htcmp_t1>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<100, 80, rx_ut::ut_htcmp_t2>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<100, 80, rx_ut::ut_htcmp_t3>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<100, 80, rx_ut::ut_htcmp_t4>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<100, 90, rx_ut::ut_htcmp_t1>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<100, 90, rx_ut::ut_htcmp_t2>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<100, 90, rx_ut::ut_htcmp_t3>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<100, 90, rx_ut::ut_htcmp_t4>(*this);
+
 }
 
-
+rx_tdd_rtl(hashtbl_tiny_base, tdd_level_slow)
+{
+    for (uint32_t seed = 1; seed < 100; ++seed)
+    {
+        rx_ut::tinyhashtbl_removed_adj_2<true, 10000>(*this, seed);
+        rx_ut::tinyhashtbl_removed_adj_2<false, 10000>(*this, seed);
+    }
+    rx_ut::ut_hashtbl_ext_test_1<10000, 8000, rx_ut::ut_htcmp_t1>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<10000, 8000, rx_ut::ut_htcmp_t2>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<10000, 8000, rx_ut::ut_htcmp_t3>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<10000, 8000, rx_ut::ut_htcmp_t4>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<10000, 9000, rx_ut::ut_htcmp_t1>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<10000, 9000, rx_ut::ut_htcmp_t2>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<10000, 9000, rx_ut::ut_htcmp_t3>(*this);
+    rx_ut::ut_hashtbl_ext_test_1<10000, 9000, rx_ut::ut_htcmp_t4>(*this);
+}
 #endif
