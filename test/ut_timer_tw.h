@@ -226,9 +226,9 @@ inline void ut_timer_tw_base2(rx_tdd_t &rt, uint32_t cycle, uint32_t rep = 1)
 //---------------------------------------------------------
 //进行随机命中测试
 template<uint32_t wheels>
-inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t hit_limit, uint32_t timer_count)
+inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t rep_limit, uint32_t timer_count)
 {
-    tdd_tt(ut_timer_tw_base4, "timewheels", "base test4:wheels(%d)cycle(%d),hits(%d),timers(%d)", wheels, cycle_limit, hit_limit, timer_count+1);
+    tdd_tt(ut_timer_tw_base4, "timewheels", "base test4:wheels(%d),max_cycle(%d),max_reps(%d),timers(%d)", wheels, cycle_limit, rep_limit, timer_count+1);
     ut_tw_handler_t tr;
     rx::tw_timer_mgr_t<wheels> w;
     rx::rand_skeeto_bsa_t rnd;
@@ -237,7 +237,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t hit_l
 
     //进行周期间隔与重复次数的随机限定
     uint32_t inv = rnd.get(cycle_limit,2);
-    uint32_t hc = rnd.get(hit_limit,2);
+    uint32_t hc = rnd.get(rep_limit,2);
 
     uint32_t err_count = 0;     //记录定时器创建错误发生的次数
     uint32_t need_hits = 0;     //应该命中的次数
@@ -245,7 +245,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t hit_l
     uint32_t lc = 0;            //已经循环的次数
     uint32_t mkc = timer_count; //待创建定时器的数量
     //计算需要的最大循环次数
-    uint32_t max_lc = inv*hc + timer_count;
+    uint32_t max_lc = cycle_limit*rep_limit + timer_count;
 
     //预先创建一个定时器
     need_hits += hc;
@@ -260,7 +260,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t hit_l
         {//仍有待创建定时器的时候,动态创建新的定时器,确保新定时器的开始周期不会在原点.
             --mkc;
             inv = rnd.get(cycle_limit, 1);
-            hc = rnd.get(hit_limit, 1);
+            hc = rnd.get(rep_limit, 1);
 
             need_hits += hc;
             h = w.timer_insert(evt_obj(tr), inv, 0, hc);
@@ -274,7 +274,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t hit_l
         rx_assert_if(w.timer_count() == 0, hits == need_hits);
     }
     rt.tdd_assert(need_hits == tr.hits);
-    tdd_tt_msg(ut_timer_tw_base4, "total_hits=%d,used_time=%d,err=%d", need_hits, lc, err_count);
+    tdd_tt_msg(ut_timer_tw_base4, "total_hits=%d/%d,used_time=%d,err=%d", hits,need_hits, lc, err_count);
 }
 //---------------------------------------------------------
 template<uint32_t wheels>
@@ -306,15 +306,30 @@ void tw_timer_test_B1(rx_tdd_t &rt)
 }
 
 template<uint32_t wheels>
-void tw_timer_test_B4(rx_tdd_t &rt)
+void tw_timer_test_B4(rx_tdd_t &rt,uint32_t rate=1)
 {
-    ut_timer_tw_base4<wheels>(rt, 3, 10, 20);
-    ut_timer_tw_base4<wheels>(rt, 10, 10, 198);
-    ut_timer_tw_base4<wheels>(rt, 20, 10, 1000);
+    ut_timer_tw_base4<wheels>(rt, rate*3,  rate*10, rate*20);
+    ut_timer_tw_base4<wheels>(rt, rate*10, rate*10, rate*198);
+    ut_timer_tw_base4<wheels>(rt, rate*20, rate*10, rate*1000);
 }
 
 rx_tdd(ut_timer_base)
 {
+    tw_timer_test_B4<4>(*this);
+    tw_timer_test_B4<3>(*this);
+    tw_timer_test_B4<2>(*this);
+    tw_timer_test_B4<1>(*this);
+    ut_timer_tw_base4<4>(*this, 150, 70, 120);
+    ut_timer_tw_base4<4>(*this, 50, 20, 20);
+    ut_timer_tw_base4<4>(*this, 2, 3, 20);
+    ut_timer_tw_base4<4>(*this, 150, 70, 120);
+    ut_timer_tw_base4<3>(*this, 50, 20, 20);
+    ut_timer_tw_base4<3>(*this, 2, 3, 20);
+    ut_timer_tw_base4<2>(*this, 150, 70, 120);
+    ut_timer_tw_base4<2>(*this, 50, 20, 20);
+    ut_timer_tw_base4<2>(*this, 2, 3, 20);
+    ut_timer_tw_base4<1>(*this, 25, 8, 2);
+    ut_timer_tw_base4<1>(*this, 2, 3, 20);
     ut_timer_tw_base4<1>(*this, 2, 3, 2);
     tw_timer_test_B1<4>(*this);
     tw_timer_test_B1<3>(*this);
@@ -350,9 +365,9 @@ rx_tdd_rtl(ut_timer_base,tdd_level_slow)
         ut_timer_tw_base1<3>(*this, i);
         ut_timer_tw_base1<4>(*this, i);
     }
-    tw_timer_test_B4<1>(*this);
-    tw_timer_test_B4<2>(*this);
-    tw_timer_test_B4<3>(*this);
-    tw_timer_test_B4<4>(*this);
+    tw_timer_test_B4<1>(*this,100);
+    tw_timer_test_B4<2>(*this,100);
+    tw_timer_test_B4<3>(*this,100);
+    tw_timer_test_B4<4>(*this,100);
 }
 #endif
