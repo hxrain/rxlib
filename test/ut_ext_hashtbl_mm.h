@@ -54,7 +54,7 @@ namespace rx_ut
             if (tbl.insert(80021000 + i, i) == tbl.end())
                 ++ec;
         }
-        tdd_tt_hit(t, "capacity=%d items=%d collision=%d", tbl.capacity(), total, tbl.stat().collision_count);
+        tdd_tt_msg(t, "capacity=%d items=%d collision=%d", tbl.capacity(), total, tbl.stat().collision_count);
         return ec;
     }
 
@@ -73,7 +73,7 @@ namespace rx_ut
             else
                 max_step = rx::Max(tbl.at(I.pos())->step, max_step);
         }
-        tdd_tt_hit(t, "capacity=%d items=%d collision=%d max_step=%d", tbl.capacity(), tbl.size(), tbl.stat().collision_count, max_step);
+        tdd_tt_msg(t, "capacity=%d items=%d collision=%d max_step=%d", tbl.capacity(), tbl.size(), tbl.stat().collision_count, max_step);
         return ec;
     }
     //-----------------------------------------------------

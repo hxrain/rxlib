@@ -1,6 +1,6 @@
 #define RX_USE_TDD_TICK 1
 /*
-
+*/
 //---------------------------------------------------------
 //简单的缓冲区功能封装
 #include "../../rx_dtl_buff.h"
@@ -53,7 +53,7 @@
 //---------------------------------------------------------
 //模拟c++11的typeof与auto的功能封装
 #include "../../rx_ct_typeof.h"
-*/
+
 //---------------------------------------------------------
 //基于时间轮的定时器功能框架
 #include "../ut_timer_tw.h"
@@ -215,7 +215,7 @@ int main()
 
     rx_static_assert(1);
 
-    rx_tdd_run(tdd_level_slow);
+    rx_tdd_run(tdd_level_std);
 
     getchar();
     return 0;

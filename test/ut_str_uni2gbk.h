@@ -160,7 +160,7 @@ namespace rx_ut
             if (ucode != i)
                 ++bad;
         }
-        tdd_tt_hit(t, "classic utf8_encode/decode");
+        tdd_tt_msg(t, "classic utf8_encode/decode");
 
         for (uint32_t i = 0; i <= max_uni_code; ++i)
         {
@@ -169,7 +169,7 @@ namespace rx_ut
             if (ucode != i)
                 ++bad;
         }
-        tdd_tt_hit(t, "rx utf8_encode/decode");
+        tdd_tt_msg(t, "rx utf8_encode/decode");
 
         rt.tdd_assert(bad == 0);
     }

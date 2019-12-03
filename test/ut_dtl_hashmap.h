@@ -52,16 +52,16 @@ namespace rx_ut
     {
         tdd_tt(t,"hashmap vs stdmap",msg);
         m.clear();
-        tdd_tt_hit(t,"clear");
+        tdd_tt_msg(t,"clear");
 
         for (uint32_t i = 0; i < total; ++i)
             m.insert(rx_hash_skeeto_3s(i), i);
         rt.tdd_assert(m.size() == total);
-        tdd_tt_hit(t,"insert");
+        tdd_tt_msg(t,"insert");
 
         for (uint32_t i = 0; i < total; ++i)
             m.find(rx_hash_skeeto_3s(i));
-        tdd_tt_hit(t,"loop");
+        tdd_tt_msg(t,"loop");
 
         m.clear();
     }
@@ -71,16 +71,16 @@ namespace rx_ut
     {
         tdd_tt(t,"hashmap vs stdmap",msg);
         m.clear();
-        tdd_tt_hit(t,"clear");
+        tdd_tt_msg(t,"clear");
 
         for (uint32_t i = 0; i < total; ++i)
             m.insert(std::make_pair(rx_hash_skeeto_3s(i), i));
         rt.tdd_assert(m.size() == total);
-        tdd_tt_hit(t,"insert");
+        tdd_tt_msg(t,"insert");
 
         for (uint32_t i = 0; i < total; ++i)
             m.find(rx_hash_skeeto_3s(i));
-        tdd_tt_hit(t,"loop");
+        tdd_tt_msg(t,"loop");
 
         m.clear();
     }

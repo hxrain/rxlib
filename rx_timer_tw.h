@@ -193,7 +193,7 @@ namespace rx
 
         public:
             //---------------------------------------------
-            wheel_t():m_wheel_idx(-1), m_slot_idx(0){}
+            wheel_t():m_slot_idx(0),m_wheel_idx(-1){}
             item_delegate_t     cb_item;                    //指针转动事件,需要处理一个条目
             round_delegate_t    cb_upon;                    //轮子转动一周事件,可以驱动上层轮子
             //---------------------------------------------
@@ -333,7 +333,7 @@ namespace rx
                 //在最底层轮子上设置
                 m_wheels[0].slot_idx() = uint8_t(dst_tick);
                 //从下至上逐层设置正确的位置
-                for (int lvl = 1; lvl <= max_level_wheel; ++lvl)
+                for (uint32_t lvl = 1; lvl <= max_level_wheel; ++lvl)
                     m_wheels[lvl].slot_idx() = uint8_t(dst_tick >> tw::ticks_shift(lvl-1));
             }
             //-------------------------------------------------
@@ -390,6 +390,7 @@ namespace rx
     template<uint32_t wheel_count = 4>
     class tw_timer_mgr_t:protected tw::wheel_group_t<wheel_count>
     {
+        typedef typename tw::wheel_group_t<wheel_count> super_t;
         tw::entry_cache_t   m_items_cache;                  //定时器条目对象指针缓存
         uint64_t            m_curr_tick;                    //当前滴答数,tick.
 
@@ -403,9 +404,9 @@ namespace rx
             //初始记录应该触发的目标时刻
             item->c_dst_tick= m_curr_tick + cycle_tick;
             //根据目标时刻计算定时器条目的存放位置
-            calc_rel_pos(cycle_tick, item->w_wheel_idx, item->w_slot_idx);
+            super_t::calc_rel_pos(cycle_tick, item->w_wheel_idx, item->w_slot_idx);
 
-            if (!m_wheels[item->w_wheel_idx].put(*item))
+            if (!super_t::m_wheels[item->w_wheel_idx].put(*item))
             {//新位置插入失败,归还资源
                 m_items_cache.put(item);
                 return NULL;
@@ -426,7 +427,7 @@ namespace rx
             rx_assert(item->w_slot_link != NULL);
             rx_assert(item->w_wheel_idx < wheel_count);
 
-            if (!m_wheels[item->w_wheel_idx].pick(*item))
+            if (!super_t::m_wheels[item->w_wheel_idx].pick(*item))
                 return false;
             m_items_cache.put(item);
             return true;
@@ -440,7 +441,7 @@ namespace rx
             rx_assert(item->w_slot_link != NULL);
             rx_assert(item->w_wheel_idx < wheel_count);
 
-            uint64_t dst_tick;
+            size_t dst_tick;
             if (is_rep)
             {//定时器重置,准备下一个周期触发
                 item->c_dst_tick = m_curr_tick + item->u_cycle_tick;
@@ -448,20 +449,20 @@ namespace rx
             }
             else
             {//定时器降级
-                dst_tick = item->c_dst_tick - m_curr_tick;
+                dst_tick = size_t(item->c_dst_tick - m_curr_tick);
             }
 
             uint8_t wheel_idx;
             uint8_t slot_idx;
             //计算新位置
-            calc_rel_pos(dst_tick, wheel_idx, slot_idx);
+            super_t::calc_rel_pos(dst_tick, wheel_idx, slot_idx);
 
             if (wheel_idx == item->w_wheel_idx)
             {//如果新位置和旧位置都在一个轮子上,则直接进行移动处理
                 if (slot_idx == item->w_slot_idx)
                     return true;                            //特例,无需移动
 
-                if (!m_wheels[item->w_wheel_idx].move(*item, slot_idx))
+                if (!super_t::m_wheels[item->w_wheel_idx].move(*item, slot_idx))
                 {//移动不成功,回收当前定时器,不再使用
                     m_items_cache.put(item);
                     return false;
@@ -470,12 +471,12 @@ namespace rx
             }
 
             //从旧轮子上摘除(gcc发神经,需要进行最大值限定才没有警告)
-            m_wheels[(item->w_wheel_idx)&(tw::max_wheel_count-1)].pick(*item);
+            super_t::m_wheels[(item->w_wheel_idx)&(tw::max_wheel_count-1)].pick(*item);
 
             item->w_slot_idx = slot_idx;
             item->w_wheel_idx = wheel_idx;
 
-            if (!m_wheels[item->w_wheel_idx].put(*item))
+            if (!super_t::m_wheels[item->w_wheel_idx].put(*item))
             {//新位置插入不成功,回收当前定时器,不再使用
                 m_items_cache.put(item);
                 return false;
@@ -487,8 +488,8 @@ namespace rx
         uint32_t on_cb_round(uint32_t wi)
         {
             uint32_t rc=0;
-            if (wi<max_level_wheel)
-                rc=m_wheels[wi+1].step(m_curr_tick);        //级联驱动上层时间轮
+            if (wi<super_t::max_level_wheel)
+                rc=super_t::m_wheels[wi+1].step(m_curr_tick);        //级联驱动上层时间轮
             return rc;
         }
         //-------------------------------------------------
@@ -498,7 +499,7 @@ namespace rx
         {
             rx_assert(item != NULL);
 
-            if (item->w_wheel_idx == min_level_wheel)
+            if (item->w_wheel_idx == super_t::min_level_wheel)
             {//最低层轮子上的定时器被触发了
                 if (item->u_repeat != (uint16_t)-1)
                     --item->u_repeat;                       //减少重复次数
@@ -533,7 +534,7 @@ namespace rx
 
             for(uint32_t i=0;i<wheel_count;++i)
             {
-                tw::wheel_t  &w=m_wheels[i];
+                tw::wheel_t  &w=super_t::m_wheels[i];
                 if (!w.init(i, mem))                        //逐一初始化各级轮子
                     return false;
 
@@ -554,7 +555,7 @@ namespace rx
         {
             for(uint32_t i=0;i<wheel_count;++i)
             {
-                tw::wheel_t &w=m_wheels[i];
+                tw::wheel_t &w=super_t::m_wheels[i];
                 w.uninit(m_items_cache);
             }
             m_items_cache.clear();
@@ -570,7 +571,7 @@ namespace rx
             for(uint32_t i=0;i<step_count;++i)
             {
                 ++m_curr_tick;
-                rc += m_wheels[min_level_wheel].step(m_curr_tick);
+                rc += super_t::m_wheels[super_t::min_level_wheel].step(m_curr_tick);
             }
 
             return rc;
