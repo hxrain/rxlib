@@ -224,35 +224,40 @@ inline void ut_timer_tw_base2(rx_tdd_t &rt, uint32_t cycle, uint32_t rep = 1)
     rt.tdd_assert(tr.hits == rep);
 }
 //---------------------------------------------------------
+//进行随机命中测试
 template<uint32_t wheels>
 inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t hit_limit, uint32_t timer_count)
 {
-    tdd_tt(ut_timer_tw_base4, "timewheels", "base test4:wheels(%d)cycle(%d),hits(%d),timers(%d)", wheels, cycle_limit, hit_limit, timer_count);
+    tdd_tt(ut_timer_tw_base4, "timewheels", "base test4:wheels(%d)cycle(%d),hits(%d),timers(%d)", wheels, cycle_limit, hit_limit, timer_count+1);
     ut_tw_handler_t tr;
     rx::tw_timer_mgr_t<wheels> w;
     rx::rand_skeeto_bsa_t rnd;
-    uint32_t need_hits = 0;
 
-    size_t h;
     rt.tdd_assert(w.wheels_init());
-    uint32_t err_count = 0;
 
-    uint32_t inv = rnd.get(cycle_limit);
-    uint32_t hc = rnd.get(hit_limit);
+    //进行周期间隔与重复次数的随机限定
+    uint32_t inv = rnd.get(cycle_limit,2);
+    uint32_t hc = rnd.get(hit_limit,2);
 
+    uint32_t err_count = 0;     //记录定时器创建错误发生的次数
+    uint32_t need_hits = 0;     //应该命中的次数
+    uint32_t hits = 0;          //已经命中的次数
+    uint32_t lc = 0;            //已经循环的次数
+    uint32_t mkc = timer_count; //待创建定时器的数量
+    //计算需要的最大循环次数
+    uint32_t max_lc = inv*hc + timer_count;
+
+    //预先创建一个定时器
     need_hits += hc;
-    h = w.timer_insert(evt_obj(tr), inv, 0, hc);
+    size_t h = w.timer_insert(evt_obj(tr), inv, 0, hc);
     if (h == 0)
         ++err_count;
 
-    uint32_t hits = 0;
-    uint32_t lc = 0;
-    uint32_t mkc = timer_count;
-    while (hits < need_hits)
+    while (hits < need_hits && lc<max_lc)
     {
         ++lc;
         if (mkc)
-        {
+        {//仍有待创建定时器的时候,动态创建新的定时器,确保新定时器的开始周期不会在原点.
             --mkc;
             inv = rnd.get(cycle_limit, 1);
             hc = rnd.get(hit_limit, 1);
@@ -271,7 +276,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t hit_l
     rt.tdd_assert(need_hits == tr.hits);
     tdd_tt_msg(ut_timer_tw_base4, "total_hits=%d,used_time=%d,err=%d", need_hits, lc, err_count);
 }
-
+//---------------------------------------------------------
 template<uint32_t wheels>
 void tw_timer_test_B1(rx_tdd_t &rt)
 {
@@ -310,6 +315,7 @@ void tw_timer_test_B4(rx_tdd_t &rt)
 
 rx_tdd(ut_timer_base)
 {
+    ut_timer_tw_base4<1>(*this, 2, 3, 2);
     tw_timer_test_B1<4>(*this);
     tw_timer_test_B1<3>(*this);
     tw_timer_test_B1<2>(*this);

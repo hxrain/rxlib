@@ -357,7 +357,7 @@ namespace rx
                 if (inc_tick < tw::wheel_slots || max_level_wheel==0)
                 {//增量在最低层能够直接处理
                     wheel_idx = 0;
-                    uint8_t ws = slot_idx(wheel_idx);
+                    uint8_t ws = m_wheels[0].slot_idx();
                     slt_idx = uint8_t(ws + inc_tick);
                     return;
                 }
@@ -403,7 +403,7 @@ namespace rx
             //初始记录应该触发的目标时刻
             item->c_dst_tick= m_curr_tick + cycle_tick;
             //根据目标时刻计算定时器条目的存放位置
-            calc_rel_pos(item->c_dst_tick, item->w_wheel_idx, item->w_slot_idx);
+            calc_rel_pos(cycle_tick, item->w_wheel_idx, item->w_slot_idx);
 
             if (!m_wheels[item->w_wheel_idx].put(*item))
             {//新位置插入失败,归还资源
