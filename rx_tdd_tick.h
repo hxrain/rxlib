@@ -63,25 +63,30 @@ namespace rx
         uint32_t     m_last_hit_elapsed;
         uint32_t     m_total_elapsed;
         uint64_t     m_last_hit_time;
+        char         m_tmp_msg_b[128];
     public:
         //-------------------------------------------------
-        //构造函数,传入时间戳的限定值和消息提示
-        tdd_tick_t(bool enable=true,uint32_t expend_limit=0,const char* msg_a=NULL,const char* msg_b=NULL,const char* file=NULL,int lineno=0)
+        //构造函数,传入最低消耗时间的限定值
+        tdd_tick_t(bool enable = true, uint32_t expend_limit = 0, const char* file = NULL, int lineno = 0) :m_enable(enable)
         {
-            begin(enable,expend_limit,msg_a,msg_b,file,lineno);
+            m_file = (file == NULL ? "" : file);
+            m_lineno = lineno;
+            m_expend_limit = expend_limit;
+            m_tmp_msg_b[0] = 0;
         }
         //-------------------------------------------------
         //执行开始,记录开始时间与相关内容项
-        void begin(bool enable=true,uint32_t expend_limit=0,const char* msg_a=NULL,const char* msg_b=NULL,const char* file=NULL,int lineno=0)
+        void begin(const char* msg_a = NULL,   const char* msg_b = NULL,...)
         {
-            m_enable=enable;
             if (!m_enable) return;
+            va_list ap;
+            va_start(ap, msg_b);
+            vsnprintf(m_tmp_msg_b, sizeof(m_tmp_msg_b), msg_b, ap);
+            va_end(ap);
+
             m_begin_tick=m_tick_meter.update();
-            m_expend_limit=expend_limit;
             m_msg_a = (msg_a==NULL?"":msg_a);
-            m_msg_b = (msg_b==NULL?"":msg_b);
-            m_file  = (file==NULL?"":file);
-            m_lineno= lineno;
+            m_msg_b = m_tmp_msg_b;
             m_tab_deep=0;
             m_last_hit_elapsed  = 0;
             m_total_elapsed  = 0;
@@ -109,7 +114,7 @@ namespace rx
             return m_tick_meter.count();
         }
         //-------------------------------------------------
-        //显示输出最后动作耗时
+        //显示输出最近一次动作耗时
         void msg(bool is_hit,const char* file = NULL, int lineno = 0, const char* msg_c = NULL, ...)
         {
             if (!m_enable)
@@ -245,16 +250,16 @@ namespace rx
 //-----------------------------------------------------
 #if RX_USE_TDD_TICK
     //用来定义一个滴答计时对象,可以给出完整的参数:sym符号名;消息a;消息b;可选的用时下限(默认为0)
-    #define tdd_tt(sym,msg_a,msg_b,...) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,macro_def_argv<uint32_t>::value(__VA_ARGS__) ,msg_a,msg_b,__FILE__,__LINE__)
+    #define tdd_tt(sym,msg_a,msg_b,...) rx::tdd_tick_t<> __tdd_tt_obj_##sym(tdd_tt_enable,0,__FILE__,__LINE__);__tdd_tt_obj_##sym.begin(msg_a,msg_b,__VA_ARGS__)
     //触发滴答计时对象的中间过程,计算最后动作的耗时
-    #define tdd_tt_hit(sym,msgc,...) {__tdd_tt_obj_##sym.hit();__tdd_tt_obj_##sym.msg(true,__FILE__,__LINE__,msgc,##__VA_ARGS__);}
+    #define tdd_tt_msg(sym,msgc,...) {__tdd_tt_obj_##sym.hit();__tdd_tt_obj_##sym.msg(true,__FILE__,__LINE__,msgc,##__VA_ARGS__);}
 
     //用于简化定义一个tt滴答计时对象的中间可嵌套计时动作
-    #define _tdd_tt_tab(sym,dis,msgc,...) rx::tdd_tick_tab_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,msgc,##__VA_ARGS__)
+    #define _tdd_tt_tab_0(sym,dis,msgc,...) rx::tdd_tick_tab_t<> __rx_tdd_tick_hit_obj_##dis(__tdd_tt_obj_##sym,__FILE__,__LINE__,msgc,##__VA_ARGS__)
     //中间宏定义,为了进行dis的展开转换
-    #define _tdd_tt_tab_(sym,dis,msgc,...) _tdd_tt_tab(sym,dis,msgc,##__VA_ARGS__)
+    #define _tdd_tt_tab_1(sym,dis,msgc,...) _tdd_tt_tab_0(sym,dis,msgc,##__VA_ARGS__)
     //定义rx_tdd_rtl宏,用于便捷的建立一个指定名字和运行级的测试用例
-    #define tdd_tt_tab(sym,msgc,...) _tdd_tt_tab_(sym,RX_CT_SYM(sym),msgc,##__VA_ARGS__)
+    #define tdd_tt_tab(sym,msgc,...) _tdd_tt_tab_1(sym,RX_CT_SYM(sym),msgc,##__VA_ARGS__)
 
     //进行多次循环后计算平均执行时间
     #define tdd_tt_for(sym,count,msgc,...) for(rx::tdd_tick_for_t<> __tt_obj(__tdd_tt_obj_##sym,count,__FILE__,__LINE__,msgc,##__VA_ARGS__);__tt_obj.step();)

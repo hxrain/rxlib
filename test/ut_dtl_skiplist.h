@@ -239,7 +239,7 @@ namespace rx_ut
         for (int i = 0; i < 10000 * 4000; ++i)
             m.insert(i, i);
 
-        tdd_tt_hit(t, "");
+        tdd_tt_msg(t, "");
         getchar();
     }
 #endif
