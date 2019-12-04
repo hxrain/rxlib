@@ -2,10 +2,10 @@
 #define _RX_UT_STR_UNI2GBK_H_
 
 #include "../rx_tdd.h"
-#include "../rx_str_cs_utf8.h"
-#include "../rx_str_cs_rawgbk.h"
-#include "../rx_str_cs_uni2gbk.h"
-#include "../rx_str_cs_gbk2uni.h"
+#include "../rx_str_utf8.h"
+#include "../rx_ucs2_rawgbk.h"
+#include "../rx_ucs2_uni2gbk.h"
+#include "../rx_ucs2_gbk2uni.h"
 #include "../rx_ct_util.h"
 #include "../rx_assert.h"
 #include "../rx_tdd_tick.h"
