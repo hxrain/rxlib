@@ -27,6 +27,7 @@ static const uint32_t rx_tiny_prime_array[] =
     1337987929,1437356741,1610612741,2147483647,2675975881ul,3221225473ul,4294967291ul
 };
 const uint32_t rx_tiny_prime_count = 375;
+//按序号获取指定的素数
 inline uint32_t rx_tiny_prime(const uint32_t idx)
 {
     rx_static_assert(rx_tiny_prime_count==sizeof(rx_tiny_prime_array) / sizeof(rx_tiny_prime_array[0]));
@@ -34,7 +35,7 @@ inline uint32_t rx_tiny_prime(const uint32_t idx)
 }
 
 //-----------------------------------------------------
-//轻量级斐波那契序数
+//部分斐波那契序数
 static const uint32_t rx_tiny_fibonacci_seqs[] =
 {
     1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025,
@@ -42,6 +43,7 @@ static const uint32_t rx_tiny_fibonacci_seqs[] =
     102334155, 165580141, 267914296, 433494437, 701408733, 1134903170, 1836311903, 2971215073ul
 };
 const uint32_t rx_tiny_fibonacci_count=46;
+//按序号获取指定的斐波那契序数
 inline uint32_t rx_tiny_fibonacci(const uint32_t idx)
 {
     rx_static_assert(rx_tiny_fibonacci_count== sizeof(rx_tiny_fibonacci_seqs) / sizeof(rx_tiny_fibonacci_seqs[0]));
@@ -50,21 +52,13 @@ inline uint32_t rx_tiny_fibonacci(const uint32_t idx)
 //-----------------------------------------------------
 //黄金分隔哈希算法,极其简单高效,对于部分自然数规律具有极好的效果.
 //因子选斐波那契序数,给定不同的因子可造就一系列的哈希函数族
-inline uint64_t rx_hash_gold(uint32_t x, uint32_t factor = 17711, uint32_t r_shift = 0)
+template<class IT>
+inline uint64_t rx_hash_gold(IT x, uint32_t factor = 17711, uint32_t r_shift = 0)
 {
     return (x >> r_shift)* factor;
 }
-template<uint32_t r_shift>
-inline uint64_t rx_hash_gold(uint32_t x, uint32_t factor = 17711)
-{
-    return (x >> r_shift)* factor;
-}
-inline uint64_t rx_hash_gold(uint64_t x, uint32_t factor = 17711, uint32_t r_shift = 0)
-{
-    return (x >> r_shift)* factor;
-}
-template<uint32_t r_shift>
-inline uint64_t rx_hash_gold(uint64_t x, uint32_t factor = 17711)
+template<uint32_t r_shift, class IT>
+inline uint64_t rx_hash_gold(IT x, uint32_t factor = 17711)
 {
     return (x >> r_shift)* factor;
 }
@@ -72,6 +66,7 @@ inline uint64_t rx_hash_gold(uint64_t x, uint32_t factor = 17711)
 //-----------------------------------------------------
 //integer hash function
 //-----------------------------------------------------
+//定义正式哈希函数的函数指针类型
 typedef uint32_t(*rx_int_hash32_t)(uint32_t x);
 //-----------------------------------------------------
 // Tomas Wang
@@ -343,11 +338,10 @@ inline uint32_t rx_int_hash32_skeeto3(uint32_t x)
     return x;
 }
 
-//根据给的序号,获取三绕整数哈希函数
+//根据给的序号,获取skeeto三绕整数哈希函数
 static const rx_int_hash32_t rx_int_hash32_skeeto3s_funcs[] =
 {
     rx_int_hash32_skeeto3<17, 0xed5ad4bb, 11, 0xac4c1b51, 15, 0x31848bab, 14>, //(exact bias:0.020829410544597495)
-    rx_int_hash32_skeeto3<18, 0xed5ad4bb, 11, 0xac4c1b51, 15, 0x31848bab, 14>, //(exact bias:0.021334944237993255)
     rx_int_hash32_skeeto3<16, 0xaeccedab, 14, 0xac613e37, 16, 0x19c89935, 17>, //exact bias: 0.021246568167078764
     rx_int_hash32_skeeto3<16, 0x236f7153, 12, 0x33cd8663, 15, 0x3e06b66b, 16>, //exact bias: 0.021280991798512679
     rx_int_hash32_skeeto3<18, 0x4260bb47, 13, 0x27e8e1ed, 15, 0x9d48a33b, 15>, //exact bias: 0.021576730651802156
@@ -388,6 +382,8 @@ static const rx_int_hash32_t rx_int_hash32_skeeto3s_funcs[] =
     rx_int_hash32_skeeto3<16, 0x7cb04f65, 14, 0x9b96da73, 16, 0x83625687, 15>, //exact bias: 0.022906573700088178
 };
 const uint32_t rx_int_hash32_skeeto3s_count= sizeof(rx_int_hash32_skeeto3s_funcs) / sizeof(rx_int_hash32_skeeto3s_funcs[0]);
+
+//按照序号获取指定配置参数的skeeto3哈希函数
 inline const rx_int_hash32_t rx_int_hash32_skeeto3s(const uint32_t idx=0)
 {
     return rx_int_hash32_skeeto3s_funcs[idx >= rx_int_hash32_skeeto3s_count ? 0 : idx];
