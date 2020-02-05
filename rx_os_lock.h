@@ -54,7 +54,7 @@
     #endif
 #endif
 
-
+#define rx_sleep rx_thread_yield
 
 namespace rx
 {

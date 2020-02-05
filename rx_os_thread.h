@@ -139,9 +139,71 @@ namespace rx
     };
 
 
+#if RX_OS_POSIX
+    #include <sys/syscall.h>
+    #include <sys/types.h>
+    //-----------------------------------------------------
+    //获取当前线程id
+    inline size_t get_tid(){return syscall(SYS_gettid);}
+    //获取当前进程id
+    inline size_t get_pid(){return syscall(SYS_getpid);}
 
+    static const pthread_key_t TLS_OUT_OF_INDEXES=(pthread_key_t)-1;
+    //线程局部存储功能封装
+    class thread_tls_t
+    {
+        pthread_key_t m_TlsIndex;
+        const thread_tls_t& operator =(thread_tls_t &);     //禁止赋值
+        friend bool thread_tls_alloc(thread_tls_t&);
+        friend bool thread_tls_free(thread_tls_t&);
+    public:
+        thread_tls_t():m_TlsIndex(TLS_OUT_OF_INDEXES){}
+        //绑定当前槽位在当前线程中的局部存储值,返回值告知是否成功
+        bool set(void* data)
+        {
+            rx_assert(TLS_OUT_OF_INDEXES!=m_TlsIndex);
+            return pthread_setspecific(m_TlsIndex,data)==0;
+        }
+        //获取当前槽位在当前线程中绑定的局部存储值,ret告知是否成功
+        void* get(bool &ret)
+        {
+            if(TLS_OUT_OF_INDEXES!=m_TlsIndex)
+            {
+                ret = true;
+                return pthread_getspecific(m_TlsIndex);
+            }
+            else
+            {
+                ret = false;
+                return NULL;
+            }
+        }
+        //获取当前槽位在当前线程中绑定的局部存储值,返回值为NULL的时候可能为错误值
+        void* get()
+        {
+            rx_assert(TLS_OUT_OF_INDEXES!=m_TlsIndex);
+            return pthread_getspecific(m_TlsIndex);
+        }
+        //便捷封装
+        bool setn(size_t n){return set((void*)n);}
+        size_t getn(){return (size_t)get();}
+    };
+    //对thread_tls_t线程局部存储对象进行初始化
+    inline bool thread_tls_alloc(thread_tls_t &tls)
+    {
+        if (tls.m_TlsIndex!=TLS_OUT_OF_INDEXES)
+            return true;
+        if (pthread_key_create(&tls.m_TlsIndex,NULL)!=0)
+            return false;
+        return tls.m_TlsIndex!=TLS_OUT_OF_INDEXES;
+    }
+    //对thread_tls_t线程局部存储对象进行释放.啥也不干.
+    inline bool thread_tls_free(thread_tls_t &tls)
+    {
+        tls.m_TlsIndex=TLS_OUT_OF_INDEXES;
+        return true;
+    }
 
-    #if RX_OS_POSIX
     //-----------------------------------------------------
     //线程功能对象化封装
     class thread_t
@@ -237,11 +299,12 @@ namespace rx
         }
         //-------------------------------------------------
         //等待线程结束并得到任务的退出码
-        int stop()
+        int stop(bool notify=true)
         {
             if (m_handle == (pthread_t)-1)
                 return -1;
-            m_task.stop();
+            if (notify)
+                m_task.stop();
             void* rc;
             if (pthread_join(m_handle, &rc))
                 return -2;
@@ -251,7 +314,76 @@ namespace rx
         //-------------------------------------------------
     };
 
-    #elif RX_OS_WIN
+#elif RX_OS_WIN
+    //获取当前线程id
+    inline size_t get_tid(){return GetCurrentThreadId();}
+    //获取当前进程id
+    inline size_t get_pid(){return GetCurrentProcessId();}
+
+    //-----------------------------------------------------
+    //线程局部存储功能封装
+    class thread_tls_t
+    {
+        DWORD m_TlsIndex;
+        const thread_tls_t& operator =(thread_tls_t &);     //禁止赋值
+        friend bool thread_tls_alloc(thread_tls_t&);
+        friend bool thread_tls_free(thread_tls_t&);
+    public:
+        thread_tls_t():m_TlsIndex(TLS_OUT_OF_INDEXES){}
+        //绑定当前槽位在当前线程中的局部存储值,返回值告知是否成功
+        bool set(void* data)
+        {
+            rx_assert(TLS_OUT_OF_INDEXES!=m_TlsIndex);
+            return !!TlsSetValue(m_TlsIndex,data);
+        }
+        //获取当前槽位在当前线程中绑定的局部存储值,ret告知是否成功
+        void* get(bool &ret)
+        {
+            if(TLS_OUT_OF_INDEXES!=m_TlsIndex)
+            {
+                ret = true;
+                return TlsGetValue(m_TlsIndex);
+            }
+            else
+            {
+                ret = false;
+                return NULL;
+            }
+        }
+        //获取当前槽位在当前线程中绑定的局部存储值,返回值为NULL的时候可能为错误值
+        void* get()
+        {
+            rx_assert(TLS_OUT_OF_INDEXES!=m_TlsIndex);
+            return TlsGetValue(m_TlsIndex);
+        }
+        //便捷封装
+        bool setn(size_t n){return set((void*)n);}
+        size_t getn(){return (size_t)get();}
+    };
+    //对thread_tls_t线程局部存储对象进行初始化
+    inline bool thread_tls_alloc(thread_tls_t &tls)
+    {
+        if (tls.m_TlsIndex!=TLS_OUT_OF_INDEXES)
+            return true;
+        tls.m_TlsIndex=TlsAlloc();
+        return tls.m_TlsIndex!=TLS_OUT_OF_INDEXES;
+    }
+    //对thread_tls_t线程局部存储对象进行释放
+    inline bool thread_tls_free(thread_tls_t &tls)
+    {
+        if (tls.m_TlsIndex==TLS_OUT_OF_INDEXES)
+            return true;
+        if (TlsFree(tls.m_TlsIndex))
+        {
+            tls.m_TlsIndex=TLS_OUT_OF_INDEXES;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     //-----------------------------------------------------
     //线程功能对象化封装
     class thread_t
@@ -316,12 +448,13 @@ namespace rx
         }
         //-------------------------------------------------
         //等待线程结束并得到任务的退出码
-        int stop()
+        int stop(bool notify=true)
         {
             if (m_handle == NULL)
                 return -1;
 
-            m_task.stop();
+            if (notify)
+                m_task.stop();
 
             if (WaitForSingleObject(m_handle, INFINITE))
                 return -2;
@@ -332,6 +465,6 @@ namespace rx
         }
         //-------------------------------------------------
     };
-    #endif
+#endif
 }
 #endif

@@ -14,7 +14,7 @@
 #define RX_STR_USE_FILE 1
 #endif
 
-#if RX_CC==RX_CC_GCC
+#if RX_CC==RX_CC_GCC && RX_CC_VER_MAJOR>=5
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
     #pragma GCC diagnostic ignored "-Wstringop-overflow"
@@ -319,7 +319,7 @@ namespace rx
     }
 }
 
-#if RX_CC==RX_CC_GCC
+#if RX_CC==RX_CC_GCC && RX_CC_VER_MAJOR>=5
     #pragma GCC diagnostic pop
 #endif
 

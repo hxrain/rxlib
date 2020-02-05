@@ -4,6 +4,7 @@
     #include "rx_cc_macro.h"
     #include <stdio.h>
     #include <stdlib.h>
+    #include <string.h>
     #include <time.h>
 
 #if defined(RX_OS_WIN)
@@ -207,7 +208,7 @@
     {
         if (is_empty(DateStr))
             return false;
-            
+
         char TmpBuf[30];
         if (strlen(DateStr)<10)
             return false;
@@ -218,7 +219,7 @@
         if (!Str) return false;
         *Str=0;
         Date.tm_year=atoi(text)-1900;                       //tm的年需要调整
-        
+
         text=++Str;
         Str=strchr(text,'-');                               //准备摘取月mm
         if (!Str) return false;
@@ -229,10 +230,10 @@
         text=++Str;
         Str=strchr(text,' ');                               //准备摘取日dd
         if (!Str) Str=strchr(text,'T');
-        
+
         if (Str) *Str=0;
         Date.tm_mday=atoi(text);
-        if (Date.tm_mday>31) 
+        if (Date.tm_mday>31)
             return false;
 
         //最后根据年份和月份校验当前的日期的范围是否合法
@@ -244,7 +245,7 @@
     {
         if (is_empty(TimeStr))
             return false;
-            
+
         char TmpBuf[30];
         if (strlen(TimeStr)>20)
             return false;
@@ -270,10 +271,10 @@
             *Str++=0;
         Time.tm_sec=atoi(text);                         //准备摘取秒
         if (Time.tm_sec>59) return false;
-        
+
         if (Str&&msec)
         {                                               //准备摘取毫秒
-            *msec=atoi(Str); 
+            *msec=atoi(Str);
             if (*msec>1000) return false;
         }
         return true;
