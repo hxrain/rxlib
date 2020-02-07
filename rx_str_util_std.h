@@ -45,8 +45,36 @@ namespace rx
         static const char  f() {return 'f';}
         static const char  x() {return 'x';}
         static const char  z() {return 'z';}
+        static const char  l() {return 'l';}
+        static const char  h() {return 'h';}
+        static const char  t() {return 't';}
+        static const char  j() {return 'j';}
+        static const char  d() {return 'd';}
+        static const char  i() {return 'i';}
+        static const char  u() {return 'u';}
+        static const char  X() {return 'X';}
+        static const char  o() {return 'o';}
+        static const char  b() {return 'b';}
+        static const char  e() {return 'e';}
+        static const char  E() {return 'E';}
+        static const char  g() {return 'g';}
+        static const char  G() {return 'G';}
+        static const char  c() {return 'c';}
+        static const char  s() {return 's';}
+        static const char  p() {return 'p';}
+        static const char* nan() {return "nan";}
+        static const char* fni() {return "fni";}
+        static const char* fni_minus() {return "fni-";}
+        static const char* fni_plus() {return "fni+";}
+        static const char  sharp() {return '#';}
+        static const char  plus() {return '+';}
+        static const char  minus() {return '-';}
+        static const char  percent() {return '%';}
+        static const char  star() {return '*';}
+        static const char  dot() {return '.';}
         static       bool  is_atoz(char c) { return c >= 'a'&&c <= 'z'; }
         static       bool  is_AtoZ(char c) { return c >= 'A'&&c <= 'Z'; }
+        static       bool  is_0to9(char c) { return c >= '0'&&c <= '9'; }
     };
     template<> class sc<wchar_t>
     {
@@ -68,8 +96,36 @@ namespace rx
         static const wchar_t  f() {return L'f';}
         static const wchar_t  x() {return L'x';}
         static const wchar_t  z() {return L'z';}
-        static bool  is_atoz(wchar_t c) { return c >= L'a'&&c <= L'z'; }
-        static bool  is_AtoZ(wchar_t c) { return c >= L'A'&&c <= L'Z'; }
+        static const wchar_t  l() {return L'l';}
+        static const wchar_t  h() {return L'h';}
+        static const wchar_t  t() {return L't';}
+        static const wchar_t  j() {return L'j';}
+        static const wchar_t  d() {return L'd';}
+        static const wchar_t  i() {return L'i';}
+        static const wchar_t  u() {return L'u';}
+        static const wchar_t  X() {return L'X';}
+        static const wchar_t  o() {return L'o';}
+        static const wchar_t  b() {return L'b';}
+        static const wchar_t  e() {return L'e';}
+        static const wchar_t  E() {return L'E';}
+        static const wchar_t  g() {return L'g';}
+        static const wchar_t  G() {return L'G';}
+        static const wchar_t  c() {return L'c';}
+        static const wchar_t  s() {return L's';}
+        static const wchar_t  p() {return L'p';}
+        static const wchar_t* nan() {return L"nan";}
+        static const wchar_t* fni() {return L"fni";}
+        static const wchar_t* fni_minus() {return L"fni-";}
+        static const wchar_t* fni_plus() {return L"fni+";}
+        static const wchar_t  sharp() {return L'#';}
+        static const wchar_t  plus() {return L'+';}
+        static const wchar_t  minus() {return L'-';}
+        static const wchar_t  percent() {return L'%';}
+        static const wchar_t  star() {return L'*';}
+        static const wchar_t  dot() {return L'.';}
+        static       bool     is_atoz(wchar_t c) { return c >= L'a'&&c <= L'z'; }
+        static       bool     is_AtoZ(wchar_t c) { return c >= L'A'&&c <= L'Z'; }
+        static       bool     is_0to9(wchar_t c) { return c >= L'0'&&c <= L'9'; }
     };
 
     //-----------------------------------------------------

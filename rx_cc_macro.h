@@ -494,7 +494,8 @@
     }
 
     #include <stdint.h>
-
+    rx_static_assert(sizeof(int64_t)==sizeof(long long));
+    rx_static_assert(sizeof(size_t)==sizeof(ptrdiff_t));
     //-----------------------------------------------------
     //定义常用的数学常量
     static const double MATH_E        =2.71828182845904523536   ;// e
