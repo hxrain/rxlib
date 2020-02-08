@@ -7,6 +7,10 @@
 
 #include "rx_str_util_std.h"
 
+#if (RX_OS==RX_OS_WIN||RX_OS_POSIX)&&!defined(RX_STR_USE_FILE)
+    #define RX_STR_USE_FILE 1
+#endif
+
 namespace rx
 {
     namespace fmt_imp
@@ -33,7 +37,7 @@ namespace rx
                 - 	    : 在指定宽度范围内左对齐.(默认为右对齐)
                 + 	    : 强制在输出数字的最左边添加+或-.(默认只有负数会输出-)
                 空格 	: 强制在输出数字的最左边添加空格,如果没有-的时候.
-                # 	    : 要求输出冠字符,在类型为o, b, x or X 的时候,冠字符为0, 0b, 0x or 0X.数值0不输出冠字符;在类型为f或F的时候,强制输出最后的点('.')
+                # 	    : 要求输出冠字符,在类型为o, b, x or X 的时候,冠字符为0, 0b, 0x or 0X.数值0不输出冠字符;在类型为f或F的时候,强制输出最后的点(sc<char_t>::dot)
                 0 	    : 左对齐时使用0进行填充
             width:填充与对齐的宽度
                 数字     : 指定最小宽度范围,指导填充与对齐
@@ -73,7 +77,7 @@ namespace rx
 
         // 浮点数%f输出时的最大临界点,超限值时则以%e形式输出
         #ifndef PRINTF_MAX_FLOAT
-            #define PRINTF_MAX_FLOAT            1e9
+            #define PRINTF_MAX_FLOAT            1e12
         #endif
 
         //---------------------------------------------------------------------
@@ -97,12 +101,12 @@ namespace rx
         class fmt_follower_null
         {
         public:
-            typename CT char_t;
+            typedef typename CT char_t;
             CT* buffer;
             size_t idx;
             size_t maxlen;
             void bind(CT* buff,size_t maxl=(size_t)-1){buffer=buff;idx=0;maxlen=maxl;}
-            void operator ()(CT character){}
+            void operator ()(CT character){++idx;}
         };
 
         //底层字符输出器,char,单字符输出到stdout
@@ -112,8 +116,10 @@ namespace rx
         public:
             void operator ()(CT character)
             {
-                if (character)
-                    putchar(character);
+                if (!character)
+                    return;
+                putchar(character);
+                ++idx;
             }
         };
 
@@ -129,6 +135,24 @@ namespace rx
             }
         };
 
+#if RX_STR_USE_FILE
+        //底层字符输出器,buff,记录字符到缓冲区
+        template<class CT>
+        class fmt_follower_file:public fmt_follower_null<CT>
+        {
+            FILE *m_fp;
+        public:
+            fmt_follower_file(FILE *fp):m_fp(fp){}
+            void operator ()(CT character)
+            {
+                if (sizeof(CT)==sizeof(char))
+                    fputc(character,m_fp);
+                else
+                    fputwc(character,m_fp);
+                ++idx;
+            }
+        };
+#endif
         //---------------------------------------------------------------------
         //计算字符串长度,带有最大长度限定保护.
         template<class CT>
@@ -155,7 +179,7 @@ namespace rx
             unsigned int i = 0U;
             while (_is_digit(**str))
             {
-                i = i * 10U + (unsigned int)(*((*str)++) - sc<CT>::zero());
+                i = i * 10U + (unsigned int)(*((*str)++) - sc<CT>::zero);
             }
             return i;
         }
@@ -165,12 +189,13 @@ namespace rx
         template<class OT>
         inline size_t _out_rev(OT& out,const typename OT::char_t* buf, size_t len, unsigned int width, unsigned int flags)
         {
+            typedef typename OT::char_t char_t;
             const size_t start_idx = out.idx;
 
             if (!(flags & FLAGS_LEFT) && !(flags & FLAGS_ZEROPAD))
             {//不是左对齐,也不是0填充,则尝试按指定宽度填充左部的空格
                 for (size_t i = len; i < width; i++)
-                    out(' ');
+                    out(sc<char_t>::space);
             }
 
             //内容逆向输出
@@ -180,7 +205,7 @@ namespace rx
             if (flags & FLAGS_LEFT)
             {//如果是左对齐,则需要填充剩余部分为空格
                 while (out.idx - start_idx < width)
-                    out(' ');
+                    out(sc<char_t>::space);
             }
 
             return out.idx;
@@ -188,8 +213,9 @@ namespace rx
 
         //ntoa格式化处理
         template<class OT>
-        inline size_t _ntoa_format(OT& out,const typename OT::char_t* buf, size_t len, bool negative, unsigned int base, unsigned int prec, unsigned int width, unsigned int flags)
+        inline size_t _ntoa_format(OT& out,typename OT::char_t* buf, size_t len, bool negative, unsigned int base, unsigned int prec, unsigned int width, unsigned int flags)
         {
+            typedef typename OT::char_t char_t;
             if (!(flags & FLAGS_LEFT))
             {//不是左对齐,尝试进行0填充
                 if (width && (flags & FLAGS_ZEROPAD) && (negative || (flags & (FLAGS_PLUS | FLAGS_SPACE))))
@@ -198,11 +224,11 @@ namespace rx
                 }
                 while ((len < prec) && (len < PRINTF_NTOA_BUFFER_SIZE))
                 {
-                    buf[len++] = '0';
+                    buf[len++] = sc<char_t>::zero;
                 }
                 while ((flags & FLAGS_ZEROPAD) && (len < width) && (len < PRINTF_NTOA_BUFFER_SIZE))
                 {
-                    buf[len++] = '0';
+                    buf[len++] = sc<char_t>::zero;
                 }
             }
 
@@ -215,23 +241,23 @@ namespace rx
                         len--;
                 }
                 if ((base == 16U) && !(flags & FLAGS_UPPERCASE) && (len < PRINTF_NTOA_BUFFER_SIZE))
-                    buf[len++] = 'x';
+                    buf[len++] = sc<char_t>::x;
                 else if ((base == 16U) && (flags & FLAGS_UPPERCASE) && (len < PRINTF_NTOA_BUFFER_SIZE))
-                    buf[len++] = 'X';
+                    buf[len++] = sc<char_t>::X;
                 else if ((base == 2U) && (len < PRINTF_NTOA_BUFFER_SIZE))
-                    buf[len++] = 'b';
+                    buf[len++] = sc<char_t>::b;
                 if (len < PRINTF_NTOA_BUFFER_SIZE)
-                    buf[len++] = '0';
+                    buf[len++] = sc<char_t>::zero;
             }
 
             if (len < PRINTF_NTOA_BUFFER_SIZE)
             {//进行最后的正负号输出
                 if (negative)
-                    buf[len++] = '-';
+                    buf[len++] = sc<char_t>::minus;
                 else if (flags & FLAGS_PLUS)
-                    buf[len++] = '+';  // ignore the space if the '+' exists
+                    buf[len++] = sc<char_t>::plus;  // ignore the space if the sc<char_t>::plus exists
                 else if (flags & FLAGS_SPACE)
-                    buf[len++] = ' ';
+                    buf[len++] = sc<char_t>::space;
             }
             return _out_rev(out, buf, len, width, flags);
         }
@@ -239,7 +265,7 @@ namespace rx
         //---------------------------------------------------------------------
         //ntoa 转换处理,可以处理long值也可以是long long值
         template<class OT,class LT>
-        inline size_t _ntoa(OT& out, LT value, bool negative, unsigned long base, unsigned int prec, unsigned int width, unsigned int flags)
+        inline size_t _ntoa(OT& out, LT value, bool negative, unsigned long base=10, unsigned int prec=0, unsigned int width=0, unsigned int flags=0)
         {
             OT::char_t buf[PRINTF_NTOA_BUFFER_SIZE];
             size_t len = 0U;
@@ -270,15 +296,16 @@ namespace rx
         template<class OT>
         inline size_t _chk_nan(OT& out, double value, unsigned int width, unsigned int flags)
         {
+            typedef typename OT::char_t char_t;
             // test for special values
             if (value != value)
-                return _out_rev(out, "nan", 3, width, flags);
+                return _out_rev(out, sc<char_t>::nan(), 3, width, flags);
             if (value < -DBL_MAX)
-                return _out_rev(out, "fni-", 4, width, flags);
+                return _out_rev(out, sc<char_t>::fni_minus(), 4, width, flags);
             if (value > DBL_MAX)
             {
                 size_t len = (flags & FLAGS_PLUS) ? 4U : 3U;
-                return _out_rev(out, (flags & FLAGS_PLUS) ? "fni+" : "fni", len, width, flags);
+                return _out_rev(out, (flags & FLAGS_PLUS) ? sc<char_t>::fni_plus() : sc<char_t>::fni(), len, width, flags);
             }
             return 0;
         }
@@ -291,12 +318,13 @@ namespace rx
         template<class OT>
         inline size_t _etoa(OT& out, double value, unsigned int prec, unsigned int width, unsigned int flags)
         {
+            typedef typename OT::char_t char_t;
             //判断值是否非法
             size_t len=_chk_nan(out,value,width,flags);
             if (len) return len;
 
             //判断是否为负数,进行翻转处理
-            const bool negative = value < 0;
+            bool negative = value < 0;
             if (negative)
                 value = -value;
 
@@ -387,7 +415,7 @@ namespace rx
             if (minwidth)
             {
                 // output the exponential symbol
-                out((flags & FLAGS_UPPERCASE) ? 'E' : 'e');
+                out((flags & FLAGS_UPPERCASE) ? sc<char_t>::E : sc<char_t>::e);
                 // output the exponent value
                 negative = expval < 0;
                 _ntoa(out, (negative ? -expval : expval), negative, 10, 0, minwidth-1, FLAGS_ZEROPAD | FLAGS_PLUS);
@@ -395,7 +423,7 @@ namespace rx
                 if (flags & FLAGS_LEFT)
                 {
                     while (out.idx - start_idx < width)
-                        out(' ');
+                        out(sc<char_t>::space);
                 }
             }
             return out.idx;
@@ -417,7 +445,7 @@ namespace rx
 
             if ((value > PRINTF_MAX_FLOAT) || (value < -PRINTF_MAX_FLOAT))
             {//浮点数超过限定值,直接返回科学计数法表达格式
-                return _etoa(out, buffer, idx, maxlen, value, prec, width, flags);
+                return _etoa(out, value, prec, width, flags);
             }
 
             //进行负数判断与符号调整
@@ -436,7 +464,7 @@ namespace rx
             // limit precision to 9, cause a prec >= 10 can lead to overflow errors
             while ((len < PRINTF_FTOA_BUFFER_SIZE) && (prec > 9U))
             {
-                buf[len++] = '0';
+                buf[len++] = sc<char_t>::zero;
                 prec--;
             }
 
@@ -489,10 +517,10 @@ namespace rx
                 }
                 // add extra 0s
                 while ((len < PRINTF_FTOA_BUFFER_SIZE) && (count-- > 0U))
-                    buf[len++] = '0';
+                    buf[len++] = sc<char_t>::zero;
 
                 if (len < PRINTF_FTOA_BUFFER_SIZE)
-                    buf[len++] = '.';
+                    buf[len++] = sc<char_t>::dot;
             }
 
             // do whole part, number is reversed
@@ -510,17 +538,17 @@ namespace rx
                     width--;
 
                 while ((len < width) && (len < PRINTF_FTOA_BUFFER_SIZE))
-                    buf[len++] = '0';
+                    buf[len++] = sc<char_t>::zero;
             }
 
             if (len < PRINTF_FTOA_BUFFER_SIZE)
             {
                 if (negative)
-                    buf[len++] = '-';
+                    buf[len++] = sc<char_t>::minus;
                 else if (flags & FLAGS_PLUS)
-                    buf[len++] = '+';  // ignore the space if the '+' exists
+                    buf[len++] = sc<char_t>::plus;  // ignore the space if the sc<char_t>::plus exists
                 else if (flags & FLAGS_SPACE)
-                    buf[len++] = ' ';
+                    buf[len++] = sc<char_t>::space;
             }
 
             return _out_rev(out, buf, len, width, flags);
@@ -536,7 +564,7 @@ namespace rx
 
             while (*format)
             {//对格式化串进行逐字符遍历
-                if (*format != '%')
+                if (*format != sc<char_t>::percent)
                 {//当前字符不是特殊格式化起始标记
                     out(*format);
                     format++;
@@ -551,27 +579,27 @@ namespace rx
                 {
                     switch (*format)
                     {
-                    case '0':
+                    case sc<char_t>::zero:
                         flags |= FLAGS_ZEROPAD;
                         format++;
                         n = 1U;
                         break;
-                    case '-':
+                    case sc<char_t>::minus:
                         flags |= FLAGS_LEFT;
                         format++;
                         n = 1U;
                         break;
-                    case '+':
+                    case sc<char_t>::plus:
                         flags |= FLAGS_PLUS;
                         format++;
                         n = 1U;
                         break;
-                    case ' ':
+                    case sc<char_t>::space:
                         flags |= FLAGS_SPACE;
                         format++;
                         n = 1U;
                         break;
-                    case '#':
+                    case sc<char_t>::sharp:
                         flags |= FLAGS_CROWN;
                         format++;
                         n = 1U;
@@ -587,26 +615,26 @@ namespace rx
                 width = 0U;
                 if (_is_digit(*format))
                     width = _atou(&format);
-                else if (*format == '*')
+                else if (*format == sc<char_t>::star)
                 {//宽度指示需要从参数中获取
                     width = (unsigned int)va_arg(va, int);
-                    if (width < 0)
+                    if ((int)width < 0)
                     {//宽度指示小于0,则进行左侧对齐
                         flags |= FLAGS_LEFT;    // reverse padding
-                        width = (unsigned int)-width;
+                        width = (unsigned int)-(int)width;
                     }
                     format++;
                 }
 
                 //尝试提取精度
                 precision = 0U;
-                if (*format == '.')
+                if (*format == sc<char_t>::dot)
                 {
                     flags |= FLAGS_PRECISION;
                     format++;
                     if (_is_digit(*format))
                         precision = _atou(&format);
-                    else if (*format == '*')
+                    else if (*format == sc<char_t>::star)
                     {//从数据参数中获取精度,要求精度必须大于0,否则精度为0
                         const int prec = (int)va_arg(va, int);
                         precision = prec > 0 ? (unsigned int)prec : 0U;
@@ -617,33 +645,33 @@ namespace rx
                 //分析数据长度指示符
                 switch (*format)
                 {
-                case 'l' :
+                case sc<char_t>::l :
                     flags |= FLAGS_LONG;
                     format++;
-                    if (*format == 'l')
+                    if (*format == sc<char_t>::l)
                     {
                         flags |= FLAGS_LONG_LONG;
                         format++;
                     }
                     break;
-                case 'h' :
+                case sc<char_t>::h :
                     flags |= FLAGS_SHORT;
                     format++;
-                    if (*format == 'h')
+                    if (*format == sc<char_t>::h)
                     {
                         flags |= FLAGS_CHAR;
                         format++;
                     }
                     break;
-                case 't' :
+                case sc<char_t>::t :
                     flags |= (sizeof(ptrdiff_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
                     format++;
                     break;
-                case 'j' :
+                case sc<char_t>::j :
                     flags |= (sizeof(intmax_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
                     format++;
                     break;
-                case 'z' :
+                case sc<char_t>::z :
                     flags |= (sizeof(size_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
                     format++;
                     break;
@@ -654,105 +682,110 @@ namespace rx
                 //开始按照输出类型进行分类处理
                 switch (*format)
                 {
-                case 'd' :
-                case 'i' :
-                case 'u' :
-                case 'x' :
-                case 'X' :
-                case 'o' :
-                case 'b' :
+                case sc<char_t>::d :
+                case sc<char_t>::i :
+                case sc<char_t>::u :
+                case sc<char_t>::x :
+                case sc<char_t>::X :
+                case sc<char_t>::o :
+                case sc<char_t>::b :
                     {
                         //根据输出类型设定数字的基数
                         unsigned int base;
-                        if (*format == 'x' || *format == 'X')
-                            base = 16U;
-                        else if (*format == 'o')
-                            base =  8U;
-                        else if (*format == 'b')
-                            base =  2U;
-                        else
+                        switch (*format)
                         {
+                        case sc<char_t>::x:
+                            base = 16U;
+                            break;
+                        case sc<char_t>::X:
+                            base = 16U;
+                            flags |= FLAGS_UPPERCASE;       //十六进制输出要求字母大写
+                            break;
+                        case sc<char_t>::o:
+                            base = 8U;
+                            break;
+                        case sc<char_t>::b:
+                            base = 2U;
+                            break;
+                        default:
                             base = 10U;
                             flags &= ~FLAGS_CROWN;          //十进制输出的整数没有冠字
                         }
-                        
-                        if (*format == 'X')                 //十六进制输出要求字母大写
-                            flags |= FLAGS_UPPERCASE;
 
                         // no plus or space flag for u, x, X, o, b
-                        if ((*format != 'i') && (*format != 'd'))
+                        if ((*format != sc<char_t>::i) && (*format != sc<char_t>::d))
                         {//非十进制数输出,不能具有加减符号与前缀占位空格
                             flags &= ~(FLAGS_PLUS | FLAGS_SPACE);
                         }
 
-                        // ignore '0' flag when precision is given
+                        // ignore sc<char_t>::zero flag when precision is given
                         if (flags & FLAGS_PRECISION)
                             flags &= ~FLAGS_ZEROPAD;
 
                         // convert the integer
-                        if ((*format == 'i') || (*format == 'd'))
+                        if ((*format == sc<char_t>::i) || (*format == sc<char_t>::d))
                         {//输出带符号十进制数
                             if (flags & FLAGS_LONG_LONG)
                             {
                                 const long long value = va_arg(va, long long);
-                                idx = _ntoa(out, (unsigned long long)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
+                                _ntoa(out, (unsigned long long)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
                             }
                             else if (flags & FLAGS_LONG)
                             {
                                 const long value = va_arg(va, long);
-                                idx = _ntoa(out, (unsigned long)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
+                                _ntoa(out, (unsigned long)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
                             }
                             else
                             {
                                 const int value = (flags & FLAGS_CHAR) ? (int8_t)va_arg(va, int) : (flags & FLAGS_SHORT) ? (short int)va_arg(va, int) : va_arg(va, int);
-                                idx = _ntoa(out, (unsigned int)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
+                                _ntoa(out, (unsigned int)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
                             }
                         }
                         else
                         {//输出无符号十进制数
                             if (flags & FLAGS_LONG_LONG)
                             {
-                                idx = _ntoa(out, va_arg(va, unsigned long long), false, base, precision, width, flags);
+                                _ntoa(out, va_arg(va, unsigned long long), false, base, precision, width, flags);
                             }
                             else if (flags & FLAGS_LONG)
                             {
-                                idx = _ntoa(out, va_arg(va, unsigned long), false, base, precision, width, flags);
+                                _ntoa(out, va_arg(va, unsigned long), false, base, precision, width, flags);
                             }
                             else
                             {
                                 const unsigned int value = (flags & FLAGS_CHAR) ? (uint8_t)va_arg(va, unsigned int) : (flags & FLAGS_SHORT) ? (unsigned short int)va_arg(va, unsigned int) : va_arg(va, unsigned int);
-                                idx = _ntoa(out, value, false, base, precision, width, flags);
+                                _ntoa(out, value, false, base, precision, width, flags);
                             }
                         }
                         format++;
                         break;
                     }
-                case 'f' :
-                case 'F' :
-                    if (*format == 'F')
+                case sc<char_t>::f :
+                case sc<char_t>::F :
+                    if (*format == sc<char_t>::F)
                         flags |= FLAGS_UPPERCASE;
-                    idx = _ftoa(out, va_arg(va, double), precision, width, flags);
+                    _ftoa(out, va_arg(va, double), precision, width, flags);
                     format++;
                     break;
-                case 'e':
-                case 'E':
-                case 'g':
-                case 'G':
-                    if ((*format == 'g')||(*format == 'G'))
+                case sc<char_t>::e:
+                case sc<char_t>::E:
+                case sc<char_t>::g:
+                case sc<char_t>::G:
+                    if ((*format == sc<char_t>::g)||(*format == sc<char_t>::G))
                         flags |= FLAGS_ADAPT_EXP;
-                    if ((*format == 'E')||(*format == 'G'))
+                    if ((*format == sc<char_t>::E)||(*format == sc<char_t>::G))
                         flags |= FLAGS_UPPERCASE;
-                    idx = _etoa(out, va_arg(va, double), precision, width, flags);
+                    _etoa(out, va_arg(va, double), precision, width, flags);
                     format++;
                     break;
-                case 'c' :
+                case sc<char_t>::c :
                     {
                         unsigned int l = 1U;
                         // pre padding
                         if (!(flags & FLAGS_LEFT))
                         {
                             while (l++ < width)
-                                out(' ');
+                                out(sc<char_t>::space);
                         }
                         // char output
                         out((char_t)va_arg(va, int));
@@ -760,12 +793,12 @@ namespace rx
                         if (flags & FLAGS_LEFT)
                         {
                             while (l++ < width)
-                                out(' ');
+                                out(sc<char_t>::space);
                         }
                         format++;
                         break;
                     }
-                case 's' :
+                case sc<char_t>::s :
                     {
                         const char_t* p = va_arg(va, char_t*);
                         unsigned int l = _strnlen_s(p, precision ? precision : (size_t)-1);
@@ -775,7 +808,7 @@ namespace rx
                         if (!(flags & FLAGS_LEFT))
                         {
                             while (l++ < width)
-                                out(' ');
+                                out(sc<char_t>::space);
                         }
                         // string output
                         while ((*p != 0) && (!(flags & FLAGS_PRECISION) || precision--))
@@ -785,27 +818,27 @@ namespace rx
                         if (flags & FLAGS_LEFT)
                         {
                             while (l++ < width)
-                                out(' ');
+                                out(sc<char_t>::space);
                         }
                         format++;
                         break;
                     }
 
-                case 'p' :
+                case sc<char_t>::p :
                     {
                         width = sizeof(void*) * 2U;
                         flags |= FLAGS_ZEROPAD | FLAGS_UPPERCASE;
                         const bool is_ll = sizeof(uintptr_t) == sizeof(long long);
                         if (is_ll)
-                            idx = _ntoa(out, (uintptr_t)va_arg(va, void*), false, 16U, precision, width, flags);
+                            _ntoa(out, (uintptr_t)va_arg(va, void*), false, 16U, precision, width, flags);
                         else
-                            idx = _ntoa(out, (unsigned long)((uintptr_t)va_arg(va, void*)), false, 16U, precision, width, flags);
+                            _ntoa(out, (unsigned long)((uintptr_t)va_arg(va, void*)), false, 16U, precision, width, flags);
                         format++;
                         break;
                     }
 
-                case '%' :
-                    out('%');
+                case sc<char_t>::percent :
+                    out(sc<char_t>::percent);
                     format++;
                     break;
 
@@ -816,29 +849,100 @@ namespace rx
                 }
             }
 
-            // termination
+            //尝试调整结束符的输出位置
             if (out.idx>=out.maxlen)
                 out.idx=out.maxlen-1;
+            //输出结束符
             out(0);
-
-            // return written chars without terminating \0
-            return out.idx;
+            //返回输出的最终长度(长度不包含结束符)
+            return (int)--out.idx;
         }
-
+    }
+    //-------------------------------------------------------------------------
+    namespace st
+    {
         //---------------------------------------------------------------------
-        template<class CT>
-        inline int vsnprintf(CT* buffer, size_t count, const CT* format, va_list va)
+        //封装数字转换为字符串的函数
+        template<class CT,class VT>
+        inline char *ftoa(VT value, CT *string,int prec=8,bool exp=false)
         {
-            if (buffer==NULL)
+            fmt_imp::fmt_follower_buff<CT> out;
+            out.bind(string);
+            if (exp)
+                fmt_imp::_etoa(out,value,prec,0,fmt_imp::FLAGS_PRECISION);
+            else
+                fmt_imp::_ftoa(out,value,prec,0,fmt_imp::FLAGS_PRECISION);
+            out(0);
+            return string;
+        }
+        //---------------------------------------------------------------------
+        //封装数字转换为字符串的函数
+        template<class CT,class VT>
+        inline char *ntoa(VT value, CT *string, int radix=10,bool crown=false)
+        {
+            fmt_imp::fmt_follower_buff<CT> out;
+            out.bind(string);
+            if (radix==10)
             {
-                fmt_follower_null<CT> out;
-                return fmt_core(out, format, va);
+                bool negative = value<0;
+                fmt_imp::_ntoa(out,(negative?0-value:value),negative,radix);
             }
             else
             {
-                fmt_follower_buff<CT> out;
+                uint32_t flags=crown?fmt_imp::FLAGS_CROWN:0;
+                if (sizeof(value)<=4)
+                {
+                    uint32_t val=(uint32_t)value;
+                    fmt_imp::_ntoa(out,val,false,radix,0,0,flags);
+                }
+                else
+                {
+                    uint64_t val=(uint64_t)value;
+                    fmt_imp::_ntoa(out,val,false,radix,0,0,flags);
+                }
+            }
+            out(0);
+            return string;
+        }
+        //---------------------------------------------------------------------
+        //语法糖,自然数转换为指定基的数字串
+        template<class CT>
+        inline char* itoa(int32_t value,CT* string,int radix=10) {return ntoa(value,string,radix);}
+        template<class CT>
+        inline char* itoa64(int64_t value,CT* string,int radix=10) {return ntoa(value,string,radix);}
+        //语法糖,无符号整数转换为指定基的数字串
+        template<class CT>
+        inline char* utoa(uint32_t value,CT* string,int radix=10) {return ntoa(value,string,radix);}
+        template<class CT>
+        inline char* utoa64(uint64_t value,CT* string,int radix=10) {return ntoa(value,string,radix);}
+        //语法糖,自然数转换为带有冠字0x的十六进制数字串
+        template<class CT>
+        inline char* itox(int32_t value,CT* string) {return ntoa(value,string,16,true);}
+        template<class CT>
+        inline char* itox64(int64_t value,CT* string) {return ntoa(value,string,16,true);}
+        //语法糖,无符号整数转换为带有冠字0x的十六进制数字串
+        template<class CT>
+        inline char* utox(uint32_t value,CT* string) {return ntoa(value,string,16,true);}
+        template<class CT>
+        inline char* utox64(uint64_t value,CT* string) {return ntoa(value,string,16,true);}
+    
+        //---------------------------------------------------------------------
+        //通用格式化输出函数,解析结果到buffer缓冲区,内容长度不会超过count个字符
+        //返回值:<0错误;>=0为输出内容长度,需要与count进行比较
+        template<class CT>
+        inline int vsnprintf(CT* buffer, size_t count, const CT* format, va_list va)
+        {
+            if (buffer==NULL||count==0)
+            {
+                fmt_imp::fmt_follower_null<CT> out;
+                out.bind(NULL);
+                return fmt_imp::fmt_core(out, format, va);
+            }
+            else
+            {
+                fmt_imp::fmt_follower_buff<CT> out;
                 out.bind(buffer,count);
-                return fmt_core(out, format, va);
+                return fmt_imp::fmt_core(out, format, va);
             }
         }
 
@@ -852,6 +956,7 @@ namespace rx
             return ret;
         }
 
+        //返回值:<0错误;>=0为输出内容长度,需要与count进行比较
         template<class CT>
         inline int snprintf(CT* buffer, size_t count, const CT* format, ...)
         {
@@ -862,11 +967,17 @@ namespace rx
             return ret;
         }
 
+        template<class CT,class OT>
+        inline int format(OT &out,const CT* format, va_list va)
+        {
+            return fmt_imp::fmt_core(out, format, va);
+        }
+
         template<class CT>
         inline int vprintf(const CT* format, va_list va)
         {
-            fmt_follower_char<CT> out;
-            return fmt_core(out, format, va);
+            fmt_imp::fmt_follower_char<CT> out;
+            return fmt_imp::fmt_core(out, format, va);
         }
 
         template<class CT>
@@ -878,8 +989,27 @@ namespace rx
             va_end(va);
             return ret;
         }
-        //---------------------------------------------------------------------
+
+#if RX_STR_USE_FILE
+        template<class CT>
+        inline int vfprintf(FILE *stream, const CT *format,va_list ap)
+        {
+            fmt_imp::fmt_follower_file<CT> out(stream);
+            return fmt_imp::fmt_core(out, format, va);
+        }
+
+        template<class CT>
+        inline int fprintf(FILE *stream, const CT *format,...)
+        {
+            va_list ap;
+            va_start(ap, format);
+            int ret = vfprintf(stream,format,ap);
+            va_end(ap);
+            return ret;
+        }
+#endif
     }
+    //-------------------------------------------------------------------------
 }
 
 #endif

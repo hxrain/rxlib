@@ -572,8 +572,8 @@ namespace rx
             return true;
         }
         //判断是否为十进制数字和字母
-        inline bool             isalnum(char c) { return (c >= '0'&&c <= '9') || (c >= 'A'&&c <= 'Z') || (c >= 'a'&&c <= 'z'); }
-        inline bool             isalnum(wchar_t c) { return (c >= L'0'&&c <= L'9') || (c >= L'A'&&c <= L'Z') || (c >= L'a'&&c <= L'z'); }
+        template<class CT>
+        inline bool             isalnum(CT c) { return sc<CT>::is_0to9(c) || sc<CT>::is_AtoZ(c) || sc<CT>::is_atoz(c); }
         //-------------------------------------------------
         //判断给定的字符串是否全部都为数字(十进制或十六进制整形)
         template<class CT>
@@ -588,13 +588,13 @@ namespace rx
             for(uint32_t I=0; I<StrLen; I++)                //对指定长度的串进行全遍历或遇到结束符
             {
                 C=Str[I];
-                if (C>=sc<CT>::zero()&&C<='9')              //是十进制数字,直接准备判断下一个
+                if (sc<CT>::is_0to9(C))                     //是十进制数字,直接准备判断下一个
                     continue;
 
                 if (!IsHex)
                     return false;                           //不是十六进制模式,非数字的串出现就返回假
 
-                if ((C>=sc<CT>::A()&&C<=sc<CT>::F())||(C>=sc<CT>::a()&&C<=sc<CT>::f()))
+                if (sc<CT>::is_atof(C)||sc<CT>::is_AtoF(C))
                     continue;                               //十六进制时,当前字符是合法的,跳过,准备判断下一个.
                 else
                     return false;                           //否则说明当前不是合法的十六进制数字串

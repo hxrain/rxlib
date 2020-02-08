@@ -6,6 +6,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include <time.h>
+    #include "rx_str_util_fmt.h"
 
 #if defined(RX_OS_WIN)
     #include <winsock.h>
@@ -166,7 +167,7 @@
     //将日期时间结构格式化为字符串
     inline void rx_iso_datetime(const struct tm& tp, char str[20])
     {
-        snprintf(str,20,"%d-%02d-%02d %02d:%02d:%02d", tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec);
+        rx::st::snprintf(str,20,"%d-%02d-%02d %02d:%02d:%02d", tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec);
     }
     //将UTC时间转为标准时间字符串
     inline void rx_iso_datetime(uint64_t utc_time,char str[20] , int32_t zone_offset_sec = 8 * 60 * 60)

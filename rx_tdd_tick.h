@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <memory.h>
+#include "rx_str_util_fmt.h"
 
 /*
 //计时滴答的用法示例
@@ -81,7 +82,7 @@ namespace rx
             if (!m_enable) return;
             va_list ap;
             va_start(ap, msg_b);
-            vsnprintf(m_tmp_msg_b, sizeof(m_tmp_msg_b), msg_b, ap);
+            st::vsnprintf(m_tmp_msg_b, sizeof(m_tmp_msg_b), msg_b, ap);
             va_end(ap);
 
             m_begin_tick=m_tick_meter.update();
@@ -130,11 +131,11 @@ namespace rx
             va_list ap;
             va_start(ap, msg_c);
             char tmp1[512];
-            vsnprintf(tmp1, sizeof(tmp1), msg_c, ap);
+            st::vsnprintf(tmp1, sizeof(tmp1), msg_c, ap);
             va_end(ap);
 
             char tmp[512];
-            snprintf(tmp, sizeof(tmp), "   ::< %s >:%s:%s (%.1f)ms {%s} : (%s:%u).", m_msg_a,(is_hit?"hit":"seg"), tab_str, m_last_hit_elapsed  / 1000.0, tmp1, file, lineno);
+            st::snprintf(tmp, sizeof(tmp), "   ::< %s >:%s:%s (%.1f)ms {%s} : (%s:%u).", m_msg_a,(is_hit?"hit":"seg"), tab_str, m_last_hit_elapsed  / 1000.0, tmp1, file, lineno);
             on_output(tmp);
         }
         //-------------------------------------------------
@@ -148,7 +149,7 @@ namespace rx
                 return;
 
             char tmp[512];
-            snprintf(tmp,sizeof(tmp),"   ::< %s >:end: (%.1f)ms {%s} : (%s:%u).",m_msg_a, m_total_elapsed /1000.0,m_msg_b,m_file,m_lineno);
+            st::snprintf(tmp,sizeof(tmp),"   ::< %s >:end: (%.1f)ms {%s} : (%s:%u).",m_msg_a, m_total_elapsed /1000.0,m_msg_b,m_file,m_lineno);
             on_output(tmp);
             m_enable=false;
         }
@@ -179,7 +180,7 @@ namespace rx
 
             va_list ap;
             va_start(ap, msg_c);
-            vsnprintf(m_msg,sizeof(m_msg),msg_c,ap);
+            st::vsnprintf(m_msg,sizeof(m_msg),msg_c,ap);
             va_end(ap);
 
             ++m_tdd_tick.tab_deep();
@@ -219,7 +220,7 @@ namespace rx
 
             va_list ap;
             va_start(ap, fmt);
-            vsnprintf(m_msg, sizeof(m_msg), fmt, ap);
+            st::vsnprintf(m_msg, sizeof(m_msg), fmt, ap);
             va_end(ap);
         }
         ~tdd_tick_for_t()
@@ -236,7 +237,7 @@ namespace rx
             char tmp[512];
 
             double total_ms = usetime / 1000.0;
-            snprintf(tmp, sizeof(tmp), "   ::< %s >:for:%s (%.1f)ms/%d=(%.1f)ms {%s} : (%s:%u).", m_tdd_tick.msg_a(), tab_str, total_ms,m_for_count,total_ms/m_for_count, m_msg, m_file, m_lineno);
+            st::snprintf(tmp, sizeof(tmp), "   ::< %s >:for:%s (%.1f)ms/%d=(%.1f)ms {%s} : (%s:%u).", m_tdd_tick.msg_a(), tab_str, total_ms,m_for_count,total_ms/m_for_count, m_msg, m_file, m_lineno);
             m_tdd_tick.on_output(tmp);
         }
         //-------------------------------------------------

@@ -10,9 +10,7 @@
 #include <wchar.h>
 #include <stdarg.h>
 
-#if RX_OS==RX_OS_WIN||RX_OS_POSIX
-#define RX_STR_USE_FILE 1
-#endif
+
 
 #if RX_CC==RX_CC_GCC && RX_CC_VER_MAJOR>=5
     #pragma GCC diagnostic push
@@ -33,47 +31,49 @@ namespace rx
         static const char* hex_lwr() {return "0123456789abcdef";}
         static const char  hex_upr(uint32_t i) {return "0123456789ABCDEF"[i];}
         static const char  hex_lwr(uint32_t i) {return "0123456789abcdef"[i];}
-        static const char  zero() {return '0';}
+        static const char  zero = '0';
         static const char* empty() {return "";}
-        static const char  CR() {return '\r';}
-        static const char  LF() {return '\n';}
-        static const char  space() {return ' ';}
-        static const char  A() {return 'A';}
-        static const char  F() {return 'F';}
-        static const char  Z() {return 'Z';}
-        static const char  a() {return 'a';}
-        static const char  f() {return 'f';}
-        static const char  x() {return 'x';}
-        static const char  z() {return 'z';}
-        static const char  l() {return 'l';}
-        static const char  h() {return 'h';}
-        static const char  t() {return 't';}
-        static const char  j() {return 'j';}
-        static const char  d() {return 'd';}
-        static const char  i() {return 'i';}
-        static const char  u() {return 'u';}
-        static const char  X() {return 'X';}
-        static const char  o() {return 'o';}
-        static const char  b() {return 'b';}
-        static const char  e() {return 'e';}
-        static const char  E() {return 'E';}
-        static const char  g() {return 'g';}
-        static const char  G() {return 'G';}
-        static const char  c() {return 'c';}
-        static const char  s() {return 's';}
-        static const char  p() {return 'p';}
+        static const char  CR = '\r';
+        static const char  LF = '\n';
+        static const char  space = ' ';
+        static const char  A = 'A';
+        static const char  F = 'F';
+        static const char  Z = 'Z';
+        static const char  a = 'a';
+        static const char  f = 'f';
+        static const char  x = 'x';
+        static const char  z = 'z';
+        static const char  l = 'l';
+        static const char  h = 'h';
+        static const char  t = 't';
+        static const char  j = 'j';
+        static const char  d = 'd';
+        static const char  i = 'i';
+        static const char  u = 'u';
+        static const char  X = 'X';
+        static const char  o = 'o';
+        static const char  b = 'b';
+        static const char  e = 'e';
+        static const char  E = 'E';
+        static const char  g = 'g';
+        static const char  G = 'G';
+        static const char  c = 'c';
+        static const char  s = 's';
+        static const char  p = 'p';
         static const char* nan() {return "nan";}
         static const char* fni() {return "fni";}
         static const char* fni_minus() {return "fni-";}
         static const char* fni_plus() {return "fni+";}
-        static const char  sharp() {return '#';}
-        static const char  plus() {return '+';}
-        static const char  minus() {return '-';}
-        static const char  percent() {return '%';}
-        static const char  star() {return '*';}
-        static const char  dot() {return '.';}
+        static const char  sharp = '#';
+        static const char  plus = '+';
+        static const char  minus = '-';
+        static const char  percent = '%';
+        static const char  star = '*';
+        static const char  dot = '.';
         static       bool  is_atoz(char c) { return c >= 'a'&&c <= 'z'; }
         static       bool  is_AtoZ(char c) { return c >= 'A'&&c <= 'Z'; }
+        static       bool  is_atof(char c) { return c >= 'a'&&c <= 'f'; }
+        static       bool  is_AtoF(char c) { return c >= 'A'&&c <= 'F'; }
         static       bool  is_0to9(char c) { return c >= '0'&&c <= '9'; }
     };
     template<> class sc<wchar_t>
@@ -84,47 +84,49 @@ namespace rx
         static const wchar_t* hex_lwr() {return L"0123456789abcdef";}
         static const wchar_t  hex_upr(uint32_t i) {return L"0123456789ABCDEF"[i];}
         static const wchar_t  hex_lwr(uint32_t i) {return L"0123456789abcdef"[i];}
-        static const wchar_t  zero() {return L'0';}
+        static const wchar_t  zero = L'0';
         static const wchar_t* empty() {return L"";}
-        static const wchar_t  CR() {return L'\r';}
-        static const wchar_t  LF() {return L'\n';}
-        static const wchar_t  space() {return L' ';}
-        static const wchar_t  A() {return L'A';}
-        static const wchar_t  F() {return L'F';}
-        static const wchar_t  Z() {return L'Z';}
-        static const wchar_t  a() {return L'a';}
-        static const wchar_t  f() {return L'f';}
-        static const wchar_t  x() {return L'x';}
-        static const wchar_t  z() {return L'z';}
-        static const wchar_t  l() {return L'l';}
-        static const wchar_t  h() {return L'h';}
-        static const wchar_t  t() {return L't';}
-        static const wchar_t  j() {return L'j';}
-        static const wchar_t  d() {return L'd';}
-        static const wchar_t  i() {return L'i';}
-        static const wchar_t  u() {return L'u';}
-        static const wchar_t  X() {return L'X';}
-        static const wchar_t  o() {return L'o';}
-        static const wchar_t  b() {return L'b';}
-        static const wchar_t  e() {return L'e';}
-        static const wchar_t  E() {return L'E';}
-        static const wchar_t  g() {return L'g';}
-        static const wchar_t  G() {return L'G';}
-        static const wchar_t  c() {return L'c';}
-        static const wchar_t  s() {return L's';}
-        static const wchar_t  p() {return L'p';}
+        static const wchar_t  CR = L'\r';
+        static const wchar_t  LF = L'\n';
+        static const wchar_t  space = L' ';
+        static const wchar_t  A = L'A';
+        static const wchar_t  F = L'F';
+        static const wchar_t  Z = L'Z';
+        static const wchar_t  a = L'a';
+        static const wchar_t  f = L'f';
+        static const wchar_t  x = L'x';
+        static const wchar_t  z = L'z';
+        static const wchar_t  l = L'l';
+        static const wchar_t  h = L'h';
+        static const wchar_t  t = L't';
+        static const wchar_t  j = L'j';
+        static const wchar_t  d = L'd';
+        static const wchar_t  i = L'i';
+        static const wchar_t  u = L'u';
+        static const wchar_t  X = L'X';
+        static const wchar_t  o = L'o';
+        static const wchar_t  b = L'b';
+        static const wchar_t  e = L'e';
+        static const wchar_t  E = L'E';
+        static const wchar_t  g = L'g';
+        static const wchar_t  G = L'G';
+        static const wchar_t  c = L'c';
+        static const wchar_t  s = L's';
+        static const wchar_t  p = L'p';
         static const wchar_t* nan() {return L"nan";}
         static const wchar_t* fni() {return L"fni";}
         static const wchar_t* fni_minus() {return L"fni-";}
         static const wchar_t* fni_plus() {return L"fni+";}
-        static const wchar_t  sharp() {return L'#';}
-        static const wchar_t  plus() {return L'+';}
-        static const wchar_t  minus() {return L'-';}
-        static const wchar_t  percent() {return L'%';}
-        static const wchar_t  star() {return L'*';}
-        static const wchar_t  dot() {return L'.';}
+        static const wchar_t  sharp = L'#';
+        static const wchar_t  plus = L'+';
+        static const wchar_t  minus = L'-';
+        static const wchar_t  percent = L'%';
+        static const wchar_t  star = L'*';
+        static const wchar_t  dot = L'.';
         static       bool     is_atoz(wchar_t c) { return c >= L'a'&&c <= L'z'; }
         static       bool     is_AtoZ(wchar_t c) { return c >= L'A'&&c <= L'Z'; }
+        static       bool     is_atof(wchar_t c) { return c >= L'a'&&c <= L'f'; }
+        static       bool     is_AtoF(wchar_t c) { return c >= L'A'&&c <= L'F'; }
         static       bool     is_0to9(wchar_t c) { return c >= L'0'&&c <= L'9'; }
     };
 
@@ -227,130 +229,7 @@ namespace rx
         inline double           atof(const char* s) {return ::atof(s);}
         inline double           atof(const wchar_t* s) {return ::wcstod(s,NULL);}
 
-        //数字转换为字符串
-
-        #if RX_CC==RX_CC_BCC
-        inline char *           itoa(int value, char *string, int radix=10) {return ::itoa(value,string,radix);}
-        #elif RX_CC==RX_CC_GCC
-        inline char *           itoa(int value, char *string, int radix=10)
-        {
-            const char* fmt="%d";
-            if (radix==16) fmt="%x";
-            sprintf(string,fmt,value);
-            return string;
-        }
-        #else
-        inline char *           itoa(int value, char *string, int radix=10) {return ::_itoa(value,string,radix);}
-        #endif
-
-        #if RX_CC==RX_CC_GCC
-        inline wchar_t *           itoa(int value, wchar_t *string, int radix=10)
-        {
-            const wchar_t* fmt=L"%d";
-            if (radix==16) fmt=L"%x";
-            wprintf(string,fmt,value);
-            return string;
-        }
-        #else
-        inline wchar_t *        itoa(int value, wchar_t *string, int radix=10) {return ::_itow(value,string,radix);}
-        #endif
-
-
-        #if RX_CC==RX_CC_GCC
-        inline char *           itoa64(int64_t value, char *string, int radix=10)
-        {
-            const char* fmt="%lld";
-            if (radix==16) fmt="%llx";
-            sprintf(string,fmt,value);
-            return string;
-        }
-        inline char *           utoa64(uint64_t value, char *string, int radix=10)
-        {
-            const char* fmt="%llu";
-            if (radix==16) fmt="%llx";
-            sprintf(string,fmt,value);
-            return string;
-        }
-        inline wchar_t *        itoa64(int64_t value, wchar_t *string, int radix=10)
-        {
-            const wchar_t* fmt=L"%lld";
-            if (radix==16) fmt=L"%llx";
-            wprintf(string,fmt,value);
-            return string;
-        }
-        inline wchar_t *        utoa64(uint64_t value, wchar_t *string, int radix=10)
-        {
-            const wchar_t* fmt=L"%llu";
-            if (radix==16) fmt=L"%llx";
-            wprintf(string,fmt,value);
-            return string;
-        }
-        #else
-        inline char *           itoa64(int64_t value, char *string, int radix=10) {return ::_i64toa(value,string,radix);}
-        inline wchar_t *        itoa64(int64_t value, wchar_t *string, int radix=10) {return ::_i64tow(value,string,radix);}
-        inline char *           utoa64(uint64_t value, char *string, int radix=10) {return ::_ui64toa(value,string,radix);}
-        inline wchar_t *        utoa64(uint64_t value, wchar_t *string, int radix=10) {return ::_ui64tow(value,string,radix);}
-        #endif
-
-
-        #if RX_CC==RX_CC_BCC
-        inline char *           ultoa(uint32_t value, char *string, int radix=10) {return ::ultoa(value,string,radix);}
-        #elif RX_CC==RX_CC_GCC
-        inline char *           ultoa(uint32_t value, char *string, int radix=10)
-        {
-            const char* fmt="%u";
-            if (radix==16) fmt="%x";
-            sprintf(string,fmt,value);
-            return string;
-        }
-        #else
-        inline char *           ultoa(uint32_t value, char *string, int radix=10) {return ::_ultoa(value,string,radix);}
-        #endif
-
-        #if RX_CC==RX_CC_GCC
-        inline wchar_t *        ultoa(uint32_t value, wchar_t *string, int radix=10)
-        {
-            const wchar_t* fmt=L"%u";
-            if (radix==16) fmt=L"%x";
-            wprintf(string,fmt,value);
-            return string;
-        }
-        #else
-        inline wchar_t *        ultoa(uint32_t value, wchar_t *string, int radix=10) {return ::_ultow(value,string,radix);}
-        #endif
-
-        //语法糖,数字转为0x前缀的十六进制串
-        template<class CT>
-        inline CT*              itox(int value,CT* Buff) {Buff[0]=sc<CT>::zero(); Buff[1]=sc<CT>::x(); itoa(value,&Buff[2],16); return Buff;}
-        template<class CT>
-        inline CT*              itox64(uint64_t value,CT* Buff) {Buff[0]=sc<CT>::zero(); Buff[1]=sc<CT>::x(); itoa64(value,&Buff[2],16); return Buff;}
-        template<class CT>
-        inline CT*              ultox(uint32_t value,CT* Buff) {Buff[0]=sc<CT>::zero(); Buff[1]=sc<CT>::x(); ultoa(value,&Buff[2],16); return Buff;}
-
-        //浮点数转为字符串
-        inline char*            ftoa(const double& f,char* string,const char* Fmt=NULL) {if (!Fmt) Fmt="%.14f"; sprintf(string,Fmt,f); return string;}
-        inline wchar_t*         ftoa(const double& f,wchar_t* string,const wchar_t* Fmt=NULL) {if (!Fmt) Fmt=L"%.14f"; wprintf(string,Fmt,f); return string;}
-
-        //字符串格式化
-        //返回值:<0错误;>=0为输出内容长度,需要与BufSize进行比较
-        inline int              snprintf(char * Buf,uint32_t BufSize, const char *Fmt,...)
-        {
-            va_list ap;
-            va_start(ap, Fmt);
-            int ret = ::vsnprintf(Buf,BufSize,Fmt,ap);
-            va_end(ap);
-            return ret;
-        }
-        inline int              snprintf(wchar_t * Buf,uint32_t BufSize, const wchar_t *Fmt,...)
-        {
-            va_list ap;
-            va_start(ap, Fmt);
-            int ret = ::vswprintf(Buf,BufSize,Fmt,ap);
-            va_end(ap);
-            return ret;
-        }
-        inline int              vsnprintf(char * Buf,uint32_t BufSize, const char *Fmt,va_list arglist) {return ::vsnprintf(Buf,BufSize,Fmt,arglist);}
-        inline int              vsnprintf(wchar_t * Buf,uint32_t BufSize, const wchar_t *Fmt,va_list arglist) {return ::vswprintf(Buf,BufSize,Fmt,arglist);}
+        //数字转换为字符串,参见rx_str_util_fmt.h中的ntoa系列函数
 
         #if RX_STR_USE_FILE
         inline int              fprintf(FILE *stream, const char *format,...)

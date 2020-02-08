@@ -1,6 +1,9 @@
 #define RX_USE_TDD_TICK 1
 /*
 */
+#include "../ut_str_util_fmt.h"
+#include "../../rx_str_util_fmt.h"
+#if 1
 //---------------------------------------------------------
 //简单的缓冲区功能封装
 #include "../../rx_dtl_buff.h"
@@ -192,6 +195,7 @@
 //原子操作
 #include "../ut_cc_atomic.h"
 #include "../../rx_cc_atomic.h"
+#endif
 //---------------------------------------------------------
 //测试驱动开发/单元测试框架
 #include "../../rx_tdd.h"
@@ -212,6 +216,7 @@
 int main()
 {
     //rx_show_msg("%d\n", sizeof(std::string));
+    //rx_show_msg("%d\n", sizeof(long long));
 
     std::cout << "Hello RX TDD!\n" << rx_cc_desc() << std::endl << std::endl;
 

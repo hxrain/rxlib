@@ -67,8 +67,8 @@ namespace rx
         rt.tdd_assert(st::strcpy(str2,sizeof(str2),str1)==16);
         rt.tdd_assert(st::strcmp(str1,str2)==0);
 
-        rt.tdd_assert(st::strcpy(str2,sizeof(str2),str1,str1,sc<CT>::space())==33);
-        rt.tdd_assert(str2[16]==sc<CT>::space());
+        rt.tdd_assert(st::strcpy(str2,sizeof(str2),str1,str1,sc<CT>::space)==33);
+        rt.tdd_assert(str2[16]==sc<CT>::space);
         rt.tdd_assert(st::strncmp(str2,sc<CT>::hex_upr(),16)==0);
         rt.tdd_assert(st::strncmp(str2+17,sc<CT>::hex_upr(),16)==0);
         rt.tdd_assert(st::strncmpi(str2,sc<CT>::hex_lwr(),16)==0);
@@ -77,8 +77,8 @@ namespace rx
         str2[0]=0;
         rt.tdd_assert(st::strcat(str2,sizeof(str2),sc<CT>::hex_upr(),sc<CT>::hex_upr())==32);
 
-        strA[0]=sc<CT>::A();strA[1]=0;
-        strB[0]=sc<CT>::F();strB[1]=0;
+        strA[0]=sc<CT>::A;strA[1]=0;
+        strB[0]=sc<CT>::F;strB[1]=0;
         rt.tdd_assert(st::sub(str2,strA,strB,str1,sizeof(str1))==4);
 
         st::hex2(0x12,strB);strB[2]=0;
@@ -87,11 +87,11 @@ namespace rx
 
         rt.tdd_assert(st::byte((const CT*)strB)==0x12);
 
-        rt.tdd_assert(st::strcpy(str2,sizeof(str2),sc<CT>::hex_upr(),sc<CT>::hex_upr(),sc<CT>::space())==33);
+        rt.tdd_assert(st::strcpy(str2,sizeof(str2),sc<CT>::hex_upr(),sc<CT>::hex_upr(),sc<CT>::space)==33);
         rt.tdd_assert(st::replace(str2,sc<CT>::hex_upr(),strA,str1,sizeof(str1))!=NULL);
-        rt.tdd_assert(str1[0]==sc<CT>::A());
-        rt.tdd_assert(str1[1]==sc<CT>::space());
-        rt.tdd_assert(str1[2]==sc<CT>::A());
+        rt.tdd_assert(str1[0]==sc<CT>::A);
+        rt.tdd_assert(str1[1]==sc<CT>::space);
+        rt.tdd_assert(str1[2]==sc<CT>::A);
         rt.tdd_assert(str1[3]==0);
 
         rt.tdd_assert(st::isnumber(sc<CT>::hex_upr(),0,true));

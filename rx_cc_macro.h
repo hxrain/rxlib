@@ -477,17 +477,12 @@
     //-----------------------------------------------------
     //构造rx_cc_desc()宏或函数,便于获取当前编译期信息
     #include <stdio.h>
-    #if RX_CC == RX_CC_VC
-        #if (RX_CC_VER_MAJOR<19)
-            #define snprintf _snprintf
-        #endif
-    #endif
 
     //visual studio, eg : "CPU:X64(LE)/Microsoft Visual Studio(19.0.1900.1)/64Bit"
     inline const char* rx_cc_desc()
     {
         static char desc[128];
-        snprintf(desc,sizeof(desc),"CCENV=%s/OS=%s/CPU=%s(%s)/CC=%s<%d.%d.%d.%d>/WORDS=%dBit",
+        _snprintf(desc,sizeof(desc),"CCENV=%s/OS=%s/CPU=%s(%s)/CC=%s<%d.%d.%d.%d>/WORDS=%dBit",
                  RX_CC_ENV_NAME,RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME,
                  RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
         return desc;

@@ -203,12 +203,12 @@ namespace rx
         template<class CT>
         inline uint8_t byte(CT C)
         {
-            if (C>=sc<CT>::a()&&C<=sc<CT>::f())
-                return C-sc<CT>::a()+10;
-            else if (C>=sc<CT>::A()&&C<=sc<CT>::F())
-                return C-sc<CT>::A()+10;
+            if (sc<CT>::is_atof(C))
+                return C-sc<CT>::a+10;
+            else if (sc<CT>::is_AtoF(C))
+                return C-sc<CT>::A+10;
             else
-                return C-sc<CT>::zero();
+                return C-sc<CT>::zero;
         }
         //-----------------------------------------------------
         //将给定的十六进制形式的字符串中的开头的两个字符转换为一个字节长度的数字
