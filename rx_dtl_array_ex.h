@@ -5,7 +5,7 @@
 #include "rx_dtl_array.h"
 #include "rx_dtl_hashtbl.h"
 #include "rx_dtl_hashtbl_ex.h"
-#include "rx_str_util_tiny.h"
+#include "rx_str_util_misc.h"
 
 namespace rx
 {

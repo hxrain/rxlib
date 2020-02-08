@@ -99,9 +99,9 @@
 #include "../ut_str_util.h"
 #include "../../rx_str_tiny.h"
 #include "../../rx_str_util_std.h"
-#include "../../rx_str_util_ex.h"
+#include "../../rx_str_util_ext.h"
 #include "../../rx_str_util_bin.h"
-#include "../../rx_str_util_tiny.h"
+#include "../../rx_str_util_misc.h"
 
 //---------------------------------------------------------
 //测试用例与运行计时功能

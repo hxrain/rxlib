@@ -3,7 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_str_util_std.h"
-#include "rx_str_util_ex.h"
+#include "rx_str_util_ext.h"
 
 namespace rx
 {

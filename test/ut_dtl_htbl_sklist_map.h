@@ -9,7 +9,7 @@
 #include "../rx_dtl_hashtbl.h"
 #include "../rx_dtl_hashlink.h"
 #include "../rx_tdd_tick.h"
-#include "../rx_str_util_tiny.h"
+#include "../rx_str_util_misc.h"
 #include <map>
 #include <string>
 #include <list>
