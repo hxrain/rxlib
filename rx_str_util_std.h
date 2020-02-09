@@ -32,44 +32,81 @@ namespace rx
         static const char  hex_upr(uint32_t i) {return "0123456789ABCDEF"[i];}
         static const char  hex_lwr(uint32_t i) {return "0123456789abcdef"[i];}
         static const char  zero = '0';
-        static const char* empty() {return "";}
+        static const char  one  = '1';
+        static const char  two  = '2';
+        static const char  three= '3';
+        static const char  four = '4';
+        static const char  five = '5';
+        static const char  six  = '6';
+        static const char  seven= '7';
+        static const char  eight= '8';
+        static const char  nine = '9';
         static const char  CR = '\r';
         static const char  LF = '\n';
         static const char  space = ' ';
-        static const char  A = 'A';
-        static const char  F = 'F';
-        static const char  Z = 'Z';
-        static const char  a = 'a';
-        static const char  f = 'f';
-        static const char  x = 'x';
-        static const char  z = 'z';
-        static const char  l = 'l';
-        static const char  h = 'h';
-        static const char  t = 't';
-        static const char  j = 'j';
-        static const char  d = 'd';
-        static const char  i = 'i';
-        static const char  u = 'u';
-        static const char  X = 'X';
-        static const char  o = 'o';
-        static const char  b = 'b';
-        static const char  e = 'e';
-        static const char  E = 'E';
-        static const char  g = 'g';
-        static const char  G = 'G';
-        static const char  c = 'c';
-        static const char  s = 's';
-        static const char  p = 'p';
-        static const char* nan() {return "nan";}
-        static const char* fni() {return "fni";}
-        static const char* fni_minus() {return "fni-";}
-        static const char* fni_plus() {return "fni+";}
         static const char  sharp = '#';
         static const char  plus = '+';
         static const char  minus = '-';
         static const char  percent = '%';
         static const char  star = '*';
         static const char  dot = '.';
+        static const char  a = 'a';
+        static const char  b = 'b';
+        static const char  c = 'c';
+        static const char  d = 'd';
+        static const char  e = 'e';
+        static const char  f = 'f';
+        static const char  g = 'g';
+        static const char  h = 'h';
+        static const char  i = 'i';
+        static const char  j = 'j';
+        static const char  k = 'k';
+        static const char  l = 'l';
+        static const char  m = 'm';
+        static const char  n = 'n';
+        static const char  o = 'o';
+        static const char  p = 'p';
+        static const char  q = 'q';
+        static const char  r = 'r';
+        static const char  s = 's';
+        static const char  t = 't';
+        static const char  u = 'u';
+        static const char  v = 'v';
+        static const char  w = 'w';
+        static const char  x = 'x';
+        static const char  y = 'y';
+        static const char  z = 'z';
+        static const char  A = 'A';
+        static const char  B = 'B';
+        static const char  C = 'C';
+        static const char  D = 'D';
+        static const char  E = 'E';
+        static const char  F = 'F';
+        static const char  G = 'G';
+        static const char  H = 'H';
+        static const char  I = 'I';
+        static const char  J = 'J';
+        static const char  K = 'K';
+        static const char  L = 'L';
+        static const char  M = 'M';
+        static const char  N = 'N';
+        static const char  O = 'O';
+        static const char  P = 'P';
+        static const char  Q = 'Q';
+        static const char  R = 'R';
+        static const char  S = 'S';
+        static const char  T = 'T';
+        static const char  U = 'U';
+        static const char  V = 'V';
+        static const char  W = 'W';
+        static const char  X = 'X';
+        static const char  Y = 'Y';
+        static const char  Z = 'Z';
+        static const char* empty() {return "";}
+        static const char* nan() {return "nan";}
+        static const char* fni() {return "fni";}
+        static const char* fni_minus() {return "fni-";}
+        static const char* fni_plus() {return "fni+";}
         static       bool  is_atoz(char c) { return c >= 'a'&&c <= 'z'; }
         static       bool  is_AtoZ(char c) { return c >= 'A'&&c <= 'Z'; }
         static       bool  is_atof(char c) { return c >= 'a'&&c <= 'f'; }
@@ -85,44 +122,81 @@ namespace rx
         static const wchar_t  hex_upr(uint32_t i) {return L"0123456789ABCDEF"[i];}
         static const wchar_t  hex_lwr(uint32_t i) {return L"0123456789abcdef"[i];}
         static const wchar_t  zero = L'0';
-        static const wchar_t* empty() {return L"";}
+        static const wchar_t  one  = L'1';
+        static const wchar_t  two  = L'2';
+        static const wchar_t  three= L'3';
+        static const wchar_t  four = L'4';
+        static const wchar_t  five = L'5';
+        static const wchar_t  six  = L'6';
+        static const wchar_t  seven= L'7';
+        static const wchar_t  eight= L'8';
+        static const wchar_t  nine = L'9';
         static const wchar_t  CR = L'\r';
         static const wchar_t  LF = L'\n';
         static const wchar_t  space = L' ';
-        static const wchar_t  A = L'A';
-        static const wchar_t  F = L'F';
-        static const wchar_t  Z = L'Z';
-        static const wchar_t  a = L'a';
-        static const wchar_t  f = L'f';
-        static const wchar_t  x = L'x';
-        static const wchar_t  z = L'z';
-        static const wchar_t  l = L'l';
-        static const wchar_t  h = L'h';
-        static const wchar_t  t = L't';
-        static const wchar_t  j = L'j';
-        static const wchar_t  d = L'd';
-        static const wchar_t  i = L'i';
-        static const wchar_t  u = L'u';
-        static const wchar_t  X = L'X';
-        static const wchar_t  o = L'o';
-        static const wchar_t  b = L'b';
-        static const wchar_t  e = L'e';
-        static const wchar_t  E = L'E';
-        static const wchar_t  g = L'g';
-        static const wchar_t  G = L'G';
-        static const wchar_t  c = L'c';
-        static const wchar_t  s = L's';
-        static const wchar_t  p = L'p';
-        static const wchar_t* nan() {return L"nan";}
-        static const wchar_t* fni() {return L"fni";}
-        static const wchar_t* fni_minus() {return L"fni-";}
-        static const wchar_t* fni_plus() {return L"fni+";}
         static const wchar_t  sharp = L'#';
         static const wchar_t  plus = L'+';
         static const wchar_t  minus = L'-';
         static const wchar_t  percent = L'%';
         static const wchar_t  star = L'*';
         static const wchar_t  dot = L'.';
+        static const wchar_t  a = L'a';
+        static const wchar_t  b = L'b';
+        static const wchar_t  c = L'c';
+        static const wchar_t  d = L'd';
+        static const wchar_t  e = L'e';
+        static const wchar_t  f = L'f';
+        static const wchar_t  g = L'g';
+        static const wchar_t  h = L'h';
+        static const wchar_t  i = L'i';
+        static const wchar_t  j = L'j';
+        static const wchar_t  k = L'k';
+        static const wchar_t  l = L'l';
+        static const wchar_t  m = L'm';
+        static const wchar_t  n = L'n';
+        static const wchar_t  o = L'o';
+        static const wchar_t  p = L'p';
+        static const wchar_t  q = L'q';
+        static const wchar_t  r = L'r';
+        static const wchar_t  s = L's';
+        static const wchar_t  t = L't';
+        static const wchar_t  u = L'u';
+        static const wchar_t  v = L'v';
+        static const wchar_t  w = L'w';
+        static const wchar_t  x = L'x';
+        static const wchar_t  y = L'y';
+        static const wchar_t  z = L'z';
+        static const wchar_t  A = L'A';
+        static const wchar_t  B = L'B';
+        static const wchar_t  C = L'C';
+        static const wchar_t  D = L'D';
+        static const wchar_t  E = L'E';
+        static const wchar_t  F = L'F';
+        static const wchar_t  G = L'G';
+        static const wchar_t  H = L'H';
+        static const wchar_t  I = L'I';
+        static const wchar_t  J = L'J';
+        static const wchar_t  K = L'K';
+        static const wchar_t  L = L'L';
+        static const wchar_t  M = L'M';
+        static const wchar_t  N = L'N';
+        static const wchar_t  O = L'O';
+        static const wchar_t  P = L'P';
+        static const wchar_t  Q = L'Q';
+        static const wchar_t  R = L'R';
+        static const wchar_t  S = L'S';
+        static const wchar_t  T = L'T';
+        static const wchar_t  U = L'U';
+        static const wchar_t  V = L'V';
+        static const wchar_t  W = L'W';
+        static const wchar_t  X = L'X';
+        static const wchar_t  Y = L'Y';
+        static const wchar_t  Z = L'Z';
+        static const wchar_t* empty() {return L"";}
+        static const wchar_t* nan() {return L"nan";}
+        static const wchar_t* fni() {return L"fni";}
+        static const wchar_t* fni_minus() {return L"fni-";}
+        static const wchar_t* fni_plus() {return L"fni+";}
         static       bool     is_atoz(wchar_t c) { return c >= L'a'&&c <= L'z'; }
         static       bool     is_AtoZ(wchar_t c) { return c >= L'A'&&c <= L'Z'; }
         static       bool     is_atof(wchar_t c) { return c >= L'a'&&c <= L'f'; }

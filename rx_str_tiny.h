@@ -9,7 +9,8 @@ namespace rx
 {
 #pragma pack(push,1)
     //-----------------------------------------------------
-    //封装一个简易的字符串功能,用于dtl容器内部的临时key字符串存储
+    //封装简易的字符串功能,用于dtl容器内部的临时key字符串存储和简单的字符串拼装,容量不能超过uint16_t的范围
+    //max_str_size==0为绑定外部缓冲区模式;否则为内置缓冲区模式
     template<class CT=char,uint16_t max_str_size=0>
     struct tiny_string_t
     {
@@ -38,7 +39,7 @@ namespace rx
         public:
             head_t():max_size(0),length(0),buff(NULL){}
             //绑定缓冲区指针与容量
-            void bind(ct* buf, uint16_t size) { buff = buf; max_size = size; length = 0; }
+            void bind(ct* buf, uint16_t size) { rx_assert(size<0xFFFF);buff = buf; max_size = size; length = 0; }
             //获知绑定的缓冲区的容量
             const uint16_t capacity()const{return max_size;}
 
@@ -50,11 +51,7 @@ namespace rx
         //-------------------------------------------------
         head_t<CT,max_str_size>  m_head;                    //真正使用的小串缓冲区对象
     private:
-        //-------------------------------------------------
-        //不禁用赋值运算符,默认的时候赋值就进行m_head的硬拷贝:指针就指针;数组就数组.
-        //tiny_string_t& operator=(const tiny_string_t&);
         tiny_string_t(const tiny_string_t&);
-        //-------------------------------------------------
     public:
         tiny_string_t() {}
         //绑定缓冲区,并告知缓冲区内部已有内容偏移
@@ -172,7 +169,7 @@ namespace rx
             return ret;
         }
         //-------------------------------------------------
-        //拼装字符
+        //拼装字符,最后需要检查size()是否等于capacity(),相等则代表出现了缓冲区不足的错误.
         tiny_string_t& operator<<(const CT c)
         {
             if (m_head.length < m_head.capacity() - 1)
@@ -186,10 +183,10 @@ namespace rx
             return *this;
         }
         //-------------------------------------------------
-        //拼装字符串
+        //拼装字符串,最后需要检查size()是否等于capacity(),相等则代表出现了缓冲区不足的错误.
         tiny_string_t& operator<<(const CT *str) { return (*this)(st::strlen(str),str); }
         //-------------------------------------------------
-        //拼装定长字符串
+        //拼装定长字符串,最后需要检查size()是否等于capacity(),相等则代表出现了缓冲区不足的错误.
         tiny_string_t& operator()(uint32_t len,const CT *str)
         {
             if (len == 0)
@@ -203,37 +200,65 @@ namespace rx
             return *this;
         }
         //-------------------------------------------------
-        //格式化拼装字符串
+        //格式化拼装,可连续调用,避免出现超长的format格式化串与参数列表;最后需要检查size()是否等于capacity(),相等则代表出现了缓冲区不足的错误.
         tiny_string_t& operator()(const CT *str,...)
         {
-            if (is_empty(str))
-                return *this;
-
             va_list ap;
             va_start(ap, str);
-            (*this)(str,ap);
+            operator()(str,ap);
             va_end(ap);
-
             return *this;
         }
         tiny_string_t& operator()(const CT *str, va_list ap)
         {
             if (is_empty(str))
                 return *this;
+
             //尝试在剩余的空间中放入指定字符串
-            int32_t rc = st::vsnprintf(m_head.buff + m_head.length, m_head.capacity() - m_head.length, str, ap);
-            if (rc>0)
-                m_head.length += rc;
-            else
-                m_head.length = m_head.capacity();          //标记错误
+            int remain = m_head.capacity()-m_head.length;
+            if (remain>0)
+            {
+                int len = st::vsnprintf(m_head.buff+m_head.length, remain, str, ap);
+                if (len <= remain)
+                    m_head.length += len;                         //拼装成功,缓冲区数据长度增加
+                else
+                    m_head.length = m_head.capacity();          //容量不足,标记错误
+            }
             return *this;
         }
         //-------------------------------------------------
-        //字符串拷贝赋值
+        //格式化拼装,可连续调用,避免出现超长的format格式化串与参数列表;最后需要检查size()是否等于capacity(),相等则代表出现了缓冲区不足的错误.
+        tiny_string_t& cat(const CT *str,...)
+        {
+            va_list	ap;
+            va_start(ap, str);
+            operator()(str,ap);
+            va_end(ap);
+            return *this;
+        }
+        //-------------------------------------------------
+        //字符串拷贝赋值,赋值溢出的时候,保留最大长度的值
         tiny_string_t& operator=(const CT *str) { assign(str); return *this; }
     };
 #pragma pack(pop)
+    //绑定外部缓冲区的拼装器
+    typedef tiny_string_t<char>        cat_t;
+    typedef tiny_string_t<wchar_t>     wcat_t;
 
+    //固定缓冲区的小串
+    typedef tiny_string_t<char,14>     str14_t;
+    typedef tiny_string_t<wchar_t,12>  wstr14_t;
+
+    typedef tiny_string_t<char,30>     str30_t;
+    typedef tiny_string_t<wchar_t,30>  wstr30_t;
+
+    typedef tiny_string_t<char,62>     str62_t;
+    typedef tiny_string_t<wchar_t,62>  wstr62_t;
+
+    rx_static_assert(sizeof(cat_t)==4+sizeof(size_t));
+    rx_static_assert(sizeof(str14_t)==16);
+    rx_static_assert(sizeof(str30_t)==32);
+    rx_static_assert(sizeof(str62_t)==64);
 }
 
 

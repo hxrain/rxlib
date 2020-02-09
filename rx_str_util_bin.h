@@ -17,7 +17,7 @@ namespace rx
         {
             while (C-->0)
             {
-                result[C]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+                result[C]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
                 num/=10;
             }
             return result;
@@ -27,9 +27,9 @@ namespace rx
         template<class CT>
         inline CT* dec2(uint32_t num,CT *result)
         {
-            result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             return result;
         }
         //-----------------------------------------------------
@@ -37,11 +37,11 @@ namespace rx
         template<class CT>
         inline CT* dec3(uint32_t num,CT *result)
         {
-            result[2]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[2]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             return result;
         }
 
@@ -50,13 +50,13 @@ namespace rx
         template<class CT>
         inline CT* dec4(uint32_t num,CT *result)
         {
-            result[3]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[3]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[2]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[2]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             return result;
         }
         //-----------------------------------------------------
@@ -64,21 +64,21 @@ namespace rx
         template<class CT>
         inline CT* dec8(uint32_t num,CT *result)
         {
-            result[7]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[7]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[6]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[6]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[5]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[5]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[4]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[4]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[3]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[3]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[2]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[2]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[1]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             num/=10;
-            result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero());
+            result[0]=(uint8_t)((uint8_t)(num%10)+sc<CT>::zero);
             return result;
         }
 

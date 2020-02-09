@@ -98,6 +98,53 @@ namespace rx
         rt.tdd_assert(st::isnumber(sc<CT>::hex_lwr(),0,true));
     }
 }
+
+inline void str_util_cat_1(rx_tdd_t &rt)
+{//小串拼装器测试.
+    char buff[15];
+    rx::cat_t cat(sizeof(buff),buff);
+    cat="cat test";
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"cat test")==0);
+    rt.tdd_assert(cat.size()==8);
+    cat.fmt("%s","cat test");
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"cat test")==0);
+    rt.tdd_assert(cat.size()==8);
+
+    cat<<'1'<<'2';
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"cat test12")==0);
+    rt.tdd_assert(cat.size()==10);
+
+    cat("3")("4")("%d",5);
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"cat test12345")==0);
+    rt.tdd_assert(cat.size()==13);
+
+    cat<<"6";
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"cat test123456")==0);
+    rt.tdd_assert(cat.size()==14);
+
+    cat<<"7";
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"cat test123456")==0);
+    rt.tdd_assert(cat.size()==cat.capacity());//放不进去了,所以标记出现错误了
+
+    cat="";
+    rt.tdd_assert(cat.size()==0);
+
+    cat="123456789012345";//赋值溢出的时候,保留最大长度的值
+    rt.tdd_assert(cat.size()==14);
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"12345678901234")==0);
+
+    cat="1234567890123";
+    rt.tdd_assert(cat.size()==13);
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"1234567890123")==0);
+
+    cat("%d",4);
+    rt.tdd_assert(cat.size()==14);
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"12345678901234")==0);
+
+    cat("%d",5);
+    rt.tdd_assert(cat.size()==cat.capacity());
+    rt.tdd_assert(rx::st::strcmp(cat.c_str(),"12345678901234")==0);
+}
 //---------------------------------------------------------
 rx_tdd(str_util_base)
 {
@@ -105,6 +152,7 @@ rx_tdd(str_util_base)
     str_util_base_2(*this);
     rx::str_util_base_3<char>(*this);
     rx::str_util_base_3<wchar_t>(*this);
+    str_util_cat_1(*this);
 }
 
 

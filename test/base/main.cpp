@@ -4,7 +4,7 @@
 #include "../ut_str_util_fmt.h"
 #include "../../rx_str_util_fmt.h"
 
-#if 0
+#if 1
 //---------------------------------------------------------
 //简单的缓冲区功能封装
 #include "../../rx_dtl_buff.h"
@@ -94,6 +94,7 @@
 #include "../../rx_dtl_hashlink.h"
 #include "../../rx_dtl_hashtbl.h"
 #include "../../rx_dtl_hashtbl_raw.h"
+#endif
 
 //---------------------------------------------------------
 //字符串相关功能与极小字符串功能封装,便于容器内置使用
@@ -104,6 +105,7 @@
 #include "../../rx_str_util_bin.h"
 #include "../../rx_str_util_misc.h"
 
+#if 1
 //---------------------------------------------------------
 //测试用例与运行计时功能
 #include "../../rx_tdd_tick.h"
