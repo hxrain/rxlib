@@ -101,7 +101,7 @@ namespace rx
         class fmt_follower_null
         {
         public:
-            typedef typename CT char_t;
+            typedef CT char_t;
             CT* buffer;
             size_t idx;
             size_t maxlen;
@@ -113,13 +113,14 @@ namespace rx
         template<class CT>
         class fmt_follower_char:public fmt_follower_null<CT>
         {
+            typedef fmt_follower_null<CT> super_t;
         public:
             void operator ()(CT character)
             {
                 if (!character)
                     return;
                 putchar(character);
-                ++idx;
+                ++super_t::idx;
             }
         };
 
@@ -127,11 +128,12 @@ namespace rx
         template<class CT>
         class fmt_follower_buff:public fmt_follower_null<CT>
         {
+            typedef fmt_follower_null<CT> super_t;
         public:
             void operator ()(CT character)
             {
-                if (idx < maxlen)
-                    buffer[idx++] = character;
+                if (super_t::idx < super_t::maxlen)
+                    super_t::buffer[super_t::idx++] = character;
             }
         };
 
@@ -267,7 +269,8 @@ namespace rx
         template<class OT,class LT>
         inline size_t _ntoa(OT& out, LT value, bool negative, unsigned long base=10, unsigned int prec=0, unsigned int width=0, unsigned int flags=0)
         {
-            OT::char_t buf[PRINTF_NTOA_BUFFER_SIZE];
+            typedef typename OT::char_t char_t;
+            char_t buf[PRINTF_NTOA_BUFFER_SIZE];
             size_t len = 0U;
             rx_assert(base<=16);
 
@@ -278,7 +281,7 @@ namespace rx
             // write if precision != 0 and value is != 0
             if (!(flags & FLAGS_PRECISION) || value)
             {//未指定精度或值不为零,则进行基数循环取余得到数字对应的字符
-                const OT::char_t *hex = flags & FLAGS_UPPERCASE ? sc<OT::char_t>::hex_upr() : sc<OT::char_t>::hex_lwr();
+                const char_t *hex = flags & FLAGS_UPPERCASE ? sc<char_t>::hex_upr() : sc<char_t>::hex_lwr();
                 do
                 {
                     const int digit = (value % base);
@@ -925,7 +928,7 @@ namespace rx
         inline char* utox(uint32_t value,CT* string) {return ntoa(value,string,16,true);}
         template<class CT>
         inline char* utox64(uint64_t value,CT* string) {return ntoa(value,string,16,true);}
-    
+
         //---------------------------------------------------------------------
         //通用格式化输出函数,解析结果到buffer缓冲区,内容长度不会超过count个字符
         //返回值:<0错误;>=0为输出内容长度,需要与count进行比较

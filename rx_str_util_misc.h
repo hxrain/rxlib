@@ -15,7 +15,7 @@ namespace rx
         CT  m_buff[32];
     public:
         n2str() { m_buff[0] = 0; }
-        n2str(uint32_t n, uint32_t r = 10) { st::ultoa(n, m_buff, r); }
+        n2str(uint32_t n, uint32_t r = 10) { st::utoa(n, m_buff, r); }
         n2str(int64_t n, uint32_t r = 10) { st::itoa64(n, m_buff, r); }
         operator CT* ()const { return m_buff; }
         operator const CT* ()const { return m_buff; }

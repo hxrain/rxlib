@@ -1237,7 +1237,7 @@ rx_tddm(fmt,"fmt :: types") {
   rx::st::sprintf(buffer, "%llu", 281474976710656);
   tdd_assert(!strcmp(buffer, "281474976710656"));
 
-  rx::st::sprintf(buffer, "%llu", 18446744073709551615);
+  rx::st::sprintf(buffer, "%llu", 18446744073709551615ull);
   tdd_assert(!strcmp(buffer, "18446744073709551615"));
 
   rx::st::sprintf(buffer, "%zu", 2147483647UL);
