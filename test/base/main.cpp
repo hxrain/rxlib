@@ -3,7 +3,8 @@
 */
 #include "../ut_str_util_fmt.h"
 #include "../../rx_str_util_fmt.h"
-#if 1
+
+#if 0
 //---------------------------------------------------------
 //简单的缓冲区功能封装
 #include "../../rx_dtl_buff.h"

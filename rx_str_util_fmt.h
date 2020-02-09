@@ -104,9 +104,11 @@ namespace rx
             typedef CT char_t;
             CT* buffer;
             size_t idx;
+            size_t count;
             size_t maxlen;
-            void bind(CT* buff,size_t maxl=(size_t)-1){buffer=buff;idx=0;maxlen=maxl;}
-            void operator ()(CT character){++idx;}
+            void bind(CT* buff,size_t maxl=(size_t)-1){buffer=buff;idx=0;count=0;maxlen=maxl;}
+            void operator ()(CT character){++count;}
+            void end(){}
         };
 
         //底层字符输出器,char,单字符输出到stdout
@@ -117,11 +119,10 @@ namespace rx
         public:
             void operator ()(CT character)
             {
-                if (!character)
-                    return;
                 putchar(character);
-                ++super_t::idx;
+                ++super_t::count;
             }
+            void end(){}
         };
 
         //底层字符输出器,buff,记录字符到缓冲区
@@ -134,6 +135,15 @@ namespace rx
             {
                 if (super_t::idx < super_t::maxlen)
                     super_t::buffer[super_t::idx++] = character;
+                ++super_t::count;
+            }
+            void end()
+            {
+                size_t last=super_t::maxlen-1;
+                if (super_t::idx < last)
+                    super_t::buffer[super_t::idx++] = 0;
+                else
+                    super_t::buffer[last] = 0;
             }
         };
 
@@ -143,6 +153,7 @@ namespace rx
         class fmt_follower_file:public fmt_follower_null<CT>
         {
             FILE *m_fp;
+            typedef fmt_follower_null<CT> super_t;
         public:
             fmt_follower_file(FILE *fp):m_fp(fp){}
             void operator ()(CT character)
@@ -151,8 +162,9 @@ namespace rx
                     fputc(character,m_fp);
                 else
                     fputwc(character,m_fp);
-                ++idx;
+                ++super_t::count;
             }
+            void end(){}
         };
 #endif
         //---------------------------------------------------------------------
@@ -852,13 +864,10 @@ namespace rx
                 }
             }
 
-            //尝试调整结束符的输出位置
-            if (out.idx>=out.maxlen)
-                out.idx=out.maxlen-1;
             //输出结束符
-            out(0);
+            out.end();
             //返回输出的最终长度(长度不包含结束符)
-            return (int)--out.idx;
+            return (int)out.count;
         }
     }
     //-------------------------------------------------------------------------

@@ -1412,17 +1412,17 @@ rx_tddm(fmt,"fmt :: ret value") {
 
   ret = rx::st::snprintf(buffer, 6, "0%s", "12345");
   tdd_assert(!strcmp(buffer, "01234"));
-  tdd_assert(ret == 5);  // '5' is truncated
+  tdd_assert(ret == 6);  // '5' is truncated
 
   ret = rx::st::snprintf(buffer, 6, "0%s", "1234567");
   tdd_assert(!strcmp(buffer, "01234"));
-  tdd_assert(ret == 5);  // '567' are truncated
+  tdd_assert(ret == 8);  // '567' are truncated
 
   ret = rx::st::snprintf(buffer, 10, "hello, world");
-  tdd_assert(ret == 9);
+  tdd_assert(ret == 12);
 
   ret = rx::st::snprintf(buffer, 3, "%d", 10000);
-  tdd_assert(ret == 2);
+  tdd_assert(ret == 5);
   tdd_assert(strlen(buffer) == 2U);
   tdd_assert(buffer[0] == '1');
   tdd_assert(buffer[1] == '0');
