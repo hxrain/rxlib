@@ -58,6 +58,7 @@ inline void rx_assert_fun(bool R,int LineNo,const char *File,const char *Msg,boo
     R=!!R;                                                  //便于设置断点使用的临时语句.出现断言后在这里设置断点,然后再进行键盘动作即可.
 }
 
+//分情况定义断言宏
 #if defined(RX_USE_ASSERT)
     #define rx_assert(R)            rx_assert_fun((R),__LINE__,__FILE__,"")
     #define rx_assert_msg(R,Msg)    rx_assert_fun((R),__LINE__,__FILE__,Msg)
