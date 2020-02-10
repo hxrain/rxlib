@@ -942,7 +942,7 @@ namespace rx
         //通用格式化输出函数,解析结果到buffer缓冲区,内容长度不会超过count个字符
         //返回值:<0错误;>=0为输出内容长度,需要与count进行比较
         template<class CT>
-        inline int vsnprintf(CT* buffer, size_t count, const CT* format, va_list va)
+        inline int vsnprintf(CT* buffer, const size_t count, const CT* format, va_list va)
         {
             if (buffer==NULL||count==0)
             {
@@ -970,7 +970,7 @@ namespace rx
 
         //返回值:<0错误;>=0为输出内容长度,需要与count进行比较
         template<class CT>
-        inline int snprintf(CT* buffer, size_t count, const CT* format, ...)
+        inline int snprintf(CT* buffer,const size_t count, const CT* format, ...)
         {
             va_list va;
             va_start(va, format);
@@ -1007,7 +1007,7 @@ namespace rx
         inline int vfprintf(FILE *stream, const CT *format,va_list ap)
         {
             fmt_imp::fmt_follower_file<CT> out(stream);
-            return fmt_imp::fmt_core(out, format, va);
+            return fmt_imp::fmt_core(out, format, ap);
         }
 
         template<class CT>
