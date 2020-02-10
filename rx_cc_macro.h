@@ -190,20 +190,20 @@
         #define RX_CC_VER_MAJOR             _MAJOR_REV
         #define RX_CC_VER_MINOR             _MINOR_REV
     #elif RX_CC == RX_CC_VC
-        #define RX_CC_NAME                  "Microsoft Visual Studio"
+        #define RX_CC_NAME                  "Microsoft Visual C++"
         #ifdef _MSC_FULL_VER
             #if _MSC_FULL_VER < 100000000
-                #define RX_CC_VER_MAJOR     (_MSC_FULL_VER)/1000000
-                #define RX_CC_VER_MINOR     ((_MSC_FULL_VER)/10000)%100
-                #define RX_CC_VER_PATCH     ((_MSC_FULL_VER)/10000)%10000
+                #define RX_CC_VER_MAJOR     ((_MSC_FULL_VER)/1000000)
+                #define RX_CC_VER_MINOR     (((_MSC_FULL_VER)/10000)%100)
+                #define RX_CC_VER_PATCH     (((_MSC_FULL_VER)/10000)%10000)
             #else
-                #define RX_CC_VER_MAJOR     (_MSC_FULL_VER)/10000000
-                #define RX_CC_VER_MINOR     ((_MSC_FULL_VER)/100000)%100
-                #define RX_CC_VER_PATCH     ((_MSC_FULL_VER)/100000)%10000
+                #define RX_CC_VER_MAJOR     ((_MSC_FULL_VER)/10000000)
+                #define RX_CC_VER_MINOR     (((_MSC_FULL_VER)/100000)%100)
+                #define RX_CC_VER_PATCH     (((_MSC_FULL_VER)/100000)%10000)
             #endif
         #else
-            #define RX_CC_VER_MAJOR         (_MSC_VER)/100
-            #define RX_CC_VER_MINOR         (_MSC_VER)%100
+            #define RX_CC_VER_MAJOR         ((_MSC_VER)/100)
+            #define RX_CC_VER_MINOR         ((_MSC_VER)%100)
         #endif
         #ifdef _MSC_BUILD
             #define RX_CC_VER_BUILD         _MSC_BUILD
@@ -423,7 +423,7 @@
 
     #define is_empty(str)                   (str==NULL||str[0]==0)          //判断字符串是否为空(空指针或首字节为0)
 
-    //将str字符串中的连续两个字节,转换为字符集编码
+    //将str字符串中的连续两个字节,转换为字符集编码值
     #define str2code(str) ((((uint8_t)str[0]) << 8) | (uint8_t)str[1])
 
     //将原始指针ptr从头部偏移offset的位置,转换为类型type的指针
@@ -475,22 +475,123 @@
 
 
     //-----------------------------------------------------
-    //构造rx_cc_desc()宏或函数,便于获取当前编译期信息
     #include <stdio.h>
-
-    //visual studio, eg : "CPU:X64(LE)/Microsoft Visual Studio(19.0.1900.1)/64Bit"
-    inline const char* rx_cc_desc()
-    {
-        static char desc[128];
-        _snprintf(desc,sizeof(desc),"CCENV=%s/OS=%s/CPU=%s(%s)/CC=%s<%d.%d.%d.%d>/WORDS=%dBit",
-                 RX_CC_ENV_NAME,RX_OS_NAME,RX_CPU_ARCH, RX_CPU_LEBE, RX_CC_NAME,
-                 RX_CC_VER_MAJOR, RX_CC_VER_MINOR, RX_CC_VER_PATCH, RX_CC_VER_BUILD, RX_CC_BIT);
-        return desc;
-    }
-
     #include <stdint.h>
+    #include <stddef.h>
+    #include <stdarg.h>
     rx_static_assert(sizeof(int64_t)==sizeof(long long));
     rx_static_assert(sizeof(size_t)==sizeof(ptrdiff_t));
+
+    //-----------------------------------------------------
+    //超简单的无符号数字转字符串函数.
+    //返回值:本次输出字符串长度
+    inline uint8_t u2s(uint32_t num,char *result)
+    {
+        if (num==0)
+        {
+            result[0]='0';
+            result[1]=0;
+            return 1;
+        }           
+
+        const uint8_t MAX_LEN=10;               //最大数字串长度
+        uint8_t N=MAX_LEN;
+        char buff[MAX_LEN];
+        while (N-->0)                           //进行循环取余反向生成最大长度数字串,前部'0'填充
+        {
+            buff[N]=((char)(num%10)+'0');
+            num/=10;
+        }
+        uint8_t ret=0;
+        for(uint8_t i=0;i<MAX_LEN;++i)          //进行正向扫描,跳过前导'0'并将有效数字输出
+        {
+            if (ret==0&&buff[i]=='0')
+                continue;
+            result[ret++]=buff[i];
+        }
+        
+        result[ret]=0;
+        return ret;
+    }
+
+    //-----------------------------------------------------
+    //超简单的单参数字符串格式化函数,如snfmt(buff,"abc<%u>",123),在buff中生成结果为"abc<123>"
+    //返回值:生成结果的长度
+    inline uint8_t vsnfmt(char* buff,const char* fmt,va_list ap)
+    {
+        char c;
+        uint8_t ret=0;
+        while((c=*fmt))
+        {
+            if (c!='%')
+            {//不是特殊字符,直接复制过去
+                buff[ret++]=c;
+                ++fmt;
+                continue;
+            }
+            switch(*(fmt+1))
+            {
+                case '%':
+                {//特殊字符的转义字符,直接复制过去
+                    buff[ret++]='%';
+                    fmt+=2;
+                    continue;
+                }
+                case 'u':
+                {//无符号数字参数
+                    ret+=u2s(va_arg(ap,uint32_t),buff+ret);
+                    fmt+=2;
+                    break;
+                }
+                case 's':
+                {//字符串参数
+                    const char* str=va_arg(ap,char*);
+                    while(*str)
+                        buff[ret++]=*str++;
+                    fmt+=2;
+                    break;
+                }
+                default:
+                    buff[ret++]='%';
+                    ++fmt;
+            }
+        }
+        buff[ret]=0;
+        return ret;
+    }
+    //-----------------------------------------------------
+    inline uint8_t snfmt(char* buff,const char* fmt,...)
+    {
+        va_list ap;
+        va_start(ap,fmt);
+        uint8_t ret=vsnfmt(buff,fmt,ap);
+        va_end(ap);
+        return ret;
+    }
+
+    //-----------------------------------------------------
+    //简易轻量级的字符串缓冲区格式化拼装功能
+    template<uint32_t maxsize>
+    class sncat
+    {
+    public:
+        char str[maxsize];
+        uint32_t size;
+        sncat():size(0){str[0]=0;}
+        sncat& operator () (const char* fmt,...) {va_list ap;va_start(ap,fmt);size+=vsnfmt(str+size,fmt,ap);va_end(ap);return *this;}
+    };
+
+    //-----------------------------------------------------
+    //构造rx_cc_desc()宏或函数,便于获取当前编译期信息
+    //visual studio, eg : "CPU=X64(LE)/OS=win64/CC=<native>'Microsoft Visual C++'<16.0.1600.1>/WORDS=64Bit"
+    inline const char* rx_cc_desc()
+    {
+        static sncat<128> scat;
+        scat("CPU=%s",RX_CPU_ARCH)("(%s)",RX_CPU_LEBE)("/OS=%s",RX_OS_NAME)("/CC=<%s>",RX_CC_ENV_NAME)("'%s'",RX_CC_NAME)
+            ("<%u",RX_CC_VER_MAJOR)(".%u",RX_CC_VER_MINOR)(".%u",RX_CC_VER_PATCH)(".%u>",RX_CC_VER_BUILD)("/WORDS=%uBit",RX_CC_BIT);
+        return scat.str;
+    }
+
     //-----------------------------------------------------
     //定义常用的数学常量
     static const double MATH_E        =2.71828182845904523536   ;// e
