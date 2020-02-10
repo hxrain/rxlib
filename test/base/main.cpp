@@ -1,9 +1,6 @@
 #define RX_USE_TDD_TICK 1
 /*
 */
-#include "../ut_str_util_fmt.h"
-#include "../../rx_str_util_fmt.h"
-
 #if 1
 //---------------------------------------------------------
 //简单的缓冲区功能封装
@@ -94,7 +91,6 @@
 #include "../../rx_dtl_hashlink.h"
 #include "../../rx_dtl_hashtbl.h"
 #include "../../rx_dtl_hashtbl_raw.h"
-#endif
 
 //---------------------------------------------------------
 //字符串相关功能与极小字符串功能封装,便于容器内置使用
@@ -104,8 +100,10 @@
 #include "../../rx_str_util_ext.h"
 #include "../../rx_str_util_bin.h"
 #include "../../rx_str_util_misc.h"
+//无外部依赖的字符串格式化功能封装
+#include "../ut_str_util_fmt.h"
+#include "../../rx_str_util_fmt.h"
 
-#if 1
 //---------------------------------------------------------
 //测试用例与运行计时功能
 #include "../../rx_tdd_tick.h"
@@ -198,6 +196,7 @@
 //原子操作
 #include "../ut_cc_atomic.h"
 #include "../../rx_cc_atomic.h"
+
 #endif
 //---------------------------------------------------------
 //测试驱动开发/单元测试框架
@@ -209,22 +208,12 @@
 //编译器预定义宏功能封装
 #include "../ut_cc_macro.h"
 #include "../../rx_cc_macro.h"
-
-//---------------------------------------------------------
-#include <stdio.h>
-#include <iostream>
 //---------------------------------------------------------
 
 
 int main()
 {
-    //rx_show_msg("%d\n", sizeof(std::string));
-    //rx_show_msg("%d\n", sizeof(long long));
-
-    std::cout << "Hello RX TDD!\n" << rx_cc_desc() << std::endl << std::endl;
-
-    rx_static_assert(1);
-
+    printf("Hello RX TDD!\n%s\n",rx_cc_desc());
     rx_tdd_run(tdd_level_std);
 
     getchar();

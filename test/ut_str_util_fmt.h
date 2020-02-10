@@ -1384,9 +1384,9 @@ rx_tddm(fmt,"fmt :: buffer length") {
   char buffer[100];
   int ret;
 
-  ret = rx::st::snprintf((char*)nullptr, 10, "%s", "Test");
+  ret = rx::st::snprintf((char*)NULL, 10, "%s", "Test");
   tdd_assert(ret == 4);
-  ret = rx::st::snprintf((char*)nullptr, 0, "%s", "Test");
+  ret = rx::st::snprintf((char*)NULL, 0, "%s", "Test");
   tdd_assert(ret == 4);
 
   buffer[0] = (char)0xA5;
