@@ -4,6 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_str_util_std.h"
 #include "rx_str_util_ext.h"
+#include "rx_str_util_fmt.h"
 
 namespace rx
 {
