@@ -10,7 +10,7 @@
 #include "rx_str_util_bin.h"
 
 /*
-    <定长哈希表>
+    <定长静态哈希表>
 
     //hash表比较器
     class hashtbl_cmp_t;

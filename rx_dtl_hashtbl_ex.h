@@ -3,7 +3,9 @@
 
 #include "rx_dtl_hashtbl.h"
 #include "rx_mem_alloc_cntr.h"
-
+/*
+    定长动态分配的哈希表
+*/
 namespace rx
 {
     //-----------------------------------------------------

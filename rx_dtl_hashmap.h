@@ -9,7 +9,7 @@
 #include "rx_str_tiny.h"
 
 /*
-    <变长哈希映射容器,相当于对跳表进行了哈希分段>
+    <变长动态哈希map容器,哈希分槽再结合跳表>
 */
 
 namespace rx

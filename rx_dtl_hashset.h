@@ -9,7 +9,7 @@
 #include "rx_str_tiny.h"
 
 /*
-    <定长哈希集合>
+    <定长静态哈希集合>
 
     //hash集比较器
     class hashset_cmp_t;
