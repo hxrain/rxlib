@@ -26,7 +26,7 @@ namespace rx{
         }
 
         //≤‚ ‘øÈ±ﬂ‘µ≤È’“
-        for(uint32_t i=0;i<ucs2_blocks_range_size;++i)
+        for(uint32_t i=0;i<ucs2_blocks_range_size-1;++i)
         {
             uint32_t c=ucs2_blocks_range[i].code_begin;
             uint32_t idx=query_ucs_block_edge(c);
@@ -34,7 +34,7 @@ namespace rx{
             rt.tdd_assert(idx!=ucs2_blocks_range_size);
             rt.tdd_assert(it.code_begin==c);
             const ucs2_block_item_t &itn=ucs2_blocks_range[idx+1];
-            rt.tdd_assert(itn.code_begin>c);
+            rt.msg_assert(itn.code_begin>c,"next_idx<%d> begin<%x> char<%x>",idx+1,itn.code_begin,c);
         }
     }
 

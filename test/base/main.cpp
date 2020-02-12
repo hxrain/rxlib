@@ -5,7 +5,7 @@
 //---------------------------------------------------------
 //简单的缓冲区功能封装
 #include "../../rx_dtl_buff.h"
-
+#include "../../rx_dtl_alg.h"
 //---------------------------------------------------------
 //封装数组与别名数组
 #include "../ut_dtl_array.h"
@@ -17,6 +17,11 @@
 #include "../ut_str_uni2gbk.h"
 #include "../../rx_ucs2_gbk2uni.h"
 #include "../../rx_ucs2_uni2gbk.h"
+#include "../../rx_ucs2_rawgbk.h"
+
+//ucs字符集杂项功能,判断字符类型,全半角转换,unicode分块等等.
+#include "../ut_ucs_misc.h"
+#include "../../rx_ucs2_misc.h"
 
 //---------------------------------------------------------
 //key基于bit分段的基数树
