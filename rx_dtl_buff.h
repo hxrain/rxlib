@@ -65,11 +65,23 @@ namespace rx
         //拼接数据
         bool cat(const uint8_t *dat, uint32_t size)
         {
+            if (dat==NULL || size==0)
+                return false;
             if (m_size + size > m_capacity)
                 return false;
             memcpy(m_ptr + m_size, dat, size);
             m_size += size;
             return true;
+        }
+        buff_i& operator()(const uint8_t *dat, uint32_t size)
+        {
+            cat(dat,size);
+            return *this;
+        }
+        buff_i& operator<<(const buff_i& buff)
+        {
+            cat(buff.m_ptr,buff.m_size);
+            return *this;
         }
     protected:
         //构造与析构函数
@@ -142,10 +154,7 @@ namespace rx
         //数据复制
         buff_t& operator=(const super_t& S)
         {
-            if (super_t::m_capacity!=S.capacity())
-                make<uint8_t>(S.capacity());                //容量不足时重新分配
-
-            if (!super_t::capacity())
+            if (!make<uint8_t>(S.capacity()))               //判断容量不足则重新分配
                 return *this;                               //内存不足直接返回
 
             super_t::set(S.ptr(),S.size());
