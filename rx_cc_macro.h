@@ -515,9 +515,9 @@
     }
 
     //-----------------------------------------------------
-    //超简单的单参数字符串格式化函数,如snfmt(buff,"abc<%u>",123),在buff中生成结果为"abc<123>"
+    //超简单的单参数字符串格式化函数,如sfmt(buff,"abc<%u>",123),在buff中生成结果为"abc<123>"
     //返回值:生成结果的长度
-    inline uint8_t vsnfmt(char* buff,const char* fmt,va_list ap)
+    inline uint8_t vsfmt(char* buff,const char* fmt,va_list ap)
     {
         char c;
         uint8_t ret=0;
@@ -560,11 +560,11 @@
         return ret;
     }
     //-----------------------------------------------------
-    inline uint8_t snfmt(char* buff,const char* fmt,...)
+    inline uint8_t sfmt(char* buff,const char* fmt,...)
     {
         va_list ap;
         va_start(ap,fmt);
-        uint8_t ret=vsnfmt(buff,fmt,ap);
+        uint8_t ret=vsfmt(buff,fmt,ap);
         va_end(ap);
         return ret;
     }
@@ -578,9 +578,17 @@
         char str[maxsize];
         uint32_t size;
         sncat():size(0){str[0]=0;}
-        sncat& operator () (const char* fmt,...) {va_list ap;va_start(ap,fmt);size+=vsnfmt(str+size,fmt,ap);va_end(ap);return *this;}
+        sncat& operator () (const char* fmt,...) {va_list ap;va_start(ap,fmt);size+=vsfmt(str+size,fmt,ap);va_end(ap);return *this;}
     };
-
+    template<>
+    class sncat<0>
+    {
+    public:
+        char *str;
+        uint32_t size;
+        sncat(char* buff):str(buff),size(0){str[0]=0;}
+        sncat& operator () (const char* fmt,...) {va_list ap;va_start(ap,fmt);size+=vsfmt(str+size,fmt,ap);va_end(ap);return *this;}
+    };
     //-----------------------------------------------------
     //构造rx_cc_desc()宏或函数,便于获取当前编译期信息
     //visual studio, eg : "CPU=X64(LE)/OS=win64/CC=<native>'Microsoft Visual C++'<16.0.1600.1>/WORDS=64Bit"
