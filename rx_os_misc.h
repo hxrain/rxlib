@@ -3,7 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
-#include "rx_str_util_std.h"
+#include "rx_str_util_ext.h"
 
 
 #if RX_OS_WIN
@@ -11,9 +11,9 @@ namespace rx
 {
     //-----------------------------------------------------
     //通过系统错误代码得到错误消息描述
-    class os_err_msg
+    class os_errmsg_t
     {
-        char m_msg[512];
+        char m_buff[512];
     public:
         //-------------------------------------------------
         //根据错误代码生成对应的错误消息:消息缓冲区;缓冲区长度;错误号;
@@ -32,14 +32,25 @@ namespace rx
         //得到错误消息
         inline char* msg()
         {
-            uint32_t eno=GetLastError();
-            return msg(m_msg,sizeof(m_msg),eno);
+            uint32_t eno;
+            return msg(eno);
         }
         //同时得到错误号与错误消息
         inline char* msg(uint32_t &eno)
         {
+            sncat<sizeof(m_buff)> cat;
             eno=GetLastError();
-            return msg(m_msg,sizeof(m_msg),eno);
+            cat("OSError:<%u>:",eno);
+            return msg(cat.str+cat.size,sizeof(m_buff)-cat.size,eno);
+        }
+        //-------------------------------------------------
+        //得到完整的错误消息并格式化用户提示信息
+        inline char* msg(const char* tip)
+        {
+            sncat<sizeof(m_buff)> cat;
+            uint32_t eno=GetLastError();
+            cat("OSError:<%u>:",eno)("Tip:<%s>:",tip);
+            return msg(cat.str+cat.size,sizeof(m_buff)-cat.size,eno);
         }
     };
 
@@ -168,8 +179,9 @@ namespace rx
 {
     //-----------------------------------------------------
     //通过系统错误代码得到错误消息描述
-    class os_err_msg
+    class os_errmsg_t
     {
+        char m_buff[512];
     public:
         //-------------------------------------------------
         //根据错误代码生成对应的错误消息:消息缓冲区;缓冲区长度;错误号;
@@ -188,13 +200,25 @@ namespace rx
         //得到错误消息
         inline char* msg()
         {
-            return strerror(errno);
+            uint32_t eno;
+            return msg(eno);
         }
         //同时得到错误号与错误消息
         inline char* msg(uint32_t &eno)
         {
+            sncat<sizeof(m_buff)> cat;
             eno=errno;
-            return strerror(errno);
+            cat("OSError:<%u>:",eno);
+            return msg(cat.str+cat.size,sizeof(m_buff)-cat.size,eno);
+        }
+        //-------------------------------------------------
+        //得到完整的错误消息并格式化用户提示信息
+        inline char* msg(const char* tip)
+        {
+            sncat<sizeof(m_buff)> cat;
+            uint32_t eno=errno;
+            cat("OSError:<%u>:",eno)("Tip:<%s>:",tip);
+            return msg(cat.str+cat.size,sizeof(m_buff)-cat.size,eno);
         }
     };
 }

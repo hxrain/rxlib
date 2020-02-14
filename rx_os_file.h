@@ -5,6 +5,7 @@
 #include "rx_assert.h"
 #include "rx_str_util_std.h"
 #include "rx_ct_error.h"
+#include <string>
 
 #if RX_OS_WIN
 namespace rx
