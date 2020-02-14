@@ -25,8 +25,8 @@ namespace rx
     inline uint32_t ucs_sbc_to_ascii(uint32_t code,bool conv_space=true)
     {
         //全角符号范围,包含部分与ascii兼容的全角标点/大小字母/小写字母.
-        const uint32_t _SBC_CASE_SIGN_LOW = L'！';           //全角标点符号开始,0xff01
-        const uint32_t _SBC_CASE_SIGN_HIGH = L'～';          //全角标点符号结束,0xff5e
+        const uint32_t _SBC_CASE_SIGN_LOW = 0xff01;         //全角标点符号开始,0xff01,L'！'
+        const uint32_t _SBC_CASE_SIGN_HIGH = 0xff5e;          //全角标点符号结束,0xff5e,L'～'
         const uint32_t _SBC_CASE_LOWER_DIFF = _SBC_CASE_SIGN_LOW - L'!'; //全角标点符号与半角标点符号间的距离,0xfee0
 
         if ((_SBC_CASE_SIGN_LOW <= code)&&(code <= _SBC_CASE_SIGN_HIGH))
@@ -60,7 +60,7 @@ namespace rx
         return 0;
     }
 
-    //判断uc是否为全角数字 
+    //判断uc是否为全角数字
     inline bool is_ucs_sbc_digit(uint32_t uc)
     {
         if (uc >= 0xff10 && uc <= 0xff19)

@@ -10,6 +10,40 @@
 namespace rx
 {
     //-----------------------------------------------------
+    //通过系统错误代码得到错误消息描述
+    class os_err_msg
+    {
+        char m_msg[512];
+    public:
+        //-------------------------------------------------
+        //根据错误代码生成对应的错误消息:消息缓冲区;缓冲区长度;错误号;
+        static inline char* msg(char *buff,uint32_t size,uint32_t eno=GetLastError())
+        {
+            if (!buff) return NULL;
+            buff[0]=0;
+            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,NULL,eno,MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),(LPTSTR) buff,size,NULL);
+            if (!buff[0]) return NULL;
+            return buff;
+        }
+        //-------------------------------------------------
+        //得到错误号
+        static inline uint32_t err(){return GetLastError();}
+        //-------------------------------------------------
+        //得到错误消息
+        inline char* msg()
+        {
+            uint32_t eno=GetLastError();
+            return msg(m_msg,sizeof(m_msg),eno);
+        }
+        //同时得到错误号与错误消息
+        inline char* msg(uint32_t &eno)
+        {
+            eno=GetLastError();
+            return msg(m_msg,sizeof(m_msg),eno);
+        }
+    };
+
+    //-----------------------------------------------------
     //安全描述符管理类
     //这个类的目的:在后台服务中与前台标准APP共同访问一个全局对象时,使用这一个标准描述符,就能避免系统权限的问题
     class os_security_desc_t
@@ -25,7 +59,7 @@ namespace rx
             SID_IDENTIFIER_AUTHORITY SiaWorld = { 0 };
             SiaWorld.Value[5] = 1;
 
-            DWORD dwAclLength;
+            uint32_t dwAclLength;
             PSID psidEveryone = NULL;
             PACL ACL_Ptr = NULL;
             BOOL bResult = FALSE;
@@ -45,7 +79,7 @@ namespace rx
                 }
 
                 //计算ACL的长度
-                dwAclLength = sizeof(ACL) + sizeof(ACCESS_ALLOWED_ACE) - sizeof(DWORD) + GetLengthSid(psidEveryone);
+                dwAclLength = sizeof(ACL) + sizeof(ACCESS_ALLOWED_ACE) - sizeof(uint32_t) + GetLengthSid(psidEveryone);
 
                 //给ACL分配内存
                 ACL_Ptr = (PACL)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwAclLength);
@@ -132,6 +166,37 @@ namespace rx
     #include <unistd.h>
 namespace rx
 {
+    //-----------------------------------------------------
+    //通过系统错误代码得到错误消息描述
+    class os_err_msg
+    {
+    public:
+        //-------------------------------------------------
+        //根据错误代码生成对应的错误消息:消息缓冲区;缓冲区长度;错误号;
+        static inline char* msg(char *buff,uint32_t size,uint32_t eno=errno)
+        {
+            if (!buff) return NULL;
+            buff[0]=0;
+            st::strcpy(buff,size,strerror(eno));
+            if (!buff[0]) return NULL;
+            return buff;
+        }
+        //-------------------------------------------------
+        //得到错误号
+        static inline uint32_t err(){return errno;}
+        //-------------------------------------------------
+        //得到错误消息
+        inline char* msg()
+        {
+            return strerror(errno);
+        }
+        //同时得到错误号与错误消息
+        inline char* msg(uint32_t &eno)
+        {
+            eno=errno;
+            return strerror(errno);
+        }
+    };
 }
 
 #endif
