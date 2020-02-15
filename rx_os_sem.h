@@ -63,7 +63,7 @@ namespace rx
             return 0 == sem_post(&m_handle);
         }
     };
-    #elif RX_OS_WIN
+    #elif RX_IS_OS_WIN
     //---------------------------------------------------------
     //对SEM旗标/信号量进行对象化功能封装
     class semp_t

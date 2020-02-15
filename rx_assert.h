@@ -30,7 +30,7 @@ inline void rx_show_msg(const char* Msg,...)
 
     #if defined(RX_IS_CONSOLE) && RX_IS_CONSOLE
         printf("%s\r\n",Txt);
-    #elif RX_OS_WIN
+    #elif RX_IS_OS_WIN
         MessageBoxA(NULL,Txt,"Message",MB_OK);
     #else
         printf("%s\r\n",Txt);

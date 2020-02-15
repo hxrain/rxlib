@@ -7,7 +7,7 @@
 #include "rx_ct_error.h"
 #include <string>
 
-#if RX_OS_WIN
+#if RX_IS_OS_WIN
 namespace rx
 {
     //-----------------------------------------------------

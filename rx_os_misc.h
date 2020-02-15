@@ -6,7 +6,7 @@
 #include "rx_str_util_ext.h"
 
 
-#if RX_OS_WIN
+#if RX_IS_OS_WIN
 namespace rx
 {
     //-----------------------------------------------------

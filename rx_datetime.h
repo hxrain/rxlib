@@ -8,7 +8,7 @@
     #include <time.h>
     #include "rx_str_util_fmt.h"
 
-#if defined(RX_OS_WIN)
+#if defined(RX_IS_OS_WIN)
     #include <winsock.h>
 
     #if !defined(HAVE_STRUCT_TIMESPEC)&&!defined(_TIMESPEC_DEFINED)

@@ -7,7 +7,7 @@
 #include "rx_os_file.h"
 #include "rx_os_misc.h"
 
-#if RX_OS_WIN
+#if RX_IS_OS_WIN
 namespace rx
 {
     //-----------------------------------------------------

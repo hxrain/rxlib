@@ -32,7 +32,7 @@
 
     #define rx_mm_pause() __asm__ __volatile__ ("pause\n")
 
-#elif RX_OS_WIN
+#elif RX_IS_OS_WIN
 
     #include <process.h>
     //让线程休眠指定的时间(毫秒)
@@ -266,7 +266,7 @@ namespace rx
         //--------------------------------------------------
     };
 }
-#elif RX_OS_WIN
+#elif RX_IS_OS_WIN
 namespace rx
 {
     //------------------------------------------------------

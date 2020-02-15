@@ -146,7 +146,7 @@ rx_tdd(localtime_base)
 
 rx_tdd_rtl(localtime_loop,tdd_level_slow)
 {
-#if defined(RX_OS_WIN)
+#if defined(RX_IS_OS_WIN)
     test_localtime_loop(*this);
 #endif
     test_localtime_base_1(*this);

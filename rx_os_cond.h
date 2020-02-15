@@ -80,7 +80,7 @@ namespace rx
                 return 0==pthread_cond_signal(&m_cond);
         }
     };
-    #elif RX_OS_WIN
+    #elif RX_IS_OS_WIN
     //---------------------------------------------------------
     //对条件变量进行功能封装
     class cond_t

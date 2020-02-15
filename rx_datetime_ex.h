@@ -72,7 +72,7 @@ inline bool rx_get_tick_us(struct timespec &ts, int32_t ms)
     return true;
 }
 
-#elif defined(RX_OS_WIN)
+#elif defined(RX_IS_OS_WIN)
 //---------------------------------------------------------
 //获取当前系统开机后的滴答数(微秒)
 inline uint64_t rx_get_tick_us()

@@ -391,7 +391,7 @@
     #endif
 
     #if (RX_OS==RX_OS_WIN32)||(RX_OS==RX_OS_WIN64)
-        #define RX_OS_WIN                   4
+        #define RX_IS_OS_WIN                4
     #endif
 
     #if defined(__linux__)
@@ -450,7 +450,7 @@
     typedef void* ptr_t;
     //-----------------------------------------------------
     //根据上面的各类分析,引入各个平台的开发基础头文件
-    #if RX_OS_WIN
+    #if RX_IS_OS_WIN
         #ifndef _WIN32_WINNT
             #define _WIN32_WINNT 0x0600
         #endif

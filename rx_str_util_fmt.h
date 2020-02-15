@@ -7,7 +7,7 @@
 
 #include "rx_str_util_std.h"
 
-#if (RX_OS==RX_OS_WIN||RX_OS_POSIX)&&!defined(RX_STR_USE_FILE)
+#if (RX_OS==RX_IS_OS_WIN||RX_OS_POSIX)&&!defined(RX_STR_USE_FILE)
     #define RX_STR_USE_FILE 1
 #endif
 

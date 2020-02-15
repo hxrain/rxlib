@@ -314,7 +314,7 @@ namespace rx
         //-------------------------------------------------
     };
 
-#elif RX_OS_WIN
+#elif RX_IS_OS_WIN
     //获取当前线程id
     inline size_t get_tid(){return GetCurrentThreadId();}
     //获取当前进程id

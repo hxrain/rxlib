@@ -3,7 +3,7 @@
 
 #include "../rx_os_file.h"
 #include "../rx_tdd.h"
-
+#include <string>
 //---------------------------------------------------------
 inline void ut_os_file_base_1(rx_tdd_t &rt)
 {
