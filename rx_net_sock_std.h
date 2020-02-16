@@ -394,7 +394,7 @@ namespace rx
         //-------------------------------------------------
         //期待发送:缓冲区;待发送的数据长度;发送操作标记
         //返回值:<0有错误;>=0告知实际发送的长度(因为底层缓冲区的剩余空间可能不够大);
-        inline int32_t send(socket_t sock,const uint8_t* Buf,uint32_t BufLen,int Flag=0)
+        inline int32_t send(socket_t sock,const void* Buf,uint32_t BufLen,int Flag=0)
         {
             return ::send(sock,(char*)Buf,BufLen,Flag);
         }

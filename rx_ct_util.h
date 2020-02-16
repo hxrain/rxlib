@@ -120,21 +120,6 @@ namespace rx
     };
 
     //=====================================================
-    //自定义实现最大值最小值比较功能
-    //=====================================================
-    template <class T>
-    inline const T& Min(const T& A, const T& B) { return B < A ? B : A; }
-    template <class T>
-    inline const T& Max(const T& A, const T& B) {  return  A < B ? B : A; }
-    template <class T>
-    inline const T& Min(const T& A, const T& B,const T& C) { return Min(Min(A,B),C); }
-    template <class T>
-    inline const T& Max(const T& A, const T& B,const T& C) { return Max(Max(A,B),C); }
-
-    template <class T>
-    inline void Swap(const T& A, const T& B) { T C(A); A = B; B = C; }
-
-    //=====================================================
     //静态函数,计算Log2(num),其中num必须是2的整数次幂
     template<uint32_t num> class LOG2 {};
     template<>class LOG2<0x00000001> { public:enum { result = 0  }; };
@@ -269,7 +254,7 @@ namespace rx
     #define byte_ptr(p,offset) (((uint8_t*)p)+offset)
 
     //=====================================================
-    //判断指针指向的数据是否为0
+    //判断指针指向的联系n字节数据是否为0
     #define equ_zero_1(p)  (*(uint8_t*)p==0)
     #define equ_zero_2(p)  (*(uint16_t*)p==0)
     #define equ_zero_3(p)  (equ_zero_2 (p)&&equ_zero_1(byte_ptr(p,2)))

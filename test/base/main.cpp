@@ -1,8 +1,10 @@
 #define RX_USE_TDD_TICK 1
 /*
 */
+
+#include "../../rx_net_sock_ext.h"
 #include "../../rx_net_sock_std.h"
-#if 1
+#if 0
 //---------------------------------------------------------
 //简单的缓冲区功能封装
 #include "../../rx_dtl_buff.h"
@@ -214,12 +216,13 @@
 //编译器预定义宏功能封装
 #include "../ut_cc_macro.h"
 #include "../../rx_cc_macro.h"
+#include "../../rx_cc_base.h"
 //---------------------------------------------------------
 
 
 int main()
 {
-    printf("Hello RX TDD!\n%s\n",rx_cc_desc());
+    printf("Hello RX TDD!\n%s\n",rx::os_cc_desc());
     rx_tdd_run(tdd_level_std);
 
     getchar();

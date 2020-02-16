@@ -48,7 +48,7 @@ public:
     static void test(rx_tdd_t &rt,const char* ms_type,uint32_t seed)
     {
         tdd_tt(tt,ms_type, "mem_alloc_test");
-        ptr_t   ptr_array[array_size];
+        rx::ptr_t   ptr_array[array_size];
         rx::rand_skeeto_bsa_t rnd;
         ma_t ma;
         rnd.seed(seed);
