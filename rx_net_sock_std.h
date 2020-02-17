@@ -72,7 +72,17 @@
 
 namespace rx
 {
+    //-----------------------------------------------------
+    //定义简单的IP地址串存储空间
+    typedef struct ip_str_t
+    {
+        char addr[16];                                      //暂时先仅考虑ipv4地址空间
+        ip_str_t(){addr[0]=0;}
+        operator char* ()const{return (char*)addr;}
+    }ip_str_t;
 
+    //-----------------------------------------------------
+    //封装socket地址相关功能
     class sock_addr_t
     {
         struct sockaddr_in m_sa;
@@ -132,6 +142,12 @@ namespace rx
                 return Buf;
             return NULL;
         }
+        char* ip_str(ip_str_t& str) const
+        {
+            if (to_str(m_sa,str))
+                return str.addr;
+            return NULL;
+        }
         //-----------------------------------------------------
         //转换网络字节序IP地址到字符串.返回值:串长度;0缓冲区不足.
         static uint32_t to_str(uint32_t ip,char *buff,uint32_t size)
@@ -139,6 +155,12 @@ namespace rx
             struct sockaddr_in sa;
             sa.sin_addr.s_addr=ip;
             return to_str(sa,buff,size);
+        }
+        static uint32_t to_str(uint32_t ip,ip_str_t& str)
+        {
+            struct sockaddr_in sa;
+            sa.sin_addr.s_addr=ip;
+            return to_str(sa,str);
         }
         //-------------------------------------------------
         //根据socket地址得到IP地址串.返回值:串长度;0缓冲区不足.
@@ -148,6 +170,13 @@ namespace rx
             uint8_t *bp=(uint8_t*)&sa.sin_addr.s_addr;
             cat("%u.",bp[0])("%u.",bp[1])("%u.",bp[2])("%u",bp[3]);
             return st::strcpy(buff,size,cat.str,cat.size);
+        }
+        static uint32_t to_str(const struct sockaddr_in &sa,ip_str_t& str)
+        {
+            sncat<0> cat(str.addr);
+            uint8_t *bp=(uint8_t*)&sa.sin_addr.s_addr;
+            cat("%u.",bp[0])("%u.",bp[1])("%u.",bp[2])("%u",bp[3]);
+            return cat.size;
         }
         //-----------------------------------------------------
         //根据IP串或域名得到对应的网络字节序的IP地址(gethostbyname存在多线程阻塞的问题,可以使用其他DNS客户端或缓存方案)
@@ -310,13 +339,6 @@ namespace rx
             return -1;
         }
         //-------------------------------------------------
-        //在socket上查看数据:缓冲区;缓冲区长度;
-        //返回值:<发生了错误;0说明连接断开;>0为数据长度
-        inline int32_t peek(socket_t sock,uint8_t* Buf,uint32_t BufLen)
-        {
-            return recv(sock,(char*)Buf,BufLen,MSG_PEEK);
-        }
-        //-------------------------------------------------
         //增强的连接操作,可超时等待:连接的目标地址;需要等待的时间
         //返回值:1成功;0连接超时;<0错误:-1非阻塞模式设置错误;-2阻塞模式恢复错误;-3连接错误;-4select操作失败
         inline int32_t connect(socket_t sock,const sock_addr_t& sa,uint32_t timeout_us)
@@ -385,6 +407,13 @@ namespace rx
             return Ret;
         }
         //-------------------------------------------------
+        //在socket上查看数据:缓冲区;缓冲区长度;
+        //返回值:<发生了错误;0说明连接断开;>0为数据长度
+        inline int32_t peek(socket_t sock,uint8_t* Buf,uint32_t BufLen)
+        {
+            return ::recv(sock,(char*)Buf,BufLen,MSG_PEEK);
+        }
+        //-------------------------------------------------
         //在这个socket上接收数据:缓冲区;缓冲区长度;操作标记(MSG_PEEK查看模式);
         //返回值:<0发生了错误;0说明连接断开;>0为收到的数据长度
         inline int32_t recv(socket_t sock,uint8_t* Buf,uint32_t BufLen,int Flag=0)
@@ -409,11 +438,11 @@ namespace rx
         //-------------------------------------------------
         //期待发送:缓冲区;待发送的数据长度;发送到目标地址;发送操作标记
         //返回值:<0有错误;>=0告知实际发送的长度(因为底层缓冲区的剩余空间可能不够大);
-        inline int32_t  sendto(socket_t sock,const uint8_t* Buf,uint32_t BufLen,const sock_addr_t& sa,int Flag=0)
+        inline int32_t  sendto(socket_t sock,const void* Buf,uint32_t BufLen,const sock_addr_t& sa,int Flag=0)
         {
             return ::sendto(sock,(char*)Buf,BufLen,Flag,(struct sockaddr *)&sa.addr(),sizeof(sa.addr()));
         }
-        inline int32_t  sendto(socket_t sock,const uint8_t* Buf,uint32_t BufLen,const char* host,uint16_t port,int Flag=0)
+        inline int32_t  sendto(socket_t sock,const void* Buf,uint32_t BufLen,const char* host,uint16_t port,int Flag=0)
         {
             sock_addr_t sa(host,port);
             return sendto(sock,Buf,BufLen,sa,Flag);
@@ -435,14 +464,12 @@ namespace rx
         }
         //-------------------------------------------------
         //得到当前连接上的本机端IP
-        inline char* local_ip(socket_t sock,char* buff)
+        inline char* local_ip(socket_t sock,ip_str_t &str)
         {
-            if (!buff) return NULL;
-            buff[0]=0;
             sock_addr_t sa;
             if (!local_addr(sock,sa))
                 return NULL;
-            return sa.ip_str(buff,16);
+            return sa.ip_str(str.addr,sizeof(str));
         }
         //-------------------------------------------------
         //得到指定socket上对方地址
@@ -453,14 +480,12 @@ namespace rx
         }
         //-------------------------------------------------
         //得到指定socket上对方的IP地址串
-        inline char* peer_ip(socket_t sock,char* buff)
+        inline char* peer_ip(socket_t sock,ip_str_t &str)
         {
-            if (!buff) return NULL;
-            buff[0]=0;
             sock_addr_t sa;
             if (!peer_addr(sock,sa))
                 return NULL;
-            return sa.ip_str(buff,16);
+            return sa.ip_str(str.addr,sizeof(str));
         }
         //-------------------------------------------------
         //获取该socket上对应的对方端口
@@ -642,6 +667,94 @@ namespace rx
                 M.imr_interface.s_addr=sock_addr_t::lookup(LocalIP);
             return setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char*)&M,sizeof(M))==0;
         }
+    }
+    //-----------------------------------------------------
+    //定义一个socket的轻量级托管类,主要的目的是为了利用析构函数关闭socket
+    class sock_t
+    {
+        socket_t m_sock;
+    public:
+        sock_t():m_sock(bad_socket){}
+        sock_t(socket_t s):m_sock(s){}
+        operator socket_t() const
+        {
+            return m_sock;
+        }
+        sock_t& operator=(socket_t s)
+        {
+            m_sock=s;
+            return *this;
+        }
+        virtual ~sock_t()
+        {
+            if (m_sock==bad_socket)
+                return;
+            sock::close(m_sock,true);
+            m_sock=bad_socket;
+        }
+    };
+    //-----------------------------------------------------
+    //根据通信的目标地址,尝试获取对应的本地IP(仅依据本地路由表,不判断目标是否可以连接,UDP模式)
+    //入口:DestIP目标地址
+    //返回值:INADDR_NONE查询失败;其他为本地ip
+    inline uint32_t localip_by_dest(uint32_t DestIP)
+    {
+        uint32_t LocalIP=0;
+        sock_t s=sock::create(false);                       //创建udp socket并进行托管
+        if (s==bad_socket)
+            return INADDR_NONE;
+
+        sock_addr_t dst_addr(DestIP,1);                     //构造目标地址,不关注目标端口的问题
+        if (sock::connect(s,dst_addr,0)<=0)                 //关键,让socket底层查询本机路由表,进行目标关联
+            return INADDR_NONE;
+
+        if (!sock::local_addr(s,dst_addr))                  //现在可以获取本socket的本机地址了
+            return INADDR_NONE;
+        return dst_addr.ip_addr();
+    }
+    inline uint32_t localip_by_dest(const char* DestIP)
+    {
+        uint32_t DstIP=sock_addr_t::lookup(DestIP);
+        if (DstIP==INADDR_NONE)
+            return INADDR_NONE;
+        return localip_by_dest(DstIP);
+    }
+    inline char* localip_by_dest(const char* DestIP,ip_str_t &lip)
+    {
+        uint32_t ip=localip_by_dest(DestIP);
+        if (ip==INADDR_NONE)
+            return NULL;
+        sock_addr_t::to_str(ip,lip);
+        return lip.addr;
+    }
+    //-------------------------------------------------
+    //判断给定的地址是否为本机地址
+    inline bool is_local_ip(const char* Host)
+    {
+        uint32_t DstIP=sock_addr_t::lookup(Host);
+        if (DstIP==INADDR_NONE)
+            return false;
+        return DstIP==localip_by_dest(DstIP);
+    }
+    //-------------------------------------------------
+    //TCP端口连接测试
+    inline bool tcp_conn_test(const char* dest,uint32_t port,uint32_t timeout_ms=500)
+    {
+        sock_t s=sock::create();                            //创建tcp socket并托管
+        if (s==bad_socket)
+            return false;
+        return sock::connect(s,dest,port,timeout_ms*1000)>0;//尝试连接目标
+    }
+    //-------------------------------------------------
+    //使用tcp连接目标后,提取本地对应的ip地址串
+    inline char* localip_by_dest(const char* dest,uint32_t port,ip_str_t &lip,uint32_t timeout_ms=500)
+    {
+        sock_t s=sock::create();                            //创建tcp socket并托管
+        if (s==bad_socket)
+            return NULL;
+        if (sock::connect(s,dest,port,timeout_ms*1000)<=0)  //尝试连接目标
+            return NULL;
+        return sock::local_ip(s,lip);
     }
 }
 
