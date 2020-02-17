@@ -53,7 +53,7 @@
     #include <netinet/tcp.h>
     #include <netdb.h>
     typedef int socket_t;
-    const uint32_t bad_socket=-1;
+    const int32_t bad_socket=-1;
     #define RX_CHECK_WINSOCK2()
 
     namespace rx
@@ -699,7 +699,6 @@ namespace rx
     //返回值:INADDR_NONE查询失败;其他为本地ip
     inline uint32_t localip_by_dest(uint32_t DestIP)
     {
-        uint32_t LocalIP=0;
         sock_t s=sock::create(false);                       //创建udp socket并进行托管
         if (s==bad_socket)
             return INADDR_NONE;
