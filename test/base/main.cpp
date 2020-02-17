@@ -1,10 +1,11 @@
 #define RX_USE_TDD_TICK 1
 /*
 */
+#include "../../rx_logger_std.h"
 
+#if 0
 #include "../../rx_net_sock_ext.h"
 #include "../../rx_net_sock_std.h"
-#if 0
 //---------------------------------------------------------
 //简单的缓冲区功能封装
 #include "../../rx_dtl_buff.h"
