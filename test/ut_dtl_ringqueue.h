@@ -142,6 +142,8 @@ namespace rx
         ringqueue_t rq;
         uint32_t tc = 0;
 
+        chkbad_t bad;
+
         for (uint32_t lc = 0; lc < tt; ++lc)
         {
             uint32_t is_push_back = rand()&1;
@@ -152,9 +154,9 @@ namespace rx
                 for (uint32_t op = 0; op < op_count; ++op)
                 {
                     if (rq.size() == rq.capacity())
-                        rt.tdd_assert(!rq.push_back(op));
+                        bad.assert(!rq.push_back(op));
                     else
-                        rt.tdd_assert(rq.push_back(op));
+                        bad.assert(rq.push_back(op));
                 }
             }
             else
@@ -162,15 +164,16 @@ namespace rx
                 for (uint32_t op = 0; op < op_count; ++op)
                 {
                     if (rq.size() == 0)
-                        rt.tdd_assert(rq.pop_front()==NULL);
+                        bad.assert(rq.pop_front()==NULL);
                     else
-                        rt.tdd_assert(rq.pop_front()!=NULL);
+                        bad.assert(rq.pop_front()!=NULL);
                 }
             }
 
             //if (lc % 1000==0)
             //    printf("[%8u/%8u] test op=%8u\n",lc,tt,tc);
         }
+        rt.tdd_assert(bad==0);
         if (tt>100)
             printf("CP=%4u test=%8u  op=%8u\n",CP, tt,tc);
     }

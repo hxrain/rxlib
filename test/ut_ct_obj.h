@@ -1,6 +1,7 @@
 #ifndef _RX_UT_CTOBJ_H_
 #define _RX_UT_CTOBJ_H_
 
+#include "../rx_cc_base.h"
 #include "../rx_ct_util.h"
 #include "../rx_ct_delegate.h"
 #include "../rx_tdd.h"

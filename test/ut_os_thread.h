@@ -5,6 +5,7 @@
 #include "../rx_tdd.h"
 #include "../rx_os_thread.h"
 #include "../rx_os_lock.h"
+#include "../rx_os_misc.h"
 
 namespace rx_ut
 {

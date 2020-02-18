@@ -193,11 +193,45 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
 
     s.out(
         "TDD::******************************[STATE]******************************\r\n"
-        "                OBJECT total <%6u> : perform <%6u>\r\n"
+        "                UTCASE total <%6u> : perform <%6u>\r\n"
         "                ASSERT total <%6u> : failed  <%6u>\r\n"
         "TDD::******************************[ END ]******************************\r\n",
         s._total,s._perform,s._assert,s._failed);
 }
+//---------------------------------------------------------
+//检查错误条件,记录错误数量与首次错误点
+class chkbad_t
+{
+    uint32_t    m_totl;
+    uint32_t    m_bads;
+    uint32_t    m_frst;
+public:
+    chkbad_t():m_totl(0),m_bads(0),m_frst((uint32_t)-1){}
+    //记录首次错误的断言检查
+    void assert(bool v)
+    {
+        if (!v)
+        {//出错了
+            if (m_frst==(uint32_t)-1)
+                m_frst=m_totl;                              //记录首次运行点
+            ++m_bads;                                       //记录错误次数
+        }
+        ++m_totl;                                           //记录运行总数
+    }
+    //只增加错误计数的断言检查
+    void check(bool v)
+    {
+        if (!v)
+            ++m_bads;                                       //记录错误次数
+    }
+    //运算符重载,便于判断是否有错误
+    operator uint32_t(){return m_bads;}
+    //返回总数与首次错误的计数点
+    uint32_t total(){return m_totl;}
+    uint32_t first(){return m_frst;}
+    //计数器复位,准备重新使用
+    void reset(){m_totl=0;m_bads=0;m_frst=(uint32_t)-1;}
+};
 
 //---------------------------------------------------------
 //定义便捷宏,方便输出调用者的行号
