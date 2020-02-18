@@ -9,6 +9,13 @@
 #if RX_IS_OS_WIN
 namespace rx
 {
+    //获取当前线程id
+    inline size_t get_tid(){return GetCurrentThreadId();}
+    //获取当前进程id
+    inline size_t get_pid(){return GetCurrentProcessId();}
+    //获取当前线程ID
+    inline uint64_t get_thread_id() { return GetCurrentThreadId(); }
+
     //-----------------------------------------------------
     //通过系统错误代码得到错误消息描述
     class os_errmsg_t
@@ -170,6 +177,7 @@ namespace rx
     }
 }
 #else
+    #include <sys/syscall.h>
     #include <sys/types.h>
     #include <sys/stat.h>
     #include <fcntl.h>
@@ -177,6 +185,14 @@ namespace rx
     #include <unistd.h>
 namespace rx
 {
+    //-----------------------------------------------------
+    //获取当前线程id(全系统唯一)
+    inline size_t get_tid(){return syscall(SYS_gettid);}
+    //获取当前进程id
+    inline size_t get_pid(){return syscall(SYS_getpid);}
+    //获取当前线程ID(进程内唯一)
+    inline uint64_t get_thread_id() { return pthread_self(); }
+
     //-----------------------------------------------------
     //通过系统错误代码得到错误消息描述
     class os_errmsg_t

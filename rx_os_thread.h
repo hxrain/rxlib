@@ -140,14 +140,8 @@ namespace rx
 
 
 #if RX_OS_POSIX
-    #include <sys/syscall.h>
     #include <sys/types.h>
     //-----------------------------------------------------
-    //获取当前线程id
-    inline size_t get_tid(){return syscall(SYS_gettid);}
-    //获取当前进程id
-    inline size_t get_pid(){return syscall(SYS_getpid);}
-
     static const pthread_key_t TLS_OUT_OF_INDEXES=(pthread_key_t)-1;
     //线程局部存储功能封装
     class thread_tls_t
@@ -315,10 +309,6 @@ namespace rx
     };
 
 #elif RX_IS_OS_WIN
-    //获取当前线程id
-    inline size_t get_tid(){return GetCurrentThreadId();}
-    //获取当前进程id
-    inline size_t get_pid(){return GetCurrentProcessId();}
 
     //-----------------------------------------------------
     //线程局部存储功能封装

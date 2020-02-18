@@ -206,11 +206,13 @@ namespace rx
         {
             va_list ap;
             va_start(ap, str);
-            operator()(str,ap);
+            cat(str,ap);
             va_end(ap);
             return *this;
         }
-        tiny_string_t& operator()(const CT *str, va_list ap)
+        //-------------------------------------------------
+        //格式化拼装,可连续调用,避免出现超长的format格式化串与参数列表;最后需要检查size()是否等于capacity(),相等则代表出现了缓冲区不足的错误.
+        tiny_string_t& cat(const CT *str, va_list ap)
         {
             if (is_empty(str))
                 return *this;
@@ -225,16 +227,6 @@ namespace rx
                 else
                     m_head.length = m_head.capacity();          //容量不足,标记错误
             }
-            return *this;
-        }
-        //-------------------------------------------------
-        //格式化拼装,可连续调用,避免出现超长的format格式化串与参数列表;最后需要检查size()是否等于capacity(),相等则代表出现了缓冲区不足的错误.
-        tiny_string_t& cat(const CT *str,...)
-        {
-            va_list	ap;
-            va_start(ap, str);
-            operator()(str,ap);
-            va_end(ap);
             return *this;
         }
         //-------------------------------------------------

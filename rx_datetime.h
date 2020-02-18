@@ -9,7 +9,7 @@
     #include "rx_str_util_fmt.h"
 
 #if defined(RX_IS_OS_WIN)
-    #include <winsock.h>
+    #include <winsock2.h>
 
     #if !defined(HAVE_STRUCT_TIMESPEC)&&!defined(_TIMESPEC_DEFINED)
         #if (RX_CC==RX_CC_VC&&RX_CC_VER_MAJOR>16)

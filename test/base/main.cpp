@@ -3,7 +3,7 @@
 */
 #include "../../rx_logger_std.h"
 
-#if 0
+#if 1
 #include "../../rx_net_sock_ext.h"
 #include "../../rx_net_sock_std.h"
 //---------------------------------------------------------
