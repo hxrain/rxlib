@@ -1,9 +1,8 @@
 #define RX_USE_TDD_TICK 1
-/*
-*/
-#include "../../rx_logger_std.h"
+
 
 #if 1
+#include "../../rx_logger_std.h"
 #include "../../rx_net_sock_ext.h"
 #include "../../rx_net_sock_std.h"
 //---------------------------------------------------------

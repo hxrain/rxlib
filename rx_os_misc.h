@@ -4,7 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
 #include "rx_str_util_ext.h"
-
+#include "rx_cc_base.h"
 
 #if RX_IS_OS_WIN
 namespace rx
@@ -183,6 +183,7 @@ namespace rx
     #include <fcntl.h>
     #include <errno.h>
     #include <unistd.h>
+    #include <pthread.h>
 namespace rx
 {
     //-----------------------------------------------------

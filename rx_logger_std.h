@@ -66,7 +66,7 @@ namespace rx
             logger_t        *parent;                        //父对象指针
             uint32_t        m_last_seq;                     //最后的日志序号
             uint64_t        m_last_tex;                     //最后的日志事务号,this<<32|seq,告知日志记录器每次的唯一事务
-            
+
             //---------------------------------------------
             //fmt格式化需要的底层输出器
             class fmt_follower_logger:public fmt_imp::fmt_follower_null<char>
@@ -166,8 +166,8 @@ namespace rx
                 rx_assert(m_last_tex!=0);
 
                 char line_buff[256*4];                      //当前行输出缓冲区
-                line_bytes=min(line_bytes,256);             //每行最大输出字节数量
-                pre_tab=min(pre_tab,64);                    //每行最大前缀空格数量
+                line_bytes=min(line_bytes,(uint32_t)256);   //每行最大输出字节数量
+                pre_tab=min(pre_tab,(uint32_t)64);          //每行最大前缀空格数量
                 const uint8_t *bytes=(const uint8_t*)data;  //待处理的缓冲区指针
                 uint32_t remain=size;                       //剩余数据长度
                 while(remain)
@@ -235,7 +235,7 @@ namespace rx
         //绑定输出器接口
         bool bind(logger_writer_i& w)
         {
-            if (m_writer_count>=max_logger_writer_count) 
+            if (m_writer_count>=max_logger_writer_count)
                 return false;
             m_writers[m_writer_count++]=&w;
         }
@@ -270,7 +270,7 @@ namespace rx
             va_start(ap,fmt);
             print(LT_LEVEL_WARN,-1,fmt,ap);
             va_end(ap);
-        }        
+        }
         //-------------------------------------------------
         //输出普通信息
         void info(uint32_t tag,const char* fmt,...)
@@ -286,7 +286,7 @@ namespace rx
             va_start(ap,fmt);
             print(LT_LEVEL_INFO,-1,fmt,ap);
             va_end(ap);
-        }  
+        }
         //-------------------------------------------------
         //输出周期性信息
         void cycle(uint32_t tag,const char* fmt,...)
@@ -331,7 +331,6 @@ namespace rx
         //调整允许的输出级别,0完全禁止输出
         void level(logger_level_t lvl){m_can_level=lvl;}
     };
-
 }
 
 

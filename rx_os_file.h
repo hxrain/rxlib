@@ -2,6 +2,7 @@
 #define _RX_OS_FILE_H_
 
 #include "rx_cc_macro.h"
+#include "rx_cc_base.h"
 #include "rx_assert.h"
 #include "rx_str_util_std.h"
 #include "rx_ct_error.h"

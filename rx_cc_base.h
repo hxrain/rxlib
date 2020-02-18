@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include "rx_cc_macro.h"
+
+
 /*
     本单元存放一些最基础简单无依赖的常用功能函数.
 */
@@ -132,26 +135,36 @@ namespace rx
         sncat& operator () (const char* fmt,...) {va_list ap;va_start(ap,fmt);size+=vsfmt(str+size,fmt,ap);va_end(ap);return *this;}
     };
 
+    //-------------------------------------------------
+    //构造os_cc_desc()函数,便于获取当前编译期信息
+    //visual studio, eg : "CPU=X64(LE)/OS=win64/CC=<native>'Microsoft Visual C++'<16.0.1600.1>/WORDS=64Bit"
+    inline const char* os_cc_desc()
+    {
+        static sncat<128> scat;
+        scat("CPU=%s(%s)",RX_CPU_ARCH,RX_CPU_LEBE)("/OS=%s",RX_OS_NAME)("/CC=<%s>'%s'",RX_CC_ENV_NAME,RX_CC_NAME)
+            ("<%u.%u.%u.%u>",RX_CC_VER_MAJOR,RX_CC_VER_MINOR,RX_CC_VER_PATCH,RX_CC_VER_BUILD)("/WORDS=%uBit",RX_CC_BIT);
+        return scat.str;
+    }
     //-----------------------------------------------------
     //取双值中的最小值
+#if !defined(min)
     template<class DT>
     inline const DT min(const DT& a,const DT& b){return a<b?a:b;}
+#endif
     template<class DT>
     inline const DT Min(const DT& a,const DT& b){return a<b?a:b;}
     //取双值中的最大值
+#if !defined(max)
     template<class DT>
     inline const DT max(const DT& a,const DT& b){return a>b?a:b;}
+#endif
     template<class DT>
     inline const DT Max(const DT& a,const DT& b){return a>b?a:b;}
     //-----------------------------------------------------
     //取三值中的最小值
     template<class DT>
-    inline const DT min(const DT& a,const DT& b,const DT& c){return min(a,min(b,c));}
-    template<class DT>
     inline const DT Min(const DT& a,const DT& b,const DT& c){return min(a,min(b,c));}
     //取三值中的最大值
-    template<class DT>
-    inline const DT max(const DT& a,const DT& b,const DT& c){return max(a,max(b,c));}
     template<class DT>
     inline const DT Max(const DT& a,const DT& b,const DT& c){return max(a,max(b,c));}
 

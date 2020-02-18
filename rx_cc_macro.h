@@ -1,6 +1,5 @@
 #ifndef _rx_cc_macro_
 #define _rx_cc_macro_
-#include "rx_cc_base.h"
 
     //-----------------------------------------------------
     //是否禁用内联前缀
@@ -463,21 +462,14 @@
         #define RX_CC_LIBTAG "r"
     #endif
 
+    #include <stdio.h>
+    #include <stdint.h>
+    #include <stddef.h>
+    #include <stdarg.h>
+
     //-----------------------------------------------------
     rx_static_assert(sizeof(int64_t)==sizeof(long long));
     rx_static_assert(sizeof(size_t)==sizeof(ptrdiff_t));
-    namespace rx
-    {
-        //-------------------------------------------------
-        //构造os_cc_desc()函数,便于获取当前编译期信息
-        //visual studio, eg : "CPU=X64(LE)/OS=win64/CC=<native>'Microsoft Visual C++'<16.0.1600.1>/WORDS=64Bit"
-        inline const char* os_cc_desc()
-        {
-            static sncat<128> scat;
-            scat("CPU=%s(%s)",RX_CPU_ARCH,RX_CPU_LEBE)("/OS=%s",RX_OS_NAME)("/CC=<%s>'%s'",RX_CC_ENV_NAME,RX_CC_NAME)
-                ("<%u.%u.%u.%u>",RX_CC_VER_MAJOR,RX_CC_VER_MINOR,RX_CC_VER_PATCH,RX_CC_VER_BUILD)("/WORDS=%uBit",RX_CC_BIT);
-            return scat.str;
-        }
-    }
+
 #endif
 
