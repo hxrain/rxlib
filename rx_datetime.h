@@ -165,16 +165,17 @@
     }
     //-----------------------------------------------------
     //将日期时间结构格式化为字符串
-    inline void rx_iso_datetime(const struct tm& tp, char str[20])
+    inline void rx_iso_datetime(const struct tm& tp, char str[20],const char* fmt=NULL)
     {
-        rx::st::snprintf(str,20,"%d-%02d-%02d %02d:%02d:%02d", tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec);
+        if (is_empty(fmt)) fmt="%d-%02d-%02d %02d:%02d:%02d";
+        rx::st::snprintf(str,20,fmt, tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec);
     }
     //将UTC时间转为标准时间字符串
-    inline void rx_iso_datetime(uint64_t utc_time,char str[20] , int32_t zone_offset_sec = 8 * 60 * 60)
+    inline void rx_iso_datetime(uint64_t utc_time,char str[20] ,const char* fmt=NULL, int32_t zone_offset_sec = 8 * 60 * 60)
     {
         struct tm tp;
         rx_localtime(utc_time,tp, zone_offset_sec);
-        rx_iso_datetime(tp,str);
+        rx_iso_datetime(tp,str,fmt);
     }
     //-----------------------------------------------------
     //计算指定的年份与月份的天数.

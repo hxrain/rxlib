@@ -412,12 +412,15 @@
     #define _RX_CONCAT_(A,B)                A##B
     #define RX_CT_CONCAT(A,B)               _RX_CONCAT_(A,B)                //宏拼接
 
+    //拼装_LINE_xx的标识符
     #define RX_CT_LINE                      RX_CT_CONCAT(_LINE,__LINE__)    //行号拼接得行符号 LINE_xxx
     #define RX_CT_LINE_EX(n)                RX_CT_CONCAT(_LINE,n)           //常量数字拼接得行符号
 
+    //静态拼装标识符,可用于变量定义或引用(由于结合了行号,所以单一文件内多行相同前缀使用不会重复)
     #define RX_CT_SYM(prename)              RX_CT_CONCAT(prename,RX_CT_LINE)//在行符号的基础上再拼接符号前缀
     #define RX_CT_SYM_EX(prename,n)         RX_CT_CONCAT(prename,RX_CT_LINE_EX(n))
 
+    //将宏符号或任意符号转换为字符串
     #define RX_CT_STR(M)                    #M                              //宏转字符串
     #define RX_CT_N2S(N)                    RX_CT_STR(N)                    //宏数字转字符串
 

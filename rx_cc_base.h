@@ -145,6 +145,7 @@ namespace rx
             ("<%u.%u.%u.%u>",RX_CC_VER_MAJOR,RX_CC_VER_MINOR,RX_CC_VER_PATCH,RX_CC_VER_BUILD)("/WORDS=%uBit",RX_CC_BIT);
         return scat.str;
     }
+
     //-----------------------------------------------------
     //取双值中的最小值
 #if !defined(min)
@@ -187,5 +188,19 @@ namespace rx
     static const double MATH_SQRT2    =1.41421356237309504880   ;// sqrt(2)
     static const double MATH_SQRT1_2  =0.707106781186547524401  ;// 1/sqrt(2)
 }
+    //-----------------------------------------------------
+    inline const char* _src_filename_(const char* fn)
+    {
+        size_t len=strlen(fn);
+        for(size_t i=len-1;i>=0;--i)
+        {
+            if (fn[i]=='\\'||fn[i]=='/')
+                return fn+i+1;
+        }
+        return fn;
+    }
+    //获得引用者所在源文件的文件名部分
+    #define rx_src_filename _src_filename_(__FILE__)
+
 #endif
 

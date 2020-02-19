@@ -224,9 +224,9 @@ namespace rx
             {
                 int len = st::vsnprintf(m_head.buff+m_head.length, remain, str, ap);
                 if (len <= remain)
-                    m_head.length += len;                         //拼装成功,缓冲区数据长度增加
+                    m_head.length += len;                   //拼装成功,缓冲区数据长度增加
                 else
-                    m_head.length = m_head.capacity();          //容量不足,标记错误
+                    m_head.length = m_head.capacity();      //容量不足,标记错误
             }
             return *this;
         }
