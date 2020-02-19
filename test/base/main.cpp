@@ -1,11 +1,12 @@
 #define RX_USE_TDD_TICK 1
 
 #define UT_ALL 1
-#define UT_SEL 17
+#define UT_SEL 40
 
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==40
     //日志记录器与输出器
+    #include "../ut_logger_std.h"
     #include "../../rx_logger_std.h"
 #endif
 //---------------------------------------------------------

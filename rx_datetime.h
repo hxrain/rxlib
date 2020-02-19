@@ -177,6 +177,19 @@
         rx_localtime(utc_time,tp, zone_offset_sec);
         rx_iso_datetime(tp,str,fmt);
     }
+    //---------------------------------------------------------
+    //获取当前系统的时间,UTC格式.
+    inline uint64_t rx_time() {return time(NULL);}
+
+    //---------------------------------------------------------
+    //获取系统当前时间的字符串格式,外部应该给出正确的时区
+    inline uint64_t rx_iso_datetime(char str[20],const char* fmt=NULL, int32_t zone_offset_sec = 8 * 60 * 60)
+    {
+        uint64_t rc = rx_time();
+        rx_iso_datetime(rc, str, fmt, zone_offset_sec);
+        return rc;
+    }
+
     //-----------------------------------------------------
     //计算指定的年份与月份的天数.
     //返回值:0月份错误.其他为天数

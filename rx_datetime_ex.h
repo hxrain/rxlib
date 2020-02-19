@@ -39,19 +39,6 @@ inline int32_t rx_time_zone(time_t dt = 0)
     return (int32_t)(rx_make_utc(dp, 0)-dt);
 }
 
-//---------------------------------------------------------
-//获取当前系统的时间,UTC格式.
-inline uint64_t rx_time() {return time(NULL);}
-
-//---------------------------------------------------------
-//获取系统当前时间的字符串格式,外部应该给出正确的时区
-inline uint64_t rx_iso_datetime(char str[20], int32_t zone_offset_sec = 8 * 60 * 60)
-{
-    uint64_t rc = rx_time();
-    rx_iso_datetime(rc, str, zone_offset_sec);
-    return rc;
-}
-
 #if RX_OS==RX_OS_LINUX
 //---------------------------------------------------------
 //获取当前系统开机后的滴答数(微秒)
