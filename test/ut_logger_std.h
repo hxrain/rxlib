@@ -28,7 +28,6 @@ inline void rx_test_logger_stdout_1(rx_tdd_t &rt)
     logger.writer.begin().fmt("recv bin:").bin(tmp,8).end();
 }
 
-
 inline void rx_test_logger_stdout_2(rx_tdd_t &rt,rx::logger_i *out=NULL)
 {
     //使用日志记录器接口进行日志输出功能的测试
@@ -37,6 +36,7 @@ inline void rx_test_logger_stdout_2(rx_tdd_t &rt,rx::logger_i *out=NULL)
     if (out)
         logger.bind(*out);
     logger.info("sizeof(rx::logger_i)=%u",sizeof(rx::logger_i));
+    logger.info("sizeof(rx::logger_t)=%u",sizeof(rx::logger_t<>));
     logger.info("this's logger stdout unit test case. INFO!");
     logger.debug("this's logger stdout unit test case. DEBUG!");
     logger.warn("this's logger stdout unit test case. WARNING!");
@@ -49,7 +49,6 @@ inline void rx_test_logger_stdout_2(rx_tdd_t &rt,rx::logger_i *out=NULL)
     logger.writer.begin().fmt("recv stream hex:\n").hex(tmp,sizeof(tmp)).end();
     logger.writer.begin().fmt("recv bin:").bin(tmp,8).end();
 }
-
 
 inline void rx_test_logger_stdout_2A(rx_tdd_t &rt)
 {
@@ -70,9 +69,43 @@ inline void rx_test_logger_stdout_2A(rx_tdd_t &rt)
 
     logger.info("end");
 }
+
+//测试便捷日志记录器生成函数的使用
+inline void rx_test_logger_stdout_2B(rx_tdd_t &rt)
+{
+    {
+        rx::logger_i &logger = rx::make_logger_con();
+        logger_modname(logger);
+        rx_test_logger_stdout_2(rt,&logger);
+        logger.debug("logger_con end");
+    }
+
+    {
+        rx::logger_i &logger = rx::make_logger_file<0>("./log0.txt");
+        logger_modname(logger);
+        rx_test_logger_stdout_2(rt,&logger);
+        logger.debug("logger_file0 end");
+    }
+
+    {
+        rx::logger_i &logger = rx::make_logger_file<1>("./log1.txt");
+        logger_modname(logger);
+        rx_test_logger_stdout_2(rt,&logger);
+        logger.debug("logger_file1 end");
+    }
+
+    {
+        rx::logger_i &logger = rx::make_logger_confile();
+        logger_modname(logger);
+        rx_test_logger_stdout_2(rt,&logger);
+        logger.debug("logger_confile end");
+    }
+}
+
 rx_tdd(test_logger_std_base)
 {
     rx_test_logger_stdout_1(*this);
     rx_test_logger_stdout_2A(*this);
+    rx_test_logger_stdout_2B(*this);
 }
 #endif // _RX_UT_LOGGER_STD_H_

@@ -59,12 +59,36 @@ namespace rx
     {
     protected:
         //日志记录器接口的核心功能可由子类来实现;默认时日志记录器接口的功能由绑定的其他接口处理.
-        virtual bool on_can_write(logger_level_t type){if (!m_logger) return false;return m_logger->on_can_write(type);}
-        virtual void on_begin(logger_level_t type,uint32_t tag,uint64_t tex,const char* modname){if (m_logger) m_logger->on_begin(type,tag,tex,modname);}
-        virtual void on_vfmt(const char* fmt,va_list ap,uint64_t tex){if (m_logger) m_logger->on_vfmt(fmt,ap,tex);}
-        virtual void on_hex(const void* data,uint32_t size,uint32_t pre_tab,uint32_t line_bytes,uint64_t tex){if (m_logger) m_logger->on_hex(data,size,pre_tab,line_bytes,tex);}
-        virtual void on_bin(const void* data,uint32_t size,uint64_t tex){if (m_logger) m_logger->on_bin(data,size,tex);}
-        virtual void on_end(uint64_t tex){if (m_logger) m_logger->on_end(tex);}
+        virtual bool on_can_write(logger_level_t type)
+        {
+            if (!m_logger) return false;
+            return m_logger->on_can_write(type);
+        }
+        virtual void on_begin(logger_level_t type,uint32_t tag,uint64_t tex,const char* modname)
+        {
+            if (m_logger) 
+                m_logger->on_begin(type,tag,tex,modname);
+        }
+        virtual void on_vfmt(const char* fmt,va_list ap,uint64_t tex)
+        {
+            if (m_logger) 
+                m_logger->on_vfmt(fmt,ap,tex);
+        }
+        virtual void on_hex(const void* data,uint32_t size,uint32_t pre_tab,uint32_t line_bytes,uint64_t tex)
+        {
+            if (m_logger) 
+                m_logger->on_hex(data,size,pre_tab,line_bytes,tex);
+        }
+        virtual void on_bin(const void* data,uint32_t size,uint64_t tex)
+        {
+            if (m_logger) 
+                m_logger->on_bin(data,size,tex);
+        }
+        virtual void on_end(uint64_t tex)
+        {
+            if (m_logger) 
+                m_logger->on_end(tex);
+        }
         logger_i    *m_logger;                              //日志记录接口的底层转发接口指针
         //-----------------------------------------------------
         //内部使用的日志输出器
@@ -74,7 +98,7 @@ namespace rx
             logger_i        *parent;                        //父对象指针
             uint32_t        m_last_seq;                     //最后的日志序号
             uint64_t        m_last_tex;                     //最后的日志事务号,this<<32|seq,告知日志记录器每次的唯一事务
-            char            m_mod_name[50];                 //日志记录器所属的功能模块
+            char            m_mod_name[32];                 //日志记录器所属的功能模块
         public:
             //-------------------------------------------------
             writer_t():parent(NULL),m_last_seq(0),m_last_tex(0){}
@@ -262,7 +286,7 @@ namespace rx
         virtual ~logger_writer_i(){}
     };
     //每个日志记录器允许绑定输出器的最大数量
-    const uint32_t max_logger_writer_count=5;
+    const uint32_t max_logger_writer_count=4;
 
     //-----------------------------------------------------
     //日志记录器,可以绑定多个日志输出器,可跨线程被多个日志记录器接口引用
@@ -436,6 +460,9 @@ namespace rx
         //-----------------------------------------------------
         //调整允许的输出级别,0完全禁止输出
         void level(logger_level_t lvl){m_can_level=lvl;}
+        //-----------------------------------------------------
+        uint32_t writers(){return m_writer_count;}
+
     };
 
     //-----------------------------------------------------
@@ -479,13 +506,13 @@ namespace rx
     class logger_wrfile_t:public logger_wrcon_t<LT>
     {
         typedef logger_wrcon_t<LT> super_t;
-        virtual bool is_valid(){return super_t::m_file!=NULL;}
     public:
         //-----------------------------------------------------
         logger_wrfile_t(){super_t::m_file=NULL;}
         ~logger_wrfile_t(){close();}
+        bool is_valid(){return super_t::m_file!=NULL;}
         //-----------------------------------------------------
-        bool open(const char* filepath,bool append=true)
+        bool open(const char* filepath,bool append=false)
         {
             super_t::m_file=fopen(filepath,append?"ab+":"wb+");
             if (super_t::m_file==NULL)
@@ -503,6 +530,46 @@ namespace rx
         }
         //-----------------------------------------------------
     };
+
+    //---------------------------------------------------------
+    //可全局使用,输出到文件和控制台的日志记录器(单实例)
+    logger_i& make_logger_confile(const char* fname="./log.txt",bool append=false)
+    {
+        static logger_t<locker_t> logger;
+        static logger_wrfile_t<> logger_wrfile;
+        static logger_wrcon_t<> logger_wrcon;
+        if (logger.writers()==0)
+        {
+            rx_check(logger_wrfile.open(fname,append));
+            logger.bind(logger_wrfile);
+            logger.bind(logger_wrcon);
+        }
+        return logger;
+    }
+
+    //可全局使用,输出到文件的日志记录器(通过区分不同的seq可以使用多个实例)
+    template<int seq>
+    logger_i& make_logger_file(const char* fname="./log.txt",bool append=false)
+    {
+        static logger_t<locker_t> logger;
+        static logger_wrfile_t<> logger_wrfile;
+        if (logger.writers()==0)
+        {
+            rx_check(logger_wrfile.open(fname,append));
+            logger.bind(logger_wrfile);
+        }
+        return logger;
+    }
+
+    //可全局使用,输出到控制台的日志记录器(单实例)
+    logger_i& make_logger_con()
+    {
+        static logger_t<locker_t> logger;
+        static logger_wrcon_t<> logger_wrcon;
+        if (logger.writers()==0)
+            logger.bind(logger_wrcon);
+        return logger;
+    }
 
 }
 
