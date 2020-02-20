@@ -58,14 +58,14 @@ namespace rx
     class logger_i
     {
     protected:
-        //日志记录器接口中将全部核心功能都转移给子类来实现
-        virtual bool on_can_write(logger_level_t type)=0;
-        virtual void on_begin(logger_level_t type,uint32_t tag,uint64_t tex,const char* modname)=0;
-        virtual void on_vfmt(const char* fmt,va_list ap,uint64_t tex)=0;
-        virtual void on_hex(const void* data,uint32_t size,uint32_t pre_tab,uint32_t line_bytes,uint64_t tex)=0;
-        virtual void on_bin(const void* data,uint32_t size,uint64_t tex)=0;
-        virtual void on_end(uint64_t tex)=0;
-
+        //日志记录器接口的核心功能可由子类来实现;默认时日志记录器接口的功能由绑定的其他接口处理.
+        virtual bool on_can_write(logger_level_t type){if (!m_logger) return false;return m_logger->on_can_write(type);}
+        virtual void on_begin(logger_level_t type,uint32_t tag,uint64_t tex,const char* modname){if (m_logger) m_logger->on_begin(type,tag,tex,modname);}
+        virtual void on_vfmt(const char* fmt,va_list ap,uint64_t tex){if (m_logger) m_logger->on_vfmt(fmt,ap,tex);}
+        virtual void on_hex(const void* data,uint32_t size,uint32_t pre_tab,uint32_t line_bytes,uint64_t tex){if (m_logger) m_logger->on_hex(data,size,pre_tab,line_bytes,tex);}
+        virtual void on_bin(const void* data,uint32_t size,uint64_t tex){if (m_logger) m_logger->on_bin(data,size,tex);}
+        virtual void on_end(uint64_t tex){if (m_logger) m_logger->on_end(tex);}
+        logger_i    *m_logger;                              //日志记录接口的底层转发接口指针
         //-----------------------------------------------------
         //内部使用的日志输出器
         class writer_t
@@ -74,7 +74,7 @@ namespace rx
             logger_i        *parent;                        //父对象指针
             uint32_t        m_last_seq;                     //最后的日志序号
             uint64_t        m_last_tex;                     //最后的日志事务号,this<<32|seq,告知日志记录器每次的唯一事务
-            char            m_mod_name[64];                 //日志记录器所属的功能模块
+            char            m_mod_name[50];                 //日志记录器所属的功能模块
         public:
             //-------------------------------------------------
             writer_t():parent(NULL),m_last_seq(0),m_last_tex(0){}
@@ -83,12 +83,11 @@ namespace rx
             writer_t& begin(logger_level_t type=LT_LEVEL_INFO,uint32_t tag=-1)
             {
                 rx_assert(parent!=NULL);
-                rx_assert(m_last_tex==0);                   //要求之前的end()必须被调用
+                rx_assert_msg(m_last_tex==0,"must call end()");//要求之前的end()必须被调用
 
                 if (!parent->on_can_write(type))
                     return *this;
 
-                rx_assert(m_last_tex==0);
                 //构造本次事务序号
                 m_last_tex=(size_t)this;
                 m_last_tex<<=32;
@@ -145,9 +144,12 @@ namespace rx
         };
 
     public:
-        logger_i(){writer.parent=this;}
+        logger_i():m_logger(NULL){writer.parent=this;}
         //-----------------------------------------------------
-        //绑定模块名称(名称是个性化的,随着接口而不同)
+        //绑定日志功能转发接口
+        void bind(logger_i &log){m_logger=&log;}
+        //-----------------------------------------------------
+        //绑定模块名称(名称是个性化的,随着日志接口的部署而不同)
         void modname(const char* name,uint32_t lno=0)
         {
             if (lno)
@@ -314,10 +316,17 @@ namespace rx
             }
         };
         //-----------------------------------------------------
-        virtual bool on_can_write(logger_level_t type){return (type>=m_can_level)&&m_writer_count;}
+        //判断是否可输出当前级别的日志内容
+        virtual bool on_can_write(logger_level_t type)
+        {
+            return (type>=m_can_level)&&m_writer_count;
+        }
         //-----------------------------------------------------
+        //开始一次日志事务的处理
         virtual void on_begin(logger_level_t type,uint32_t tag,uint64_t tex,const char* modname)
         {
+            rx_assert(tex!=0);
+
             m_locker.lock();
 
             tiny_string_t<char,512> scat;
@@ -339,6 +348,7 @@ namespace rx
                 m_writers[i]->on_begin(tex,type,tag,scat.c_str(),scat.size());
         }
         //-----------------------------------------------------
+        //在当前日志事务中输出格式化拼装内容
         virtual void on_vfmt(const char* fmt,va_list ap,uint64_t tex)
         {
             if (tex==0||m_writer_count==0)
@@ -347,6 +357,7 @@ namespace rx
             fmt_imp::fmt_core(fbuf, fmt, ap);
         }
         //-----------------------------------------------------
+        //在当前日志事务中输出HEX数据内容
         virtual void on_hex(const void* data,uint32_t size,uint32_t pre_tab,uint32_t line_bytes,uint64_t tex)
         {
             if (tex==0||m_writer_count==0)
@@ -383,6 +394,7 @@ namespace rx
             }
         }
         //-----------------------------------------------------
+        //在当前日志事务中输出原始二进制数据内容
         virtual void on_bin(const void* data,uint32_t size,uint64_t tex)
         {
             if (tex==0||m_writer_count==0)
@@ -393,6 +405,7 @@ namespace rx
                 m_writers[i]->on_write(tex,data,size);
         }
         //-----------------------------------------------------
+        //结束一次日志事务
         virtual void on_end(uint64_t tex)
         {
             if (tex==0||m_writer_count==0)
@@ -404,7 +417,8 @@ namespace rx
 
             m_locker.unlock();
         }
-
+        //覆盖隐藏父接口中的转发绑定功能接口
+        void bind(logger_i log){}
     public:
         logger_t():m_writer_count(0),m_can_level(LT_LEVEL_DEBUG)
         {
