@@ -6,9 +6,11 @@
 #include "../rx_str_util_ext.h"
 #include "../rx_str_util_bin.h"
 #include "../rx_tdd.h"
+#include "../rx_hash_rand.h"
+#include "../rx_tdd_tick.h"
 
 //---------------------------------------------------------
-inline void str_util_base_1(rx_tdd_t &rt)
+inline void ut_str_util_base_1(rx_tdd_t &rt)
 {
     uint8_t tmp1[1+sizeof(rx::tiny_string_t<>)],tmp2[2+sizeof(rx::tiny_string_t<>)],tmp3[3+sizeof(rx::tiny_string_t<>)];
     rx::tiny_string_t<> &a=*rx::tiny_string_t<>::make(tmp1, sizeof(tmp1), "123");
@@ -37,7 +39,7 @@ typedef struct tmp_tiny_str_t
 }tmp_tiny_str_t;
 #pragma pack(pop)
 
-inline void str_util_base_2(rx_tdd_t &rt)
+inline void ut_str_util_base_2(rx_tdd_t &rt)
 {
     uint8_t buff[8+sizeof(tmp_tiny_str_t)];
     uint16_t cap=uint16_t(sizeof(buff)-sizeof(tmp_tiny_str_t));
@@ -53,7 +55,7 @@ inline void str_util_base_2(rx_tdd_t &rt)
 namespace rx
 {
     template<class CT>
-    inline void str_util_base_3(rx_tdd_t &rt)
+    inline void ut_str_util_base_3(rx_tdd_t &rt)
     {
         CT str1[128];
         CT str2[128];
@@ -99,7 +101,7 @@ namespace rx
     }
 }
 
-inline void str_util_cat_1(rx_tdd_t &rt)
+inline void ut_str_util_cat_1(rx_tdd_t &rt)
 {//Ğ¡´®Æ´×°Æ÷²âÊÔ.
     char buff[15];
     rx::cat_t cat(sizeof(buff),buff);
@@ -145,14 +147,86 @@ inline void str_util_cat_1(rx_tdd_t &rt)
     rt.tdd_assert(cat.size()==cat.capacity());
     rt.tdd_assert(rx::st::strcmp(cat.c_str(),"12345678901234")==0);
 }
-//---------------------------------------------------------
-rx_tdd(str_util_base)
+
+class ut_strstr
 {
-    str_util_base_1(*this);
-    str_util_base_2(*this);
-    rx::str_util_base_3<char>(*this);
-    rx::str_util_base_3<wchar_t>(*this);
-    str_util_cat_1(*this);
+public:
+    typedef const char* (*strstr_t)(const char *haystack, const char *needle);
+    strstr_t    fun;
+    char m_buff_main[1280];
+    char m_buff_sub[340];
+    ut_strstr(){rx_rnd_t32().seed(1);}
+    void make_main()
+    {
+        for(int i=0;i<sizeof(m_buff_main);++i)
+            m_buff_main[i]=rx_rnd_t32().get(10)+'0';
+        m_buff_main[sizeof(m_buff_main)-1]=0;
+    }
+    void make_sub(int offset,int len)
+    {
+        rx_assert(offset+len<sizeof(m_buff_main));
+        strncpy(m_buff_sub,m_buff_main+offset,len);
+        m_buff_sub[len]=0;
+    }
+    uint32_t loop_by_size(int len)
+    {
+        uint32_t bad=0;
+        for(int offset=0;offset<sizeof(m_buff_main)-1-len;++offset)
+        {
+            make_sub(offset,len);
+            const char* pos=fun(m_buff_main,m_buff_sub);
+            if (pos==NULL)
+                ++bad;
+        }
+        return bad;
+    }
+    uint32_t loop()
+    {
+        uint32_t bad=0;
+        make_main();
+        for(int len=1;len<sizeof(m_buff_sub)-1;++len)
+            bad+=loop_by_size(len);
+        return bad;
+    }
+};
+inline void ut_str_util_faststrstr_2(rx_tdd_t &rt)
+{
+    ut_strstr us;
+    tdd_tt(t, "strstr", "");
+    us.fun=strstr;
+    uint32_t bad=us.loop();
+    rt.assert(bad==0);
+    tdd_tt_msg(t, "strstr", "libc");
+    us.fun=(ut_strstr::strstr_t)rx::st::strstr_ex<char>;
+    bad=us.loop();
+    rt.assert(bad==0);
+    tdd_tt_msg(t, "strstr_ex", "std");
+}
+//---------------------------------------------------------
+inline void ut_str_util_faststrstr_1(rx_tdd_t &rt)
+{
+    rt.tdd_assert(*rx::st::strstr_ex("345246","46")=='4');
+    rt.tdd_assert(*rx::st::strstr_ex("0123456789","234")=='2');
+    rt.tdd_assert(rx::st::strstr_ex("0123456789","246")==NULL);
+    rt.tdd_assert(*rx::st::strstr_ex("012345246789","46")=='4');
+    rt.tdd_assert(*rx::st::strstr_ex("012345246789","467")=='4');
+    rt.tdd_assert(*rx::st::strstr_ex("012345246789","4678")=='4');
+    rt.tdd_assert(*rx::st::strstr_ex("012345246789","46789")=='4');
+    rt.tdd_assert(*rx::st::strstr_ex("012345246789","246")=='2');
+    rt.tdd_assert(*rx::st::strstr_ex("012345246789","2467")=='2');
+    rt.tdd_assert(*rx::st::strstr_ex("012345246789","24678")=='2');
+    rt.tdd_assert(*rx::st::strstr_ex("012345246789","246789")=='2');
+}
+//---------------------------------------------------------
+rx_tdd(ut_str_util_base)
+{
+    ut_str_util_faststrstr_2(*this);
+    ut_str_util_faststrstr_1(*this);
+    ut_str_util_base_1(*this);
+    ut_str_util_base_2(*this);
+    rx::ut_str_util_base_3<char>(*this);
+    rx::ut_str_util_base_3<wchar_t>(*this);
+    ut_str_util_cat_1(*this);
 }
 
 

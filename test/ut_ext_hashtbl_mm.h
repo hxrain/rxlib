@@ -82,7 +82,7 @@ namespace rx_ut
         const uint32_t total = 10000 * 16;
         mm_hashtbl_int mm_htbl;
 
-        rx::error_code ec = mm_htbl.open("ut_tbl_int_base.dat");
+        rx::error_t ec = mm_htbl.open("ut_tbl_int_base.dat");
         rt.tdd_assert(ec==rx::ec_ok);
 
         if (ec)
