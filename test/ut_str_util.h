@@ -197,29 +197,45 @@ inline void ut_str_util_faststrstr_2(rx_tdd_t &rt)
     uint32_t bad=us.loop();
     rt.assert(bad==0);
     tdd_tt_msg(t, "strstr", "libc");
-    us.fun=(ut_strstr::strstr_t)rx::st::strstr_ex<char>;
+    us.fun=(ut_strstr::strstr_t)rx::st::strstrx<char>;
     bad=us.loop();
     rt.assert(bad==0);
-    tdd_tt_msg(t, "strstr_ex", "std");
+    tdd_tt_msg(t, "strstrx", "std");
 }
 //---------------------------------------------------------
 inline void ut_str_util_faststrstr_1(rx_tdd_t &rt)
 {
-    rt.tdd_assert(*rx::st::strstr_ex("345246","46")=='4');
-    rt.tdd_assert(*rx::st::strstr_ex("0123456789","234")=='2');
-    rt.tdd_assert(rx::st::strstr_ex("0123456789","246")==NULL);
-    rt.tdd_assert(*rx::st::strstr_ex("012345246789","46")=='4');
-    rt.tdd_assert(*rx::st::strstr_ex("012345246789","467")=='4');
-    rt.tdd_assert(*rx::st::strstr_ex("012345246789","4678")=='4');
-    rt.tdd_assert(*rx::st::strstr_ex("012345246789","46789")=='4');
-    rt.tdd_assert(*rx::st::strstr_ex("012345246789","246")=='2');
-    rt.tdd_assert(*rx::st::strstr_ex("012345246789","2467")=='2');
-    rt.tdd_assert(*rx::st::strstr_ex("012345246789","24678")=='2');
-    rt.tdd_assert(*rx::st::strstr_ex("012345246789","246789")=='2');
+    rt.tdd_assert(*rx::st::strstrx("345246","46")=='4');
+    rt.tdd_assert(*rx::st::strstrx("0123456789","234")=='2');
+    rt.tdd_assert( rx::st::strstrx("0123456789","246")==NULL);
+    rt.tdd_assert(*rx::st::strstrx("012345246789","46")=='4');
+    rt.tdd_assert(*rx::st::strstrx("012345246789","467")=='4');
+    rt.tdd_assert(*rx::st::strstrx("012345246789","4678")=='4');
+    rt.tdd_assert(*rx::st::strstrx("012345246789","46789")=='4');
+    rt.tdd_assert(*rx::st::strstrx("012345246789","246")=='2');
+    rt.tdd_assert(*rx::st::strstrx("012345246789","2467")=='2');
+    rt.tdd_assert(*rx::st::strstrx("012345246789","24678")=='2');
+    rt.tdd_assert(*rx::st::strstrx("012345246789","246789")=='2');
+}
+//---------------------------------------------------------
+inline void ut_str_util_fastmemmem_1(rx_tdd_t &rt)
+{
+    rt.tdd_assert(*rx::st::memmemx("345246",6,"46",2)=='4');
+    rt.tdd_assert(*rx::st::memmemx("0123456789",10,"234",3)=='2');
+    rt.tdd_assert( rx::st::memmemx("0123456789",10,"246",3)==NULL);
+    rt.tdd_assert(*rx::st::memmemx("012345246789",12,"46",2)=='4');
+    rt.tdd_assert(*rx::st::memmemx("012345246789",12,"467",3)=='4');
+    rt.tdd_assert(*rx::st::memmemx("012345246789",12,"4678",4)=='4');
+    rt.tdd_assert(*rx::st::memmemx("012345246789",12,"46789",5)=='4');
+    rt.tdd_assert(*rx::st::memmemx("012345246789",12,"246",3)=='2');
+    rt.tdd_assert(*rx::st::memmemx("012345246789",12,"2467",4)=='2');
+    rt.tdd_assert(*rx::st::memmemx("012345246789",12,"24678",5)=='2');
+    rt.tdd_assert(*rx::st::memmemx("012345246789",12,"246789",6)=='2');
 }
 //---------------------------------------------------------
 rx_tdd(ut_str_util_base)
 {
+    ut_str_util_fastmemmem_1(*this);
     ut_str_util_faststrstr_2(*this);
     ut_str_util_faststrstr_1(*this);
     ut_str_util_base_1(*this);

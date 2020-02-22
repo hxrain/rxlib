@@ -260,28 +260,22 @@ namespace rx
         #endif
 
         //×Ó´®ËÑË÷
-        inline char *           strstr(char *s1, const char *s2) {return ::strstr(s1,s2);}
-        inline wchar_t*         strstr(wchar_t *s1, const wchar_t *s2) {return ::wcsstr(s1,s2);}
-        inline const char *     strstr(const char *s1, const char *s2) {return ::strstr(s1,s2);}
-        inline const wchar_t*   strstr(const wchar_t *s1, const wchar_t *s2) {return ::wcsstr(s1,s2);}
+        inline char *           strstr(const char *s1, const char *s2) {return (char*)::strstr(s1,s2);}
+        inline wchar_t*         strstr(const wchar_t *s1, const wchar_t *s2) {return (wchar_t*)::wcsstr(s1,s2);}
 
         //×Ö·ûËÑË÷
-        inline char *           strchr(char *s, int c) {return ::strchr(s,c);}
-        inline wchar_t *        strchr(wchar_t *s, wchar_t c) { return ::wcschr(s, c); }
-        inline const char *     strchr(const char *s, int c) {return ::strchr(s,c);}
-        inline const wchar_t *  strchr(const wchar_t *s, wchar_t c) { return ::wcschr(s, c); }
+        inline char *           strchr(const char *s, int c) {return (char*)::strchr(s,c);}
+        inline wchar_t *        strchr(const wchar_t *s, wchar_t c) { return (wchar_t*)::wcschr(s, c); }
 
         //·´Ïò×Ö·ûËÑË÷
-        inline char *           strrchr(char *s, int c) {return ::strrchr(s,c);}
-        inline wchar_t *        strrchr(wchar_t *s, int c) {return ::wcsrchr(s,c);}
-        inline const char *     strrchr(const char *s, int c) {return ::strrchr(s,c);}
-        inline const wchar_t *  strrchr(const wchar_t *s, int c) {return ::wcsrchr(s,c);}
+        inline char *           strrchr(const char *s, int c) {return (char*)::strrchr(s,c);}
+        inline wchar_t *        strrchr(const wchar_t *s, int c) {return (wchar_t*)::wcsrchr(s,c);}
 
         //×Ö·û´®×ªÎªÎŞ·ûºÅÕûÊı
-        inline uint32_t         atoul(const char* s,int radix=0) {return ::strtoul(s,NULL,radix);}
-        inline uint32_t         atoul(const wchar_t* s,int radix=0) {return ::wcstoul(s,NULL,radix);}
+        inline uint32_t         atou(const char* s,int radix=0) {return ::strtoul(s,NULL,radix);}
+        inline uint32_t         atou(const wchar_t* s,int radix=0) {return ::wcstoul(s,NULL,radix);}
         template<class CT>
-        inline uint32_t         atoul(const CT* s,int radix,uint32_t DefVal) {if (is_empty(s)) return DefVal; else return atoul(s,radix);}
+        inline uint32_t         atou(const CT* s,int radix,uint32_t DefVal) {if (is_empty(s)) return DefVal; else return atou(s,radix);}
 
         //×Ö·û´®×ª»»ÎªÕûÊı
         inline int              atoi(const char* s,int radix=0) {return ::strtol(s,NULL,radix);}

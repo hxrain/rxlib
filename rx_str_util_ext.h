@@ -605,7 +605,7 @@ namespace rx
         //在主串haystack中查找子串needle,算法来自 https://github.com/kirabou/fast_strstr 并进行了修正
         //返回值:NULL未找到;其他为子串在主串中的开始指针
         template<class CT>
-        inline CT *strstr_ex(const CT *haystack, const CT *needle)
+        inline CT *strstrx(const CT *haystack, const CT *needle)
         {
             if (is_empty(needle))                           //子串为空,返回主串头部
                 return (CT *) haystack;
@@ -639,6 +639,70 @@ namespace rx
             //对主串的剩余部分进行逐字符循环判断
             const CT* pos = haystack;
             while(*i_haystack)
+            {
+                sums_diff -= *pos++;                        //特征和针对主串的开始字母累计求差,与面的过程正好相反
+                sums_diff += *i_haystack++;                 //特征和针对主串的子串跨度后的字母累计求和
+
+                if (sums_diff == 0                          //当特征值为0的时候
+                    && needle_first == *pos                 //且子串的首字符与当前主串指向相同
+                    && memcmp(pos+1, needle+1, needle_len_1) == 0//并且当前主串与子串的后续相同
+                    )
+                    return (CT *) pos;                      //则当前的主串指向就是目标点
+            }
+
+            return NULL;
+        }
+        //-------------------------------------------------
+        //在数组haystack中查找元素needle
+        template<class CT>
+        inline CT* memmemx(const CT *haystack,uint32_t hsize, const CT needle)
+        {
+            rx_assert(haystack!=NULL);
+            for(uint32_t i=0;i<hsize;++i)
+                if (haystack[i]==needle)
+                    return (CT*)(haystack+i);
+            return NULL;
+        }
+        //-------------------------------------------------
+        //在主数组haystack中查找子数组needle出现的位置
+        //返回值:NULL未找到;其他为子串在主串中的开始指针
+        template<class CT>
+        inline CT *memmemx(const CT *haystack,uint32_t hsize, const CT *needle,uint32_t nsize)
+        {
+            rx_assert(haystack!=NULL);
+            if (nsize>hsize) return NULL;                   //子串大于主串,直接返回
+            if (needle==NULL||nsize==0)                      //子串为空,返回主串头部
+                return (CT *) haystack;
+
+            const CT    needle_first  = *needle;            //记录子串的首字符
+            const CT   *haystack_begin= haystack;
+
+            //在主串中先查找子串首字符出现的位置
+            haystack = memmemx(haystack, hsize, needle_first);
+            if (!haystack)
+                return NULL;                                //子串的首字符在主串中都不存在
+
+            const CT   *i_haystack    = haystack + 1;       //主串的后续比较点
+            const CT   *i_needle      = needle   + 1;       //子串的后续比较点
+
+            int32_t       sums_diff     = 0;                //特征和归零
+            bool          identical     = true;             //指示当前的子串与主串是否相同,初始的时候标记首字符相同
+
+            for(uint32_t i=1;i<nsize;++i) {                 //对主串与子串的后续部分进行最短的遍历,计算初始特征整数
+                sums_diff += *i_haystack;                   //特征和针对主串的后续字母累计求和
+                sums_diff -= *i_needle;                     //特征和针对子串的后续字母累计求差
+                identical &= *i_haystack++ == *i_needle++;  //逐字符判断后续部分是否相同
+            }
+
+            if (identical)
+                return (CT *) haystack;                     //如果子串恰好与主串的当前位置相同了,直接返回
+
+            size_t needle_len_1  = nsize - 1;               //计算子串长度减一的值
+            uint32_t remain_hsize=hsize-(uint32_t)(haystack-haystack_begin);
+
+            //对主串的剩余部分进行逐字符循环判断
+            const CT* pos = haystack;
+            for(uint32_t i=0;i<remain_hsize;++i)
             {
                 sums_diff -= *pos++;                        //特征和针对主串的开始字母累计求差,与面的过程正好相反
                 sums_diff += *i_haystack++;                 //特征和针对主串的子串跨度后的字母累计求和
