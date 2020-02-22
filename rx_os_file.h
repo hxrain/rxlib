@@ -45,26 +45,26 @@ namespace rx
         //-------------------------------------------------
         //创建一个文件,write_over=false文件打开或创建;write_over=true文件覆盖或创建
         //flags默认打开为可读写;mode默认别人可以共享读,0为独占;文件属性默认为正常
-        error_code create(const char* filename, bool write_over, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
+        error_t create(const char* filename, bool write_over, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
         {
             if (is_empty(filename))
-                return ec_in_param;
+                return ec_param;
             m_handle = CreateFileA(filename, flags, mode, NULL, write_over ? CREATE_ALWAYS : OPEN_ALWAYS, attrib, NULL);
             return m_handle == INVALID_HANDLE_VALUE ? ec_file_open : ec_ok;
         }
         //-------------------------------------------------
         //打开一个文件,文字不存在就失败
         //flags默认打开为可读写;mode默认别人可以共享读,0为独占;文件属性默认为正常
-        error_code open(const char* filename, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
+        error_t open(const char* filename, uint32_t flags = GENERIC_READ | GENERIC_WRITE, uint32_t mode = FILE_SHARE_READ| FILE_SHARE_WRITE, uint32_t attrib = FILE_ATTRIBUTE_NORMAL)
         {
             if (is_empty(filename))
-                return ec_in_param;
+                return ec_param;
             m_handle = CreateFileA(filename, flags, mode, NULL, OPEN_EXISTING, attrib, NULL);
             return m_handle == INVALID_HANDLE_VALUE ? ec_file_open : ec_ok;
         }
         //-------------------------------------------------
         //仿std/fopen的文件打开操作
-        error_code open(const char* filename, const char* Mode)
+        error_t open(const char* filename, const char* Mode)
         {   //参照vc2008
             //r : read
             //w : write
@@ -82,7 +82,7 @@ namespace rx
             //a+: open for append; open (or create if the file does not exist) for update at the end of the file.
 
             if (is_empty(filename)||is_empty(Mode))
-                return ec_in_param;
+                return ec_param;
 
             uint32_t flag_write = 0;
             uint32_t flag_read = 0;
@@ -321,10 +321,10 @@ namespace rx
         //-------------------------------------------------
         //打开一个文件,文字不存在就失败
         //flags默认打开为可读写;文件属性默认为用户读写
-        error_code open(const char* filename, uint32_t flags = O_RDWR|O_CREAT, uint32_t attrib = S_IRUSR|S_IWUSR)
+        error_t open(const char* filename, uint32_t flags = O_RDWR|O_CREAT, uint32_t attrib = S_IRUSR|S_IWUSR)
         {
             if (is_empty(filename))
-                return ec_in_param;
+                return ec_param;
             m_handle = ::open(filename,flags,attrib);
             return m_handle == -1 ? ec_file_open : ec_ok;
         }
@@ -347,7 +347,7 @@ namespace rx
             //a+: open for append; open (or create if the file does not exist) for update at the end of the file.
 
             if (is_empty(filename)||is_empty(Mode))
-                return ec_in_param;
+                return ec_param;
 
             uint32_t flag_write = 0;
             uint32_t flag_read = 0;
@@ -521,37 +521,37 @@ namespace rx
 {
     //---------------------------------------------------------
     //将给定的os_file_t进行预分配处理(调整文件尺寸)
-    inline error_code alloc_file_size(os_file_t& file, uint32_t NewSize)
+    inline error_t alloc_file_size(os_file_t& file, uint32_t NewSize)
     {
         uint32_t Pos;
         if (!file.tell(Pos))
-            return error_code(ec_file_op,-1);
+            return error_t(ec_file_op,-1);
         if (!file.seek(NewSize))
-            return error_code(ec_file_op,-2);
+            return error_t(ec_file_op,-2);
         if (!file.truncate())
-            return error_code(ec_file_op,-3);
+            return error_t(ec_file_op,-3);
         if (!file.flush())
-            return error_code(ec_file_op,-4);
+            return error_t(ec_file_op,-4);
         if (!file.seek(Pos))
-            return error_code(ec_file_op,-5);
+            return error_t(ec_file_op,-5);
         return ec_ok;
     }
     //---------------------------------------------------------
     //产生指定名字的文件,并预分配指定的空间
-    inline error_code alloc_file_size(const char* file, uint32_t NewSize)
+    inline error_t alloc_file_size(const char* file, uint32_t NewSize)
     {
         os_file_t f;
-        error_code ec=f.open(file,"w+");
+        error_t ec=f.open(file,"w+");
         if (ec)
             return ec;
         return alloc_file_size(f, NewSize);
     }
     //---------------------------------------------------------
     //保存数据到文件
-    inline error_code save_to_file(const char* filename,const void* data,size_t datalen)
+    inline error_t save_to_file(const char* filename,const void* data,size_t datalen)
     {
         os_file_t f;
-        error_code ec=f.open(filename, "w+");
+        error_t ec=f.open(filename, "w+");
         if (ec)
             return ec;
 
@@ -559,13 +559,13 @@ namespace rx
             return ec_file_write;
         return ec_ok;
     }
-    inline error_code save_to_file(const char* filename, const char* data) { return save_to_file(filename,data,strlen(data)); }
+    inline error_t save_to_file(const char* filename, const char* data) { return save_to_file(filename,data,strlen(data)); }
     //---------------------------------------------------------
     //从文件装载内容到字符串
-    inline error_code load_from_file(const char* filename, std::string &str)
+    inline error_t load_from_file(const char* filename, std::string &str)
     {
         os_file_t f;
-        error_code ec=f.open(filename, "r");
+        error_t ec=f.open(filename, "r");
         if (ec)
             return ec;
 
