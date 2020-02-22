@@ -43,7 +43,7 @@ namespace rx
     };
 
     //-----------------------------------------------------
-    //封装std随机数算法
+    //封装stdlibc随机数算法
     class rand_std_t:public rand_i
     {
         rand_std_t& operator=(const rand_std_t&);
