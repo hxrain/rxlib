@@ -158,20 +158,20 @@ public:
     ut_strstr(){rx_rnd_t32().seed(1);}
     void make_main()
     {
-        for(int i=0;i<sizeof(m_buff_main);++i)
+        for(uint32_t i=0;i<sizeof(m_buff_main);++i)
             m_buff_main[i]=rx_rnd_t32().get(10)+'0';
         m_buff_main[sizeof(m_buff_main)-1]=0;
     }
-    void make_sub(int offset,int len)
+    void make_sub(uint32_t offset,uint32_t len)
     {
         rx_assert(offset+len<sizeof(m_buff_main));
         strncpy(m_buff_sub,m_buff_main+offset,len);
         m_buff_sub[len]=0;
     }
-    uint32_t loop_by_size(int len)
+    uint32_t loop_by_size(uint32_t len)
     {
         uint32_t bad=0;
-        for(int offset=0;offset<sizeof(m_buff_main)-1-len;++offset)
+        for(uint32_t offset=0;offset<sizeof(m_buff_main)-1-len;++offset)
         {
             make_sub(offset,len);
             const char* pos=fun(m_buff_main,m_buff_sub);
@@ -184,7 +184,7 @@ public:
     {
         uint32_t bad=0;
         make_main();
-        for(int len=1;len<sizeof(m_buff_sub)-1;++len)
+        for(uint32_t len=1;len<sizeof(m_buff_sub)-1;++len)
             bad+=loop_by_size(len);
         return bad;
     }
@@ -192,11 +192,14 @@ public:
 inline void ut_str_util_faststrstr_2(rx_tdd_t &rt)
 {
     ut_strstr us;
+
     tdd_tt(t, "strstr", "");
-    us.fun=strstr;
+
+    us.fun=(ut_strstr::strstr_t)strstr;
     uint32_t bad=us.loop();
     rt.assert(bad==0);
     tdd_tt_msg(t, "strstr", "libc");
+
     us.fun=(ut_strstr::strstr_t)rx::st::strstrx<char>;
     bad=us.loop();
     rt.assert(bad==0);

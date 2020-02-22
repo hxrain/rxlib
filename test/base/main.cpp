@@ -1,13 +1,13 @@
 #define RX_USE_TDD_TICK 1
 
-#define UT_ALL 0
-#define UT_SEL 21
+#define UT_ALL 1
+#define UT_SEL 41
 
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==41
     //日志记录器与输出器
     #include "../ut_logger_std.h"
-    //#include "../../rx_net_tcp_server.h"
+    #include "../../rx_net_tcp_server.h"
     //#include "../../rx_net_tcp_client.h"
     #include "../../rx_net_tcp_session.h"
 #endif

@@ -248,7 +248,7 @@ namespace rx
             socket_t Ret=bad_socket;
         #if RX_IS_OS_WIN
             try{
-                Ret=WSAAccept(sock,(struct sockaddr *)&sa.addr(),&OutLen,NULL,NULL);
+                Ret=WSAAccept(sock,(struct sockaddr *)&sa.addr(),&OutLen,NULL,0);
             }catch(...){}
         #else
             Ret=accept(sock,(struct sockaddr *)&sa.addr(),&OutLen);
@@ -666,6 +666,19 @@ namespace rx
             if (LocalIP)
                 M.imr_interface.s_addr=sock_addr_t::lookup(LocalIP);
             return setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char*)&M,sizeof(M))==0;
+        }
+        //从指定的socket上获取本地ip端口以及远程ip端口信息
+        inline void addr_infos(socket_t sock,ip_str_t &ip_l,uint16_t &port_l,ip_str_t &ip_r,uint16_t &port_r)
+        {
+            sock_addr_t addr_l,addr_r;
+            sock::local_addr(sock,addr_l);
+            sock::local_addr(sock,addr_r);
+
+            addr_l.ip_str(ip_l);
+            addr_r.ip_str(ip_r);
+            port_l=addr_l.port();
+            port_r=addr_r.port();
+
         }
     }
     //-----------------------------------------------------
