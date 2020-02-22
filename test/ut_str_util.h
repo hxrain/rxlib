@@ -212,7 +212,7 @@ inline void ut_str_util_faststrstr_1(rx_tdd_t &rt)
     rt.tdd_assert(*rx::st::strstrx("012345246789","467")=='4');
     rt.tdd_assert(*rx::st::strstrx("012345246789","4678")=='4');
     rt.tdd_assert(*rx::st::strstrx("012345246789","46789")=='4');
-    rt.tdd_assert(*rx::st::strstrx("012345246789","246")=='2');
+    rt.tdd_assert(*rx::st::strstrx(L"012345246789",L"246")==L'2');
     rt.tdd_assert(*rx::st::strstrx("012345246789","2467")=='2');
     rt.tdd_assert(*rx::st::strstrx("012345246789","24678")=='2');
     rt.tdd_assert(*rx::st::strstrx("012345246789","246789")=='2');

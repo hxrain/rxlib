@@ -602,6 +602,19 @@ namespace rx
             return true;                                    //全部的字符都检查完成了,说明当前串是合法的数字串.
         }
         //-------------------------------------------------
+        //比较数组buff1和buff2的内容是否相同
+        //返回值:buff1<buff2,<0;buff1==buff2,=0;buff1>buff2,>0
+        template<class CT>
+        inline int memcmpx(const CT *buff1, const CT *buff2,uint32_t size)
+        {
+            for(uint32_t i=0;i<size;++i)
+            {
+                int r=buff1[i]-buff2[i];
+                if (r) return r;
+            }
+            return 0;
+        }
+        //-------------------------------------------------
         //在主串haystack中查找子串needle,算法来自 https://github.com/kirabou/fast_strstr 并进行了修正
         //返回值:NULL未找到;其他为子串在主串中的开始指针
         template<class CT>
@@ -634,7 +647,7 @@ namespace rx
             else if (identical)
                 return (CT *) haystack;                     //如果子串恰好与主串的当前位置相同了,直接返回
 
-            size_t needle_len_1  = i_needle - needle - 1;   //根据上面的循环,现在可计算得到子串的长度预先计算子串长度减一的值
+            uint32_t needle_len_1  = uint32_t(i_needle - needle) - 1; //根据上面的循环,现在可计算得到子串的长度预先计算子串长度减一的值
 
             //对主串的剩余部分进行逐字符循环判断
             const CT* pos = haystack;
@@ -645,7 +658,7 @@ namespace rx
 
                 if (sums_diff == 0                          //当特征值为0的时候
                     && needle_first == *pos                 //且子串的首字符与当前主串指向相同
-                    && memcmp(pos+1, needle+1, needle_len_1) == 0//并且当前主串与子串的后续相同
+                    && memcmpx(pos+1, needle+1, needle_len_1) == 0//并且当前主串与子串的后续相同
                     )
                     return (CT *) pos;                      //则当前的主串指向就是目标点
             }
@@ -697,7 +710,7 @@ namespace rx
             if (identical)
                 return (CT *) haystack;                     //如果子串恰好与主串的当前位置相同了,直接返回
 
-            size_t needle_len_1  = nsize - 1;               //计算子串长度减一的值
+            uint32_t needle_len_1  = nsize - 1;             //计算子串长度减一的值
             uint32_t remain_hsize=hsize-(uint32_t)(haystack-haystack_begin);
 
             //对主串的剩余部分进行逐字符循环判断
@@ -709,7 +722,7 @@ namespace rx
 
                 if (sums_diff == 0                          //当特征值为0的时候
                     && needle_first == *pos                 //且子串的首字符与当前主串指向相同
-                    && memcmp(pos+1, needle+1, needle_len_1) == 0//并且当前主串与子串的后续相同
+                    && memcmpx(pos+1, needle+1, needle_len_1) == 0//并且当前主串与子串的后续相同
                     )
                     return (CT *) pos;                      //则当前的主串指向就是目标点
             }
