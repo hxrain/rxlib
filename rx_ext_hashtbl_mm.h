@@ -22,10 +22,10 @@ namespace rx
         ~tiny_mm_hashtbl_t() { close(); }
         //-------------------------------------------------
         //创建或打开文件映射哈希表
-        error_code open(const char* file)
+        error_t open(const char* file)
         {
             //先尝试打开已有文件,失败后再尝试创建文件
-            error_code ec;
+            error_t ec;
             if ((ec=m_file.open(file, "r+")) && (ec=m_file.open(file, "w+")))
                 return ec;
 
