@@ -304,27 +304,6 @@ namespace rx
         inline double           atof(const wchar_t* s) {return ::wcstod(s,NULL);}
 
         //数字转换为字符串,参见rx_str_util_fmt.h中的ntoa系列函数
-
-        #if RX_STR_USE_FILE
-        inline int              fprintf(FILE *stream, const char *format,...)
-        {
-            va_list ap;
-            va_start(ap, format);
-            int ret = vfprintf(stream,format,ap);
-            va_end(ap);
-            return ret;
-        }
-        inline int              fprintf(FILE *stream, const wchar_t *format,...)
-        {
-            va_list ap;
-            va_start(ap, format);
-            int ret = vfwprintf(stream,format,ap);
-            va_end(ap);
-            return ret;
-        }
-        inline int              vfprintf(FILE *stream, const char *format,va_list ap) {return ::vfprintf(stream,format,ap);}
-        inline int              vfprintf(FILE *stream, const wchar_t *format,va_list ap) {return ::vfwprintf(stream,format,ap);}
-        #endif
     }
 }
 
