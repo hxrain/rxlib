@@ -87,7 +87,7 @@ namespace rx
     {
         struct sockaddr_in m_sa;
     public:
-        //-----------------------------------------------------
+        //-------------------------------------------------
         sock_addr_t(){clear();}
         sock_addr_t(const char* Host,int Port)
         {
@@ -101,7 +101,7 @@ namespace rx
             m_sa.sin_addr.s_addr  = Host;
         }
         sock_addr_t(const struct sockaddr_in& Addr):m_sa(Addr){}
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //清理地址信息
         void clear()
         {
@@ -110,16 +110,22 @@ namespace rx
             m_sa.sin_port         = htons(0);               //struct sockaddr_in.sin_port需要网络字节序的端口
             m_sa.sin_addr.s_addr  = INADDR_ANY;             //struct sockaddr_in.sin_addr.s_addr需要的是网络字节序的IP地址
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
+        //判断两个地址信息是否相同
+        bool operator==(const sock_addr_t& addr)
+        {
+            return m_sa.sin_port==addr.m_sa.sin_port&&m_sa.sin_addr.s_addr==addr.m_sa.sin_addr.s_addr;
+        }
+        //-------------------------------------------------
         //判断当前内部地址是否有效
         bool is_valid(){return m_sa.sin_addr.s_addr!=INADDR_NONE&&m_sa.sin_port!=0;}
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //设置主机字节序的端口号
         bool set_port(uint16_t P){m_sa.sin_port = htons(P);return true;}
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //得到主机字节序的端口号
         const uint16_t port() const{return ntohs(m_sa.sin_port);}
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //使用IP串或域名来设置地址;顺带可以设置端口
         //返回值:设置的IP串或域名是否合法
         bool set_addr(const char* host,uint16_t port=0)
@@ -131,10 +137,10 @@ namespace rx
         }
         struct sockaddr_in& addr(){return m_sa;}
         const struct sockaddr_in& addr()const{return m_sa;}
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //得到网络字节序的IP地址
         uint32_t ip_addr(){return m_sa.sin_addr.s_addr;}
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //得到IP地址串:缓冲区;缓冲区尺寸.返回值:NULL失败,其他为缓冲区指针
         char* ip_str(char* Buf,int Size) const
         {
@@ -148,7 +154,7 @@ namespace rx
                 return str.addr;
             return NULL;
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //转换网络字节序IP地址到字符串.返回值:串长度;0缓冲区不足.
         static uint32_t to_str(uint32_t ip,char *buff,uint32_t size)
         {
@@ -178,7 +184,7 @@ namespace rx
             cat("%u.",bp[0])("%u.",bp[1])("%u.",bp[2])("%u",bp[3]);
             return cat.size;
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //根据IP串或域名得到对应的网络字节序的IP地址(gethostbyname存在多线程阻塞的问题,可以使用其他DNS客户端或缓存方案)
         //返回值:INADDR_NONE失败;其他成功
         static uint32_t lookup(const char* host)
@@ -190,13 +196,52 @@ namespace rx
             if (Host==NULL) return INADDR_NONE;             //查找失败直接返回
             return ((struct in_addr *)Host->h_addr)->s_addr;
         }
-        //-----------------------------------------------------
+        //-------------------------------------------------
         //将IP串转换为IP值
         //返回值:INADDR_NONE失败;其他成功
         static uint32_t to_ip(const char* Str)
         {
             return inet_addr(Str);
         }
+    };
+
+    //-----------------------------------------------------
+    //对socket集合进行简单管理,便于获取nfds
+    class sock_sets
+    {
+        fd_set          m_sets;
+        uint32_t        m_size;
+        socket_t        m_nfds;
+    public:
+        //-------------------------------------------------
+        sock_sets(){reset();}
+        //-------------------------------------------------
+        //复位,准备重新填充
+        void reset(){FD_ZERO(&m_sets);m_size=0;m_nfds=0;}
+        //-------------------------------------------------
+        //获取集合的最大容量与当前元素数量
+        static uint32_t capacity(){return FD_SETSIZE;}
+        uint32_t size(){return m_size;}
+        //-------------------------------------------------
+        //放入一个元素
+        bool push(socket_t sock)
+        {
+            if (m_size==capacity())
+                return false;
+            FD_SET(sock,&m_sets);
+            m_nfds=max(m_nfds,sock);
+            ++m_size;
+            return true;
+        }
+        //-------------------------------------------------
+        //放入集合的socket最大值
+        socket_t nfds(){return m_nfds+1;}
+        //-------------------------------------------------
+        operator fd_set* (){return &m_sets;}
+        operator fd_set& (){return m_sets;}
+        //-------------------------------------------------
+        //在进行了select之后,仅有此方法可用,判断给定的sock是否还在集合中
+        bool contain(socket_t sock){return FD_ISSET(sock,&m_sets)!=0;}
     };
 
     //对常用socket相关功能函数进行封装
@@ -267,7 +312,7 @@ namespace rx
         //-------------------------------------------------
         //在指定的sock集合上等待事件,io多路复用:set_r读集;set_w写集;set_e错误集;超时时间用微秒;nfds告知全部集合中的最大描述符+1
         //返回值:<0错误;0超时;>0有事件发生
-        inline int32_t select(fd_set* set_r,fd_set* set_w,fd_set *set_e,uint32_t timeout_us,int nfds=0)
+        inline int32_t select(fd_set* set_r,fd_set* set_w,fd_set *set_e,uint32_t timeout_us,int nfds)
         {
             const uint32_t sec_us=1000*1000;
             struct timeval tm;
@@ -275,15 +320,25 @@ namespace rx
             tm.tv_usec=timeout_us%sec_us;
             return select(nfds,set_r,set_w,set_e,(timeout_us!=(uint32_t)-1?&tm:NULL));
         }
+        //-------------------------------------------------
         //等待读集有可用socket
-        inline int32_t select_rd(fd_set& set,uint32_t timeout_us,int nfds=0)
+        inline int32_t select_rd(fd_set& set,uint32_t timeout_us,int nfds)
         {
             return select(&set,NULL,NULL,timeout_us,nfds);
         }
+        inline int32_t select_rd(sock_sets& set,uint32_t timeout_us)
+        {
+            return select_rd(set,timeout_us,(int)set.nfds());
+        }
+        //-------------------------------------------------
         //等待写集有可用socket
-        inline int32_t select_wr(fd_set& set,uint32_t timeout_us,int nfds=0)
+        inline int32_t select_wr(fd_set& set,uint32_t timeout_us,int nfds)
         {
             return select(NULL,&set,NULL,timeout_us,nfds);
+        }
+        inline int32_t select_wr(sock_sets& set,uint32_t timeout_us)
+        {
+            return select_wr(set,timeout_us,(int)set.nfds());
         }
         //-------------------------------------------------
         //等待指定的socket可读.
