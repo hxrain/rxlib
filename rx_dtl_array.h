@@ -18,7 +18,7 @@
 namespace rx
 {
     //-----------------------------------------------------
-    //基础的数组访问操作
+    //基础的数组访问操作,(内部不维护元素的构造与析构)
     template<class T>
     class array_i
     {
@@ -97,13 +97,13 @@ namespace rx
 
     //-----------------------------------------------------
     //静态数组
-    template<class T,uint32_t size>
+    template<class T,uint32_t max_size>
     class array_ft :public array_i<T>
     {
         typedef array_i<T> super_t;
-        T       m_items[size];
+        T       m_items[max_size];
     public:
-        array_ft() :super_t(m_items, size){}
+        array_ft() :super_t(m_items, max_size){}
         //-------------------------------------------------
         //赋值符重载:直接将数组元素数据进行复制
         array_ft& operator=(const super_t& S)
@@ -129,32 +129,33 @@ namespace rx
         virtual ~array_t() { clear(); }
 
         //-------------------------------------------------
-        bool make(uint32_t Count, bool can_reuse=false)
+        bool make(uint32_t max_size, bool can_reuse=false)
         {
-            if (can_reuse&&Count < super_t::m_capacity)
+            if (can_reuse&&max_size < super_t::m_capacity)
                 return true;                                //可复用且容量大于要求,则直接返回
 
             clear();
-            rx_assert_msg(Count!=0,"不能初始化0长度的数组");
-            if (!Count) return false;
+            rx_assert_msg(max_size!=0,"不能初始化0长度的数组");
+            if (!max_size) return false;
 
-            super_t::m_capacity=Count;
-            super_t::m_ptr = m_mem.new0<T>(Count);
+            super_t::m_capacity=max_size;
+            super_t::m_ptr = m_mem.new0<T>(max_size);
             return super_t::m_ptr!=NULL;
         }
         //-------------------------------------------------
+        //带有初始值的初始化构造函数
         template<class PT1>
-        bool make(uint32_t Count,PT1& P1, bool can_reuse = false)
+        bool make(uint32_t max_size,PT1& P1, bool can_reuse = false)
         {
-            if (can_reuse&&Count < super_t::m_capacity)
+            if (can_reuse&&max_size < super_t::m_capacity)
                 return true;                                //可复用且容量大于要求,则直接返回
 
             clear();
-            rx_assert_msg(Count != 0, "不能初始化0长度的数组");
-            if (!Count) return true;
+            rx_assert_msg(max_size != 0, "不能初始化0长度的数组");
+            if (!max_size) return true;
 
-            super_t::m_capacity = Count;
-            super_t::m_ptr = m_mem.new1<T>(P1, Count);
+            super_t::m_capacity = max_size;
+            super_t::m_ptr = m_mem.new1<T>(P1, max_size);
             return super_t::m_ptr != NULL;
         }
         //-------------------------------------------------
@@ -179,6 +180,53 @@ namespace rx
             return *this;
         }
         //-------------------------------------------------
+    };
+
+    //-----------------------------------------------------
+    //基于数组容器的简单stack功能封装(内部不维护元素的构造与析构)
+    template<class T>
+    class array_stack_t
+    {
+    public:
+        typedef array_i<T> cntr_t;
+        typedef typename cntr_t::iterator iterator;
+    protected:
+        uint32_t    m_size;
+        cntr_t     &m_cntr;
+    public:
+        //-------------------------------------------------
+        array_stack_t(cntr_t &c):m_size(0),m_cntr(c){}
+        //栈的当前元素数量
+        uint32_t size(){return m_size;}
+        void clear(){m_size=0;}
+        //-------------------------------------------------
+        bool push_back(const T &data)
+        {
+            if (m_size>=m_cntr.capacity())
+                return false;
+            m_cntr[m_size++]=data;
+            return true;
+        }
+        //-------------------------------------------------
+        bool pop_back()
+        {
+            if (m_size==0)
+                return false;
+            --m_size;
+            return true;
+        }
+        //-------------------------------------------------
+        //正向访问栈底(数组元素索引0)
+        iterator begin() const {return m_cntr.begin();}
+        //-------------------------------------------------
+        //反向访问栈顶(数组元素索引size()-1)
+        iterator rbegin() const {return cntr_t::iterator(m_cntr,m_size-1);}
+        //-------------------------------------------------
+        //正向访问栈顶结束点(数组元素索引size())
+        iterator end() const {return cntr_t::iterator(m_cntr,m_size);}
+        //-------------------------------------------------
+        //栈的最大容量
+        uint32_t capacity() const {return m_cntr.capacity();}
     };
 }
 #endif

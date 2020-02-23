@@ -424,7 +424,10 @@
     #define RX_CT_STR(M)                    #M                              //宏转字符串
     #define RX_CT_N2S(N)                    RX_CT_STR(N)                    //宏数字转字符串
 
+    //判断指针是否为空或空串
     #define is_empty(str)                   (str==NULL||str[0]==0)          //判断字符串是否为空(空指针或首字节为0)
+    //避免空指针出现
+    #define not_empty(ptr)                  (ptr==NULL?"":ptr)              //使用空字符串代替空指针
 
     //将str字符串中的连续两个字节,转换为字符集编码值
     #define str2code(str) ((((uint8_t)str[0]) << 8) | (uint8_t)str[1])
