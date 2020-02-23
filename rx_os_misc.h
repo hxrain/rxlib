@@ -22,6 +22,8 @@ namespace rx
     {
         char m_buff[512];
     public:
+        os_errmsg_t(){m_buff[0]=0;}
+        os_errmsg_t(const char* tip){msg(tip);}
         //-------------------------------------------------
         //根据错误代码生成对应的错误消息:消息缓冲区;缓冲区长度;错误号;
         static inline char* msg(char *buff,uint32_t size,uint32_t eno=GetLastError())
@@ -35,6 +37,8 @@ namespace rx
         //-------------------------------------------------
         //得到错误号
         static inline uint32_t err(){return GetLastError();}
+        //-------------------------------------------------
+        operator const char* (){return m_buff;}
         //-------------------------------------------------
         //得到错误消息
         inline char* msg()
@@ -200,6 +204,8 @@ namespace rx
     {
         char m_buff[512];
     public:
+        os_errmsg_t(){m_buff[0]=0;}
+        os_errmsg_t(const char* tip){msg(tip);}
         //-------------------------------------------------
         //根据错误代码生成对应的错误消息:消息缓冲区;缓冲区长度;错误号;
         static inline char* msg(char *buff,uint32_t size,uint32_t eno=errno)
@@ -213,6 +219,8 @@ namespace rx
         //-------------------------------------------------
         //得到错误号
         static inline uint32_t err(){return errno;}
+        //-------------------------------------------------
+        operator const char* (){return m_buff;}
         //-------------------------------------------------
         //得到错误消息
         inline char* msg()

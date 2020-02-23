@@ -40,19 +40,20 @@ namespace rx
         void*                   m_usrdata;                  //与当前会话绑定的外部用户数据
         //-------------------------------------------------
         //处理收发错误日志,并断开连接
-        void m_err_disconn(const char* tip)
+        bool m_err_disconn(const char* tip)
         {
-            os_errmsg_t osmsg;
-            const char* msg=osmsg.msg(tip);                 //得到格式化后的系统错误信息描述与tip
+            os_errmsg_t osmsg(tip);                         //得到格式化后的系统错误信息描述与tip
 
             ip_str_t ip_l,ip_r;
             uint16_t port_l,port_r;
             sock::addr_infos(m_sock,ip_l,port_l,ip_r,port_r);//得到通信双方地址信息
 
             //输出日志
-            m_cfg.logger.warn("%s ->LOC<%s:%u>RMT<%s:%u>",msg,ip_l,port_l,ip_r,port_r);
+            m_cfg.logger.warn("%s ->LOC<%s:%u>DST<%s:%u>",(const char*)osmsg,ip_l,port_l,ip_r,port_r);
             //断开连接,释放socket
             disconnect(true);
+
+            return false;
         }
 
     public:
@@ -68,6 +69,9 @@ namespace rx
         //断开连接,释放socket
         void disconnect(bool NoWait=true)
         {
+            if (m_sock==bad_socket)
+                return;
+
             if (m_cfg.on_disconnect.is_valid())
                 m_cfg.on_disconnect(m_sock,m_usrdata);
             sock::close(m_sock,NoWait);
