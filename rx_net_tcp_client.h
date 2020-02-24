@@ -18,13 +18,11 @@ namespace rx
             ip_str_t ip_r;
             m_dst.ip_str(ip_r);
             os_errmsg_t osmsg(tip);
-            super_t::m_cfg.logger.warn("%s ->DST<%s:%u>",(const char*)osmsg,ip_r,m_dst.port());
+            get_tcp_sesncfg(super_t::sesncfg).logger.warn("%s ->DST<%s:%u>",(const char*)osmsg,ip_r,m_dst.port());
             sock::close(super_t::m_sock,true);
             return false;
         }
     public:
-        //-------------------------------------------------
-        tcp_client_t(tcp_sesncfg_t& cfg,void* usrdata=NULL):tcp_session_t(cfg,usrdata){}
         //-------------------------------------------------
         //设置待连接的目标地址
         bool dst_addr(const char* host,uint16_t port)
@@ -54,8 +52,8 @@ namespace rx
             int r=sock::connect(super_t::m_sock,m_dst,timeout_us);
             if (r==1)
             {//连接成功了,给出外部回调通知
-                if (m_cfg.on_connect.is_valid())
-                    m_cfg.on_connect(super_t::m_sock,this);
+                if (get_tcp_sesncfg(super_t::sesncfg).on_connect.is_valid())
+                    get_tcp_sesncfg(super_t::sesncfg).on_connect(super_t::m_sock,*this);
                 return true;
             }
             if (r==0)

@@ -13,53 +13,61 @@ namespace rx
     //-----------------------------------------------------
     class tcp_session_t;
     //tcp连接或断开事件的委托类型
-    typedef delegate2_t<socket_t,tcp_session_t*,void> tcp_evt_conn_t;
+    typedef delegate2_t<socket_t,tcp_session_t&,void> tcp_evt_conn_t;
 
     //-----------------------------------------------------
     //tcp会话使用的配置参量,抽取出公共对象,节省内存.
-    class tcp_sesncfg_t
+    typedef struct tcp_sesncfg_t
     {
-    public:
         uint32_t                timeout_us_rd;              //接收超时us
         uint32_t                timeout_us_wr;              //发送超时us
         uint32_t                timeout_us_conn;            //连接超时us
-        logger_i                logger;                     //错误日志记录器
+        logger_i               &logger;                     //错误日志记录器
         tcp_evt_conn_t          on_connect;                 //事件委托:tcp会话连接成功
         tcp_evt_conn_t          on_disconnect;              //事件委托:tcp会话连接断开
         sock::event_rw_t        on_recv;                    //事件委托:tcp会话接收到数据
         sock::event_rw_t        on_send;                    //事件委托:tcp会话发送了数据
-        tcp_sesncfg_t():timeout_us_rd(1000*500),timeout_us_wr(1000*500),timeout_us_conn(1000*3000){}
-    };
+        tcp_sesncfg_t(logger_i &log):timeout_us_rd(1000*500),timeout_us_wr(1000*500),timeout_us_conn(1000*3000),logger(log){}
+    }
+    tcp_sesncfg_t;
+
+    //-----------------------------------------------------
+    //访问tcp会话配置,可以给出全局默认值,便于使用
+    inline tcp_sesncfg_t& get_tcp_sesncfg(tcp_sesncfg_t* ptr=NULL)
+    {
+        static tcp_sesncfg_t cfg(make_logger_con());
+        if (ptr==NULL)
+            return cfg;
+        return *ptr;
+    }
 
     //-----------------------------------------------------
     //同步net操作的TCP收发会话功能
     class tcp_session_t
     {
     protected:
+        friend void tcp_session_bind(tcp_session_t &sesn,socket_t sock);
+
         socket_t                m_sock;                     //通信使用的Socket
-        tcp_sesncfg_t          &m_cfg;                      //通信使用的配置参数
         //-------------------------------------------------
         //处理收发错误日志,并断开连接
         bool m_err_disconn(const char* tip)
         {
             os_errmsg_t osmsg(tip);                         //得到格式化后的系统错误信息描述与tip
-
-            ip_str_t ip_l,ip_r;
-            uint16_t port_l,port_r;
-            sock::addr_infos(m_sock,ip_l,port_l,ip_r,port_r);//得到通信双方地址信息
-
+            char addrstr[53];
+            sock::addr_infos(m_sock,addrstr);               //得到通信双方地址信息
             //输出日志
-            m_cfg.logger.warn("%s ->LOC<%s:%u>DST<%s:%u>",(const char*)osmsg,ip_l,port_l,ip_r,port_r);
+            get_tcp_sesncfg(sesncfg).logger.warn("%s -> %s",(const char*)osmsg,addrstr);
             //断开连接,释放socket
             disconnect(true);
-
             return false;
         }
 
     public:
-        void* usrdata;                                      //与当前会话绑定的外部用户数据
+        void*           usrdata;                            //session绑定的外部用户数据
+        tcp_sesncfg_t*  sesncfg;                            //session统一使用的配置参数
         //-------------------------------------------------
-        tcp_session_t(tcp_sesncfg_t& cfg,void* ud=NULL):m_sock(bad_socket),m_cfg(cfg),usrdata(ud){}
+        tcp_session_t():m_sock(bad_socket),usrdata(NULL),sesncfg(NULL){}
         //-------------------------------------------------
         virtual ~tcp_session_t(){disconnect();}
         socket_t socket() const {return m_sock;}
@@ -73,8 +81,8 @@ namespace rx
             if (m_sock==bad_socket)
                 return;
 
-            if (m_cfg.on_disconnect.is_valid())
-                m_cfg.on_disconnect(m_sock,this);
+            if (get_tcp_sesncfg(sesncfg).on_disconnect.is_valid())
+                get_tcp_sesncfg(sesncfg).on_disconnect(m_sock,*this);
             sock::close(m_sock,NoWait);
         }
         //-------------------------------------------------
@@ -86,10 +94,10 @@ namespace rx
                 return ec_uninit;
 
             if (!timeout_us)
-                timeout_us=m_cfg.timeout_us_wr;
+                timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_wr;
 
             //尝试确定发送事件的委托
-            sock::event_rw_t *evt=m_cfg.on_send.is_valid()?&m_cfg.on_send:NULL;
+            sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_send.is_valid()?&get_tcp_sesncfg(sesncfg).on_send:NULL;
 
             //进行真正的循环发送
             int32_t rc=sock::write_loop(m_sock,data,size,timeout_us,evt,this);
@@ -114,10 +122,10 @@ namespace rx
                 return ec_uninit;
 
             if (!timeout_us)
-                timeout_us=m_cfg.timeout_us_rd;
+                timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_rd;
 
             //尝试确定接收事件的委托
-            sock::event_rw_t *evt=m_cfg.on_recv.is_valid()?&m_cfg.on_recv:NULL;
+            sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_recv.is_valid()?&get_tcp_sesncfg(sesncfg).on_recv:NULL;
 
             //进行真正的循环接收
             int32_t rc=sock::read_loop(m_sock,(uint8_t*)buff,len,true,timeout_us,evt,this);
@@ -147,10 +155,10 @@ namespace rx
                 return 0;
 
             if (!timeout_us)
-                timeout_us=m_cfg.timeout_us_rd;
+                timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_rd;
 
             //尝试确定接收事件的委托
-            sock::event_rw_t *evt=m_cfg.on_recv.is_valid()?&m_cfg.on_recv:NULL;
+            sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_recv.is_valid()?&get_tcp_sesncfg(sesncfg).on_recv:NULL;
 
             //进行真正的循环接收
             sock::recv_buff_i ri((uint8_t*)buff,len,false);
@@ -170,10 +178,10 @@ namespace rx
                 return 0;
 
             if (!timeout_us)
-                timeout_us=m_cfg.timeout_us_rd;
+                timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_rd;
 
             //尝试确定接收事件的委托
-            sock::event_rw_t *evt=m_cfg.on_recv.is_valid()?&m_cfg.on_recv:NULL;
+            sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_recv.is_valid()?&get_tcp_sesncfg(sesncfg).on_recv:NULL;
 
             //进行真正的循环接收
             sock::recv_tag_i ri((uint8_t*)buff,len,false);
@@ -189,6 +197,14 @@ namespace rx
             return ri.size();
         }
     };
+    //绑定sock到指定的session对象
+    inline void tcp_session_bind(tcp_session_t &sesn,socket_t sock)
+    {
+        sesn.m_sock=sock;
+        if (get_tcp_sesncfg(sesn.sesncfg).on_connect.is_valid())
+            get_tcp_sesncfg(sesn.sesncfg).on_connect(sock,sesn);
+
+    }
 }
 
 #endif

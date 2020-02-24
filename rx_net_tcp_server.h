@@ -76,6 +76,7 @@ namespace rx
         tcp_svrsocks_t(logger_i& logger):m_logger(logger){}
         tcp_svrsocks_t():m_logger(make_logger_con()){}      //默认可以使用控制台作为日志记录器
         virtual ~tcp_svrsocks_t(){close();}
+        logger_i& logger(){return m_logger;}
         //-------------------------------------------------
         //尝试监听本地端口,允许只监听指定的本机地址;设定socket上可建立链接的最大数量.
         bool open(uint16_t port,const char* host=NULL,uint32_t backlogs=1024)
@@ -198,6 +199,119 @@ namespace rx
             }
 
             return NULL;
+        }
+    };
+
+    //-----------------------------------------------------
+    //封装一个简单的用于测试的tcp回音服务器(用最少的代码无动态内存分配,实现客户端发什么就回应什么,同时也是演示相关socket功能的使用)
+    class tcp_echo_svr_t
+    {
+        typedef array_ft<tcp_session_t,8> session_array_t;  //限定最大并发会话数量
+
+        tcp_svrsocks_t      m_svr;                          //用于接受新连接的socket服务端功能
+        session_array_t     m_sessions;                     //当前活动会话数组
+        uint32_t            m_actives;                      //活跃会话数量
+        //-------------------------------------------------
+        //查找遇到的第一个空槽位索引;-1未找到.
+        uint32_t m_find_first_empty()
+        {
+            for(uint32_t i=0;i<m_sessions.capacity();++i)
+            {
+                if (!m_sessions[i].connected())
+                    return i;
+            }
+            return -1;
+        }
+    public:
+        //-------------------------------------------------
+        tcp_echo_svr_t():m_actives(0){}
+        ~tcp_echo_svr_t(){uninit();}
+        //-------------------------------------------------
+        //打开两个端口进行监听
+        bool init(uint16_t port1=16301,uint16_t port2=16302)
+        {
+            uninit();
+            if (!m_svr.open(port1,NULL,m_sessions.capacity())||
+                !m_svr.open(port1,NULL,m_sessions.capacity()))
+            {
+                m_svr.close();
+                return false;
+            }
+            return true;
+        }
+        //-------------------------------------------------
+        //解除echo服务器
+        void uninit()
+        {
+            m_svr.close();
+            for(uint32_t i=0;i<m_actives;++i)
+            {
+                tcp_session_t &ss=m_sessions[i];
+                if (ss.connected())
+                    ss.disconnect();
+            }
+            m_actives=0;
+        }
+        //-------------------------------------------------
+        //服务端单线程功能驱动方法,完成新连接建立,处理收发应答.
+        //返回值:有效动作的数量(新连接建立/收发错误连接断开/收发完成)
+        uint32_t step(uint32_t timeout_us=1000)
+        {
+            uint32_t ac=0;
+
+            if (m_actives<m_sessions.capacity())
+            {//还有空槽位可以承载新会话
+                uint32_t idx=m_find_first_empty();
+                rx_assert(idx!=(uint32_t)-1);
+
+                socket_t new_sock;
+                sock_addr_t peer_addr;
+                tcp_svrsocks_t::listener_t *ss=m_svr.step(new_sock,&peer_addr,timeout_us);
+                if (ss)
+                {//新连接到达
+                    ++ac;
+                    if (sock::wait_rd(new_sock,0)>=0)
+                    {//判断其是否仍有效
+                        char addrstr[53];
+                        sock::addr_infos(new_sock,addrstr);
+                        m_svr.logger().info("accept new tcp session: %s",addrstr);
+                        //初始化绑定新的会话
+                        tcp_session_bind(m_sessions[idx],new_sock);
+                        ++m_actives;
+                    }
+                    else
+                        sock::close(new_sock);
+                }
+            }
+
+            uint32_t wr_buff[1024]; //收发临时使用的缓冲区
+
+            for(uint32_t i=0;i<m_sessions.capacity();++i)
+            {//对已连接会话进行收发处理
+                tcp_session_t &ss=m_sessions[i];
+                if (!ss.connected())
+                    continue;
+                uint32_t rs=ss.try_read(wr_buff,sizeof(wr_buff));
+                if (rs==0)
+                {
+                    if (!ss.connected())
+                    {//连接中断了
+                        ++ac;
+                        --m_actives;
+                        continue;
+                    }
+                }
+                else
+                {//收到数据了,原样发送给对方
+                    ++ac;
+                    if (ss.write(wr_buff,rs,timeout_us)!=ec_ok)
+                    {//发送错误,连接中断了
+                        --m_actives;
+                        continue;
+                    }
+                }
+            }
+            return ac;
         }
     };
 
