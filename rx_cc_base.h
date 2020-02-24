@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <string.h>
 #include "rx_cc_macro.h"
 
 
@@ -35,7 +36,7 @@ namespace rx
             result[0]='0';
             result[1]=0;
             return 1;
-        }           
+        }
 
         const uint8_t MAX_LEN=10;               //最大数字串长度
         uint8_t N=MAX_LEN;
@@ -52,7 +53,7 @@ namespace rx
                 continue;
             result[ret++]=buff[i];
         }
-        
+
         result[ret]=0;
         return ret;
     }
