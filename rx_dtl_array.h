@@ -220,10 +220,10 @@ namespace rx
         iterator begin() const {return m_cntr.begin();}
         //-------------------------------------------------
         //反向访问栈顶(数组元素索引size()-1)
-        iterator rbegin() const {return cntr_i::iterator(m_cntr,m_size-1);}
+        iterator rbegin() const {return iterator(m_cntr,m_size-1);}
         //-------------------------------------------------
         //正向访问栈顶结束点(数组元素索引size())
-        iterator end() const {return cntr_i::iterator(m_cntr,m_size);}
+        iterator end() const {return iterator(m_cntr,m_size);}
         //-------------------------------------------------
         //栈的最大容量
         uint32_t capacity() const {return m_cntr.capacity();}
@@ -234,10 +234,11 @@ namespace rx
     template<class T,uint32_t max_size>
     class array_stack_ft:public array_stack_t<T>
     {
+        typedef array_stack_t<T> super_t;
         typedef array_ft<T,max_size>    cntr_t;
         cntr_t      m_cntr_space;
     public:
-        array_stack_ft():array_stack_t(m_cntr_space){}
+        array_stack_ft():super_t(m_cntr_space){}
     };
 }
 #endif

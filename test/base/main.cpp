@@ -294,9 +294,5 @@
 
 int main()
 {
-    printf("Hello RX TDD!\n%s\n",rx::os_cc_desc());
-    rx_tdd_run(tdd_level_std);
-
-    getchar();
-    return 0;
+    return rx_tdd_run(tdd_level_std);
 }

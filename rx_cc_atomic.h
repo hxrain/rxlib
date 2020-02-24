@@ -111,9 +111,9 @@
 
         //64bit--------------------------------------------
         #define RX_ATOMIC64     1
-        template<> inline void      rx_atomic_store (int64_t &var, const int64_t v)   { __atomic_store_n(var,v,__ATOMIC_SEQ_CST); }
-        template<> inline int64_t   rx_atomic_swap  (int64_t &var, const int64_t v)   { return __atomic_exchange_n(var, v,__ATOMIC_SEQ_CST); }
-        template<> inline int64_t   rx_atomic_load  (const volatile int64_t &var)     { return __atomic_load_n(var,__ATOMIC_SEQ_CST); }
+        template<> inline void      rx_atomic_store (int64_t &var, const int64_t v)   { __atomic_store_n(&var,v,__ATOMIC_SEQ_CST); }
+        template<> inline int64_t   rx_atomic_swap  (int64_t &var, const int64_t v)   { return __atomic_exchange_n(&var, v,__ATOMIC_SEQ_CST); }
+        template<> inline int64_t   rx_atomic_load  (const volatile int64_t &var)     { return __atomic_load_n(&var,__ATOMIC_SEQ_CST); }
         template<> inline int64_t   rx_atomic_add   (int64_t &var, const int64_t v)   { return __sync_fetch_and_add ((volatile long long*)&var, v); }
         template<> inline int64_t   rx_atomic_sub   (int64_t &var, const int64_t v)   { return __sync_fetch_and_sub ((volatile long long*)&var, v); }
         template<> inline int64_t   rx_atomic_and   (int64_t &var, const int64_t v)   { return __sync_fetch_and_and ((volatile long long*)&var, v); }

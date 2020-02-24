@@ -31,6 +31,7 @@ void main()
 #include <stdarg.h>
 #include <stdio.h>
 #include "rx_cc_atomic.h"
+#include "rx_cc_base.h"
 //---------------------------------------------------------
 //调试输出函数类型与默认实现（控制台打印）
 typedef void (*rx_tdd_out_fun_t)(const char* msg,va_list vl);
@@ -81,7 +82,7 @@ typedef enum rx_tdd_level
 //实现TDD用例的基类
 class rx_tdd_t
 {
-    friend void rx_tdd_run(rx_tdd_level rtl,bool only_curr_level);
+    friend int rx_tdd_run(rx_tdd_level rtl,bool only_curr_level);
 
     const char* m_tdd_name;                                 //TDD用例名称
     const char* m_file_name;                                //TDD用例所属文件名
@@ -183,11 +184,12 @@ protected:
 
 //---------------------------------------------------------
 //运行TDD用例,输出统计结果(可指定要求运行的等级,进行长时间运行测试的过滤)
-inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=false)
+inline int rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=false)
 {
     rx_tdd_stat_t &s=rx_tdd_stat_t::get();
     rx_tdd_t *node=s.head;
 
+    s.out("Hello RX TDD!\n%s\n",rx::os_cc_desc());
     s.out("TDD::******************************[BEGIN]******************************\r\n");
     while(node)
     {
@@ -201,6 +203,11 @@ inline void rx_tdd_run(rx_tdd_level rtl=tdd_level_slow,bool only_curr_level=fals
         "                ASSERT total <%6u> : failed  <%6u>\r\n"
         "TDD::******************************[ END ]******************************\r\n",
         s._total,s._perform,s._assert,s._failed);
+
+    s.out("\npress ENTER key to continue...\r\n");
+    getchar();
+
+    return s._perform;
 }
 //---------------------------------------------------------
 //检查错误条件,记录错误数量与首次错误点

@@ -6,11 +6,11 @@
 
 
 
-
-//函数的行号与内部代码行位置不要改变,否则测试不能通过.
+//LINE: 9: ------------------------------------------------
+//LINE:10: 本函数的行号与内部代码行位置不要改变,否则测试不能通过.
 void rx_test_CT_LINE(rx_tdd_t &rt)
 {
-    int RX_CT_LINE = __LINE__;
+    int RX_CT_LINE = __LINE__;                              //RX_CT_LINE 宏根据当前行号生成标识符,所以不会与下面的行产生冲突
     int RX_CT_LINE = __LINE__;
     rt.assert(RX_CT_LINE_EX(13)!=RX_CT_LINE_EX(14));
     rt.assert(RX_CT_LINE_EX(13)==13);
@@ -19,6 +19,7 @@ void rx_test_CT_LINE(rx_tdd_t &rt)
     int RX_CT_SYM(int_) = __LINE__;
     rt.assert(RX_CT_SYM_EX(int_, 19) == 19);
 }
+//---------------------------------------------------------
 
 void rx_test_CT_BASE(rx_tdd_t &rt)
 {
