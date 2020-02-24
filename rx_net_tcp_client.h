@@ -55,7 +55,7 @@ namespace rx
             if (r==1)
             {//连接成功了,给出外部回调通知
                 if (m_cfg.on_connect.is_valid())
-                    m_cfg.on_connect(super_t::m_sock,super_t::m_usrdata);
+                    m_cfg.on_connect(super_t::m_sock,this);
                 return true;
             }
             if (r==0)

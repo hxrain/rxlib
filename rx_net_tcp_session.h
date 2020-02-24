@@ -11,8 +11,9 @@
 namespace rx
 {
     //-----------------------------------------------------
+    class tcp_session_t;
     //tcp连接或断开事件的委托类型
-    typedef delegate2_t<socket_t,void*,void> tcp_evt_conn_t;
+    typedef delegate2_t<socket_t,tcp_session_t*,void> tcp_evt_conn_t;
 
     //-----------------------------------------------------
     //tcp会话使用的配置参量,抽取出公共对象,节省内存.
@@ -37,7 +38,6 @@ namespace rx
     protected:
         socket_t                m_sock;                     //通信使用的Socket
         tcp_sesncfg_t          &m_cfg;                      //通信使用的配置参数
-        void*                   m_usrdata;                  //与当前会话绑定的外部用户数据
         //-------------------------------------------------
         //处理收发错误日志,并断开连接
         bool m_err_disconn(const char* tip)
@@ -57,8 +57,9 @@ namespace rx
         }
 
     public:
+        void* usrdata;                                      //与当前会话绑定的外部用户数据
         //-------------------------------------------------
-        tcp_session_t(tcp_sesncfg_t& cfg,void* usrdata=NULL):m_sock(bad_socket),m_cfg(cfg),m_usrdata(usrdata){}
+        tcp_session_t(tcp_sesncfg_t& cfg,void* ud=NULL):m_sock(bad_socket),m_cfg(cfg),usrdata(ud){}
         //-------------------------------------------------
         virtual ~tcp_session_t(){disconnect();}
         socket_t socket() const {return m_sock;}
@@ -73,7 +74,7 @@ namespace rx
                 return;
 
             if (m_cfg.on_disconnect.is_valid())
-                m_cfg.on_disconnect(m_sock,m_usrdata);
+                m_cfg.on_disconnect(m_sock,this);
             sock::close(m_sock,NoWait);
         }
         //-------------------------------------------------
@@ -91,7 +92,7 @@ namespace rx
             sock::event_rw_t *evt=m_cfg.on_send.is_valid()?&m_cfg.on_send:NULL;
 
             //进行真正的循环发送
-            int32_t rc=sock::write_loop(m_sock,data,size,timeout_us,evt,m_usrdata);
+            int32_t rc=sock::write_loop(m_sock,data,size,timeout_us,evt,this);
             if (rc>0)
                 return ec_ok;
 
@@ -119,7 +120,7 @@ namespace rx
             sock::event_rw_t *evt=m_cfg.on_recv.is_valid()?&m_cfg.on_recv:NULL;
 
             //进行真正的循环接收
-            int32_t rc=sock::read_loop(m_sock,(uint8_t*)buff,len,true,timeout_us,evt,m_usrdata);
+            int32_t rc=sock::read_loop(m_sock,(uint8_t*)buff,len,true,timeout_us,evt,this);
             if (rc>0)
             {
                 if ((uint32_t)rc==len)
@@ -153,7 +154,7 @@ namespace rx
 
             //进行真正的循环接收
             sock::recv_buff_i ri((uint8_t*)buff,len,false);
-            int r=sock::read_loop(m_sock,ri,timeout_us,evt,m_usrdata);
+            int r=sock::read_loop(m_sock,ri,timeout_us,evt,this);
             if (r==0)
                 m_err_disconn("net peer closed.");
             else if (r<0)
@@ -178,7 +179,7 @@ namespace rx
             sock::recv_tag_i ri((uint8_t*)buff,len,false);
             ri.tag=(uint8_t*)tag;
             ri.tagsize=tagsize;
-            int r=sock::read_loop(m_sock,ri,timeout_us,evt,m_usrdata);
+            int r=sock::read_loop(m_sock,ri,timeout_us,evt,this);
             if (r==0)
                 m_err_disconn("net peer closed.");
             else if (r<0)
