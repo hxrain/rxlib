@@ -287,16 +287,17 @@ namespace rx
         }
         //-------------------------------------------------
         //在指定的socket上进行接受连接操作,同时得到客户端的地址信息
-        inline socket_t accept(socket_t sock,sock_addr_t& sa)
+        //返回值:新连接socket,或bad_socket
+        inline socket_t accept(socket_t listen_sock,sock_addr_t& sa)
         {
             socklen_t OutLen=sizeof(sa.addr());
             socket_t Ret=bad_socket;
         #if RX_IS_OS_WIN
             try{
-                Ret=WSAAccept(sock,(struct sockaddr *)&sa.addr(),&OutLen,NULL,0);
+                Ret=WSAAccept(listen_sock,(struct sockaddr *)&sa.addr(),&OutLen,NULL,0);
             }catch(...){}
         #else
-            Ret=accept(sock,(struct sockaddr *)&sa.addr(),&OutLen);
+            Ret=accept(listen_sock,(struct sockaddr *)&sa.addr(),&OutLen);
         #endif
             if (OutLen!=(int)sizeof(sa.addr()))
                 return bad_socket;
@@ -322,6 +323,7 @@ namespace rx
         }
         //-------------------------------------------------
         //等待读集有可用socket
+        //返回值:<0错误;0超时;>0有事件发生
         inline int32_t select_rd(fd_set& set,uint32_t timeout_us,int nfds)
         {
             return select(&set,NULL,NULL,timeout_us,nfds);
@@ -332,6 +334,7 @@ namespace rx
         }
         //-------------------------------------------------
         //等待写集有可用socket
+        //返回值:<0错误;0超时;>0有事件发生
         inline int32_t select_wr(fd_set& set,uint32_t timeout_us,int nfds)
         {
             return select(NULL,&set,NULL,timeout_us,nfds);
