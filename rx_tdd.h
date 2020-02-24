@@ -30,6 +30,7 @@ void main()
 #include "rx_cc_macro.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include "rx_cc_atomic.h"
 //---------------------------------------------------------
 //调试输出函数类型与默认实现（控制台打印）
 typedef void (*rx_tdd_out_fun_t)(const char* msg,va_list vl);
@@ -49,9 +50,9 @@ typedef struct rx_tdd_stat_t
     unsigned int _failed;                                   //记录断言失败数量
     unsigned int _assert;                                   //记录断言运行的次数
 
-    rx_tdd_t *head;                                      //指向TDD用例的链表头结点
-    rx_tdd_t *tail;                                      //指向TDD用例的链表尾结点
-    rx_tdd_t *runed;                                     //指向TDD用例的链表已执行结点
+    rx_tdd_t *head;                                         //指向TDD用例的链表头结点
+    rx_tdd_t *tail;                                         //指向TDD用例的链表尾结点
+    rx_tdd_t *runed;                                        //指向TDD用例的链表已执行结点
 
     rx_tdd_out_fun_t out_fun;                               //记录输出内容的函数指针，可调整。
     void out(const char* msg,...)
@@ -82,13 +83,15 @@ class rx_tdd_t
 {
     friend void rx_tdd_run(rx_tdd_level rtl,bool only_curr_level);
 
-    const char* m_tdd_name;
-    const char* m_file_name;
-    int         m_line_no;
-    rx_tdd_t *m_next;
-    unsigned char m_wait_key;
-    unsigned char m_level;
+    const char* m_tdd_name;                                 //TDD用例名称
+    const char* m_file_name;                                //TDD用例所属文件名
+    int         m_line_no;                                  //TDD用例所在文件的行号
+    rx_tdd_t   *m_next;                                     //TDD用例对象的链表元素后趋
+    unsigned char m_wait_key;                               //是否需要等待按键输入
+    unsigned char m_level;                                  //TDD的级别,可筛选执行的用例
 
+    //-----------------------------------------------------
+    //将当前TDD用例对象绑定在TDD用例对象链表的根部
     void m_bind(rx_tdd_stat_t &root)
     {
         if (root.head==0)
@@ -108,6 +111,7 @@ class rx_tdd_t
 
 public:
     //-----------------------------------------------------
+    //用例对象的构造函数,给出基础信息
     rx_tdd_t(const char* tdd_name,rx_tdd_level rtl,const char* _file_name,const int _line_no)
     {
         m_tdd_name=tdd_name;
@@ -146,10 +150,10 @@ public:
     void assert(bool v,int _line_no,const char* msg,...)
     {
         rx_tdd_stat_t &s=rx_tdd_stat_t::get();
-        ++s._assert;
+        rx_atomic_add((int&)s._assert,1);                   //记录断言执行总数
         if (v)
             return;
-        ++s._failed;
+        rx_atomic_add((int&)s._failed,1);                   //记录断言失败总数
 
         s.out("TDD::<*FAIL*>         {%s} at <%s : %d>\r\n",m_tdd_name,m_file_name,_line_no);
         if (msg&&msg[0])
@@ -164,7 +168,7 @@ public:
 
         if (m_wait_key)
         {
-            s.out("press enter key to continue...\r\n");
+            s.out("press ENTER key to continue...\r\n");
             getchar();
         }
     }

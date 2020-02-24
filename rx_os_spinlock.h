@@ -32,7 +32,7 @@ namespace rx
             mem_barrier();                                  // 编译器读写屏障
 
             //先尝试获取一下自旋锁.
-            if (rx_atomic_swap(&m_lock, 1) != 0)
+            if (rx_atomic_swap(m_lock, 1) != 0)
             {
                 //首次尝试没有成功则进行循环尝试
                 uint32_t loop_count = 0;
@@ -59,7 +59,7 @@ namespace rx
                     }
                     ++loop_count;
                 }
-                while (!rx_atomic_cas(&m_lock, 0, 1));
+                while (!rx_atomic_cas(m_lock, 0, 1));
             }
             return true;
         }
@@ -68,7 +68,7 @@ namespace rx
         virtual bool unlock()
         {
             mem_barrier();                                  // 编译器读写屏障
-            rx_atomic_store(&m_lock,0);                     // 释放锁
+            rx_atomic_store(m_lock,0);                      // 释放锁
             return true;
         }
         //--------------------------------------------------
@@ -76,7 +76,7 @@ namespace rx
         virtual bool trylock(bool is_wr_lock = true)
         {
             mem_barrier();
-            return rx_atomic_swap(&m_lock, 1) == 0;
+            return rx_atomic_swap(m_lock, 1) == 0;
         }
     };
 }

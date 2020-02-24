@@ -188,14 +188,14 @@ namespace rx
     class array_stack_t
     {
     public:
-        typedef array_i<T> cntr_t;
-        typedef typename cntr_t::iterator iterator;
+        typedef array_i<T> cntr_i;
+        typedef typename cntr_i::iterator iterator;
     protected:
         uint32_t    m_size;
-        cntr_t     &m_cntr;
+        cntr_i     &m_cntr;
     public:
         //-------------------------------------------------
-        array_stack_t(cntr_t &c):m_size(0),m_cntr(c){}
+        array_stack_t(cntr_i &c):m_size(0),m_cntr(c){}
         //栈的当前元素数量
         uint32_t size(){return m_size;}
         void clear(){m_size=0;}
@@ -220,13 +220,24 @@ namespace rx
         iterator begin() const {return m_cntr.begin();}
         //-------------------------------------------------
         //反向访问栈顶(数组元素索引size()-1)
-        iterator rbegin() const {return cntr_t::iterator(m_cntr,m_size-1);}
+        iterator rbegin() const {return cntr_i::iterator(m_cntr,m_size-1);}
         //-------------------------------------------------
         //正向访问栈顶结束点(数组元素索引size())
-        iterator end() const {return cntr_t::iterator(m_cntr,m_size);}
+        iterator end() const {return cntr_i::iterator(m_cntr,m_size);}
         //-------------------------------------------------
         //栈的最大容量
         uint32_t capacity() const {return m_cntr.capacity();}
+    };
+
+    //-----------------------------------------------------
+    //内部持有定长数组空间的栈
+    template<class T,uint32_t max_size>
+    class array_stack_ft:public array_stack_t<T>
+    {
+        typedef array_ft<T,max_size>    cntr_t;
+        cntr_t      m_cntr_space;
+    public:
+        array_stack_ft():array_stack_t(m_cntr_space){}
     };
 }
 #endif

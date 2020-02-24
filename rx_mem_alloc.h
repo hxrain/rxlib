@@ -108,9 +108,9 @@ namespace rx
             uint32_t Size=sizeof(VT)*Count;                         \
             uint8_t *R=(uint8_t*)base_alloc(MemSize,cookie_t::memsize(Size));\
             if (R==NULL) return NULL;                               \
-            rx_atomic_add(&m_stat.real_size, (intptr_t)Size);       \
-            rx_atomic_add(&m_stat.alloc_size, (intptr_t)MemSize);   \
-            rx_atomic_add(&m_stat.using_size, (intptr_t)MemSize);   \
+            rx_atomic_add(m_stat.real_size, (intptr_t)Size);        \
+            rx_atomic_add(m_stat.alloc_size, (intptr_t)MemSize);    \
+            rx_atomic_add(m_stat.using_size, (intptr_t)MemSize);    \
             VT* Ret=(VT*)cookie_t::set(R,Count,MemSize);            \
 
         mem_allotter_i& operator=(const mem_allotter_i&);
@@ -126,9 +126,9 @@ namespace rx
             if (R==NULL)
                 return NULL;
 
-            rx_atomic_add(&m_stat.real_size, (intptr_t)Size);
-            rx_atomic_add(&m_stat.alloc_size, (intptr_t)MemSize);
-            rx_atomic_add(&m_stat.using_size, (intptr_t)MemSize);
+            rx_atomic_add(m_stat.real_size, (intptr_t)Size);
+            rx_atomic_add(m_stat.alloc_size, (intptr_t)MemSize);
+            rx_atomic_add(m_stat.using_size, (intptr_t)MemSize);
 
             return cookie_t::set(R,0,MemSize);
         }
@@ -144,7 +144,7 @@ namespace rx
 
             uint32_t memsize=ck.mem_size;
             base_free(R,memsize);
-            rx_atomic_sub(&m_stat.using_size, (intptr_t)memsize);
+            rx_atomic_sub(m_stat.using_size, (intptr_t)memsize);
         }
         //-------------------------------------------------
         //尝试基于现有内存分配扩展内存(暂时先使用数据拷贝的方式实现,等待进行优化)
@@ -173,9 +173,9 @@ namespace rx
                 return NULL;
             void *Ret=cookie_t::set(R,0,MemSize);           //得到最终可返回的用户指针
 
-            rx_atomic_add(&m_stat.real_size, (intptr_t)Size);
-            rx_atomic_add(&m_stat.alloc_size, (intptr_t)MemSize);
-            rx_atomic_add(&m_stat.using_size, (intptr_t)MemSize);
+            rx_atomic_add(m_stat.real_size, (intptr_t)Size);
+            rx_atomic_add(m_stat.alloc_size, (intptr_t)MemSize);
+            rx_atomic_add(m_stat.using_size, (intptr_t)MemSize);
 
             //拷贝原数据到新空间
             memcpy(Ret,P,cookie_t::usrsize(ck));
@@ -235,7 +235,7 @@ namespace rx
                 ct::AD(P,ck.item_count);                //是数组类型
             uint32_t memsize=ck.mem_size;
             base_free(R,memsize);
-            rx_atomic_sub(&m_stat.using_size, (intptr_t)memsize);
+            rx_atomic_sub(m_stat.using_size, (intptr_t)memsize);
             return true;
         }
         //-------------------------------------------------
