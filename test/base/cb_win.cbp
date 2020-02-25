@@ -38,6 +38,9 @@
 			<Add option="-Wfatal-errors" />
 			<Add option="-Wall" />
 		</Compiler>
+		<Linker>
+			<Add library="libws2_32.a" />
+		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

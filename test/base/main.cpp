@@ -24,6 +24,14 @@
     #include "../../rx_net_sock_std.h"
 #endif
 //---------------------------------------------------------
+#if UT_ALL||UT_SEL==40||UT_SEL==41
+    //使用网络功能,需要初始化socket环境
+    rx::socket_env_t G_sock_env;
+    #if RX_CC==RX_CC_VC
+        #pragma comment(lib,"ws2_32.lib")
+    #endif
+#endif
+//---------------------------------------------------------
 #if UT_ALL||UT_SEL==39
     //简单的缓冲区功能封装
     #include "../../rx_dtl_buff.h"

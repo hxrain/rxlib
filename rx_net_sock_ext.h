@@ -104,7 +104,7 @@ namespace rx
 
                 if (timeout_us)
                 {//尝试进行接收前的超时等待,避免阻塞模式进入死等状态
-                    int r=wait_rd(sock,timeout_us);
+                    int r=wait(sock,timeout_us);
                     if (r<0) return -2;
                     else if (r==0) return 1;
                 }
@@ -146,7 +146,7 @@ namespace rx
                 uint32_t dl=min(block_size,data_size-sended);//本次需要写入的数据长度
                 if (timeout_us)
                 {//尝试进行发送前的超时等待,避免底层缓冲区不够用
-                    int r=wait_wr(sock,timeout_us);
+                    int r=wait(sock,timeout_us,false);
                     if (r<0) return -2;
                     else if (r==0) return 0;
                 }

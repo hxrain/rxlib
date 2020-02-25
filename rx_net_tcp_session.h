@@ -46,7 +46,7 @@ namespace rx
     class tcp_session_t
     {
     protected:
-        friend void tcp_session_bind(tcp_session_t &sesn,socket_t sock);
+        friend void tcp_session_bind(tcp_session_t &sesn,socket_t sock,void *usrdata);
 
         socket_t                m_sock;                     //通信使用的Socket
         //-------------------------------------------------
@@ -198,12 +198,14 @@ namespace rx
         }
     };
     //绑定sock到指定的session对象
-    inline void tcp_session_bind(tcp_session_t &sesn,socket_t sock)
+    inline void tcp_session_bind(tcp_session_t &sesn,socket_t sock,void *usrdata=NULL)
     {
+        rx_assert(sesn.m_sock==bad_socket);
+        rx_assert(sesn.usrdata==NULL);
         sesn.m_sock=sock;
+        sesn.usrdata=usrdata;
         if (get_tcp_sesncfg(sesn.sesncfg).on_connect.is_valid())
             get_tcp_sesncfg(sesn.sesncfg).on_connect(sock,sesn);
-
     }
 }
 

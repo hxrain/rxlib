@@ -165,7 +165,7 @@ namespace rx
                 }
 
                 //在socket集合上等待读取事件(判断是否有新连接到达)
-                int r=sock::select_rd(sets,timeout_us);
+                int r=sock::select(sets,timeout_us);
                 if (r<0)
                 {//等待时出错了
                     m_err("tcp listen select() error.");
@@ -231,8 +231,8 @@ namespace rx
         bool init(uint16_t port1=16301,uint16_t port2=16302)
         {
             uninit();
-            if (!m_svr.open(port1,NULL,m_sessions.capacity())||
-                !m_svr.open(port1,NULL,m_sessions.capacity()))
+            if (!m_svr.open(port1,NULL,m_sessions.capacity()*2)||
+                !m_svr.open(port1,NULL,m_sessions.capacity()*2))
             {
                 m_svr.close();
                 return false;
@@ -270,17 +270,12 @@ namespace rx
                 if (ss)
                 {//新连接到达
                     ++ac;
-                    if (sock::wait_rd(new_sock,0)>=0)
-                    {//判断其是否仍有效
-                        char addrstr[53];
-                        sock::addr_infos(new_sock,addrstr);
-                        m_svr.logger().info("accept new tcp session: %s",addrstr);
-                        //初始化绑定新的会话
-                        tcp_session_bind(m_sessions[idx],new_sock);
-                        ++m_actives;
-                    }
-                    else
-                        sock::close(new_sock);
+                    char addrstr[53];
+                    sock::addr_infos(new_sock,addrstr);
+                    m_svr.logger().info("accept new tcp session: %s",addrstr);
+                    //初始化绑定新的会话
+                    tcp_session_bind(m_sessions[idx],new_sock);
+                    ++m_actives;
                 }
             }
 

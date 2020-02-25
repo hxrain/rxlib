@@ -322,49 +322,33 @@ namespace rx
             return select(nfds,set_r,set_w,set_e,(timeout_us!=(uint32_t)-1?&tm:NULL));
         }
         //-------------------------------------------------
-        //等待读集有可用socket
+        //等待socket集有可读写元素
         //返回值:<0错误;0超时;>0有事件发生
-        inline int32_t select_rd(fd_set& set,uint32_t timeout_us,int nfds)
+        inline int32_t select(fd_set& set,uint32_t timeout_us,int nfds,bool is_read=true)
         {
-            return select(&set,NULL,NULL,timeout_us,nfds);
+            if (is_read)
+                return select(&set,NULL,NULL,timeout_us,nfds);
+            else
+                return select(NULL,&set,NULL,timeout_us,nfds);
         }
-        inline int32_t select_rd(sock_sets& set,uint32_t timeout_us)
+        //等待socket扩展集有可读写元素
+        //返回值:<0错误;0超时;>0有事件发生
+        inline int32_t select(sock_sets& set,uint32_t timeout_us,bool is_read=true)
         {
-            return select_rd(set,timeout_us,(int)set.nfds());
+            if (is_read)
+                return select((fd_set*)set,NULL,NULL,timeout_us,(int)set.nfds());
+            else
+                return select(NULL,(fd_set*)set,NULL,timeout_us,(int)set.nfds());
         }
         //-------------------------------------------------
-        //等待写集有可用socket
-        //返回值:<0错误;0超时;>0有事件发生
-        inline int32_t select_wr(fd_set& set,uint32_t timeout_us,int nfds)
-        {
-            return select(NULL,&set,NULL,timeout_us,nfds);
-        }
-        inline int32_t select_wr(sock_sets& set,uint32_t timeout_us)
-        {
-            return select_wr(set,timeout_us,(int)set.nfds());
-        }
-        //-------------------------------------------------
-        //等待指定的socket可读.
-        //返回值:<0错误;0超时;1可读
-        inline int32_t wait_rd(socket_t sock,uint32_t timeout_us)
+        //等待指定的socket可读或可写.
+        //返回值:<0错误;0超时;1可读写
+        inline int32_t wait(socket_t sock,uint32_t timeout_us,bool is_read=true)
         {
             fd_set set;
             FD_ZERO(&set);
             FD_SET(sock,&set);
-            int32_t r=select_rd(set,timeout_us,int(sock+1));
-            if (r<=0)
-                return r;
-            return (FD_ISSET(sock,&set)?1:0);
-        }
-        //-------------------------------------------------
-        //等待指定的socket可写.
-        //返回值:<0错误;0超时;1可写
-        inline int32_t wait_wr(socket_t sock,uint32_t timeout_us)
-        {
-            fd_set set;
-            FD_ZERO(&set);
-            FD_SET(sock,&set);
-            int32_t r=select_wr(set,timeout_us,int(sock+1));
+            int32_t r=select(set,timeout_us,int(sock+1),is_read);
             if (r<=0)
                 return r;
             return (FD_ISSET(sock,&set)?1:0);
@@ -414,7 +398,7 @@ namespace rx
 
             int32_t cr=0;
             if (0!=connect(sock,(struct sockaddr *)&sa.addr(),sizeof(sa.addr())))
-                cr=wait_wr(sock,timeout_us);                //进行非阻塞连接并等待可写(连接成功)
+                cr=wait(sock,timeout_us,false);             //进行非阻塞连接并等待可写(连接成功)
 
             if (!block_mode(sock,true))                     //将socket恢复为阻塞模式
                 return -2;
