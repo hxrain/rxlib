@@ -18,7 +18,7 @@ namespace rx
             ip_str_t ip_r;
             m_dst.ip_str(ip_r);
             os_errmsg_t osmsg(tip);
-            get_tcp_sesncfg(super_t::sesncfg).logger.warn("%s ->DST<%s:%u>",(const char*)osmsg,ip_r,m_dst.port());
+            get_tcp_sesncfg(super_t::sesncfg).logger.warn("%sDST<%s:%u>",(const char*)osmsg,ip_r,m_dst.port());
             sock::close(super_t::m_sock,true);
             return false;
         }
@@ -31,7 +31,7 @@ namespace rx
         }
         //-------------------------------------------------
         //创建socket并连接目标地址,使用本地端口任意,可控制连接超时us
-        bool connect(int LocalPort=0,int timeout_us=1000*1000*10)
+        bool connect(uint16_t LocalPort=0,uint32_t timeout_us=sec2us(3))
         {//不管如何,先断开连接.之后初始化必要的变量,并进行连接
             super_t::disconnect(true);
 

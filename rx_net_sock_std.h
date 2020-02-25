@@ -189,6 +189,7 @@ namespace rx
         //返回值:INADDR_NONE失败;其他成功
         static uint32_t lookup(const char* host)
         {
+            if (is_empty(host)) return INADDR_ANY;
             uint32_t ret=inet_addr(host);                   //先尝试进行IP串地址的转换
             if (INADDR_NONE!=ret) return ret;               //转换成功就直接返回
 

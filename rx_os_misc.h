@@ -29,9 +29,12 @@ namespace rx
         static inline char* msg(char *buff,uint32_t size,uint32_t eno=GetLastError())
         {
             if (!buff) return NULL;
-            buff[0]=0;
-            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,NULL,eno,MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),(LPTSTR) buff,size,NULL);
-            if (!buff[0]) return NULL;
+            uint32_t len=FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,NULL,eno,MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),(LPTSTR) buff,size,NULL);
+            if (buff[len-1]=='\n')
+                --len;
+            if (buff[len-1]=='\r')
+                --len;
+            buff[len]=0;
             return buff;
         }
         //-------------------------------------------------
@@ -49,7 +52,7 @@ namespace rx
         //同时得到错误号与错误消息
         inline char* msg(uint32_t &eno)
         {
-            sncat<sizeof(m_buff)> cat;
+            sncat<0> cat(m_buff);
             eno=GetLastError();
             cat("OSError:<%u>:",eno);
             return msg(cat.str+cat.size,sizeof(m_buff)-cat.size,eno);
@@ -58,10 +61,12 @@ namespace rx
         //得到完整的错误消息并格式化用户提示信息
         inline char* msg(const char* tip)
         {
-            sncat<sizeof(m_buff)> cat;
+            sncat<0> cat(m_buff);
             uint32_t eno=GetLastError();
-            cat("OSError:<%u>:",eno)("Tip:<%s>:",tip);
-            return msg(cat.str+cat.size,sizeof(m_buff)-cat.size,eno);
+            char tmp[2568];
+            msg(tmp,sizeof(tmp),eno);
+            cat("OSError:<%u:",eno)("%s>",tmp)("Tip:<%s>",tip);
+            return m_buff;
         }
     };
 

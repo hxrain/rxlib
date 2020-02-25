@@ -146,14 +146,14 @@ public:
     }
     //-----------------------------------------------------
     //内部断言，用于记录失败次数
-    void assert(bool v) {assert(v,m_line_no,NULL);}
-    void assert(bool v,int _line_no) {assert(v,_line_no,NULL);}
-    void assert(bool v,int _line_no,const char* msg,...)
+    bool assert(bool v) {return assert(v,m_line_no,NULL);}
+    bool assert(bool v,int _line_no) {return assert(v,_line_no,NULL);}
+    bool assert(bool v,int _line_no,const char* msg,...)
     {
         rx_tdd_stat_t &s=rx_tdd_stat_t::get();
         rx_atomic_add((int&)s._assert,1);                   //记录断言执行总数
         if (v)
-            return;
+            return v;
         rx_atomic_add((int&)s._failed,1);                   //记录断言失败总数
 
         s.out("TDD::<*FAIL*>         {%s} at <%s : %d>\r\n",m_tdd_name,m_file_name,_line_no);
@@ -172,6 +172,7 @@ public:
             s.out("press ENTER key to continue...\r\n");
             getchar();
         }
+        return v;
     }
     //-----------------------------------------------------
     //出现错误的时候,是否提升进行UI等待确认

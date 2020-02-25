@@ -1,12 +1,12 @@
 #define RX_USE_TDD_TICK 1
 
-#define UT_ALL 1
+#define UT_ALL 0
 #define UT_SEL 41
 
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==41
-    //日志记录器与输出器
-    #include "../ut_logger_std.h"
+    //TCP网络功能
+    #include "../ut_net_tcp.h"
     #include "../../rx_net_tcp_server.h"
     #include "../../rx_net_tcp_client.h"
     #include "../../rx_net_tcp_session.h"
@@ -299,6 +299,11 @@
 #include "../ut_cc_macro.h"
 #include "../../rx_cc_macro.h"
 //---------------------------------------------------------
+
+rx_tdd(test_net_tcp_base)
+{
+    rx::ut_tcp_echo_clt(*this);
+}
 
 int main()
 {

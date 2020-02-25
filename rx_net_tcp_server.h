@@ -187,7 +187,7 @@ namespace rx
                 sock_addr_t tmp_addr;
                 if (peer_addr==NULL)
                     peer_addr=&tmp_addr;
-                
+
                 listener_t *ss=*m_working.rbegin();         //取出当前待处理的监听者
                 rx_assert(ss!=NULL);
                 new_sock=sock::accept(ss->sock,*peer_addr); //在当前监听socket上进行新连接的接收
@@ -232,7 +232,7 @@ namespace rx
         {
             uninit();
             if (!m_svr.open(port1,NULL,m_sessions.capacity()*2)||
-                !m_svr.open(port1,NULL,m_sessions.capacity()*2))
+                !m_svr.open(port2,NULL,m_sessions.capacity()*2))
             {
                 m_svr.close();
                 return false;
@@ -255,7 +255,7 @@ namespace rx
         //-------------------------------------------------
         //服务端单线程功能驱动方法,完成新连接建立,处理收发应答.
         //返回值:有效动作的数量(新连接建立/收发错误连接断开/收发完成)
-        uint32_t step(uint32_t timeout_us=1000)
+        uint32_t step(uint32_t timeout_us=10,uint32_t wr_timeout_us=sec2us(3))
         {
             uint32_t ac=0;
 
@@ -264,7 +264,7 @@ namespace rx
                 uint32_t idx=m_find_first_empty();
                 rx_assert(idx!=(uint32_t)-1);
 
-                socket_t new_sock;
+                socket_t new_sock=bad_socket;
                 sock_addr_t peer_addr;
                 tcp_svrsocks_t::listener_t *ss=m_svr.step(new_sock,&peer_addr,timeout_us);
                 if (ss)
@@ -279,14 +279,14 @@ namespace rx
                 }
             }
 
-            uint32_t wr_buff[1024]; //收发临时使用的缓冲区
+            uint8_t wr_buff[1024*16]; //收发临时使用的缓冲区
 
             for(uint32_t i=0;i<m_sessions.capacity();++i)
             {//对已连接会话进行收发处理
                 tcp_session_t &ss=m_sessions[i];
                 if (!ss.connected())
                     continue;
-                uint32_t rs=ss.try_read(wr_buff,sizeof(wr_buff));
+                uint32_t rs=ss.try_read(wr_buff,sizeof(wr_buff),0);//0超时等待,快速进行接收探察
                 if (rs==0)
                 {
                     if (!ss.connected())
@@ -299,7 +299,7 @@ namespace rx
                 else
                 {//收到数据了,原样发送给对方
                     ++ac;
-                    if (ss.write(wr_buff,rs,timeout_us)!=ec_ok)
+                    if (ss.write(wr_buff,rs,wr_timeout_us)!=ec_ok)
                     {//发送错误,连接中断了
                         --m_actives;
                         continue;

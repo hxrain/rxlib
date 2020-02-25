@@ -71,6 +71,7 @@ namespace rx
         //-------------------------------------------------
         virtual ~tcp_session_t(){disconnect();}
         socket_t socket() const {return m_sock;}
+        logger_i& logger(){return get_tcp_sesncfg(sesncfg).logger;}
         //-------------------------------------------------
         //判断当前是否处于连接中,socket是否有效.
         bool connected(){return m_sock!=bad_socket;}
@@ -88,12 +89,12 @@ namespace rx
         //-------------------------------------------------
         //将指定长度(size)的数据(data)发送给对端.可以额外指定发送超时等待时间.
         //返回值:ec_ok完成;其他错误,发送未完成,关闭连接:ec_uninit连接断开或未初始化;ec_net_write些错误;ec_net_timeout发送超时;
-        error_t write(const void *data,uint32_t size,uint32_t timeout_us=0)
+        error_t write(const void *data,uint32_t size,uint32_t timeout_us=(uint32_t)-1)
         {
             if (m_sock==bad_socket)
                 return ec_uninit;
 
-            if (!timeout_us)
+            if (timeout_us==(uint32_t)-1)
                 timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_wr;
 
             //尝试确定发送事件的委托
@@ -106,55 +107,63 @@ namespace rx
 
             if (rc==0)
             {
-                m_err_disconn("net send timeout.");
+                m_err_disconn("tcp_session_t::write() net send timeout.");
                 return ec_net_timeout;
             }
 
-            m_err_disconn("net send error.");
+            m_err_disconn("tcp_session_t::write() net send error.");
             return ec_net_write;
         }
         //-------------------------------------------------
         //要求必须读取len个字节的数据到buff中
         //返回值:ec_ok完成;其他错误,发送未完成,关闭连接:ec_uninit连接断开或未初始化;ec_net_read错误;ec_net_disconn对方已经断开;ec_net_timeout接收超时;
-        error_t read(void* buff,uint32_t len,uint32_t timeout_us=0)
+        error_t read(void* buff,uint32_t len,uint32_t timeout_us=(uint32_t)-1)
         {
             if (m_sock==bad_socket)
                 return ec_uninit;
 
-            if (!timeout_us)
+            if (timeout_us==(uint32_t)-1)
                 timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_rd;
 
             //尝试确定接收事件的委托
             sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_recv.is_valid()?&get_tcp_sesncfg(sesncfg).on_recv:NULL;
 
             //进行真正的循环接收
-            int32_t rc=sock::read_loop(m_sock,(uint8_t*)buff,len,true,timeout_us,evt,this);
-            if (rc>0)
-            {
+            uint32_t recved=0;
+            int32_t rc=sock::read_loop(m_sock,recved,(uint8_t*)buff,len,true,timeout_us,evt,this);
+            if (rc<0)
+            {//出错了
+                m_err_disconn("tcp_session_t::read() net recv error.");
+                return ec_net_read;
+            }
+            if (rc==1)
+            {//超时了
                 if ((uint32_t)rc==len)
                     return ec_ok;
-                m_err_disconn("net recv timeout.");
+                m_err_disconn("tcp_session_t::read() net recv timeout.");
                 return ec_net_timeout;
             }
-
             if (rc==0)
-            {
-                m_err_disconn("net peer closed.");
+            {//连接断开了
+                m_err_disconn("tcp_session_t::read() net peer closed.");
                 return ec_net_disconn;
             }
-
-            m_err_disconn("net recv error.");
-            return ec_net_read;
+            if (recved<len)
+            {//没有接收完整
+                m_err_disconn("tcp_session_t::read() net recv fail.");
+                return ec_net_read;
+            }
+            return ec_ok;
         }
         //-------------------------------------------------
         //要求读取最多len个字节的数据到buff中,直到超时或断开
         //返回值:实际接收长度(出错时连接会断开,连接未断开则为超时)
-        uint32_t try_read(void* buff,uint32_t len,uint32_t timeout_us=0)
+        uint32_t try_read(void* buff,uint32_t len,uint32_t timeout_us=(uint32_t)-1)
         {
             if (m_sock==bad_socket)
                 return 0;
 
-            if (!timeout_us)
+            if (timeout_us==(uint32_t)-1)
                 timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_rd;
 
             //尝试确定接收事件的委托
@@ -164,9 +173,9 @@ namespace rx
             sock::recv_buff_i ri((uint8_t*)buff,len,false);
             int r=sock::read_loop(m_sock,ri,timeout_us,evt,this);
             if (r==0)
-                m_err_disconn("net peer closed.");
+                m_err_disconn("tcp_session_t::try_read() net peer closed.");
             else if (r<0)
-                m_err_disconn("net recv error.");
+                m_err_disconn("tcp_session_t::try_read() net recv error.");
             return ri.size();
         }
         //-------------------------------------------------
@@ -189,9 +198,9 @@ namespace rx
             ri.tagsize=tagsize;
             int r=sock::read_loop(m_sock,ri,timeout_us,evt,this);
             if (r==0)
-                m_err_disconn("net peer closed.");
+                m_err_disconn("tcp_session_t::try_read(tag) net peer closed.");
             else if (r<0)
-                m_err_disconn("net recv error.");
+                m_err_disconn("tcp_session_t::try_read(tag) net recv error.");
             //记录tag出现的位置
             tagsize=ri.tagpos;
             return ri.size();
