@@ -27,7 +27,7 @@ namespace rx
         tcp_evt_conn_t          on_disconnect;              //事件委托:tcp会话连接断开
         sock::event_rw_t        on_recv;                    //事件委托:tcp会话接收到数据
         sock::event_rw_t        on_send;                    //事件委托:tcp会话发送了数据
-        tcp_sesncfg_t(logger_i &log):timeout_us_rd(1000*500),timeout_us_wr(1000*500),timeout_us_conn(1000*3000),logger(log){}
+        tcp_sesncfg_t(logger_i &log):timeout_us_rd(ms2us(500)),timeout_us_wr(ms2us(500)),timeout_us_conn(sec2us(3)),logger(log){}
     }
     tcp_sesncfg_t;
 
@@ -129,8 +129,8 @@ namespace rx
             sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_recv.is_valid()?&get_tcp_sesncfg(sesncfg).on_recv:NULL;
 
             //进行真正的循环接收
-            uint32_t recved=0;
-            int32_t rc=sock::read_loop(m_sock,recved,(uint8_t*)buff,len,true,timeout_us,evt,this);
+            uint32_t recved=len;
+            int32_t rc=sock::read_loop(m_sock,(uint8_t*)buff,recved,true,timeout_us,evt,this);
             if (rc<0)
             {//出错了
                 m_err_disconn("tcp_session_t::read() net recv error.");

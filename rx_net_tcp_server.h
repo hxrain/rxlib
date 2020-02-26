@@ -163,22 +163,24 @@ namespace rx
                     if (ss.sock!=bad_socket)
                         sets.push(ss.sock);
                 }
+                if (sets.size())
+                {
+                    //在socket集合上等待读取事件(判断是否有新连接到达)
+                    int r=sock::select(sets,timeout_us);
+                    if (r<0)
+                    {//等待时出错了
+                        m_err("tcp listen select() error.");
+                        return NULL;
+                    }
+                    if (r==0)
+                        return NULL;                            //等待超时,没有新连接
 
-                //在socket集合上等待读取事件(判断是否有新连接到达)
-                int r=sock::select(sets,timeout_us);
-                if (r<0)
-                {//等待时出错了
-                    m_err("tcp listen select() error.");
-                    return NULL;
-                }
-                if (r==0)
-                    return NULL;                            //等待超时,没有新连接
-
-                for(uint32_t i=0;i<m_listeners.capacity();++i)
-                {//现在有新连接到达了,需要分辨是发生哪个监听者上.
-                    listener_t &ss=m_listeners[i];
-                    if (ss.sock!=bad_socket&&sets.contain(ss.sock))
-                        m_working.push_back(&ss);           //记录监听者
+                    for(uint32_t i=0;i<m_listeners.capacity();++i)
+                    {//现在有新连接到达了,需要分辨是发生哪个监听者上.
+                        listener_t &ss=m_listeners[i];
+                        if (ss.sock!=bad_socket&&sets.contain(ss.sock))
+                            m_working.push_back(&ss);           //记录监听者
+                    }
                 }
             }
 
@@ -228,7 +230,7 @@ namespace rx
         ~tcp_echo_svr_t(){uninit();}
         //-------------------------------------------------
         //打开两个端口进行监听
-        bool init(uint16_t port1=16301,uint16_t port2=16302)
+        bool init(uint16_t port1=45601,uint16_t port2=45602)
         {
             uninit();
             if (!m_svr.open(port1,NULL,m_sessions.capacity()*2)||
@@ -272,7 +274,7 @@ namespace rx
                     ++ac;
                     char addrstr[53];
                     sock::addr_infos(new_sock,addrstr);
-                    m_svr.logger().info("accept new tcp session: %s",addrstr);
+                    m_svr.logger().debug("accept new tcp session: %s",addrstr);
                     //初始化绑定新的会话
                     tcp_session_bind(m_sessions[idx],new_sock);
                     ++m_actives;

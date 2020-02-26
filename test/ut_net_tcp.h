@@ -12,7 +12,7 @@ namespace rx
     {
         tcp_client_t    m_clt;
     public:
-        bool init(uint16_t port=16301,const char* host=NULL)
+        bool init(uint16_t port=45601,const char* host=NULL)
         {
             if (is_empty(host))
                 host="127.0.0.1";
@@ -21,12 +21,12 @@ namespace rx
         bool conn(){return m_clt.connect();}
         bool step()
         {
-            uint8_t tmp[1024*8];
+            uint8_t tmp[1024*16];
             error_t e=m_clt.write(tmp,sizeof(tmp),sec2us(5));
             if (e!=ec_ok)
                 return false;
 
-            uint8_t tmp2[1024*8];
+            uint8_t tmp2[sizeof(tmp)];
             e=m_clt.read(tmp2,sizeof(tmp2),sec2us(5));
             if (e!=ec_ok)
                 return false;
@@ -35,7 +35,7 @@ namespace rx
         }
     };
 
-    inline void ut_tcp_echo_clt(rx_tdd_t& rt,uint32_t loop=1000)
+    inline void ut_tcp_echo_clt(rx_tdd_t& rt,uint32_t loop=100)
     {
         ut_tcp_echo_client clt;
         rt.tdd_assert(clt.init());
@@ -44,18 +44,20 @@ namespace rx
         {
             bool r=clt.step();
             rt.tdd_assert(r);
-            printf("ut_tcp_echo_clt step %d/%d %s\n",i+1,loop,r?"ok":"bad");
         }
     }
 
     inline void ut_tcp_echo_svr(rx_tdd_t& rt,uint32_t loop=100000)
     {
         tcp_echo_svr_t svr;
-        rt.tdd_assert(svr.init());
+        if (!rt.tdd_assert(svr.init()))
+            return;
+
         for(uint32_t i=0;i<loop;++i)
         {
-            svr.step(ms2us(1));
-            printf("ut_tcp_echo_svr step %d/%d\n",i+1,loop);
+            uint32_t r=svr.step(ms2us(1));
+            if (r)
+                printf("ut_tcp_echo_svr step %d/%d\n",i+1,loop);
         }
     }
 }

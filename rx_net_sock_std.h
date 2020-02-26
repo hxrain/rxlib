@@ -312,14 +312,13 @@ namespace rx
             return accept(sock,sa);
         }
         //-------------------------------------------------
-        //在指定的sock集合上等待事件,io多路复用:set_r读集;set_w写集;set_e错误集;超时时间用微秒;nfds告知全部集合中的最大描述符+1
+        //在指定的sock集合上等待事件,io多路复用:set_r读集;set_w写集;set_e错误集;超时时间微秒(-1完全阻塞);nfds告知全部集合中的最大描述符+1
         //返回值:<0错误;0超时;>0有事件发生
         inline int32_t select(fd_set* set_r,fd_set* set_w,fd_set *set_e,uint32_t timeout_us,int nfds)
         {
-            const uint32_t sec_us=1000*1000;
             struct timeval tm;
-            tm.tv_sec=timeout_us/sec_us;
-            tm.tv_usec=timeout_us%sec_us;
+            tm.tv_sec=timeout_us/sec2us(1);
+            tm.tv_usec=timeout_us%sec2us(1);
             return select(nfds,set_r,set_w,set_e,(timeout_us!=(uint32_t)-1?&tm:NULL));
         }
         //-------------------------------------------------
@@ -382,11 +381,11 @@ namespace rx
             return -1;
         }
         //-------------------------------------------------
-        //增强的连接操作,可超时等待:连接的目标地址;需要等待的时间
+        //增强的连接操作,可超时等待:连接的目标地址;需要等待的时间(-1使用系统默认行为)
         //返回值:1成功;0连接超时;<0错误:-1非阻塞模式设置错误;-2阻塞模式恢复错误;-3连接错误;-4select操作失败
         inline int32_t connect(socket_t sock,const sock_addr_t& sa,uint32_t timeout_us)
         {
-            if (!timeout_us)
+            if (timeout_us==(uint32_t)-1)
             {//不需要进行连接超时的控制,使用系统内默认的链接超时等待时间
                 if (0==connect(sock,(struct sockaddr *)&sa.addr(),sizeof(sa.addr())))
                     return 1;
@@ -553,70 +552,39 @@ namespace rx
             return 0==getsockopt(sock,OptionLevel,Option,(char*)OptionValue,(socklen_t*)&OptionValueLen);
         }
         //-------------------------------------------------
-        //设置socket默认的读超时等待时长
-        inline bool opt_timeout_rd(socket_t sock,uint32_t timeout_us)
+        //设置socket默认的读写超时等待时长
+        inline bool opt_timeout(socket_t sock,uint32_t timeout_us,bool is_read)
         {
+            int opt=is_read?SO_RCVTIMEO:SO_SNDTIMEO;
         #if RX_IS_OS_WIN
-            uint32_t ms=timeout_us/1000;
-            return opt_set(sock,SOL_SOCKET,SO_RCVTIMEO,&ms,sizeof(ms));
+            uint32_t ms=(timeout_us+999)/1000;
+            return opt_set(sock,SOL_SOCKET,opt,&ms,sizeof(ms));
         #else
-            const uint32_t sec_us=1000*1000;
             struct timeval tm;
-            tm.tv_sec=timeout_us/sec_us;
-            tm.tv_usec=timeout_us%sec_us;
-            return opt_set(sock,SOL_SOCKET,SO_RCVTIMEO,&tm,sizeof(tm));
+            tm.tv_sec=timeout_us/sec2us(1);
+            tm.tv_usec=timeout_us%sec2us(1);
+            return opt_set(sock,SOL_SOCKET,opt,&tm,sizeof(tm));
         #endif
         }
         //-------------------------------------------------
-        //设置socket默认的写超时等待时长
-        inline bool opt_timeout_wr(socket_t sock,uint32_t timeout_us)
-        {
-        #if RX_IS_OS_WIN
-            uint32_t ms=timeout_us/1000;
-            return opt_set(sock,SOL_SOCKET,SO_SNDTIMEO,&ms,sizeof(ms));
-        #else
-            const uint32_t sec_us=1000*1000;
-            struct timeval tm;
-            tm.tv_sec=timeout_us/sec_us;
-            tm.tv_usec=timeout_us%sec_us;
-            return opt_set(sock,SOL_SOCKET,SO_SNDTIMEO,&tm,sizeof(tm));
-        #endif
-        }
-        //-------------------------------------------------
-        //获取当前socket的系统接收缓冲区大小
+        //获取当前socket的系统收发缓冲区大小
         //返回值:-1出错;其他为结果
-        inline int opt_buffsize_rd(socket_t sock)
+        inline int opt_buffsize(socket_t sock,bool is_read)
         {
+            int o=is_read?SO_RCVBUF:SO_SNDBUF;
             int s=0;
             int t=sizeof(s);
-            if (!opt_get(sock,SOL_SOCKET,SO_RCVBUF,&s,t))
+            if (!opt_get(sock,SOL_SOCKET,o,&s,t))
                 return -1;
             return s;
         }
         //-------------------------------------------------
-        //设置当前socket的系统接收缓冲区大小
-        inline bool opt_buffsize_rd(socket_t sock,uint32_t Size)
+        //设置当前socket的系统收发缓冲区大小
+        inline bool opt_buffsize(socket_t sock,uint32_t Size,bool is_read)
         {
+            int o=is_read?SO_RCVBUF:SO_SNDBUF;
             int t=sizeof(Size);
-            return opt_set(sock,SOL_SOCKET,SO_RCVBUF,&Size,t);
-        }
-        //-------------------------------------------------
-        //得到当前socket的系统发送缓冲区大小
-        //返回值:-1出错;其他为结果
-        inline int opt_buffsize_wr(socket_t sock)
-        {
-            int s=0;
-            int t=sizeof(s);
-            if (!opt_get(sock,SOL_SOCKET,SO_SNDBUF,&s,t))
-                return -1;
-            return s;
-        }
-        //-------------------------------------------------
-        //设置当前socket的系统发送缓冲区大小
-        inline bool opt_buffsize_wr(socket_t sock,uint32_t Size)
-        {
-            int t=sizeof(Size);
-            return opt_set(sock,SOL_SOCKET,SO_SNDBUF,&Size,t);
+            return opt_set(sock,SOL_SOCKET,o,&Size,t);
         }
         //-------------------------------------------------
         //设置是否可以重复使用端口地址
@@ -804,21 +772,21 @@ namespace rx
     }
     //-------------------------------------------------
     //TCP端口连接测试
-    inline bool tcp_conn_test(const char* dest,uint32_t port,uint32_t timeout_ms=500)
+    inline bool tcp_conn_test(const char* dest,uint32_t port,uint32_t timeout_us=ms2us(500))
     {
         sock_t s=sock::create();                            //创建tcp socket并托管
         if (s==bad_socket)
             return false;
-        return sock::connect(s,dest,port,timeout_ms*1000)>0;//尝试连接目标
+        return sock::connect(s,dest,port,timeout_us)>0;     //尝试连接目标
     }
     //-------------------------------------------------
     //使用tcp连接目标后,提取本地对应的ip地址串
-    inline char* localip_by_dest(const char* dest,uint32_t port,ip_str_t &lip,uint32_t timeout_ms=500)
+    inline char* localip_by_dest(const char* dest,uint32_t port,ip_str_t &lip,uint32_t timeout_us=ms2us(500))
     {
         sock_t s=sock::create();                            //创建tcp socket并托管
         if (s==bad_socket)
             return NULL;
-        if (sock::connect(s,dest,port,timeout_ms*1000)<=0)  //尝试连接目标
+        if (sock::connect(s,dest,port,timeout_us)<=0)       //尝试连接目标
             return NULL;
         return sock::local_ip(s,lip);
     }

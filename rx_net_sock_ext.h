@@ -89,10 +89,10 @@ namespace rx
         //-------------------------------------------------
         //可控制循环数量和单次最大等待时间的持续读取功能:读取缓冲器;单次等待超时us;接收观察事件和事件参数;最大循环次数(0不限);读取标记.
         //返回值:告知循环结束原因,<0错误了;0连接断开;1等待超时;2事件要求停止;3缓冲器要求停止;4循环到达上限.
-        inline int32_t read_loop(socket_t sock,recv_data_i& ri,uint32_t timeout_us=1000*500,
+        inline int32_t read_loop(socket_t sock,recv_data_i& ri,uint32_t timeout_us=ms2us(500),
                                  event_rw_t* evt=NULL,void* evt_param=NULL,uint32_t loops=0,uint32_t flag=0)
         {
-            uint32_t block_size=opt_buffsize_rd(sock);      //查询socket的底层缓冲区尺寸
+            uint32_t block_size=opt_buffsize(sock,true);    //查询socket的底层缓冲区尺寸
             if (block_size==(uint32_t)-1) return -1;
 
             uint32_t lps=0;
@@ -126,30 +126,30 @@ namespace rx
             }
             return 4;                                       //循环次数到达上限
         }
-        //可控制循环数量和单次最大等待时间的持续读取功能:实际接收长度;缓冲区和缓冲长度,是否必须接满缓冲区;单次等待超时us;接收观察事件和事件参数;最大循环次数(0不限);读取标记.
+        //可控制循环数量和单次最大等待时间的持续读取功能:缓冲区和缓冲长度(返回时记录实际接收长度),是否必须接满缓冲区;单次等待超时us;接收观察事件和事件参数;最大循环次数(0不限);读取标记.
         //返回值:告知循环结束原因,<0错误了;0连接断开;1等待超时;2事件要求停止;3缓冲器要求停止;4循环到达上限.
-        inline int32_t read_loop(socket_t sock,uint32_t &recved,uint8_t* buff,uint32_t maxsize,bool mustsize=false,
-                                 uint32_t timeout_us=1000*500,event_rw_t* evt=NULL,void* evt_param=NULL,uint32_t loops=0,uint32_t flag=0)
+        inline int32_t read_loop(socket_t sock,uint8_t* buff,uint32_t &maxsize,bool mustsize=false,
+                                 uint32_t timeout_us=ms2us(500),event_rw_t* evt=NULL,void* evt_param=NULL,uint32_t loops=0,uint32_t flag=0)
         {
             recv_buff_i ri(buff,maxsize,mustsize);
             int r=read_loop(sock,ri,timeout_us,evt,evt_param,loops,flag);
-            recved=ri.size();
+            maxsize=ri.size();
             return r;
         }
         //-------------------------------------------------
         //统一的写接口:数据缓冲区;数据长度;写等待超时
         //返回值:<0错误;0超时;>0成功
         inline int32_t write_loop(socket_t sock,const void* datas,uint32_t data_size,
-                                  uint32_t timeout_us=1000*500,event_rw_t* evt=NULL,void* evt_param=NULL,uint32_t flag=0)
+                                  uint32_t timeout_us=ms2us(500),event_rw_t* evt=NULL,void* evt_param=NULL,uint32_t flag=0)
         {
-            uint32_t block_size=opt_buffsize_wr(sock);      //查询socket的底层缓冲区尺寸
+            uint32_t block_size=opt_buffsize(sock,false);   //查询socket的底层缓冲区尺寸
             if (block_size==(uint32_t)-1) return -1;
 
             uint32_t sended=0;                              //已经写入过的数据长度
             while (sended<data_size)                        //循环写入全部的数据
             {
                 uint32_t dl=min(block_size,data_size-sended);//本次需要写入的数据长度
-                if (timeout_us)
+                if (timeout_us!=(uint32_t)-1)
                 {//尝试进行发送前的超时等待,避免底层缓冲区不够用
                     int r=wait(sock,timeout_us,false);
                     if (r<0) return -2;
