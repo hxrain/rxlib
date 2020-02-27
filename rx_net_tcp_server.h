@@ -1,7 +1,7 @@
 #ifndef RX_NET_TCP_SERVER_H
 #define RX_NET_TCP_SERVER_H
 
-#include "rx_net_tcp_session.h"
+#include "rx_net_tcp_client.h"
 #include "rx_dtl_array.h"
 
 namespace rx
@@ -227,7 +227,9 @@ namespace rx
     public:
         //-------------------------------------------------
         tcp_echo_svr_t():m_actives(0){}
+        tcp_echo_svr_t(logger_i& l):m_svr(l),m_actives(0){}
         ~tcp_echo_svr_t(){uninit();}
+        logger_i& logger(){return m_svr.logger();}
         //-------------------------------------------------
         //打开两个端口进行监听
         bool init(uint16_t port1=45601,uint16_t port2=45602)
@@ -268,6 +270,7 @@ namespace rx
 
                 socket_t new_sock=bad_socket;
                 sock_addr_t peer_addr;
+                //驱动svrsock,进行新连接建立的处理
                 tcp_svrsocks_t::listener_t *ss=m_svr.step(new_sock,&peer_addr,timeout_us);
                 if (ss)
                 {//新连接到达

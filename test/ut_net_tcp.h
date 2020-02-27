@@ -3,7 +3,6 @@
 
 #include "../rx_net_tcp_server.h"
 #include "../rx_net_tcp_client.h"
-#include "../rx_net_tcp_session.h"
 #include "../rx_tdd.h"
 
 namespace rx
@@ -35,6 +34,7 @@ namespace rx
         }
     };
 
+    //对echo进行测试的客户端
     inline void ut_tcp_echo_clt(rx_tdd_t& rt,uint32_t loop=100)
     {
         ut_tcp_echo_client clt;
@@ -43,10 +43,12 @@ namespace rx
         for(uint32_t i=0;i<loop;++i)
         {
             bool r=clt.step();
-            rt.tdd_assert(r);
+            if (!rt.tdd_assert(r))
+                break;
         }
     }
 
+    //对echo进行测试的服务端
     inline void ut_tcp_echo_svr(rx_tdd_t& rt,uint32_t loop=100000)
     {
         tcp_echo_svr_t svr;
@@ -57,7 +59,7 @@ namespace rx
         {
             uint32_t r=svr.step(ms2us(1));
             if (r)
-                printf("ut_tcp_echo_svr step %d/%d\n",i+1,loop);
+                svr.logger().debug("ut_tcp_echo_svr step %d/%d",i+1,loop);
         }
     }
 }

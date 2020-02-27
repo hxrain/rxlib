@@ -9,7 +9,6 @@
     #include "../ut_net_tcp.h"
     #include "../../rx_net_tcp_server.h"
     #include "../../rx_net_tcp_client.h"
-    #include "../../rx_net_tcp_session.h"
 #endif
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==40
@@ -20,7 +19,6 @@
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==40
     //标准的同步socket功能封装
-    #include "../../rx_net_sock_ext.h"
     #include "../../rx_net_sock_std.h"
 #endif
 //---------------------------------------------------------
