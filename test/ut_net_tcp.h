@@ -7,6 +7,7 @@
 
 namespace rx
 {
+    //-----------------------------------------------------
     class ut_tcp_echo_client
     {
         tcp_client_t    m_clt;
@@ -34,11 +35,12 @@ namespace rx
         }
     };
 
+    //-----------------------------------------------------
     //对echo进行测试的客户端
     inline void ut_tcp_echo_clt(rx_tdd_t& rt,uint32_t loop=100)
     {
         ut_tcp_echo_client clt;
-        rt.tdd_assert(clt.init());
+        rt.tdd_assert(clt.init(45601,"127.0.0.1"));
         rt.tdd_assert(clt.conn());
         for(uint32_t i=0;i<loop;++i)
         {
@@ -48,6 +50,7 @@ namespace rx
         }
     }
 
+    //-----------------------------------------------------
     //对echo进行测试的服务端
     inline void ut_tcp_echo_svr(rx_tdd_t& rt,uint32_t loop=100000)
     {
