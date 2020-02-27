@@ -40,48 +40,48 @@ inline int32_t rx_time_zone(time_t dt = 0)
 }
 
 #if RX_OS==RX_OS_LINUX
-//---------------------------------------------------------
-//获取当前系统开机后的滴答数(微秒)
-inline uint64_t rx_get_tick_us()
-{
-    struct timespec tp;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
-    return (tp.tv_sec * 1000 * 1000 + tp.tv_nsec / 1000);
-}
-//---------------------------------------------------------
-//获取当前系统开机后的滴答数(微秒),并增加ms毫秒后的时间
-inline bool rx_get_tick_us(struct timespec &ts, int32_t ms)
-{
-    //获取系统UTC时间
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) < 0)
-        return false;
-    rx_add_ms(ts, ms);
-    return true;
-}
-
-#elif defined(RX_IS_OS_WIN)
-//---------------------------------------------------------
-//获取当前系统开机后的滴答数(微秒)
-inline uint64_t rx_get_tick_us()
-{
-    LARGE_INTEGER t;
-    static uint64_t m_timer_freq = 0;
-    if (!m_timer_freq)
+    //---------------------------------------------------------
+    //获取当前系统开机后的滴答数(微秒)
+    inline uint64_t rx_get_tick_us()
     {
-        if (QueryPerformanceFrequency(&t))
-            m_timer_freq = t.QuadPart;
+        struct timespec tp;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
+        return (tp.tv_sec * 1000 * 1000 + tp.tv_nsec / 1000);
     }
+    //---------------------------------------------------------
+    //获取当前系统开机后的滴答数(微秒),并增加ms毫秒后的时间
+    inline bool rx_get_tick_us(struct timespec &ts, int32_t ms)
+    {
+        //获取系统UTC时间
+        if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) < 0)
+            return false;
+        rx_add_ms(ts, ms);
+        return true;
+    }
+#elif RX_IS_OS_WIN
+//---------------------------------------------------------
+    //获取当前系统开机后的滴答数(微秒)
+    inline uint64_t rx_get_tick_us()
+    {
+        LARGE_INTEGER t;
+        static uint64_t m_timer_freq = 0;
+        if (!m_timer_freq)
+        {
+            if (QueryPerformanceFrequency(&t))
+                m_timer_freq = t.QuadPart;
+        }
 
-    if (!QueryPerformanceCounter(&t) || !m_timer_freq)
-        return -1;
-    return uint64_t((double(t.QuadPart) / m_timer_freq) * 1000 * 1000);
-}
+        if (!QueryPerformanceCounter(&t) || !m_timer_freq)
+            return -1;
+        return uint64_t(((t.QuadPart* 1000 * 1000) / m_timer_freq) );
+    }
 #else
-inline uint64_t rx_get_tick_us()
-{
-    rx_st_assert(false, "unsupport os.");
-    return -1;
-}
+    inline uint64_t rx_get_tick_us()
+    {
+        uint64_t monotonic_time;
+        syscall(SYS_clock_gettime, CLOCK_MONOTONIC_RAW, &monotonic_time)
+        return monotonic_time/1000;
+    }
 #endif
 //---------------------------------------------------------
 //获取当前系统开机后的滴答数(毫秒)

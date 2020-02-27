@@ -8,7 +8,7 @@
     #include <time.h>
     #include "rx_str_util_fmt.h"
 
-#if defined(RX_IS_OS_WIN)
+#if RX_IS_OS_WIN
     #include <winsock2.h>
 
     #if !defined(HAVE_STRUCT_TIMESPEC)&&!defined(_TIMESPEC_DEFINED)
@@ -21,6 +21,8 @@
         };
         #endif
     #endif
+#elif RX_OS==RX_OS_LINUX
+    #include <sys/time.h>
 #endif
 /*
 	本单元进行UTC时间和ISO时间的相互转换处理.
@@ -28,6 +30,8 @@
 		rx_leap_year()										//判断给的的年份是否为闰年
 		rx_localtime()										//将UTC时间转换为ISO时间分量,可指定目标时区.
 		rx_iso_time()										//将UTC时间或时间分量转换为ISO格式的时间串
+        rx_time()                                           //获取系统当前UTC时间
+        rx_time2ms()                                        //将timeval和timespec转换为毫秒
         rx_add_ms()                                         //进行时间结构体的毫秒值调整
         rx_time_ms()                                        //根据时间结构体计算毫秒数
 	注意:由于UTC/Local时间的转换过程中,使用了立即参数进行的时区调整,而没有访问系统的时区与冬夏令时,
@@ -61,19 +65,27 @@
 
     //-----------------------------------------------------
     //将秒和纳秒变为毫秒
-    inline uint64_t rx_time_ms(struct timeval &time)
+    inline uint64_t rx_time2ms(struct timeval &time)
     {
         return time.tv_sec * 1000 + time.tv_usec / 1000;
     }
     //将秒和纳秒变为毫秒
-    inline uint64_t rx_time_ms(struct timespec &time)
+    inline uint64_t rx_time2ms(struct timespec &time)
     {
         return time.tv_sec * 1000 + time.tv_nsec / (1000 * 1000);
     }
+
     //-----------------------------------------------------
-    //将ISO年月日时分秒转,换成1970-1-1 00:00:00距离现在的总秒数UTC,时区(默认东八区北京时间)
+    //将ISO年(1970~)月(1~12)日(1~31)时(0~23)分秒(0~59)转,换成1970-1-1 00:00:00距离现在的总秒数UTC,时区(默认东八区北京时间)
     inline uint64_t rx_make_utc(uint32_t year, uint32_t mon, uint32_t day, uint32_t hour, uint32_t min, uint32_t sec,int32_t zone_offset_sec = 8*60*60)
     {
+        rx_assert(year>=1970);
+        rx_assert(mon>=1&&mon<=12);
+        rx_assert(day>=1&&day<=31);
+        rx_assert(hour>=0&&hour<=23);
+        rx_assert(min>=0&&min<=59);
+        rx_assert(sec>=0&&sec<=59);
+
         mon -= 2;
         if ((int)mon <= 0)
         {
@@ -164,6 +176,25 @@
         #undef LEAPS_THRU_END_OF
     }
     //-----------------------------------------------------
+    //获取当前系统的时间,UTC秒.(可以同时获取当前秒下的微秒)
+    //返回值:UTC秒
+    inline uint64_t rx_time(uint32_t *usec=NULL)
+    {
+        uint64_t ret=time(NULL);
+        if (usec==NULL)
+            return ret;
+#if RX_IS_OS_WIN
+        SYSTEMTIME st;
+        GetSystemTime(&st);
+        *usec=ms2us(st.wMilliseconds);
+#elif RX_OS==RX_OS_LINUX
+        struct timeval tv;
+        gettimeofday(&tv,NULL);
+        *usec=tv.tv_usec;
+#endif
+        return ret;
+    }
+    //-----------------------------------------------------
     //将日期时间结构格式化为字符串
     inline void rx_iso_datetime(const struct tm& tp, char str[20],const char* fmt=NULL)
     {
@@ -177,10 +208,6 @@
         rx_localtime(utc_time,tp, zone_offset_sec);
         rx_iso_datetime(tp,str,fmt);
     }
-    //---------------------------------------------------------
-    //获取当前系统的时间,UTC格式.
-    inline uint64_t rx_time() {return time(NULL);}
-
     //---------------------------------------------------------
     //获取系统当前时间的字符串格式,外部应该给出正确的时区
     inline uint64_t rx_iso_datetime(char str[20],const char* fmt=NULL, int32_t zone_offset_sec = 8 * 60 * 60)
@@ -219,7 +246,7 @@
     }
     //-----------------------------------------------------
     //转换标准日期串到tm格式
-    inline bool rx_iso_date(const char* DateStr,struct tm &Date)
+    inline bool rx_iso2date(const char* DateStr,struct tm &Date)
     {
         if (is_empty(DateStr))
             return false;
@@ -256,7 +283,7 @@
     }
     //-----------------------------------------------------
     //转换标准时间串到tm格式
-    inline bool rx_iso_time(const char* TimeStr,struct tm &Time,uint32_t *msec=NULL)
+    inline bool rx_iso2time(const char* TimeStr,struct tm &Time,uint32_t *msec=NULL)
     {
         if (is_empty(TimeStr))
             return false;
@@ -296,7 +323,7 @@
     }
     //-----------------------------------------------------
     //转换标准日期时间串到tm格式
-    inline bool rx_iso_datetime(const char* date_time_str,struct tm &Date, uint32_t *msec = NULL)
+    inline bool rx_iso2datetime(const char* date_time_str,struct tm &Date, uint32_t *msec = NULL)
     {
         memset(&Date,0,sizeof(Date));
         if (is_empty(date_time_str))
@@ -305,6 +332,6 @@
         if (!TimeStr) TimeStr=strchr(date_time_str,'T');     //适应XML/28181时间格式
         if (!TimeStr) return true;
 
-        return rx_iso_date(date_time_str,Date)&&rx_iso_time(++TimeStr,Date, msec);
+        return rx_iso2date(date_time_str,Date)&&rx_iso2time(++TimeStr,Date, msec);
     }
 #endif
