@@ -34,7 +34,7 @@ namespace rx
         //解除旗标初始化
         void uninit() { sem_destroy(&m_handle); }
         //-----------------------------------------------------
-        //获取计数,可进行超时等待(模拟方式,不太精确,性能也较低)
+        //获取计数,可进行超时等待(默认无限等待)
         //返回值:是否正确取得了计数
         bool take(int wait_ms = -1)
         {
@@ -44,7 +44,7 @@ namespace rx
                 return 0 == sem_wait(&m_handle);
             else
             {
-                //使用原生超时等待容易被系统时间的调整干死.
+                //使用原生超时等待容易被系统时间的调整干扰致死,这里使用多次循环模拟(不太精准)
                 for (int i = 0; i < wait_ms; ++i)
                 {
                     if (0 == sem_trywait(&m_handle))
@@ -86,7 +86,7 @@ namespace rx
         //解除旗标初始化
         void uninit() {CloseHandle(m_handle); m_handle= NULL;}
         //-----------------------------------------------------
-        //获取计数,可进行超时等待
+        //获取计数,可进行超时等待(默认无限等待)
         //返回值:是否正确取得了计数
         bool take(int wait_ms = -1)
         {
