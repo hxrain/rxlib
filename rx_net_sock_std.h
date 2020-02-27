@@ -366,6 +366,26 @@ namespace rx
         #endif
         }
         //-------------------------------------------------
+        //在这个socket上设置选项:选项等级(SOL_SOCKET或IPPROTO_TCP);选项编码;选项值,值长度
+        inline bool opt_set(socket_t sock,int OptionLevel,int Option,const void* OptionValue,int OptionValueLen)
+        {
+            return 0==setsockopt(sock,OptionLevel,Option,(const char*)OptionValue,OptionValueLen);
+        }
+        //-------------------------------------------------
+        //得到这个socket上制定选项的值:选项等级(SOL_SOCKET或IPPROTO_TCP);选项编码;选项值缓冲区,缓冲区长度/值长度
+        inline bool opt_get(socket_t sock,int OptionLevel,int Option,void* OptionValue,int &OptionValueLen)
+        {
+            return 0==getsockopt(sock,OptionLevel,Option,(char*)OptionValue,(socklen_t*)&OptionValueLen);
+        }
+        //-------------------------------------------------
+        //查询指定socket上是否有错误
+        inline bool opt_get_err(socket_t sock,int &err)
+        {
+            err=0;
+            int s=sizeof(int);
+            return opt_get(sock,SOL_SOCKET, SO_ERROR, &err, s);
+        }
+        //-------------------------------------------------
         //设置socket为阻塞或非阻塞模式
         inline bool block_mode(socket_t sock,bool is_block)
         {
@@ -399,8 +419,21 @@ namespace rx
                 return -1;                                  //将socket设置为非阻塞模式
 
             int32_t cr=0;
-            if (0!=connect(sock,(struct sockaddr *)&sa.addr(),sizeof(sa.addr())))
+            if (0!=::connect(sock,(struct sockaddr *)&sa.addr(),sizeof(sa.addr())))
                 cr=wait(sock,timeout_us,false);             //进行非阻塞连接并等待可写(连接成功)
+
+        #if !RX_IS_OS_WIN
+            if (cr>0)
+            {//在linux上,需要再次判断sock内部是否有错误
+                int err;
+                opt_get_err(sock,err);
+                if (err!=0)
+                {//修正错误的原因
+                    errno=err;
+                    cr=-3;
+                }
+            }
+        #endif
 
             if (!block_mode(sock,true))                     //将socket恢复为阻塞模式
                 return -2;
@@ -443,9 +476,9 @@ namespace rx
 
             bool Ret;
         #if RX_IS_OS_WIN
-            Ret= 0==closesocket(sock);
+            Ret= (0==closesocket(sock));
         #else
-            Ret= 0==close(sock);
+            Ret= (0==::close(sock));
         #endif
             sock=bad_socket;
             return Ret;
@@ -540,18 +573,6 @@ namespace rx
             if (!peer_addr(sock,sa))
                 return 0;
             return sa.port();
-        }
-        //-------------------------------------------------
-        //在这个socket上设置选项:选项等级(SOL_SOCKET或IPPROTO_TCP);选项编码;选项值,值长度
-        inline bool opt_set(socket_t sock,int OptionLevel,int Option,const void* OptionValue,int OptionValueLen)
-        {
-            return 0==setsockopt(sock,OptionLevel,Option,(const char*)OptionValue,OptionValueLen);
-        }
-        //-------------------------------------------------
-        //得到这个socket上制定选项的值:选项等级(SOL_SOCKET或IPPROTO_TCP);选项编码;选项值缓冲区,缓冲区长度/值长度
-        inline bool opt_get(socket_t sock,int OptionLevel,int Option,void* OptionValue,int &OptionValueLen)
-        {
-            return 0==getsockopt(sock,OptionLevel,Option,(char*)OptionValue,(socklen_t*)&OptionValueLen);
         }
         //-------------------------------------------------
         //设置socket默认的读写超时等待时长
