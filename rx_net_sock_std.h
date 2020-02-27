@@ -81,6 +81,7 @@ namespace rx
         char addr[16];                                      //暂时先仅考虑ipv4地址空间
         ip_str_t(){addr[0]=0;}
         operator char* ()const{return (char*)addr;}
+        const char* c_str()const{return (char*)addr;}
     }ip_str_t;
 
     //-----------------------------------------------------

@@ -229,7 +229,7 @@ namespace rx
             ip_str_t ip_r;
             m_dst.ip_str(ip_r);
             os_errmsg_t osmsg(tip);
-            get_tcp_sesncfg(super_t::sesncfg).logger.warn("%sDST<%s:%u>",(const char*)osmsg,ip_r,m_dst.port());
+            get_tcp_sesncfg(super_t::sesncfg).logger.warn("%sDST<%s:%u>",(const char*)osmsg,(const char*)ip_r,m_dst.port());
             sock::close(super_t::m_sock,true);
             return false;
         }
