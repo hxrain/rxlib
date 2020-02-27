@@ -56,46 +56,45 @@ namespace rx
     class task_disp_t
     {
         //-------------------------------------------------
-        //外部任务代理封装,用于处理数据队列与阻塞调度
+        //外部任务代理封装,用转发任务动作给外部指定的类
         class task_proxy_t :public task_class
         {
         protected:
             //---------------------------------------------
             //线程任务启动了
             virtual void on_begin(void* param)
-            {
+            {//param来自thread_t.start(param),本例程为task_disp_t的实例this指针
                 m_parent = static_cast<task_disp_t*>(param);
                 task_class::on_begin(m_parent->m_task_init_param);
             }
             //---------------------------------------------
             //线程任务主函数结束了
-            virtual void on_end(void* param) { task_class::on_end(param); }
+            virtual void on_end(void* param) 
+            { //param来自thread_t.start(param),本例程为task_disp_t的实例this指针
+                m_parent = static_cast<task_disp_t*>(param);
+                task_class::on_end(m_parent->m_task_init_param); 
+            }
+            //---------------------------------------------
+            //从任务数据队列中提取一个数据,准备调度处理
+            void* m_get_data()
+            {
+                GUARD(m_parent->m_data_locker);
+                //锁定队列同步锁,得到队首数据
+                rx_assert(m_parent->m_data_queue.size() != 0);
+                void* data = m_parent->m_data_queue.front();
+                m_parent->m_data_queue.pop();
+                return data;
+            }
             //---------------------------------------------
             //进入线程任务主函数
             virtual uint32_t on_run(void* param)
             {
                 while (m_parent->m_sem_work.take())
-                {
-                    //本任务被正确唤醒,可以进行一次处理了
+                {//任务被唤醒,进行一次数据处理
                     if (task_class::need_break())
-                        break;
-
-                    void *data = NULL;
-                    {
-                        GUARD(m_parent->m_data_locker);
-                        //锁定队列同步锁,得到队首数据
-                        rx_assert(m_parent->m_data_queue.size() != 0);
-                        if (m_parent->m_data_queue.size() == 0)
-                            continue;
-                        data = m_parent->m_data_queue.front();
-                        m_parent->m_data_queue.pop();
-                    }
-
-                    //进行真正的数据处理任务
-                    task_class::on_run(data);
-
-                    //任务处理完成后,通知空闲计数器
-                    m_parent->m_sem_idle.post();
+                        break;                              //判断是否要求调度结束
+                    task_class::on_run(m_get_data());       //进行真正的数据处理任务
+                    m_parent->m_sem_idle.post();            //任务处理完成后,通知空闲计数器
                 }
                 return 0;
             }
@@ -109,8 +108,8 @@ namespace rx
         //定义任务与线程对象
         typedef struct worker_t
         {
-            task_proxy_t    task_proxy;
-            thread_t        task_thread;
+            task_proxy_t    task_proxy;                     //真正待运行的任务的外包装代理实例
+            thread_t        task_thread;                    //运行任务的独立线程
             worker_t() : task_thread(task_proxy) {}
         } worker_t;
 
@@ -123,13 +122,13 @@ namespace rx
         semp_t          m_sem_work;                         //工作任务计数器
         data_queue_t    m_data_queue;                       //传递工作数据的队列
         locker_t        m_data_locker;                      //传递队列数据使用的同步锁
-        void           *m_task_init_param;                  //任务初始化参数
+        void           *m_task_init_param;                  //任务线程启动时的初始化参数,来自init(init_param).
     public:
         //-------------------------------------------------
         task_disp_t() :m_task_init_param(NULL) {}
         ~task_disp_t() { uninit(); }
         //-------------------------------------------------
-        //任务调度器进行初始化
+        //任务调度器进行初始化,可告知任务线程初始启动使用的init_param参数
         bool init(void* init_param = NULL)
         {
             m_task_init_param = init_param;
@@ -181,7 +180,7 @@ namespace rx
             return m_sem_work.post();
         }
         //-------------------------------------------------
-        //尝试在uninit之后获取未来得及被处理的任务数据
+        //尝试在uninit之后获取没来得及被处理的任务数据,便于销毁处理
         //返回值:NULL没有了.否则为之前push的data.
         void *remain()
         {
@@ -192,7 +191,6 @@ namespace rx
             return data;
         }
     };
-
 }
 
 
