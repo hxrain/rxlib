@@ -284,14 +284,14 @@ namespace rx
                 }
             }
 
-            uint8_t wr_buff[1024*16]; //收发临时使用的缓冲区
+            uint8_t wr_buff[1024*16];                               //收发临时使用的缓冲区
 
             for(uint32_t i=0;i<m_sessions.capacity();++i)
             {//对已连接会话进行收发处理
                 tcp_session_t &ss=m_sessions[i];
                 if (!ss.connected())
                     continue;
-                uint32_t rs=ss.try_read(wr_buff,sizeof(wr_buff),0);//0超时等待,快速进行接收探察
+                uint32_t rs=ss.readx(wr_buff,sizeof(wr_buff),0);    //0超时等待,快速进行接收探察
                 if (rs==0)
                 {
                     if (!ss.connected())

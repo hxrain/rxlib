@@ -157,7 +157,7 @@ namespace rx
         //-------------------------------------------------
         //要求读取最多len个字节的数据到buff中,直到超时或断开(默认超时使用会话配置)
         //返回值:实际接收长度(连接断开则出错了,连接未断开则为超时)
-        uint32_t try_read(void* buff,uint32_t len,uint32_t timeout_us=(uint32_t)-1)
+        uint32_t readx(void* buff,uint32_t len,uint32_t timeout_us=(uint32_t)-1)
         {
             if (m_sock==bad_socket)
                 return 0;
@@ -180,7 +180,7 @@ namespace rx
         //-------------------------------------------------
         //要求读取最多len个字节的数据到buff中,直到收到tag,或超时或断开(默认超时使用会话配置);入参tagsize告知tag的长度,出参告知tag在buff中的开始位置索引,-1不存在;
         //返回值:实际接收长度(连接断开则出错了,连接未断开则为超时);
-        uint32_t try_read(void* buff,uint32_t len,void* tag,uint32_t &tagsize,uint32_t timeout_us=0)
+        uint32_t readx(void* buff,uint32_t len,void* tag,uint32_t &tagsize,uint32_t timeout_us=0)
         {
             if (m_sock==bad_socket)
                 return 0;
