@@ -151,13 +151,13 @@ namespace rx
         void uninit()
         {
             for (uint32_t i = 0; i < thread_count; ++i)
-                m_workers[i].task_proxy.stop();             //给所有的任务标记,即将结束
+                m_workers[i].task_proxy.halt();             //给所有的任务标记,即将结束
 
             for (uint32_t i = 0; i < thread_count; ++i)
                 m_sem_work.post();                          //对工作计数器进行提交,唤醒所有的任务
 
             for (uint32_t i = 0; i < thread_count; ++i)
-                m_workers[i].task_thread.stop();            //等待所有的工作线程结束
+                m_workers[i].task_thread.stop(true);        //等待所有的工作线程结束
 
             m_sem_work.uninit();                            //解除工作计数器
             m_sem_idle.uninit();                            //解除空闲计数器
