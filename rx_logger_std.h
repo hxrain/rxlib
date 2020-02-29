@@ -101,7 +101,7 @@ namespace rx
             char            m_mod_name[32];                 //日志记录器所属的功能模块
         public:
             //-------------------------------------------------
-            writer_t():parent(NULL),m_last_seq(0),m_last_tex(0){}
+            writer_t():parent(NULL),m_last_seq(0),m_last_tex(0){m_mod_name[0]=0;}
             //-------------------------------------------------
             //输出日志的前端固定部分
             writer_t& begin(logger_level_t type=LT_LEVEL_INFO,uint32_t tag=-1)
