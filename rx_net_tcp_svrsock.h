@@ -29,7 +29,7 @@ namespace rx
         typedef array_stack_ft<listener_t*,max_listens> listener_ptr_stack_t;
 
         listener_array_t        m_listeners;                //socket监听数组
-        logger_i                &m_logger;                  //日志输出接口
+        logger_i                m_logger;                   //日志输出接口
         listener_ptr_stack_t    m_working;                  //存放工作中的监听者指针的栈,当作链表使用
 
         //-------------------------------------------------
@@ -73,8 +73,8 @@ namespace rx
         }
     public:
         //-------------------------------------------------
-        tcp_svrsocks_t(logger_i& logger):m_logger(logger){}
-        tcp_svrsocks_t():m_logger(make_logger_con()){}      //默认可以使用控制台作为日志记录器
+        tcp_svrsocks_t(){}
+        tcp_svrsocks_t(logger_i& logger){m_logger.bind(logger);}
         virtual ~tcp_svrsocks_t(){close();}
         logger_i& logger(){return m_logger;}
         //-------------------------------------------------
@@ -211,7 +211,6 @@ namespace rx
 
         tcp_svrsocks_t      m_svr;                          //用于接受新连接的socket服务端功能
         session_array_t     m_sessions;                     //当前活动会话数组
-        uint32_t            m_actives;                      //活跃会话数量
         //-------------------------------------------------
         //查找遇到的第一个空槽位索引;-1未找到.
         uint32_t m_find_first_empty()
@@ -225,8 +224,7 @@ namespace rx
         }
     public:
         //-------------------------------------------------
-        tcp_echo_svr_t():m_actives(0){}
-        tcp_echo_svr_t(logger_i& l):m_svr(l),m_actives(0){}
+        tcp_echo_svr_t(){}
         ~tcp_echo_svr_t(){uninit();}
         logger_i& logger(){return m_svr.logger();}
         //-------------------------------------------------
@@ -247,13 +245,12 @@ namespace rx
         void uninit()
         {
             m_svr.close();
-            for(uint32_t i=0;i<m_actives;++i)
+            for(uint32_t i=0;i<m_sessions.capacity();++i)
             {
                 tcp_session_t &ss=m_sessions[i];
                 if (ss.connected())
                     ss.disconnect();
             }
-            m_actives=0;
         }
         //-------------------------------------------------
         //服务端单线程功能驱动方法,完成新连接建立,处理收发应答.
@@ -262,11 +259,9 @@ namespace rx
         {
             uint32_t ac=0;
 
-            if (m_actives<m_sessions.capacity())
-            {//还有空槽位可以承载新会话
-                uint32_t idx=m_find_first_empty();
-                rx_assert(idx!=(uint32_t)-1);
-
+            uint32_t idx=m_find_first_empty();
+            if (idx!=(uint32_t)-1)
+            {//还有空槽位可以承载新会话,则尝试接受新连接
                 socket_t new_sock=bad_socket;
                 sock_addr_t peer_addr;
                 //驱动svrsock,进行新连接建立的处理
@@ -279,7 +274,6 @@ namespace rx
                     m_svr.logger().debug("accept new tcp session: %s",addrstr);
                     //初始化绑定新的会话
                     tcp_session_bind(m_sessions[idx],new_sock);
-                    ++m_actives;
                 }
             }
 
@@ -290,13 +284,13 @@ namespace rx
                 tcp_session_t &ss=m_sessions[i];
                 if (!ss.connected())
                     continue;
+
                 uint32_t rs=ss.readx(wr_buff,sizeof(wr_buff),0);    //0超时等待,快速进行接收探察
                 if (rs==0)
                 {
                     if (!ss.connected())
                     {//连接中断了
                         ++ac;
-                        --m_actives;
                         continue;
                     }
                 }
@@ -305,19 +299,12 @@ namespace rx
                     ++ac;
                     if (ss.write(wr_buff,rs,wr_timeout_us)!=ec_ok)
                     {//发送错误,连接中断了
-                        --m_actives;
                         continue;
                     }
                 }
             }
             return ac;
         }
-    };
-
-    //-----------------------------------------------------
-    //多线程常规功能的tcp服务器,可完成通用的多线程服务器.
-    class tcp_server_t
-    {
     };
 }
 
