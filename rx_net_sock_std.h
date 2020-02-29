@@ -720,10 +720,11 @@ namespace rx
             ip_str_t ipstr;
             sock_addr_t addr;
 
+            cat("SOCK(%u)",sock);
             local_addr(sock,addr);
-            cat("LOC<%s:%u>",addr.ip_str(ipstr),addr.port());
+            cat("LOC(%s:%u)",addr.ip_str(ipstr),addr.port());
             peer_addr(sock,addr);
-            cat("DST<%s:%u>",addr.ip_str(ipstr),addr.port());
+            cat("DST(%s:%u)",addr.ip_str(ipstr),addr.port());
             return buff;
         }
 
