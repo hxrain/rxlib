@@ -11,8 +11,10 @@ namespace rx
 {
     //-----------------------------------------------------
     class tcp_session_t;
-    //tcp连接或断开事件的委托类型
+    //tcp连接事件的委托类型
     typedef delegate2_t<socket_t,tcp_session_t&,void> tcp_evt_conn_t;
+    //tcp断开事件的委托类型
+    typedef delegate3_t<socket_t,tcp_session_t&,bool,void> tcp_evt_disconn_t;
 
     //-----------------------------------------------------
     //tcp会话使用的配置参量,抽取出公共对象,节省内存.
@@ -23,7 +25,7 @@ namespace rx
         uint32_t                timeout_us_conn;            //连接超时us
         logger_i               &logger;                     //错误日志记录器
         tcp_evt_conn_t          on_connect;                 //事件委托:tcp会话连接成功
-        tcp_evt_conn_t          on_disconnect;              //事件委托:tcp会话连接断开
+        tcp_evt_disconn_t       on_disconnect;              //事件委托:tcp会话连接断开
         sock::event_rw_t        on_recv;                    //事件委托:tcp会话接收到数据
         sock::event_rw_t        on_send;                    //事件委托:tcp会话发送了数据
         tcp_sesncfg_t(logger_i &log):timeout_us_rd(ms2us(500)),timeout_us_wr(ms2us(500)),timeout_us_conn(sec2us(3)),logger(log){}
@@ -57,11 +59,21 @@ namespace rx
             sock::addr_infos(m_sock,addrstr);               //得到通信双方地址信息
             //输出日志
             get_tcp_sesncfg(sesncfg).logger.warn("%s -> %s",(const char*)osmsg,addrstr);
-            //断开连接,释放socket
-            disconnect(true);
+            //断开连接,释放socket,并告知是由于错误而引起的中断
+            m_disconnect(true,true);
             return false;
         }
+        //-------------------------------------------------
+        //处理会话连接的断开事件
+        void m_disconnect(bool NoWait,bool HaveErr)
+        {
+            if (m_sock==bad_socket)
+                return;
 
+            if (get_tcp_sesncfg(sesncfg).on_disconnect.is_valid())
+                get_tcp_sesncfg(sesncfg).on_disconnect(m_sock,*this,HaveErr);
+            sock::close(m_sock,NoWait);
+        }
     public:
         void*           usrdata;                            //session绑定的外部用户数据
         tcp_sesncfg_t*  sesncfg;                            //session统一使用的配置参数
@@ -76,15 +88,7 @@ namespace rx
         bool connected(){return m_sock!=bad_socket;}
         //-------------------------------------------------
         //断开连接,释放socket
-        void disconnect(bool NoWait=true)
-        {
-            if (m_sock==bad_socket)
-                return;
-
-            if (get_tcp_sesncfg(sesncfg).on_disconnect.is_valid())
-                get_tcp_sesncfg(sesncfg).on_disconnect(m_sock,*this);
-            sock::close(m_sock,NoWait);
-        }
+        void disconnect(bool NoWait=true){m_disconnect(NoWait,false);}
         //-------------------------------------------------
         //将指定长度(size)的数据(data)发送给对端.可以额外指定发送超时等待时间.
         //返回值:ec_ok完成;其他错误,发送未完成,关闭连接:ec_uninit连接断开或未初始化;ec_net_write些错误;ec_net_timeout发送超时;

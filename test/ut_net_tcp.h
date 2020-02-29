@@ -1,7 +1,7 @@
 #ifndef _UT_NET_TCP_H_
 #define _UT_NET_TCP_H_
 
-#include "../rx_net_tcp_server.h"
+#include "../rx_net_tcp_svrsock.h"
 #include "../rx_net_tcp_client.h"
 #include "../rx_tdd.h"
 

@@ -1,5 +1,5 @@
-#ifndef RX_NET_TCP_SERVER_H
-#define RX_NET_TCP_SERVER_H
+#ifndef RX_NET_TCP_SVRSOCK_H
+#define RX_NET_TCP_SVRSOCK_H
 
 #include "rx_net_tcp_client.h"
 #include "rx_dtl_array.h"
@@ -110,7 +110,7 @@ namespace rx
                 return false;
             }
 
-            m_listeners[idx]=ss;                                //记录当前监听socket到指定的槽位
+            m_listeners[idx]=ss;                            //记录当前监听socket到指定的槽位
             return true;
         }
         //-------------------------------------------------
@@ -155,17 +155,16 @@ namespace rx
         listener_t* step(socket_t &new_sock,sock_addr_t *peer_addr=NULL,uint32_t timeout_us=1000)
         {
             if (m_working.size()==0)
-            {//需要重新监听一轮了
+            {//不存在待处理的监听者,需要重新监听一轮了
                 sock_sets sets;
                 for(uint32_t i=0;i<m_listeners.capacity();++i)
-                {//先将处于监听状态的socket放入socket集合
+                {//将监听socket放入socket集合
                     listener_t &ss=m_listeners[i];
                     if (ss.sock!=bad_socket)
                         sets.push(ss.sock);
                 }
                 if (sets.size())
-                {
-                    //在socket集合上等待读取事件(判断是否有新连接到达)
+                {//在socket集合上等待读取事件(判断是否有新连接到达)
                     int r=sock::select(sets,timeout_us);
                     if (r<0)
                     {//等待时出错了
@@ -173,19 +172,19 @@ namespace rx
                         return NULL;
                     }
                     if (r==0)
-                        return NULL;                            //等待超时,没有新连接
+                        return NULL;                        //等待超时,没有新连接
 
                     for(uint32_t i=0;i<m_listeners.capacity();++i)
                     {//现在有新连接到达了,需要分辨是发生哪个监听者上.
                         listener_t &ss=m_listeners[i];
                         if (ss.sock!=bad_socket&&sets.contain(ss.sock))
-                            m_working.push_back(&ss);           //记录监听者
+                            m_working.push_back(&ss);       //记录监听者
                     }
                 }
             }
 
             if (m_working.size())
-            {//有监听者需要处理了
+            {//有新连接到达了,需要处理监听者
                 sock_addr_t tmp_addr;
                 if (peer_addr==NULL)
                     peer_addr=&tmp_addr;
@@ -205,7 +204,7 @@ namespace rx
     };
 
     //-----------------------------------------------------
-    //封装一个简单的用于测试的tcp回音服务器(用最少的代码无动态内存分配,实现客户端发什么就回应什么,同时也是演示相关socket功能的使用)
+    //封装一个简单的用于测试的tcp回音服务器(用最少的代码,无动态内存分配,实现客户端发什么就回应什么,同时也是演示相关socket功能的使用)
     class tcp_echo_svr_t
     {
         typedef array_ft<tcp_session_t,8> session_array_t;  //限定最大并发会话数量
@@ -284,7 +283,7 @@ namespace rx
                 }
             }
 
-            uint8_t wr_buff[1024*16];                               //收发临时使用的缓冲区
+            uint8_t wr_buff[1024*64];                               //收发临时使用的缓冲区
 
             for(uint32_t i=0;i<m_sessions.capacity();++i)
             {//对已连接会话进行收发处理
