@@ -11,10 +11,10 @@ namespace rx
 {
     //-----------------------------------------------------
     class tcp_session_t;
-    //tcp连接事件的委托类型
-    typedef delegate2_t<socket_t,tcp_session_t&,void> tcp_evt_conn_t;
-    //tcp断开事件的委托类型
-    typedef delegate3_t<socket_t,tcp_session_t&,bool,void> tcp_evt_disconn_t;
+    //tcp连接事件的委托类型:tcp会话对象;会话是否为tcp客户端;事件没有返回值
+    typedef delegate2_t<tcp_session_t&,bool,void> tcp_evt_conn_t;
+    //tcp断开事件的委托类型:tcp会话对象;是否由错误引发会话断开;事件没有返回值
+    typedef delegate2_t<tcp_session_t&,bool,void> tcp_evt_disconn_t;
 
     //-----------------------------------------------------
     //tcp会话使用的配置参量,抽取出公共对象,节省内存.
@@ -57,11 +57,12 @@ namespace rx
             os_errmsg_t osmsg(tip);                         //得到格式化后的系统错误信息描述与tip
             char addrstr[80];
             sock::addr_infos(m_sock,addrstr);               //得到通信双方地址信息
+            tcp_sesncfg_t &sc=get_tcp_sesncfg(sesncfg);     //获取会话配置信息
             //输出日志
             if (is_error)
-                get_tcp_sesncfg(sesncfg).logger.warn("%s :: %s",(const char*)osmsg,addrstr);
+                sc.logger.warn("%s :: %s",addrstr,(const char*)osmsg);
             else
-                get_tcp_sesncfg(sesncfg).logger.debug("%s :: %s",(const char*)osmsg,addrstr);
+                sc.logger.debug("%s :: %s",addrstr,(const char*)osmsg);
             //断开连接,释放socket,并告知是由于错误而引起的中断
             m_disconnect(true,is_error);
             return false;
@@ -72,9 +73,9 @@ namespace rx
         {
             if (m_sock==bad_socket)
                 return;
-
-            if (get_tcp_sesncfg(sesncfg).on_disconnect.is_valid())
-                get_tcp_sesncfg(sesncfg).on_disconnect(m_sock,*this,HaveErr);
+            tcp_sesncfg_t &sc=get_tcp_sesncfg(sesncfg);     //获取会话配置信息
+            if (sc.on_disconnect.is_valid())
+                sc.on_disconnect(*this,HaveErr);
             sock::close(m_sock,NoWait);
         }
     public:
@@ -100,12 +101,12 @@ namespace rx
             if (m_sock==bad_socket)
                 return ec_uninit;
 
+            tcp_sesncfg_t &sc=get_tcp_sesncfg(sesncfg);     //获取会话配置信息
             if (timeout_us==(uint32_t)-1)
-                timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_wr;
+                timeout_us=sc.timeout_us_wr;
 
             //尝试确定发送事件的委托
-            sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_send.is_valid()?&get_tcp_sesncfg(sesncfg).on_send:NULL;
-
+            sock::event_rw_t *evt=sc.on_send.is_valid()?&sc.on_send:NULL;
             //进行真正的循环发送
             int32_t rc=sock::write_loop(m_sock,data,size,timeout_us,evt,this);
             if (rc>0)
@@ -128,11 +129,12 @@ namespace rx
             if (m_sock==bad_socket)
                 return ec_uninit;
 
+            tcp_sesncfg_t &sc=get_tcp_sesncfg(sesncfg);     //获取会话配置信息
             if (timeout_us==(uint32_t)-1)
-                timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_rd;
+                timeout_us=sc.timeout_us_rd;
 
             //尝试确定接收事件的委托
-            sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_recv.is_valid()?&get_tcp_sesncfg(sesncfg).on_recv:NULL;
+            sock::event_rw_t *evt=sc.on_recv.is_valid()?&sc.on_recv:NULL;
 
             //进行真正的循环接收
             uint32_t recved=len;
@@ -169,11 +171,12 @@ namespace rx
             if (m_sock==bad_socket)
                 return 0;
 
+            tcp_sesncfg_t &sc=get_tcp_sesncfg(sesncfg);     //获取会话配置信息
             if (timeout_us==(uint32_t)-1)
-                timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_rd;
+                timeout_us=sc.timeout_us_rd;
 
             //尝试确定接收事件的委托
-            sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_recv.is_valid()?&get_tcp_sesncfg(sesncfg).on_recv:NULL;
+            sock::event_rw_t *evt=sc.on_recv.is_valid()?&sc.on_recv:NULL;
 
             //进行真正的循环接收
             sock::recv_buff_i ri((uint8_t*)buff,len,false);
@@ -192,11 +195,12 @@ namespace rx
             if (m_sock==bad_socket)
                 return 0;
 
+            tcp_sesncfg_t &sc=get_tcp_sesncfg(sesncfg);     //获取会话配置信息
             if (!timeout_us)
-                timeout_us=get_tcp_sesncfg(sesncfg).timeout_us_rd;
+                timeout_us=sc.timeout_us_rd;
 
             //尝试确定接收事件的委托
-            sock::event_rw_t *evt=get_tcp_sesncfg(sesncfg).on_recv.is_valid()?&get_tcp_sesncfg(sesncfg).on_recv:NULL;
+            sock::event_rw_t *evt=sc.on_recv.is_valid()?&sc.on_recv:NULL;
 
             //进行真正的循环接收
             sock::recv_tag_i ri((uint8_t*)buff,len,false);
@@ -219,8 +223,9 @@ namespace rx
         rx_assert(sesn.usrdata==NULL);
         sesn.m_sock=sock;
         sesn.usrdata=usrdata;
-        if (get_tcp_sesncfg(sesn.sesncfg).on_connect.is_valid())
-            get_tcp_sesncfg(sesn.sesncfg).on_connect(sock,sesn);
+        tcp_sesncfg_t &sc=get_tcp_sesncfg(sesn.sesncfg);    //获取会话配置信息
+        if (sc.on_connect.is_valid())
+            sc.on_connect(sesn,false);                      //连接事件,发生在server的会话上,不是client
     }
 
     //-----------------------------------------------------
@@ -236,7 +241,7 @@ namespace rx
             ip_str_t ip_r;
             m_dst.ip_str(ip_r);
             os_errmsg_t osmsg(tip);
-            get_tcp_sesncfg(super_t::sesncfg).logger.warn("%sDST<%s:%u>",(const char*)osmsg,(const char*)ip_r,m_dst.port());
+            get_tcp_sesncfg(super_t::sesncfg).logger.warn("socket(%u)dst<%s:%u> :: %s",super_t::m_sock,(const char*)ip_r,m_dst.port(),(const char*)osmsg);
             sock::close(super_t::m_sock,true);
             return false;
         }
@@ -266,12 +271,13 @@ namespace rx
                     return m_err_close("socket bind local port error.");
             }
 
+            tcp_sesncfg_t &sc=get_tcp_sesncfg(sesncfg);     //获取会话配置信息
             //进行真正的连接动作
             int r=sock::connect(super_t::m_sock,m_dst,timeout_us);
             if (r==1)
             {//连接成功了,给出外部回调通知
-                if (get_tcp_sesncfg(super_t::sesncfg).on_connect.is_valid())
-                    get_tcp_sesncfg(super_t::sesncfg).on_connect(super_t::m_sock,*this);
+                if (sc.on_connect.is_valid())
+                    sc.on_connect(*this,true);              //触发连接事件,发生在tcp客户端
                 return true;
             }
             if (r==0)

@@ -27,9 +27,8 @@ void main()
     rx_tdd_run();
 }
 */
+
 #include "rx_cc_macro.h"
-#include <stdarg.h>
-#include <stdio.h>
 #include "rx_cc_atomic.h"
 #include "rx_cc_base.h"
 //---------------------------------------------------------

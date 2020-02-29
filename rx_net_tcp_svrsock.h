@@ -271,7 +271,7 @@ namespace rx
                     ++ac;
                     char addrstr[80];
                     sock::addr_infos(new_sock,addrstr);
-                    m_svr.logger().debug("accept new tcp session :: %s",addrstr);
+                    m_svr.logger().debug("%s :: tip<accept new tcp server session.>",addrstr);
                     //初始化绑定新的会话
                     tcp_session_bind(m_sessions[idx],new_sock);
                 }
