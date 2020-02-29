@@ -203,7 +203,7 @@
             {
                 sncat<0> cat(m_buff);
                 eno=get_os_errno();
-                cat("OSError:<%u>:",eno);
+                cat("os:<%u>:",eno);
                 get_os_errmsg(cat.str+cat.size,sizeof(m_buff)-cat.size,eno);
                 return m_buff;
             }
@@ -215,7 +215,7 @@
                 uint32_t eno=get_os_errno();
                 char tmp[256];
                 get_os_errmsg(tmp,sizeof(tmp),eno);
-                cat("OSError:<%u:",eno)("%s>",tmp)("Tip:<%s>",tip);
+                cat("os<%u:",eno)("%s>",tmp)(" tip<%s>",tip);
                 return m_buff;
             }
         };
