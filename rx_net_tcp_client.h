@@ -55,13 +55,13 @@ namespace rx
         bool m_err_disconn(const char* tip,bool is_error=true)
         {
             os_errmsg_t osmsg(tip);                         //得到格式化后的系统错误信息描述与tip
-            char addrstr[53];
+            char addrstr[80];
             sock::addr_infos(m_sock,addrstr);               //得到通信双方地址信息
             //输出日志
             if (is_error)
-                get_tcp_sesncfg(sesncfg).logger.warn("%s: %s",(const char*)osmsg,addrstr);
+                get_tcp_sesncfg(sesncfg).logger.warn("%s :: %s",(const char*)osmsg,addrstr);
             else
-                get_tcp_sesncfg(sesncfg).logger.debug("%s: %s",(const char*)osmsg,addrstr);
+                get_tcp_sesncfg(sesncfg).logger.debug("%s :: %s",(const char*)osmsg,addrstr);
             //断开连接,释放socket,并告知是由于错误而引起的中断
             m_disconnect(true,is_error);
             return false;

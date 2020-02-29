@@ -714,17 +714,17 @@ namespace rx
             port_l=addr_l.port();
             port_r=addr_r.port();
         }
-        inline char* addr_infos(socket_t sock,char buff[53])
+        inline char* addr_infos(socket_t sock,char buff[80])
         {
             sncat<0> cat(buff);
             ip_str_t ipstr;
             sock_addr_t addr;
 
-            cat("SOCK(%u)",sock);
+            cat("socket(%u)",sock);
             local_addr(sock,addr);
-            cat("LOC(%s:%u)",addr.ip_str(ipstr),addr.port());
+            cat("local(%s:%u)",addr.ip_str(ipstr),addr.port());
             peer_addr(sock,addr);
-            cat("DST(%s:%u)",addr.ip_str(ipstr),addr.port());
+            cat("peer(%s:%u)",addr.ip_str(ipstr),addr.port());
             return buff;
         }
 

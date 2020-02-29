@@ -7,8 +7,9 @@
 #if UT_ALL||UT_SEL==41
     //TCPÍøÂç¹¦ÄÜ
     #include "../ut_net_tcp.h"
-    #include "../../rx_net_tcp_server.h"
+    #include "../../rx_net_tcp_svrsock.h"
     #include "../../rx_net_tcp_client.h"
+    #include "../../rx_net_tcp_server.h"
 #endif
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==40
@@ -297,11 +298,6 @@
 #include "../ut_cc_macro.h"
 #include "../../rx_cc_macro.h"
 //---------------------------------------------------------
-
-rx_tdd(test_net_tcp_base)
-{
-    rx::ut_tcp_echo_clt(*this);
-}
 
 int main()
 {
