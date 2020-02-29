@@ -52,15 +52,18 @@ namespace rx
         socket_t                m_sock;                     //通信使用的Socket
         //-------------------------------------------------
         //处理收发错误日志,并断开连接
-        bool m_err_disconn(const char* tip)
+        bool m_err_disconn(const char* tip,bool is_error=true)
         {
             os_errmsg_t osmsg(tip);                         //得到格式化后的系统错误信息描述与tip
             char addrstr[53];
             sock::addr_infos(m_sock,addrstr);               //得到通信双方地址信息
             //输出日志
-            get_tcp_sesncfg(sesncfg).logger.warn("%s -> %s",(const char*)osmsg,addrstr);
+            if (is_error)
+                get_tcp_sesncfg(sesncfg).logger.warn("%s: %s",(const char*)osmsg,addrstr);
+            else
+                get_tcp_sesncfg(sesncfg).logger.debug("%s: %s",(const char*)osmsg,addrstr);
             //断开连接,释放socket,并告知是由于错误而引起的中断
-            m_disconnect(true,true);
+            m_disconnect(true,is_error);
             return false;
         }
         //-------------------------------------------------
@@ -148,7 +151,7 @@ namespace rx
             }
             if (rc==0)
             {//连接断开了
-                m_err_disconn("tcp_session_t::read() net peer closed.");
+                m_err_disconn("tcp_session_t::read() net peer closed.",false);
                 return ec_net_disconn;
             }
             if (recved<len)
@@ -176,9 +179,9 @@ namespace rx
             sock::recv_buff_i ri((uint8_t*)buff,len,false);
             int r=sock::read_loop(m_sock,ri,timeout_us,evt,this);
             if (r==0)
-                m_err_disconn("tcp_session_t::try_read() net peer closed.");
+                m_err_disconn("tcp_session_t::readx() net peer closed.",false);
             else if (r<0)
-                m_err_disconn("tcp_session_t::try_read() net recv error.");
+                m_err_disconn("tcp_session_t::readx() net recv error.");
             return ri.size();
         }
         //-------------------------------------------------
@@ -201,9 +204,9 @@ namespace rx
             ri.tagsize=tagsize;
             int r=sock::read_loop(m_sock,ri,timeout_us,evt,this);
             if (r==0)
-                m_err_disconn("tcp_session_t::try_read(tag) net peer closed.");
+                m_err_disconn("tcp_session_t::readx(tag) net peer closed.",false);
             else if (r<0)
-                m_err_disconn("tcp_session_t::try_read(tag) net recv error.");
+                m_err_disconn("tcp_session_t::readx(tag) net recv error.");
             //记录tag出现的位置
             tagsize=ri.tagpos;
             return ri.size();
