@@ -191,20 +191,20 @@
         uint64_t ret=time(NULL);
         if (usec==NULL)
             return ret;
-#if RX_IS_OS_WIN
+	#if RX_IS_OS_WIN
         SYSTEMTIME st;
         GetSystemTime(&st);
         *usec=ms2us(st.wMilliseconds);
-#elif RX_OS==RX_OS_LINUX
+	#elif RX_OS==RX_OS_LINUX
         struct timeval tv;
         gettimeofday(&tv,NULL);
         *usec=tv.tv_usec;
-#endif
+	#endif
         return ret;
     }
     //-----------------------------------------------------
     //将日期时间结构格式化为字符串
-    inline char* rx_datetime2iso(const struct tm& tp, char str[20],const char* fmt=NULL,uint32_t *msec=NULL)
+    inline char* rx_datetime2iso(const struct tm& tp, char str[24],const char* fmt=NULL,uint32_t *msec=NULL)
     {
         if (msec==NULL)
         {
@@ -214,12 +214,12 @@
         else
         {
             if (is_empty(fmt)) fmt="%u-%02u-%02u %02u:%02u:%02u.%03u";
-            rx::st::snprintf(str,20,fmt, tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec,*msec);
+            rx::st::snprintf(str,24,fmt, tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec,*msec);
         }
         return str;
     }
     //将UTC时间转为标准时间字符串
-    inline char* rx_datetime2iso(uint64_t utc_time,char str[20] ,const char* fmt=NULL, uint32_t *msec=NULL, int32_t zone_offset_sec = RX_ZONE_SEC)
+    inline char* rx_datetime2iso(uint64_t utc_time,char str[24] ,const char* fmt=NULL, uint32_t *msec=NULL, int32_t zone_offset_sec = RX_ZONE_SEC)
     {
         struct tm tp;
         rx_localtime(utc_time,tp, zone_offset_sec);
@@ -228,7 +228,7 @@
     }
     //---------------------------------------------------------
     //获取系统当前时间的字符串格式,外部应该给出正确的时区
-    inline uint64_t rx_datetime2iso(char str[20],const char* fmt=NULL, bool msec=true, int32_t zone_offset_sec = RX_ZONE_SEC)
+    inline uint64_t rx_datetime2iso(char str[24],const char* fmt=NULL, bool msec=true, int32_t zone_offset_sec = RX_ZONE_SEC)
     {
         if (msec)
         {

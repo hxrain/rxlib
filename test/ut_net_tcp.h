@@ -16,7 +16,7 @@ namespace rx
         rt.tdd_assert(clt.dst_addr("127.0.0.1",45601));
         rt.tdd_assert(clt.connect());
         
-        uint8_t tmp[1024*16];
+        uint8_t tmp[1024*4];
         uint8_t tmp2[sizeof(tmp)];
         for(uint32_t i=0;i<loop;++i)
         {
@@ -65,25 +65,25 @@ namespace rx
                 return 1;
 
             while(!need_break())
-                svr.step(ms2us(1));
+                svr.step();
 
             return 0;
         }
     };
 
-    inline void ut_tcp_echo_thd(rx_tdd_t& rt,uint32_t loop=100,uint32_t count=10)
+    inline void ut_tcp_echo_thd(rx_tdd_t& rt,uint32_t loop=3,uint32_t count=3)
     {
         ut_tcpsvr_thd_t thd;
         rt.tdd_assert(thd.start(&rt));                      //创建了线程并启动
         for(uint32_t i=0;i<count;++i)
             ut_tcp_echo_clt(rt,loop);                       //调用客户端测试循环
-        rx_sleep(10);                                       //等服务端处理结束
         thd.stop(true);                                     //结束线程
     }
 }
 rx_tdd(test_net_tcp_base)
 {
-    rx::ut_tcp_echo_thd(*this);
+	for(uint32_t i=0;i<5;++i)
+		rx::ut_tcp_echo_thd(*this);
 }
 
 

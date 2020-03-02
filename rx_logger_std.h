@@ -356,7 +356,7 @@ namespace rx
             tiny_string_t<char,512> scat;
 
             //拼装当前时间/日志级别/pid/tid
-            char dt[512];
+            char dt[24];
             rx_datetime2iso(dt,"%u-%02u-%02uT%02u:%02u:%02u.%03u",true);
             scat("[%s|",dt) ("%s|",logger_level_name(type)) ("PID:%4u|",m_pid) ("TID:%4u]",get_tid());
 
