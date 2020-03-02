@@ -33,9 +33,8 @@ namespace rx
         }
         clt.disconnect(false);
     }
-
     //-----------------------------------------------------
-    //对echo进行测试的服务端
+    //对tcp echo服务端进行测试的简单函数
     inline void ut_tcp_echo_svr(rx_tdd_t& rt,uint32_t loop=100000)
     {
         tcp_echo_svr_t svr;
@@ -51,7 +50,7 @@ namespace rx
         }
     }
     //-----------------------------------------------------
-    //进行tcp echo server测试的线程
+    //对tcp echo服务端进行测试的线程
     class ut_tcpsvr_thd_t:public thread_ex_t
     {
         uint32_t on_run(void *param)
@@ -70,7 +69,8 @@ namespace rx
             return 0;
         }
     };
-
+	//-----------------------------------------------------
+	//对tcp echo服务器进行完整测试的用例函数
     inline void ut_tcp_echo_thd(rx_tdd_t& rt,uint32_t loop=3,uint32_t count=3)
     {
         ut_tcpsvr_thd_t thd;
@@ -80,14 +80,11 @@ namespace rx
         thd.stop(true);                                     //结束线程
     }
 }
+
 rx_tdd(test_net_tcp_base)
 {
 	for(uint32_t i=0;i<5;++i)
 		rx::ut_tcp_echo_thd(*this);
 }
-
-
-
-
 
 #endif // _UT_MEM_POOL_H_
