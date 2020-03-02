@@ -357,7 +357,7 @@ namespace rx
 
             //拼装当前时间/日志级别/pid/tid
             char dt[512];
-            rx_iso_datetime(dt,"%d-%02d-%02dT%02d:%02d:%02d");
+            rx_datetime2iso(dt,"%u-%02u-%02uT%02u:%02u:%02u.%03u",true);
             scat("[%s|",dt) ("%s|",logger_level_name(type)) ("PID:%4u|",m_pid) ("TID:%4u]",get_tid());
 
             //尝试输出有效的mod名称和tag标记
@@ -365,6 +365,7 @@ namespace rx
                 scat("[%s]",modname);
             if (tag!=(uint32_t)-1)
                 scat("[TAG:%6u]",tag);
+            scat("[TEX:%016zx]",tex);
             scat<<' ';
 
             //循环输出给所有绑定的输出器
