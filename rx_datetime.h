@@ -38,6 +38,14 @@
 	    所以还需要设计另外的时区与冬夏令时校准函数,根据配置的简单规则校准zone_offset_sec参数.
 */
 
+    //默认时区
+    #ifndef RX_DEFAULT_ZONE_SEC
+        #define RX_DEFAULT_ZONE_SEC (8*60*60)
+    #endif
+
+    //可调整的默认时区变量
+    static int32_t RX_ZONE_SEC=RX_DEFAULT_ZONE_SEC;
+
     //-----------------------------------------------------
     //对时间结构体进行毫秒调整
     inline void rx_add_ms(struct timespec &ts, int32_t ms)
@@ -77,7 +85,7 @@
 
     //-----------------------------------------------------
     //将ISO年(1970~)月(1~12)日(1~31)时(0~23)分秒(0~59)转,换成1970-1-1 00:00:00距离现在的总秒数UTC,时区(默认东八区北京时间)
-    inline uint64_t rx_make_utc(uint32_t year, uint32_t mon, uint32_t day, uint32_t hour, uint32_t min, uint32_t sec,int32_t zone_offset_sec = 8*60*60)
+    inline uint64_t rx_make_utc(uint32_t year, uint32_t mon, uint32_t day, uint32_t hour, uint32_t min, uint32_t sec,int32_t zone_offset_sec = RX_ZONE_SEC)
     {
         rx_assert(year>=1970);
         rx_assert(mon>=1&&mon<=12);
@@ -98,7 +106,7 @@
         uint64_t TotalSec = TotalMin * 60 + sec;
         return  TotalSec-zone_offset_sec;
     }
-    inline uint64_t rx_make_utc(const struct tm &dt,int32_t zone_offset_sec=8*60*60) { return rx_make_utc(dt.tm_year+1900,dt.tm_mon+1,dt.tm_mday,dt.tm_hour,dt.tm_min,dt.tm_sec,zone_offset_sec); }
+    inline uint64_t rx_make_utc(const struct tm &dt,int32_t zone_offset_sec=RX_ZONE_SEC) { return rx_make_utc(dt.tm_year+1900,dt.tm_mon+1,dt.tm_mday,dt.tm_hour,dt.tm_min,dt.tm_sec,zone_offset_sec); }
 
     //-----------------------------------------------------
     //是否为闰年
@@ -108,7 +116,7 @@
 
     //-----------------------------------------------------
     //将utc秒转换为年月日结构.utc时间秒,localtime结构,时区(默认东八区北京时间)
-    inline void rx_localtime(uint64_t utc_time, struct tm &tp, int32_t zone_offset_sec = 8*60*60)
+    inline void rx_localtime(uint64_t utc_time, struct tm &tp, int32_t zone_offset_sec = RX_ZONE_SEC)
     {
         const uint32_t sec_per_hour = (60 * 60);
         const uint32_t sec_per_day = (sec_per_hour * 24);
@@ -196,25 +204,46 @@
     }
     //-----------------------------------------------------
     //将日期时间结构格式化为字符串
-    inline void rx_iso_datetime(const struct tm& tp, char str[20],const char* fmt=NULL)
+    inline char* rx_datetime2iso(const struct tm& tp, char str[20],const char* fmt=NULL,uint32_t *msec=NULL)
     {
-        if (is_empty(fmt)) fmt="%d-%02d-%02d %02d:%02d:%02d";
-        rx::st::snprintf(str,20,fmt, tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec);
+        if (msec==NULL)
+        {
+            if (is_empty(fmt)) fmt="%u-%02u-%02u %02u:%02u:%02u";
+            rx::st::snprintf(str,20,fmt, tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec);
+        }
+        else
+        {
+            if (is_empty(fmt)) fmt="%u-%02u-%02u %02u:%02u:%02u.%03u";
+            rx::st::snprintf(str,20,fmt, tp.tm_year+1900, tp.tm_mon+1, tp.tm_mday, tp.tm_hour, tp.tm_min, tp.tm_sec,*msec);
+        }
+        return str;
     }
     //将UTC时间转为标准时间字符串
-    inline void rx_iso_datetime(uint64_t utc_time,char str[20] ,const char* fmt=NULL, int32_t zone_offset_sec = 8 * 60 * 60)
+    inline char* rx_datetime2iso(uint64_t utc_time,char str[20] ,const char* fmt=NULL, uint32_t *msec=NULL, int32_t zone_offset_sec = RX_ZONE_SEC)
     {
         struct tm tp;
         rx_localtime(utc_time,tp, zone_offset_sec);
-        rx_iso_datetime(tp,str,fmt);
+        rx_datetime2iso(tp,str,fmt,msec);
+        return str;
     }
     //---------------------------------------------------------
     //获取系统当前时间的字符串格式,外部应该给出正确的时区
-    inline uint64_t rx_iso_datetime(char str[20],const char* fmt=NULL, int32_t zone_offset_sec = 8 * 60 * 60)
+    inline uint64_t rx_datetime2iso(char str[20],const char* fmt=NULL, bool msec=true, int32_t zone_offset_sec = RX_ZONE_SEC)
     {
-        uint64_t rc = rx_time();
-        rx_iso_datetime(rc, str, fmt, zone_offset_sec);
-        return rc;
+        if (msec)
+        {
+            uint32_t usec;
+            uint64_t rc = rx_time(&usec);
+            usec/=1000;
+            rx_datetime2iso(rc, str, fmt, &usec, zone_offset_sec);
+            return rc;
+        }
+        else
+        {
+            uint64_t rc = rx_time();
+            rx_datetime2iso(rc, str, fmt, NULL, zone_offset_sec);
+            return rc;
+        }
     }
 
     //-----------------------------------------------------
