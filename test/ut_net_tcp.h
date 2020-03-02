@@ -71,11 +71,12 @@ namespace rx
         }
     };
 
-    inline void ut_tcp_echo_thd(rx_tdd_t& rt,uint32_t loop=100)
+    inline void ut_tcp_echo_thd(rx_tdd_t& rt,uint32_t loop=100,uint32_t count=10)
     {
         ut_tcpsvr_thd_t thd;
         rt.tdd_assert(thd.start(&rt));                      //创建了线程并启动
-        ut_tcp_echo_clt(rt,loop);                           //调用客户端测试循环
+        for(uint32_t i=0;i<count;++i)
+            ut_tcp_echo_clt(rt,loop);                       //调用客户端测试循环
         rx_sleep(10);                                       //等服务端处理结束
         thd.stop(true);                                     //结束线程
     }
