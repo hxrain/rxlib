@@ -77,20 +77,15 @@ namespace rx
     {
     public:
         //-------------------------------------------------
-        //叶子类型基类
-        typedef typename OP::leaf_base_t leaf_t;
-
-        //槽位分支类型(使用void*便于指向limb_t或leaf_t)
-        typedef void* slot_t;
+        typedef typename OP::leaf_base_t leaf_t;			//叶子类型基类
+        typedef void* slot_t;								//槽位分支类型(使用void*便于指向limb_t或leaf_t)
 
         //枝干节点类型基类
         template<uint32_t size>
         struct limb_base_t { slot_t slots[size]; };         //每个枝干节点的槽位记录分支指针
-        //中间枝干节点类型
-        typedef limb_base_t<OP::limb_slots_size> limb_t;
-        //顶层枝干节点类型
-        typedef limb_base_t<OP::top_slots_size> top_limb_t;
-        //根据条件获取枝干槽位数量
+        typedef limb_base_t<OP::limb_slots_size> limb_t;	//中间枝干节点类型
+        typedef limb_base_t<OP::top_slots_size> top_limb_t;	//顶层枝干节点类型
+        //根据条件获取枝干槽位数量(顶层或非顶层)
         static uint32_t get_limb_slots_size(bool is_top) { return is_top ? (uint32_t)OP::top_slots_size : (uint32_t)OP::limb_slots_size; }
         //-------------------------------------------------
         //对rax树进行遍历使用的层级路径工具
@@ -99,26 +94,26 @@ namespace rx
             friend class raw_raxbit_t;
             typedef struct item_t
             {
-                slot_t          slot_ptr;
-                uint32_t    slot_idx;
+                limb_t*     limb_ptr;						//枝干指针
+                uint32_t    slot_idx;						//枝干的当前槽位索引
             }item_t;
 
-            item_t         m_back_path[OP::rax_max_levels]; //记录当前遍历的中间枝干节点层级关系,0记录rax最高层
+            item_t          m_back_path[OP::rax_max_levels];//记录当前遍历的中间枝干节点层级关系,0记录rax最高层
             uint32_t        m_levels;                       //当前层数
         public:
             back_path_t() :m_levels(0){}
-            void push(slot_t ptr,uint32_t idx)
+            void push(limb_t* ptr,uint32_t idx)				//记录当前枝干与槽位序号(遍历位置点)
             {
                 rx_assert(m_levels < OP::rax_max_levels);
                 rx_assert(ptr!=NULL);
                 item_t &l = m_back_path[m_levels++];
-                l.slot_ptr = ptr;
+                l.limb_ptr = ptr;
                 l.slot_idx = idx;
             }
-            item_t& pop() { return m_back_path[--m_levels]; }
-            item_t& last() { return m_back_path[m_levels-1]; }
-            void reset() { m_levels = 0; }
-            uint32_t levels() { return m_levels; }
+            item_t& pop() { return m_back_path[--m_levels]; }//弹出最后的记录点
+            item_t& last() { return m_back_path[m_levels-1]; }//访问最后的记录点
+            void reset() { m_levels = 0; }					//反向路径归零
+            uint32_t levels() { return m_levels; }			//记录的路径深度
         };
 
         //-------------------------------------------------
@@ -127,7 +122,7 @@ namespace rx
         {
             friend class raw_raxbit_t;
 
-            slot_t*         m_back_path[OP::rax_max_levels]; //记录当前遍历的中间枝干节点层级关系,0记录rax最高层
+            slot_t*         m_back_path[OP::rax_max_levels];//记录当前遍历的中间枝干节点层级关系,0记录rax最高层
             uint32_t        m_levels;                       //当前层数
         public:
             ref_path_t() :m_levels(0) {}
@@ -347,7 +342,7 @@ namespace rx
                         break;
 
                     typename back_path_t::item_t &I = back_path.pop();
-                    cur_limb = (limb_t*)I.slot_ptr;
+                    cur_limb = (limb_t*)I.limb_ptr;
                     cur_idx = I.slot_idx;
                     cur_limb->slots[cur_idx++] = NULL;
                 }
@@ -361,7 +356,7 @@ namespace rx
 
             //现在,需要对最底层路径中槽位指向的枝干进行深度优先全遍历,查找左侧叶子节点
             typename back_path_t::item_t &I = back_path.pop();
-            limb_t *cur_limb = (limb_t*)I.slot_ptr;
+            limb_t *cur_limb = (limb_t*)I.limb_ptr;
             uint32_t cur_idx = I.slot_idx + is_next;
             uint32_t slots_size = get_limb_slots_size(cur_limb == (limb_t*)&m_top_limb);
 
@@ -393,7 +388,7 @@ namespace rx
                         break;
 
                     typename back_path_t::item_t &I = back_path.pop();
-                    cur_limb = (limb_t*)I.slot_ptr;
+                    cur_limb = (limb_t*)I.limb_ptr;
                     cur_idx = I.slot_idx+1;
                     slots_size = get_limb_slots_size(cur_limb == (limb_t*)&m_top_limb);
                 }
@@ -409,7 +404,7 @@ namespace rx
 
             //现在,需要对最底层路径中槽位指向的枝干进行深度优先全遍历,查找左侧叶子节点
             typename back_path_t::item_t &I = back_path.pop();
-            limb_t *cur_limb = (limb_t*)I.slot_ptr;
+            limb_t *cur_limb = (limb_t*)I.limb_ptr;
             int32_t cur_idx = I.slot_idx - is_prev;
 
             do
@@ -440,7 +435,7 @@ namespace rx
                         break;
 
                     typename back_path_t::item_t &I = back_path.pop();
-                    cur_limb = (limb_t*)I.slot_ptr;
+                    cur_limb = (limb_t*)I.limb_ptr;
                     cur_idx = I.slot_idx - 1;
                 }
 
@@ -612,8 +607,8 @@ namespace rx
         //返回值:NULL结束了.
         leaf_t* prev(back_path_t& back_path) const { return m_right(back_path, 1); }
         //-------------------------------------------------
-        //用于删除时查找指定key对应的叶子节点,同时记录中间枝干层级关系
-        leaf_t* remove_find(const KT &key, ref_path_t& back_path)  const
+        //查找指定key对应的叶子节点,同时记录中间枝干层级关系
+        leaf_t* find(const KT &key, ref_path_t& back_path)  const
         {
             back_path.reset();
             int shift = OP::top_slots_shift - OP::limb_slots_bits;
@@ -646,8 +641,8 @@ namespace rx
             }
         }
         //-------------------------------------------------
-        //删除指定的叶子节点并收缩
-        bool remove_reduce(leaf_t* leaf, ref_path_t &back_path,bool free_leaf=true)
+        //原始操作:删除指定的叶子节点并收缩(reduce)
+        bool remove(leaf_t* leaf, ref_path_t &back_path,bool free_leaf=true)
         {
             if (!leaf) return false;
             rx_assert(back_path.levels() >= 1);
@@ -667,9 +662,9 @@ namespace rx
         bool remove(const KT &key, bool free_leaf = true)
         {
             ref_path_t back_path;
-            leaf_t *leaf = remove_find(key, back_path);
+            leaf_t *leaf = find(key, back_path);
             //外面可以分开调用,在这个时间点进行叶子数据的析构处理
-            return remove_reduce(leaf, back_path, free_leaf);
+            return remove(leaf, back_path, free_leaf);
         }
         //-------------------------------------------------
         //清理全部枝干与叶子节点,回归初始状态

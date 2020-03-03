@@ -143,11 +143,11 @@ namespace rx
         bool erase(const KT &key)
         {
             typename raw_rax_t::ref_path_t path;
-            node_t *node = (node_t*)m_rax.remove_find(key,path);
+            node_t *node = (node_t*)m_rax.find(key,path);
             if (!node) return false;
             ct::OD(&node->key);
             ct::OD(&node->val);
-            return m_rax.remove_reduce(node, path);
+            return m_rax.remove(node, path);
         }
         //-------------------------------------------------
         //获取最小key对应的迭代器;需要辅助的looper遍历器
@@ -196,13 +196,13 @@ namespace rx
 
             //查找待删除key对应节点
             typename raw_rax_t::ref_path_t path;
-            node_t *node = (node_t*)m_rax.remove_find(key, path);
+            node_t *node = (node_t*)m_rax.find(key, path);
             rx_assert(node != NULL);
             //待删除节点析构
             ct::OD(&node->key);
             ct::OD(&node->val);
             //最终删除节点并尝试收缩
-            return m_rax.remove_reduce(node, path);
+            return m_rax.remove(node, path);
         }
         //-------------------------------------------------
         //清空全部的元素
