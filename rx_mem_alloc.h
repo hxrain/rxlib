@@ -192,7 +192,7 @@ namespace rx
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,使用默认构造函数进行初始化,没有额外参数
         template<class VT>
-        VT* new0(uint32_t Count=1)
+        VT* make(uint32_t Count=1)
         {
             __DESC_NEW_BASE__
             return Count==1? ct::OC(Ret) : ct::AC(Ret,Count);
@@ -200,7 +200,7 @@ namespace rx
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
         template<class VT,class PT1>
-        VT* new1(PT1& P1,uint32_t Count=1)
+        VT* make(PT1& P1,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
             return Count==1? ct::OC(Ret,P1) : ct::AC(Ret,Count,P1);
@@ -208,7 +208,7 @@ namespace rx
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
         template<class VT,class PT1,class PT2>
-        VT* new2(PT1& P1,PT2 &P2,uint32_t Count=1)
+        VT* make(PT1& P1,PT2 &P2,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
             return Count==1? ct::OC(Ret,P1,P2) : ct::AC(Ret,Count,P1,P2);
@@ -216,14 +216,14 @@ namespace rx
         //-------------------------------------------------
         //分配一个指定类型的对象或数组,并使用参数进行构造初始化
         template<class VT,class PT1,class PT2,class PT3>
-        VT* new3(PT1& P1,PT2 &P2,PT3 &P3,uint32_t Count=1)
+        VT* make(PT1& P1,PT2 &P2,PT3 &P3,uint32_t Count=1)
         {
             __DESC_NEW_BASE__
             return Count==1? ct::OC(Ret,P1,P2,P3) : ct::AC(Ret,Count,P1,P2,P3);
         }
         //-------------------------------------------------
         //将new系列函数分配的对象或数组进行析构并收回内存
-        template<class VT> bool del(VT* P)
+        template<class VT> bool unmake(VT* P)
         {
             rx_assert_msg(P!=NULL,"memory pointer is empty!");
 
@@ -239,7 +239,7 @@ namespace rx
             return true;
         }
         //-------------------------------------------------
-        template<class VT> bool del(void* P) {try {throw 1;} catch(...) {} rx_show_msg("This function is designed for type matching! Should not be called!");}
+        template<class VT> bool unmake(void* P) {try {throw 1;} catch(...) {} rx_show_msg("This function is designed for type matching! Should not be called!");}
         //-------------------------------------------------
         virtual ~mem_allotter_i() { rx_assert(m_stat.using_size == 0); }
     protected:

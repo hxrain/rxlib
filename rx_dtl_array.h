@@ -139,7 +139,7 @@ namespace rx
             if (!max_size) return false;
 
             super_t::m_capacity=max_size;
-            super_t::m_ptr = m_mem.new0<T>(max_size);
+            super_t::m_ptr = m_mem.make<T>(max_size);
             return super_t::m_ptr!=NULL;
         }
         //-------------------------------------------------
@@ -155,7 +155,7 @@ namespace rx
             if (!max_size) return true;
 
             super_t::m_capacity = max_size;
-            super_t::m_ptr = m_mem.new1<T>(P1, max_size);
+            super_t::m_ptr = m_mem.make<T>(P1, max_size);
             return super_t::m_ptr != NULL;
         }
         //-------------------------------------------------
@@ -164,7 +164,7 @@ namespace rx
         {
             if (super_t::m_ptr)
             {
-                m_mem.del(super_t::m_ptr);
+                m_mem.unmake(super_t::m_ptr);
                 super_t::m_ptr = NULL;
                 super_t::m_capacity = 0;
             }

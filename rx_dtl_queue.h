@@ -167,7 +167,7 @@ namespace rx
             else
             {
                 mem_allotter_i &ma=m_cache.mem();
-                return ma.new0<obj_t>();
+                return ma.make<obj_t>();
             }
 
         }
@@ -184,7 +184,7 @@ namespace rx
             if (!rc)
             {
                 mem_allotter_i &ma=m_cache.mem();
-                ma.del(obj);
+                ma.unmake(obj);
             }
             return rc;
         }
@@ -193,7 +193,7 @@ namespace rx
         {
             while(m_cache.size())
             {
-                m_cache.mem().del(*m_cache.begin());
+                m_cache.mem().unmake(*m_cache.begin());
                 m_cache.pop_front();
             }
         }
