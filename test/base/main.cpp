@@ -1,8 +1,14 @@
 #define RX_USE_TDD_TICK 1
 
 #define UT_ALL 1
-#define UT_SEL 17
+#define UT_SEL 42
 
+//---------------------------------------------------------
+#if UT_ALL||UT_SEL==42
+    //轻量级紧凑查找表
+	#include "../ut_dtl_hat.h"
+    #include "../../rx_dtl_hat_raw.h"
+#endif
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==41
     //TCP网络功能
@@ -32,8 +38,11 @@
 #endif
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==39
-    //简单的缓冲区功能封装
-    #include "../../rx_dtl_buff.h"
+	//简单的缓冲区功能封装
+	#include "../../rx_dtl_buff.h"
+
+	//常用数据容器算法
+	#include "../ut_dtl_alg.h"
     #include "../../rx_dtl_alg.h"
 #endif
 //---------------------------------------------------------
