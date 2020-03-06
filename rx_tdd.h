@@ -237,6 +237,7 @@ public:
     }
     //运算符重载,便于判断是否有错误
     operator uint32_t(){return m_bads;}
+	uint32_t error(){ return m_bads; }
     //返回总数与首次错误的计数点
     uint32_t total(){return m_totl;}
     uint32_t first(){return m_frst;}
