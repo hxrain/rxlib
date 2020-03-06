@@ -292,10 +292,10 @@ inline uint32_t rx_hash_ap(const CT* str, uint32_t seed = 0)
 }
 //-----------------------------------------------------
 //DEK Hash
-inline uint32_t rx_hash_dek(const void* data,uint32_t Len,uint32_t seed=0)
+inline uint32_t rx_hash_dek(const void* data,uint32_t bytes,uint32_t seed=0)
 {
-    uint32_t hash = Len+seed;
-    for(uint32_t i = 0; i < Len; i++)
+    uint32_t hash = bytes+seed;
+    for(uint32_t i = 0; i < bytes; i++)
         hash = ((hash << 5) ^ (hash >> 27)) ^ ((uint8_t*)data)[i];
     return hash;
 }
@@ -310,10 +310,10 @@ inline uint32_t rx_hash_dek(const CT* Str)
 }
 //-----------------------------------------------------
 //BP Hash*
-inline uint32_t rx_hash_bp(const void* data,uint32_t Len, uint32_t seed = 0)
+inline uint32_t rx_hash_bp(const void* data,uint32_t bytes, uint32_t seed = 0)
 {
     uint32_t hash=seed;
-    for(uint32_t i = 0; i < Len; i++)
+    for(uint32_t i = 0; i < bytes; i++)
         hash = (hash << 7) ^ ((uint8_t*)data)[i];
     return hash;
 }
@@ -328,12 +328,12 @@ inline uint32_t rx_hash_bp(const CT* Str, uint32_t seed = 0)
 
 //-----------------------------------------------------
 //MurmurHash
-inline uint32_t rx_hash_murmur(const void* data, uint32_t len,const uint32_t seed = 97)
+inline uint32_t rx_hash_murmur(const void* data, uint32_t bytes,const uint32_t seed = 97)
 {
     const uint32_t m = 0x5bd1e995;
-    uint32_t h = seed ^ len;
+    uint32_t h = seed ^ bytes;
 
-    while(len >= 4)
+    while(bytes >= 4)
     {
         uint32_t k = *(uint32_t *)data;
         k *= m;
@@ -342,10 +342,10 @@ inline uint32_t rx_hash_murmur(const void* data, uint32_t len,const uint32_t see
         h *= m;
         h ^= k;
         data = (uint8_t*)data+4;
-        len -= 4;
+        bytes -= 4;
     }
     // Handle the last few bytes of the input array
-    switch(len)
+    switch(bytes)
     {
         case 3:
             h ^= ((uint8_t*)data)[2] << 16;
@@ -365,10 +365,10 @@ inline uint32_t rx_hash_murmur(const void* data, uint32_t len,const uint32_t see
 
 //-----------------------------------------------------
 //https://github.com/skeeto/hash-prospector
-inline uint32_t rx_hash_mosquito(const void* data, uint32_t len, uint32_t seed=0)
+inline uint32_t rx_hash_mosquito(const void* data, uint32_t bytes, uint32_t seed=0)
 {
     uint32_t hash = seed;
-    for (uint32_t i = 0; i < len; i++)
+    for (uint32_t i = 0; i < bytes; i++)
     {
         hash += ((uint8_t*)data)[i];
         hash ^= hash >> 16;
@@ -394,7 +394,7 @@ inline uint32_t rx_hash_mosquito(const CT *buf, uint32_t seed=0)
 //-----------------------------------------------------
 //https://github.com/rurban/smhasher/blob/master/fasthash.cpp
 //fasthash
-inline uint64_t rx_hash_fast64(const void *buf, uint32_t len, uint64_t seed=0)
+inline uint64_t rx_hash_fast64(const void *buf, uint32_t bytes, uint64_t seed=0)
 {
     typedef struct util
     {
@@ -409,8 +409,8 @@ inline uint64_t rx_hash_fast64(const void *buf, uint32_t len, uint64_t seed=0)
 
     const uint64_t    m = 0x880355f21e6d1965ULL;
     const uint64_t *pos = (const uint64_t *)buf;
-    const uint64_t *end = pos + (len / 8);
-    uint64_t h = seed ^ (len * m);
+    const uint64_t *end = pos + (bytes / 8);
+    uint64_t h = seed ^ (bytes * m);
     uint64_t v;
 
     while (pos != end)
@@ -423,7 +423,7 @@ inline uint64_t rx_hash_fast64(const void *buf, uint32_t len, uint64_t seed=0)
     const uint8_t *pos2 = (const uint8_t*)pos;
     v = 0;
 
-    switch (len & 7)
+    switch (bytes & 7)
     {
         case 7:
             v ^= (uint64_t)pos2[6] << 48;
@@ -446,12 +446,12 @@ inline uint64_t rx_hash_fast64(const void *buf, uint32_t len, uint64_t seed=0)
     return util::mix(h);
 }
 
-inline uint32_t rx_hash_fast32(const void *buf, uint32_t len, uint32_t seed=0)
+inline uint32_t rx_hash_fast32(const void *buf, uint32_t bytes, uint32_t seed=0)
 {
     // the following trick converts the 64-bit hashcode to Fermat
     // residue, which shall retain information from both the higher
     // and lower parts of hashcode.
-    uint64_t h = rx_hash_fast64(buf, len, seed);
+    uint64_t h = rx_hash_fast64(buf, bytes, seed);
     return uint32_t(h - (h >> 32));
 }
 
@@ -476,10 +476,10 @@ static const uint32_t zob_map_table[] = {
  0x4975DA91, 0x7ABB281B, 0x6F3CBCAC, 0x3C049757, 0x2247C849, 0x725DF05B, 0x378D2629, 0x4BDA786C, 0x562B0E5C, 0x246E34CF, 0x3FF997ED, 0x31EE2288, 0x16E649BF, 0x0349AD71, 0x2BC7DE82, 0x3CD5B6B6,
  0x25E6312D, 0x7AE1DA5C, 0x3E6CC563, 0x0F28C3E1, 0x0EB818ED, 0x6369FE68, 0x477F6D11, 0x7AA5969F, 0x5A23ED52, 0x26FD793C, 0x736206ED, 0x79428177, 0x4F065CFE, 0x033B3A7E, 0x4C223EF0, 0x61A3508C};
 
-inline uint32_t rx_hash_zob32(const void* data, uint32_t length,uint32_t seed= 0x7ED5052A)
+inline uint32_t rx_hash_zob32(const void* data, uint32_t bytes,uint32_t seed= 0x7ED5052A)
 {
     uint32_t hash = seed;
-    for (uint32_t i = 0; i < length; i++)
+    for (uint32_t i = 0; i < bytes; i++)
     {
         int r = (i + 1) % 32;
         uint32_t value = zob_map_table[((uint8_t*)data)[i]];
@@ -487,10 +487,10 @@ inline uint32_t rx_hash_zob32(const void* data, uint32_t length,uint32_t seed= 0
     }
     return hash;
 }
-inline uint64_t rx_hash_zob64(const void* data, uint32_t length, uint64_t seed = 0xFCDD00A8D5D2FC6E)
+inline uint64_t rx_hash_zob64(const void* data, uint32_t bytes, uint64_t seed = 0xFCDD00A8D5D2FC6E)
 {
     uint64_t hash = seed;
-    for (uint32_t i = 0; i < length; i++)
+    for (uint32_t i = 0; i < bytes; i++)
     {
         int r = (i + 1) % 64;
         uint32_t value = zob_map_table[((uint8_t*)data)[i]];
@@ -606,6 +606,7 @@ static const rx_data_hash32_t rx_data_hash32_funcs[]=
     rx_hash_zob32
 };
 const uint32_t rx_data_hash32_funcs_count = sizeof(rx_data_hash32_funcs) / sizeof(rx_data_hash32_funcs[0]);
+
 //根据哈希函数类型获取对应的哈希函数
 inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type=rx_data_hash32_type(rx_data_hash32_funcs_count-1))
 {
@@ -613,25 +614,25 @@ inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type=rx_data_ha
     return rx_data_hash32_funcs[(uint32_t)type>=rx_data_hash32_funcs_count?rx_data_hash32_funcs_count-1:type];
 }
 //根据哈希函数类型计算给定数据的哈希码
-inline uint32_t rx_data_hash32(const void* data,uint32_t len,const rx_data_hash32_type Type=rx_data_hash32_type(rx_data_hash32_funcs_count-1),uint32_t seed=0)
+inline uint32_t rx_data_hash32(const void* data,uint32_t bytes,const rx_data_hash32_type Type=rx_data_hash32_type(rx_data_hash32_funcs_count-1),uint32_t seed=0)
 {
-    return rx_data_hash32(Type)(data,len,seed);
+    return rx_data_hash32(Type)(data,bytes,seed);
 }
 
 //-----------------------------------------------------
-//利用不同的整数哈希函数类型,构造一致性数据哈希函数族(逐4字节整数遍历累计)
+//利用不同的整数哈希函数hf,进行数据数组哈希计算(逐4字节整数遍历累计)
 //-----------------------------------------------------
 template<rx_int_hash32_t hf>
-inline uint32_t rx_data_hash32(const void* data, uint32_t len, uint32_t seed=1)
+inline uint32_t rx_data_hash32(const void* data, uint32_t bytes, uint32_t seed=1)
 {
-    uint32_t lc=len>>2;
-    uint32_t hash = seed+len;
+    uint32_t lc=bytes>>2;
+    uint32_t hash = seed+bytes;
     for (uint32_t i = 0; i < lc; i++)
         hash ^= hf(((uint32_t*)data)[i]);
 
     uint32_t v=0;
     uint8_t *pos2=(uint8_t*)((uint32_t*)data+lc);
-    switch (len & 3)
+    switch (bytes & 3)
     {
         case 3:
             v ^= (uint32_t)pos2[2] << 16;
@@ -646,6 +647,7 @@ inline uint32_t rx_data_hash32(const void* data, uint32_t len, uint32_t seed=1)
 
 //-----------------------------------------------------
 //利用不同的整数哈希函数类型,构造数据哈希函数族,可通过序号获取
+//-----------------------------------------------------
 static const rx_data_hash32_t rx_data_hash32s_funcs[]=
 {
     rx_data_hash32< rx_hash_tomas      >,
