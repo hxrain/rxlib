@@ -14,8 +14,9 @@ namespace rx
     {
         tcp_client_t    clt;
         rt.tdd_assert(clt.dst_addr("127.0.0.1",45601));
-        rt.tdd_assert(clt.connect());
-        
+        if (!rt.tdd_assert(clt.connect()))
+			return;
+
         uint8_t tmp[1024*4];
         uint8_t tmp2[sizeof(tmp)];
         for(uint32_t i=0;i<loop;++i)
@@ -75,6 +76,7 @@ namespace rx
     {
         ut_tcpsvr_thd_t thd;
         rt.tdd_assert(thd.start(&rt));                      //创建了线程并启动
+        rx_sleep(5);										//保险起见,等一下,让服务线程被执行
         for(uint32_t i=0;i<count;++i)
             ut_tcp_echo_clt(rt,loop);                       //调用客户端测试循环
         thd.stop(true);                                     //结束线程
