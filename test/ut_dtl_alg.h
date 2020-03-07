@@ -23,7 +23,7 @@ void ut_dtl_alg_qsort_1(rx_tdd_t &rt, int s = 0)
 		printf("\n");
 
 	chkbad_t bad;
-	rx::quick_sort(arr, max_size);
+	rx::quick_sort(arr, max_size, rx::qs_cmp_t());
 
 	for (int i = 0;i < max_size - 1;++i)
 	{

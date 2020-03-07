@@ -9,7 +9,7 @@ namespace rx
 	//-----------------------------------------------------
 	//针对元素类型ET的数组的二分搜索算法,在长度为length的arr数组中查找x(要求arr为升序排列)
 	//返回值:arrsize,未找到;其他为x在数组中的索引
-	template<class ET, class XT = ET>
+	template<class ET, class XT>
 	inline uint32_t bisect(const ET* arr, const uint32_t length, const XT& x) {
 		uint32_t left = 0;
 		uint32_t right = length - 1;
@@ -30,7 +30,7 @@ namespace rx
 
 	//针对元素类型ET的数组的二分搜索算法,在长度为length的arr数组中查找最左侧接近<=x的值索引(要求arr为升序排列)
 	//返回值:arrsize,未找到;其他为x在数组中的索引
-	template<class ET, class XT = ET>
+	template<class ET, class XT>
 	inline uint32_t bisect_ll(const ET* arr, const uint32_t length, const XT& x)
 	{
 		uint32_t left = 0, right = length - 1;
@@ -58,17 +58,17 @@ namespace rx
 
 	//-----------------------------------------------------
 	//排序需要的,小于比较器,如果a<b则返回真
-	template<class DT>
 	class qs_cmp_t
 	{
 	public:
+		template<class DT>
 		bool operator()(const DT &a, const DT &b) const { return a < b; }
 	};
 
 	//-----------------------------------------------------
-	//快速排序算法的简单实现
-	template<class DT, class IT, class CT = qs_cmp_t<DT> >
-	void quick_sort(DT *arr, IT left, IT right, const CT &lt = CT())
+	//快速排序算法的简单实现,CT 默认为 qs_cmp_t
+	template<class DT, class IT, class CT >
+	void quick_sort(DT *arr, IT left, IT right, const CT &lt = qs_cmp_t())
 	{
 		if (left >= right) return;
 
@@ -95,9 +95,9 @@ namespace rx
 	}
 
 	//-----------------------------------------------------
-	//对指定长度的数组进行快速排序
-	template<class DT, class CT = qs_cmp_t<DT> >
-	void quick_sort(DT *arr, uint32_t size, const CT &lt = CT())
+	//对指定长度的数组进行快速排序,CT 默认为 qs_cmp_t
+	template<class DT, class CT>
+	void quick_sort(DT *arr, uint32_t size, const CT &lt = qs_cmp_t())
 	{
 		quick_sort<DT, uint32_t, CT>(arr, (uint32_t)0, (uint32_t)(size - 1), lt);
 	}

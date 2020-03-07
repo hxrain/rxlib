@@ -221,7 +221,7 @@
         //线程功能对象化封装
         class thread_t
         {
-            task_t      &m_task;                                    //线程调用的任务对象.引用.
+            task_t      *m_task;                                    //线程调用的任务对象.引用.
             void        *m_task_param;                              //线程任务的入口参数
             pthread_t    m_handle;                                  //线程句柄
             //---------------------------------------------
@@ -276,7 +276,7 @@
                 return true;
             }
         protected:
-            thread_t() :m_task(NULL), m_task_param(NULL), m_handle(NULL) {}
+            thread_t() :m_task(NULL), m_task_param(NULL), m_handle(-1) {}
             void bind(task_t *task){m_task=task;}
         public:
             thread_t(task_t& task) :m_task(&task), m_task_param(NULL), m_handle(-1) {}
