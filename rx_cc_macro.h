@@ -481,5 +481,10 @@
     rx_static_assert(sizeof(int64_t)==sizeof(long long));
     rx_static_assert(sizeof(size_t)==sizeof(ptrdiff_t));
 
+	namespace rx
+	{
+		typedef uint16_t wchar;								//定义2个字节的unicode字符(标准的wchar_t在vc中是2字节,在linux/gcc上是4个字节)
+	}
+
 #endif
 

@@ -212,6 +212,13 @@ namespace rx
         //³¤¶È
         inline uint32_t         strlen(const char* Str) { return Str == NULL ? 0 : (uint32_t)::strlen(Str); }
         inline uint32_t         strlen(const wchar_t* Str) {return Str == NULL ? 0 : (uint32_t)::wcslen(Str);}
+		inline uint32_t         strlen(const wchar* Str) 
+		{ 
+			if (is_empty(Str)) return 0;
+			uint32_t rc = 0;
+			while (*Str++) ++rc;
+			return rc;
+		}
 
         //¿½±´
         inline char*            strcpy(char* dst,const char* src) {return ::strcpy(dst,src);}
