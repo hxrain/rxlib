@@ -22,7 +22,7 @@ void ut_dtl_hat_base_1(rx_tdd_t &rt)
 	rt.tdd_assert(hat.offset(0).val_idx == 0);
 
 	uint16_t kl;
-	rt.tdd_assert(hat.key(0, kl) == NULL);
+	rt.tdd_assert(hat.key(0, &kl) == NULL);
 	rt.tdd_assert(hat.next(0) == hat.capacity());
 	rt.tdd_assert(hat.push("a", 1) != hat.capacity());
 	rt.tdd_assert(hat.push("b", 1) != hat.capacity());
@@ -36,7 +36,7 @@ void ut_dtl_hat_base_1(rx_tdd_t &rt)
 
 	uint16_t idx = hat.find("a", 1);
 	rt.tdd_assert(idx != hat.capacity());
-	char* k = hat.key(idx, kl);
+	char* k = hat.key(idx, &kl);
 	rt.tdd_assert(kl == 1);
 	rt.tdd_assert(k[1] == 0);
 	rt.tdd_assert(strcmp("a", k) == 0);
@@ -44,7 +44,7 @@ void ut_dtl_hat_base_1(rx_tdd_t &rt)
 
 	idx = hat.find("b", 1);
 	rt.tdd_assert(idx != hat.capacity());
-	k = hat.key(idx, kl);
+	k = hat.key(idx, &kl);
 	rt.tdd_assert(kl == 1);
 	rt.tdd_assert(k[1] == 0);
 	rt.tdd_assert(strcmp("b", k) == 0);
@@ -52,7 +52,7 @@ void ut_dtl_hat_base_1(rx_tdd_t &rt)
 
 	idx = hat.find("c", 1);
 	rt.tdd_assert(idx != hat.capacity());
-	k = hat.key(idx, kl);
+	k = hat.key(idx, &kl);
 	rt.tdd_assert(kl == 1);
 	rt.tdd_assert(k[1] == 0);
 	rt.tdd_assert(strcmp("c", k) == 0);
@@ -60,16 +60,114 @@ void ut_dtl_hat_base_1(rx_tdd_t &rt)
 
 	idx = hat.find("h", 1);
 	rt.tdd_assert(idx != hat.capacity());
-	k = hat.key(idx, kl);
+	k = hat.key(idx, &kl);
 	rt.tdd_assert(kl == 1);
 	rt.tdd_assert(k[1] == 0);
 	rt.tdd_assert(strcmp("h", k) == 0);
 	rt.tdd_assert(k[2] == 0);
 }
 
+void ut_dtl_hat_base_2(rx_tdd_t &rt)
+{
+	typedef rx::hat_ft<8, char, 6> hat_t;
+	hat_t hat;
+	rt.tdd_assert(hat.is_valid());
+	rt.tdd_assert(hat.size() == 0);
+	rt.tdd_assert(hat.capacity() == 8);
+	rt.tdd_assert(hat.remain() == (sizeof(char)*(6 + 1)*hat.capacity()));
+	rt.tdd_assert(!hat.sorted());
+	rt.tdd_assert(hat.value(0) == NULL);
+	rt.tdd_assert(hat.offset(0).offset == 0);
+	rt.tdd_assert(hat.offset(0).key_cnt == 0);
+	rt.tdd_assert(hat.offset(0).val_idx == 0);
+
+	uint16_t kl;
+	rt.tdd_assert(hat.key(0, &kl) == NULL);
+	rt.tdd_assert(hat.next(0) == hat.capacity());
+	rt.tdd_assert(hat.push("a", 1) != hat.capacity());
+	rt.tdd_assert(hat.push("c", 1) != hat.capacity());
+	rt.tdd_assert(hat.push("e", 1) != hat.capacity());
+	rt.tdd_assert(hat.push("d", 1) != hat.capacity());
+	rt.tdd_assert(hat.push("b", 1) != hat.capacity());
+
+	//排序,之前的key序号是按hash计算的,现在就是按key序升序排列的.
+	rt.tdd_assert(!hat.sort());
+
+	//按序号升序访问元素,key应该是升序的
+	char *k = hat.key(0);
+	rt.tdd_assert(strcmp("a", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 'c');
+
+	k = hat.key(1);
+	rt.tdd_assert(strcmp("b", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 0);
+
+	k = hat.key(2);
+	rt.tdd_assert(strcmp("c", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 'e');
+
+	k = hat.key(3);
+	rt.tdd_assert(strcmp("d", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 'b');
+
+	k = hat.key(4);
+	rt.tdd_assert(strcmp("e", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 'd');
+
+	//按key查找元素,序号应该是升序的
+	uint16_t ki = hat.find("a", 1);
+	rt.tdd_assert(ki != hat.capacity());
+	k = hat.key(ki);
+	rt.tdd_assert(strcmp("a", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 'c');
+	rt.tdd_assert(ki == 0);
+
+	ki = hat.find("b", 1);
+	rt.tdd_assert(ki != hat.capacity());
+	k = hat.key(ki);
+	rt.tdd_assert(strcmp("b", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 0);
+	rt.tdd_assert(ki == 1);
+
+	ki = hat.find("c", 1);
+	rt.tdd_assert(ki != hat.capacity());
+	k = hat.key(ki);
+	rt.tdd_assert(strcmp("c", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 'e');
+	rt.tdd_assert(ki == 2);
+
+	ki = hat.find("d", 1);
+	rt.tdd_assert(ki != hat.capacity());
+	k = hat.key(ki);
+	rt.tdd_assert(strcmp("d", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 'b');
+	rt.tdd_assert(ki == 3);
+
+	ki = hat.find("e", 1);
+	rt.tdd_assert(ki != hat.capacity());
+	k = hat.key(ki);
+	rt.tdd_assert(strcmp("e", k) == 0);
+	rt.tdd_assert(k[1] == 0);
+	rt.tdd_assert(k[2] == 'd');
+	rt.tdd_assert(ki == 4);
+
+	ki = hat.find("f", 1);
+	rt.tdd_assert(ki == hat.capacity());
+
+}
 
 rx_tdd(dtl_hat)
 {
+	ut_dtl_hat_base_2(*this);
 	ut_dtl_hat_base_1(*this);
 }
 

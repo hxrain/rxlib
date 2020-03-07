@@ -7,53 +7,53 @@
 namespace rx
 {
 	//-----------------------------------------------------
-    //针对元素类型ET的数组的二分搜索算法,在长度为length的arr数组中查找x(要求arr为正序)
-    //返回值:arrsize,未找到;其他为x在数组中的索引
-    template<class ET>
-    inline uint32_t bisect(const ET* arr,const uint32_t length,const ET& x) {
-        uint32_t left=0;
-        uint32_t right=length-1;
-        while(left<right) {
-            uint32_t mid=(left+right)/2;
-            const ET& ci=arr[mid];
-            if(ci==x)
-                return mid;
-            else if(ci>x)
-                right=mid-1;
-            else
-                left=mid+1;
-        }
-        if (left==right&&arr[left]==x)
-            return left;
-        return length;
-    }
+	//针对元素类型ET的数组的二分搜索算法,在长度为length的arr数组中查找x(要求arr为升序排列)
+	//返回值:arrsize,未找到;其他为x在数组中的索引
+	template<class ET, class XT = ET>
+	inline uint32_t bisect(const ET* arr, const uint32_t length, const XT& x) {
+		uint32_t left = 0;
+		uint32_t right = length - 1;
+		while (left < right) {
+			uint32_t mid = (left + right) / 2;
+			const ET& ci = arr[mid];
+			if (ci == x)
+				return mid;
+			else if (ci > x)
+				right = mid - 1;
+			else
+				left = mid + 1;
+		}
+		if (left == right&&arr[left] == x)
+			return left;
+		return length;
+	}
 
-    //针对元素类型ET的数组的二分搜索算法,在长度为length的arr数组中查找最左侧接近x的值索引(要求arr为正序)
-    //返回值:arrsize,未找到;其他为x在数组中的索引
-    template<class ET>
-    inline uint32_t bisect_ll(const ET* arr,const uint32_t length,const ET& x)
-    {
-        uint32_t left = 0, right = length-1;
-        while(left < right)
-        {
-            uint32_t mid = (left+right)/2;
-            if(arr[mid] <= x)
-            {
-                if (left == mid)
-                    break;
-                left = mid;
-            }
-            else
-                right = mid;
-        }
+	//针对元素类型ET的数组的二分搜索算法,在长度为length的arr数组中查找最左侧接近<=x的值索引(要求arr为升序排列)
+	//返回值:arrsize,未找到;其他为x在数组中的索引
+	template<class ET, class XT = ET>
+	inline uint32_t bisect_ll(const ET* arr, const uint32_t length, const XT& x)
+	{
+		uint32_t left = 0, right = length - 1;
+		while (left < right)
+		{
+			uint32_t mid = (left + right) / 2;
+			if (arr[mid] <= x)
+			{
+				if (left == mid)
+					break;
+				left = mid;
+			}
+			else
+				right = mid;
+		}
 
-        if(arr[right] < x)
-            return right;
-        else if(arr[left] <= x)
-            return left;
+		if (arr[right] < x)
+			return right;
+		else if (arr[left] <= x)
+			return left;
 
-        return length;
-    }
+		return length;
+	}
 
 
 	//-----------------------------------------------------
@@ -97,7 +97,7 @@ namespace rx
 	//-----------------------------------------------------
 	//对指定长度的数组进行快速排序
 	template<class DT, class CT = qs_cmp_t<DT> >
-	void quick_sort(DT *arr, uint32_t size,const CT &lt = CT())
+	void quick_sort(DT *arr, uint32_t size, const CT &lt = CT())
 	{
 		quick_sort<DT, uint32_t, CT>(arr, (uint32_t)0, (uint32_t)(size - 1), lt);
 	}

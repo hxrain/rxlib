@@ -5,6 +5,8 @@
 #include "rx_assert.h"
 #include "rx_hash_data.h"
 #include "rx_cc_base.h"
+#include "rx_dtl_alg.h"
+
 /*
 	hash array table(hat)
 	构建一个用于快速检索的轻量级关联容器,基于array作为底层,可实现hash/bst等查找方法
@@ -18,15 +20,19 @@
 namespace rx
 {
 	//-----------------------------------------------------
-	//hat哈希函数
+	//hat运算器
 	class hat_fun_t
 	{
 	public:
+		//-------------------------------------------------
+		//hash函数
 		template<class KT>
 		static uint32_t hash(const KT *k, uint32_t cnt) { return rx_hash_murmur(k, sizeof(k)*cnt); }
 		static uint32_t hash(const char *k, uint32_t cnt) { return rx_hash_zob(k); }
 		static uint32_t hash(const wchar_t *k, uint32_t cnt) { return rx_hash_zob(k); }
 
+		//-------------------------------------------------
+		//不定长key的比较函数:是否相同
 		template<class KT>
 		static bool equ(const KT* k1, uint16_t k1_cnt, const KT* k2, uint16_t k2_cnt)
 		{
@@ -39,7 +45,8 @@ namespace rx
 			return true;
 		}
 
-		//按元素内容比较k1和k2,返回值:<0,k1<k2;=0,k1=k2;>0,k1>k2
+		//-------------------------------------------------
+		//按元素内容比较不定长的两个key,返回值:<0,k1<k2;=0,k1=k2;>0,k1>k2
 		template<class KT>
 		static int cmp(const KT* k1, uint16_t k1_cnt, const KT* k2, uint16_t k2_cnt)
 		{
@@ -57,10 +64,18 @@ namespace rx
 				return 0;
 			return k1_cnt < k2_cnt ? -2 : 2;
 		}
+		//-------------------------------------------------
+		//按字节内容比较定长的两个key
+		template<class KT>
+		static int cmp(const KT* k1, const KT* k2, uint16_t cnt)
+		{
+			return memcmp(k1, k2, cnt * sizeof(KT));
+		}
 	};
 
+	//-----------------------------------------------------
 	//计算hat占用的空间:头部占用空间 + key偏移数组占用空间 + val占用总空间 + key占用总空间
-#define calc_hat_space(head_t,keyoff_t,capacity,key_t,key_count,val_t,val_cnt) \
+	#define calc_hat_space(head_t,keyoff_t,capacity,key_t,key_count,val_t,val_cnt) \
 		(sizeof(head_t)+ sizeof(keyoff_t)*capacity + sizeof(val_t)*val_cnt*capacity + sizeof(key_t)*(key_count+1)*capacity)
 
 
@@ -70,14 +85,32 @@ namespace rx
 	class hat_raw_t
 	{
 	protected:
+		struct keyoff_t;
+		//-------------------------------------------------
+		//二分搜索需要的,==和>比较器,需要对keyoff_t和指定的key进行比较
+		class bs_cmp_t
+		{
+			const hat_raw_t &parent;
+			const key_t	  *key;
+			uint16_t  key_cnt;
+		public:
+			bs_cmp_t(const hat_raw_t &p,const key_t *k,uint16_t kc) :parent(p),key(k),key_cnt(kc) {}
+			//判断ko==*this
+			bool equ(const keyoff_t& ko) const;
+			//判断ko>*this
+			bool gt(const keyoff_t& ko) const;
+		};
+		//-------------------------------------------------
 		//定义key偏移量所需类型
 		typedef struct keyoff_t
 		{
 			uint32_t	offset;								//key所在的偏移位置
 			uint16_t	val_idx;							//key对应的val索引
 			uint16_t	key_cnt;							//key的元素数量
+			bool operator==(const bs_cmp_t& cmp) const { return cmp.equ(*this); }
+			bool operator>(const bs_cmp_t& cmp) const { return cmp.gt(*this); }
 		}keyoff_t;
-
+		//-------------------------------------------------
 		//定义容器头部信息结构
 		typedef struct head_t
 		{
@@ -88,6 +121,33 @@ namespace rx
 			uint16_t	capacity;							//最大可放置的元素数量
 			uint16_t	size;								//已经存在的元素数量
 		}head_t;
+
+		//-------------------------------------------------
+		//排序需要的,小于比较器,如果a<b则返回真
+		template<class DT>
+		class qs_cmp_t
+		{
+			hat_raw_t &parent;
+		public:
+			qs_cmp_t(hat_raw_t &p) :parent(p) {}
+			bool operator()(const DT &a, const DT &b) const
+			{
+				uint8_t ei = a.offset == 0 ? 0 : 2;		//a元素作用在ei上,要么是0b00要么是0b10
+				ei |= b.offset == 0 ? 0 : 1;		//b元素叠加在ei上,组合是0b00/0b10/0b01/0b11
+				switch (ei)
+				{
+				case 0:return true;							//a和b都是空槽位,认为a<b
+				case 1:return false;						//a是空槽位,b有值,认为a>=b
+				case 2:return true;							//a有值,b是空槽位,认为a<b
+				}
+				//现在,a和b都有值,需要比较key了
+				key_t *k1 = parent.key(a);
+				key_t *k2 = parent.key(b);
+				return kcmp::cmp(k1, a.key_cnt, k2, b.key_cnt) < 0;
+			}
+		};
+		//-------------------------------------------------
+
 
 		//底层空间指针
 		void*			m_buff;
@@ -128,40 +188,57 @@ namespace rx
 		//剩余可用的key存储空间
 		uint32_t remain() const { rx_assert(is_valid()); return head().buff_size - head().buff_last; }
 		//-------------------------------------------------
+		//获取key偏移数组
+		keyoff_t *offset() const
+		{
+			rx_assert(is_valid());
+			return (keyoff_t*)((uint8_t*)m_buff + sizeof(head_t));
+		}
 		//按序号获取key偏移信息
 		keyoff_t &offset(uint16_t idx) const
 		{
-			rx_assert(is_valid());
 			rx_assert(idx < capacity());
-			keyoff_t *kos = (keyoff_t*)((uint8_t*)m_buff + sizeof(head_t));
-			return kos[idx];
+			return offset()[idx];
+		}
+		//-------------------------------------------------
+		//按key偏移获取key内容指针
+		key_t* key(const keyoff_t &ko) const
+		{
+			rx_assert(is_valid());
+			if (ko.offset == 0)
+				return NULL;
+			return (key_t*)((uint8_t*)m_buff + ko.offset);
 		}
 		//-------------------------------------------------
 		//按序号获取key内容指针与长度
 		//返回值:NULL此位置没有key;其他为key_t数组缓冲区
-		key_t* key(uint16_t idx, uint16_t &key_cnt) const
+		key_t* key(uint16_t idx, uint16_t *key_cnt = NULL) const
 		{
 			rx_assert(is_valid());
 			rx_assert(idx < capacity());
 			keyoff_t &ko = offset(idx);
-			key_cnt = ko.key_cnt;
-			if (ko.offset == 0)
-				return NULL;
-
-			key_t *ret = (key_t*)((uint8_t*)m_buff + ko.offset);
-			return ret;
+			if (key_cnt)
+				*key_cnt = ko.key_cnt;
+			return key(ko);
 		}
 		//-------------------------------------------------
-		//按序号访问val值缓冲区
+		//按val序号访问val值缓冲区
 		//返回值:NULL没有val值;其他为val_t数组缓冲区
-		val_t* value(uint16_t idx)
+		val_t* value(uint16_t val_idx) const
 		{
 			rx_assert(is_valid());
-			rx_assert(idx < capacity());
+			rx_assert(val_idx < capacity());
 			if (head().val_cnt == 0)
 				return NULL;
 			uint8_t *vs = (uint8_t*)m_buff + sizeof(head_t) + sizeof(keyoff_t)*capacity();
-			return (val_t*)(vs + idx * sizeof(val_t)*head().val_cnt);
+			return (val_t*)(vs + val_idx * sizeof(val_t)*head().val_cnt);
+		}
+		//-------------------------------------------------
+		//按key偏移访问val值缓冲区
+		//返回值:NULL没有val值;其他为val_t数组缓冲区
+		val_t* value(const keyoff_t &ko) const
+		{
+			return value(ko.val_idx);
 		}
 		//-------------------------------------------------
 		//追加key到容器;出参exist告知key是否已经存在
@@ -204,7 +281,7 @@ namespace rx
 				else
 				{//目标槽位被占用了,需判断是否为重复key
 					uint16_t kc;
-					key_t *k = this->key(idx, kc);
+					key_t *k = this->key(idx, &kc);
 					if (kcmp::equ(key, key_cnt, k, kc))
 					{
 						if (exist)
@@ -219,10 +296,15 @@ namespace rx
 		//-------------------------------------------------
 		//按照指定的完整key查找对应的val值,根据操作策略,内部会进行哈希查找/二分查找/遍历查找
 		//返回值:capacity()没找到;<capacity()为元素索引
-		uint16_t find(const key_t *key, uint16_t key_cnt)
+		uint16_t find(const key_t *key, uint16_t key_cnt) const
 		{
 			if (sorted())
-			{//排序过了,使用二分法查找
+			{//已排序,使用二分法查找
+				bs_cmp_t cmp(*this,key,key_cnt);
+				uint32_t idx = bisect<keyoff_t, bs_cmp_t>(offset(), size(), cmp);
+				if (idx == size())
+					return capacity();
+				return idx;
 			}
 			else
 			{//未排序,还是按照哈希表查找
@@ -237,7 +319,7 @@ namespace rx
 						break;									//直接就碰到空档了,不用继续了
 
 					uint16_t kc;
-					key_t *k = this->key(idx, kc);
+					key_t *k = this->key(idx, &kc);
 					if (kcmp::equ(key, key_cnt, k, kc))
 						return idx;
 				}
@@ -263,16 +345,21 @@ namespace rx
 		}
 		//-------------------------------------------------
 		//尝试按升序进行排序,便于使用二分法查找与前缀查找.排序后就不可以再继续插入新值了.
-		//返回值:是否已经排序
+		//返回值:true已经排序;false之前未排序,本次排序完成.
 		bool sort()
 		{
-			return head().sorted;
+			if (sorted())
+				return true;
+			qs_cmp_t<keyoff_t> cmp(*this);
+			quick_sort(offset(), capacity(), cmp);
+			head().sorted = 1;
+			return false;
 		}
-		bool sorted() { return head().sorted != 0; }
+		bool sorted() const { return head().sorted != 0; }
 		//-------------------------------------------------
 		//按指定的key前缀进行查找,可以指定开始的元素位置
 		//返回值:capacity()没找到;<capacity()为元素索引
-		uint16_t prefix(const key_t *prekey, uint16_t key_cnt, uint16_t begin = 0)
+		uint16_t prefix(const key_t *prekey, uint16_t key_cnt, uint16_t begin = 0) const
 		{
 			if (sorted())
 			{
@@ -284,6 +371,23 @@ namespace rx
 		}
 		//-------------------------------------------------
 	};
+	//二分搜索需要的,==比较器,需要对keyoff_t和指定的key进行比较
+	template<class key_t, class val_t, class kcmp>
+	inline bool hat_raw_t<key_t, val_t, kcmp>::bs_cmp_t::equ(const keyoff_t& ko) const 
+	{
+		rx_assert(ko.offset != 0);
+		key_t *k = parent.key(ko);
+		return kcmp::equ(k,ko.key_cnt,key,key_cnt);
+	}
+	//二分搜索需要的,>比较器,需要对keyoff_t和指定的key进行比较
+	template<class key_t, class val_t, class kcmp>
+	inline bool hat_raw_t<key_t, val_t, kcmp>::bs_cmp_t::gt(const keyoff_t& ko) const 
+	{
+		rx_assert(ko.offset != 0);
+		rx_assert(ko.offset != 0);
+		key_t *k = parent.key(ko);
+		return kcmp::cmp(k, ko.key_cnt, key, key_cnt) > 0;
+	}
 
 	//-----------------------------------------------------
 	//固定空间的hat表:元素总数;key条目类型,key平均长度;val条目类型,val长度;比较器运算类
