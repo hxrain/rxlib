@@ -222,23 +222,16 @@ namespace rx
 			return key(ko);
 		}
 		//-------------------------------------------------
-		//按val序号访问val值缓冲区
-		//返回值:NULL没有val值;其他为val_t数组缓冲区
-		val_t* value(uint16_t val_idx) const
-		{
-			rx_assert(is_valid());
-			rx_assert(val_idx < capacity());
-			if (head().val_cnt == 0)
-				return NULL;
-			uint8_t *vs = (uint8_t*)m_buff + sizeof(head_t) + sizeof(keyoff_t)*capacity();
-			return (val_t*)(vs + val_idx * sizeof(val_t)*head().val_cnt);
-		}
-		//-------------------------------------------------
 		//按key偏移访问val值缓冲区
 		//返回值:NULL没有val值;其他为val_t数组缓冲区
 		val_t* value(const keyoff_t &ko) const
 		{
-			return value(ko.val_idx);
+			rx_assert(is_valid());
+			rx_assert(ko.val_idx < capacity());
+			if (head().val_cnt == 0)
+				return NULL;
+			uint8_t *vs = (uint8_t*)m_buff + sizeof(head_t) + sizeof(keyoff_t)*capacity();
+			return (val_t*)(vs + ko.val_idx * sizeof(val_t)*head().val_cnt);
 		}
 		//-------------------------------------------------
 		//追加key到容器;出参exist告知key是否已经存在
@@ -290,7 +283,6 @@ namespace rx
 					}
 				}
 			}
-
 			return capacity();
 		}
 		//-------------------------------------------------
@@ -357,17 +349,22 @@ namespace rx
 		}
 		bool sorted() const { return head().sorted != 0; }
 		//-------------------------------------------------
-		//按指定的key前缀进行查找,可以指定开始的元素位置
-		//返回值:capacity()没找到;<capacity()为元素索引
-		uint16_t prefix(const key_t *prekey, uint16_t key_cnt, uint16_t begin = 0) const
+		//按指定的key前缀长度进行定位
+		//返回值:capacity()没找到;否则为匹配的key序号范围[low,high]
+		pair32_t prefix(const key_t *prekey, uint16_t key_cnt) const
 		{
-			if (sorted())
+			pair32_t ret;
+			ret.value = capacity();
+
+			if (!sorted())
 			{
+				rx_alert("hat.prefix() need sorted.");
+				return ret;
 			}
-			else
-			{
-			}
-			return capacity();
+			//用二分法查找指定长度的key前缀,得到一个key偏移.
+			//对key偏移进行前向与后向的prekey匹配查找,确定low和high范围
+
+			return ret;
 		}
 		//-------------------------------------------------
 	};

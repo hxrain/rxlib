@@ -16,7 +16,7 @@ void ut_dtl_hat_base_1(rx_tdd_t &rt)
 	rt.tdd_assert(hat.capacity() == 8);
 	rt.tdd_assert(hat.remain() == (sizeof(char)*(6 + 1)*hat.capacity()));
 	rt.tdd_assert(!hat.sorted());
-	rt.tdd_assert(hat.value(0) == NULL);
+	rt.tdd_assert(hat.value(hat.offset(0)) == NULL);
 	rt.tdd_assert(hat.offset(0).offset == 0);
 	rt.tdd_assert(hat.offset(0).key_cnt == 0);
 	rt.tdd_assert(hat.offset(0).val_idx == 0);
@@ -76,7 +76,7 @@ void ut_dtl_hat_base_2(rx_tdd_t &rt)
 	rt.tdd_assert(hat.capacity() == 8);
 	rt.tdd_assert(hat.remain() == (sizeof(char)*(6 + 1)*hat.capacity()));
 	rt.tdd_assert(!hat.sorted());
-	rt.tdd_assert(hat.value(0) == NULL);
+	rt.tdd_assert(hat.value(hat.offset(0)) == NULL);
 	rt.tdd_assert(hat.offset(0).offset == 0);
 	rt.tdd_assert(hat.offset(0).key_cnt == 0);
 	rt.tdd_assert(hat.offset(0).val_idx == 0);
