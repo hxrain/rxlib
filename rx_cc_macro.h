@@ -446,6 +446,8 @@
     #define ms2us(ms) (1000*ms)
     //sec秒到us微秒
     #define sec2us(s) ms2us(1000*s)
+	//计算数组长度
+	#define rx_arrsize(arr) (sizeof(arr)/sizeof(arr[0]))
 
     //-----------------------------------------------------
     //根据上面的各类分析,引入各个平台的开发基础头文件

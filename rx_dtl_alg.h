@@ -7,12 +7,11 @@
 namespace rx
 {
 	//-----------------------------------------------------
-	//针对元素类型ET的数组的二分搜索算法,在长度为length的arr数组中查找x(要求arr为升序排列)
-	//返回值:arrsize,未找到;其他为x在数组中的索引
+	//二分搜索算法,查找x(多值的时候不确定是哪个);数组arr的长度为length,升序排列
+	//返回值:length,未找到;其他为x在数组中的索引
 	template<class ET, class XT>
 	inline uint32_t bisect(const ET* arr, const uint32_t length, const XT& x) {
-		uint32_t left = 0;
-		uint32_t right = length - 1;
+		uint32_t left = 0, right = length - 1;
 		while (left < right) {
 			uint32_t mid = (left + right) / 2;
 			const ET& ci = arr[mid];
@@ -28,10 +27,57 @@ namespace rx
 		return length;
 	}
 
-	//针对元素类型ET的数组的二分搜索算法,在长度为length的arr数组中查找最左侧接近<=x的值索引(要求arr为升序排列)
-	//返回值:arrsize,未找到;其他为x在数组中的索引
+	//-----------------------------------------------------
+	//二分搜索算法,查找x的左边界位置(首次出现);数组arr的长度为length,升序排列
+	//返回值:length,未找到;其他为x在数组中的索引
 	template<class ET, class XT>
-	inline uint32_t bisect_ll(const ET* arr, const uint32_t length, const XT& x)
+	uint32_t bisect_first(const ET * arr, uint32_t length, const XT &x)
+	{
+		uint32_t left = 0, right = length - 1;
+		while (left < right)
+		{
+			uint32_t mid = (left + right) / 2;
+			if (arr[mid] < x)
+				left = mid + 1;
+			else
+				right = mid;
+		}
+
+		if (arr[left] == x)
+			return left;
+		else
+			return length;
+	}
+
+	//-----------------------------------------------------
+	//二分搜索算法,查找x的右边界位置(最后出现);数组arr的长度为length,升序排列
+	//返回值:length,未找到;其他为x在数组中的索引
+	template<class ET, class XT>
+	uint32_t bisect_last(const ET * arr, uint32_t length, const XT &x)
+	{
+		uint32_t left = 0, right = length - 1;
+		while (left < right - 1)
+		{
+			uint32_t mid = left + (right - left) / 2;
+			if (arr[mid] <= x)
+				left = mid;
+			else
+				right = mid;
+		}
+
+		if (arr[right] == x)
+			return right;
+		else if (arr[left] == x)
+			return left;
+		else
+			return length;
+	}
+
+	//-----------------------------------------------------
+	//二分搜索算法,查找<=x的右边界位置;数组arr的长度为length,升序排列
+	//返回值:length,未找到;其他为x在数组中的索引
+	template<class ET, class XT>
+	inline uint32_t bisect_lte(const ET* arr, const uint32_t length, const XT& x)
 	{
 		uint32_t left = 0, right = length - 1;
 		while (left < right)
@@ -54,7 +100,6 @@ namespace rx
 
 		return length;
 	}
-
 
 	//-----------------------------------------------------
 	//排序需要的,小于比较器,如果a<b则返回真

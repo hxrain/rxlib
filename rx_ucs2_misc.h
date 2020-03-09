@@ -477,7 +477,7 @@ namespace rx
     {
         ucs2_block_item_t x;
         x.code_begin=code;
-        return bisect_ll(ucs2_blocks_range,ucs2_blocks_range_size,x);
+        return bisect_lte(ucs2_blocks_range,ucs2_blocks_range_size,x);
     }
 
     //根据给定的unicode编码code,查询得到其所属的unicode块信息的准确边缘的索引
