@@ -164,9 +164,43 @@ void ut_dtl_hat_base_2(rx_tdd_t &rt)
 	rt.tdd_assert(ki == hat.capacity());
 
 }
+void ut_dtl_hat_base_3(rx_tdd_t &rt)
+{
+	typedef rx::hat_ft<8, char, 6> hat_t;
+	hat_t hat;
+	rt.tdd_assert(hat.push("a1a2a3", 6) != hat.capacity());
+	rt.tdd_assert(hat.push("c1c2c3", 6) != hat.capacity());
+	rt.tdd_assert(hat.push("a1abc", 5) != hat.capacity());
+	rt.tdd_assert(hat.push("c12c3", 5) != hat.capacity());
+	rt.tdd_assert(hat.push("b123", 4) != hat.capacity());
+
+	uint16_t idx = hat.find("a1abc", 5);
+	rt.tdd_assert(idx != hat.capacity());
+	char* k = hat.key(idx);
+	rt.tdd_assert(strcmp("a1abc", k) == 0);
+	rt.tdd_assert(k[5] == 0);
+	rt.tdd_assert(k[6] == 'c');
+
+	//排序,之前的key序号是按hash计算的,现在就是按key序升序排列的.
+	rt.tdd_assert(!hat.sort());
+	idx = hat.prefix("a1", 2);
+	rt.tdd_assert(idx != hat.capacity());
+	k = hat.key(idx);
+	rt.tdd_assert(strcmp("a1a2a3", k) == 0);
+	rt.tdd_assert(k[6] == 0);
+	rt.tdd_assert(k[7] == 'c');
+	rt.tdd_assert(hat.prefix_left(idx, 2) == 0);
+	rt.tdd_assert(hat.prefix_right(idx, 2) == 1);
+
+	k = hat.key(idx + 1);
+	rt.tdd_assert(strcmp("a1abc", k) == 0);
+	rt.tdd_assert(k[5] == 0);
+	rt.tdd_assert(k[6] == 'c');
+}
 
 rx_tdd(dtl_hat)
 {
+	ut_dtl_hat_base_3(*this);
 	ut_dtl_hat_base_2(*this);
 	ut_dtl_hat_base_1(*this);
 }
