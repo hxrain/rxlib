@@ -74,7 +74,7 @@ namespace rx
 	}
 
 	//-----------------------------------------------------
-	//二分搜索算法,查找<=x的右边界位置;数组arr的长度为length,升序排列
+	//二分搜索算法,查找<=x的左边界位置;数组arr的长度为length,升序排列
 	//返回值:length,未找到;其他为x在数组中的索引
 	template<class ET, class XT>
 	inline uint32_t bisect_lte(const ET* arr, const uint32_t length, const XT& x)
@@ -100,6 +100,54 @@ namespace rx
 
 		return length;
 	}
+
+	//-----------------------------------------------------
+	//二分搜索算法,查找<x的左边界位置;数组arr的长度为length,升序排列
+	//返回值:length,未找到;其他为x在数组中的索引
+	template<class ET, class XT>
+	inline uint32_t bisect_lt(const ET* arr, const uint32_t length, const XT& x)
+	{
+		uint32_t left = 0, right = length - 1;
+		while (left < right)
+		{
+			uint32_t mid = (left + right) / 2;
+			if (arr[mid] < x)
+			{
+				if (left == mid)
+					break;
+				left = mid;
+			}
+			else
+				right = mid;
+		}
+
+		if (arr[right] < x)
+			return right;
+		else if (arr[left] < x)
+			return left;
+
+		return length;
+	}
+	//-----------------------------------------------------
+	//二分搜索算法,查找>x的右边界位置;数组arr的长度为length,升序排列
+	//返回值:length,未找到;其他为x在数组中的索引
+	template<class ET, class XT>
+	uint32_t bisect_gt(const ET* arr, const uint32_t length, const XT& x)
+	{
+		uint32_t left = 0, right = length - 1;
+		while (left < right)
+		{
+			uint32_t mid = (left + right) / 2;
+			if (arr[mid] <= x)
+				left = mid + 1;
+			else
+				right = mid;
+		}
+		if (arr[right] > x)
+			return right;
+		return length;
+	}
+
 
 	//-----------------------------------------------------
 	//排序需要的,小于比较器,如果a<b则返回真

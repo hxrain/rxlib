@@ -37,6 +37,12 @@ inline void ut_dtl_alg_bisect_0(rx_tdd_t &rt)
 	idx = rx::bisect_lte(arr, length, 6);
 	rt.tdd_assert(idx == 7);
 
+	idx = rx::bisect_gt(arr, length, 6);
+	rt.tdd_assert(idx == 8);
+	idx = rx::bisect_lt(arr, length, 6);
+	rt.tdd_assert(idx == 6);
+
+
 	idx = rx::bisect_first(arr, length, 3);
 	rt.tdd_assert(idx == 2);								//搜索3,要左边界,第一个
 	idx = rx::bisect_last(arr, length, 3);
@@ -114,10 +120,12 @@ rx_tdd(dtl_alg)
 
 	for (int i = 0;i < 100;++i)
 	{
-		ut_dtl_alg_bisect_1<10000>(*this, rx::bisect, i);
-		ut_dtl_alg_bisect_1<10000>(*this, rx::bisect_lte, i);
-		ut_dtl_alg_bisect_1<10000>(*this, rx::bisect_first, i);
-		ut_dtl_alg_bisect_1<10000>(*this, rx::bisect_last, i);
+		ut_dtl_alg_bisect_1<1000>(*this, rx::bisect, i);
+		ut_dtl_alg_bisect_1<1000>(*this, rx::bisect_lte, i);
+		ut_dtl_alg_bisect_1<1000>(*this, rx::bisect_lt, i);
+		ut_dtl_alg_bisect_1<1000>(*this, rx::bisect_gt, i);
+		ut_dtl_alg_bisect_1<1000>(*this, rx::bisect_first, i);
+		ut_dtl_alg_bisect_1<1000>(*this, rx::bisect_last, i);
 	}
 
 	for (int i = 0;i < 100;++i)
