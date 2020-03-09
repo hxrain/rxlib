@@ -58,7 +58,7 @@ void ut_dtl_alg_bisect_1(rx_tdd_t &rt, bs_fun_t fun, int s = 0)
 		rx_rnd_t32().seed(s);
 
 	int xp = rx_rnd_t32().get(max_size - 1);
-	int x;
+	int x=0;
 
 	for (int i = 0;i < max_size;++i)
 	{
