@@ -344,7 +344,7 @@ namespace rx
 		//-------------------------------------------------
 		//按指定的key前缀长度进行查找(可指定是否查找左边界)
 		//返回值:capacity()没找到;否则为找到的key序号(未必是匹配结果的左边界或右边界)
-		uint16_t prefix(const key_t *prekey, uint16_t key_cnt,bool is_left=false) const
+		uint16_t prefix(const key_t *prekey, uint16_t key_cnt,bool is_left=true) const
 		{
 			if (!sorted())
 			{
@@ -365,7 +365,7 @@ namespace rx
 			return idx;
 		}
 		//-------------------------------------------------
-		//以当前索引位置和前缀高度,查探并更新右边界
+		//以当前索引位置和前缀高度,查探右边界
 		//返回值:右边界key索引;无效时返回hat.capacity()
 		uint16_t prefix_right(uint16_t curr, uint16_t key_cnt) const
 		{
@@ -387,6 +387,41 @@ namespace rx
 			uint16_t idx = bisect_last<keyoff_t, bs_cmp_t>(offset() + curr, kl, cmp);
 			rx_assert(idx != kl);
 			return curr + idx;
+		}
+		//-------------------------------------------------
+		//以当前索引位置和前缀高度,查探带有新元素的索引位置(模拟tire的递进)
+		//返回值:key索引,代表在这个位置的key_cnt+1处,找到了item;无效时返回capacity()
+		uint16_t prefix_step(uint16_t curr, uint16_t key_cnt, const key_t& item) const
+		{
+			rx_assert(is_valid());
+			if (!sorted())
+			{
+				rx_alert("hat.prefix() need sorted.");
+				return capacity();
+			}
+
+			uint16_t kl;
+			const key_t *kp = key(curr, &kl);				//尝试得到当前索引对应的key指针
+			if (kp == NULL || kl < key_cnt)
+				return capacity();
+
+			if (key_cnt + 1 <= kl && kp[key_cnt] == item)
+				return curr;								//在当前索引的key上直接判断
+
+			for (uint16_t i = curr + 1;i < size();++i)
+			{
+				uint16_t l;
+				const key_t *k = key(i, &l);				//尝试得到当前索引对应的key指针
+				rx_assert(k != NULL);
+				rx_assert(l >= key_cnt);
+				if (!kcmp::equ(kp, key_cnt, k, key_cnt))
+					break;									//向后找,发现前缀的都不同了,没找到
+				if (l <= key_cnt || k[key_cnt] != item)
+					continue;
+				else
+					return i;								//找到了
+			}
+			return capacity();
 		}
 	};
 

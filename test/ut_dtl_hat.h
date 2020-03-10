@@ -190,7 +190,14 @@ void ut_dtl_hat_base_3(rx_tdd_t &rt)
 	rt.tdd_assert(k[6] == 0);
 	rt.tdd_assert(k[7] == 'c');
 
-	rt.tdd_assert(hat.prefix("a1", 2,true) == 0);
+	uint16_t pi = hat.prefix_step(idx, 2, 'a');
+	rt.tdd_assert(pi == idx);
+	pi = hat.prefix_step(idx, 3, '2');
+	rt.tdd_assert(pi == idx);
+	pi = hat.prefix_step(idx, 3, 'b');
+	rt.tdd_assert(pi == idx+1);
+
+	rt.tdd_assert(hat.prefix("a1", 2) == 0);
 	rt.tdd_assert(hat.prefix_right(idx, 2) == 1);
 
 	k = hat.key(idx + 1);
