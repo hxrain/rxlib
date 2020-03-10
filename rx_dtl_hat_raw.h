@@ -89,10 +89,8 @@ namespace rx
 		public:
 			const key_t		*item;							//前缀增量查找时的增量条目
 			bs_cmp_t(const hat_raw_t &p, const key_t *k, uint16_t kc, uint16_t is_pre = 0) :parent(p), key(k), key_cnt(kc), is_pre(is_pre), item(NULL) {}
-			//判断ko==*this
-			bool equ(const keyoff_t& ko) const;
-			//判断ko>*this
-			bool gt(const keyoff_t& ko) const;
+			//判断ko与*this的关系:<0,0,>0
+			int operator()(const keyoff_t& ko) const;
 		};
 		//-------------------------------------------------
 		//定义key偏移量所需类型
@@ -101,8 +99,10 @@ namespace rx
 			uint32_t	offset;								//key所在的偏移位置
 			uint16_t	val_idx;							//key对应的val索引
 			uint16_t	key_cnt;							//key的元素数量
-			bool operator==(const bs_cmp_t& cmp) const { return cmp.equ(*this); }
-			bool operator>(const bs_cmp_t& cmp) const { return cmp.gt(*this); }
+			bool operator==(const bs_cmp_t& cmp) const { return cmp(*this)==0; }
+			bool operator>(const bs_cmp_t& cmp) const { return cmp(*this)>0; }
+			bool operator<(const bs_cmp_t& cmp) const { return cmp(*this)<0; }
+			bool operator<=(const bs_cmp_t& cmp) const { return cmp(*this)<=0; }
 		}keyoff_t;
 		//-------------------------------------------------
 		//定义容器头部信息结构
@@ -342,9 +342,9 @@ namespace rx
 		}
 		bool sorted() const { return head().sorted != 0; }
 		//-------------------------------------------------
-		//按指定的key前缀长度进行查找
+		//按指定的key前缀长度进行查找(可指定是否查找左边界)
 		//返回值:capacity()没找到;否则为找到的key序号(未必是匹配结果的左边界或右边界)
-		uint16_t prefix(const key_t *prekey, uint16_t key_cnt) const
+		uint16_t prefix(const key_t *prekey, uint16_t key_cnt,bool is_left=false) const
 		{
 			if (!sorted())
 			{
@@ -353,34 +353,16 @@ namespace rx
 			}
 			//用二分法查找指定长度的key前缀,得到一个key偏移.
 			bs_cmp_t cmp(*this, prekey, key_cnt, 1);
-			uint32_t idx = bisect<keyoff_t, bs_cmp_t>(offset(), size(), cmp);
+			
+			uint32_t idx;
+			if (is_left)
+				idx = bisect_first<keyoff_t, bs_cmp_t>(offset(), size(), cmp);
+			else
+				idx = bisect<keyoff_t, bs_cmp_t>(offset(), size(), cmp);
+
 			if (idx == size())
 				return capacity();
 			return idx;
-		}
-		//-------------------------------------------------
-		//以当前索引位置和前缀高度,查探左边界
-		//返回值:左边界key索引;无效时返回hat.capacity()
-		uint16_t prefix_left(uint16_t curr, uint16_t key_cnt) const
-		{
-			rx_assert(is_valid());
-			if (!sorted())
-			{
-				rx_alert("hat.prefix() need sorted.");
-				return capacity();
-			}
-			const key_t *kp = key(curr);					//尝试得到当前索引对应的key指针
-			if (kp == NULL)
-				return capacity();
-
-			for (int32_t i = curr - 1;i >= 0;--i)			//从当前索引的左边开始向左遍历
-			{
-				uint16_t kl;
-				const key_t *k = key(i, &kl);
-				if (kl < key_cnt || !kcmp::equ(k, key_cnt, kp, key_cnt))
-					return i + 1;							//左向元素的前缀与指定前缀不同了,返回最后匹配的位置
-			}
-			return curr;
 		}
 		//-------------------------------------------------
 		//以当前索引位置和前缀高度,查探并更新右边界
@@ -393,55 +375,37 @@ namespace rx
 				rx_alert("hat.prefix() need sorted.");
 				return capacity();
 			}
-			const key_t *kp = key(curr);					//尝试得到当前索引对应的key指针
-			if (kp == NULL)
+
+			uint16_t kl;
+			const key_t *kp = key(curr, &kl);				//尝试得到当前索引对应的key指针
+			if (kp == NULL || kl < key_cnt)
 				return capacity();
 
-			for (int32_t i = curr + 1;i < capacity();++i)	//从当前索引的右边开始向右遍历
-			{
-				uint16_t kl;
-				const key_t *k = key(i, &kl);
-				if (kl < key_cnt || !kcmp::equ(k, key_cnt, kp, key_cnt))
-					return i - 1;							//右向元素的前缀与指定前缀不同了,返回最后匹配的位置
-			}
-			return curr;
+			//用二分法,从指定的位置之后查找指定长度的key前缀,得到右侧key偏移.
+			bs_cmp_t cmp(*this, kp, key_cnt, 1);
+			kl = size() - curr;
+			uint16_t idx = bisect_last<keyoff_t, bs_cmp_t>(offset() + curr, kl, cmp);
+			rx_assert(idx != kl);
+			return curr + idx;
 		}
 	};
 
 	//-----------------------------------------------------
-	//hat内部二分搜索需要的,==比较器,需要对keyoff_t和指定的key进行比较
-	template<class key_t, class val_t, class kcmp>
-	inline bool hat_raw_t<key_t, val_t, kcmp>::bs_cmp_t::equ(const keyoff_t& ko) const
-	{
-		rx_assert(ko.offset != 0);
-		key_t *k = parent.key(ko);
-		switch (is_pre)
-		{
-			case 0: return kcmp::equ(k, ko.key_cnt, key, key_cnt);	//key要求进行完全比较
-			case 1:
-			{
-				if (ko.key_cnt < key_cnt)
-					return false;
-				return kcmp::equ(k, key_cnt, key, key_cnt);			//key要求进行前缀比较
-			}
-		}
-		return false;
-	}
-	//-----------------------------------------------------
 	//hat内部二分搜索需要的,>比较器,需要对keyoff_t和指定的key进行比较
 	template<class key_t, class val_t, class kcmp>
-	inline bool hat_raw_t<key_t, val_t, kcmp>::bs_cmp_t::gt(const keyoff_t& ko) const
+	inline int hat_raw_t<key_t, val_t, kcmp>::bs_cmp_t::operator()(const keyoff_t& ko) const
 	{
 		rx_assert(ko.offset != 0);
 		key_t *k = parent.key(ko);
 		switch (is_pre)
 		{
-			case 0:return kcmp::cmp(k, ko.key_cnt, key, key_cnt) > 0;
+			case 0:											//全长度比较
+				return kcmp::cmp(k, ko.key_cnt, key, key_cnt);
 			case 1:
 			{
-				if (ko.key_cnt < key_cnt)
-					return false;
-				return kcmp::cmp(k, key_cnt, key, key_cnt) > 0;
+				if (ko.key_cnt < key_cnt)					//前缀长度比较
+					return -2;
+				return kcmp::cmp(k, key_cnt, key, key_cnt);
 			}
 		}
 		return false;

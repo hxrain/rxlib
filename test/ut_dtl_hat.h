@@ -189,7 +189,8 @@ void ut_dtl_hat_base_3(rx_tdd_t &rt)
 	rt.tdd_assert(strcmp("a1a2a3", k) == 0);
 	rt.tdd_assert(k[6] == 0);
 	rt.tdd_assert(k[7] == 'c');
-	rt.tdd_assert(hat.prefix_left(idx, 2) == 0);
+
+	rt.tdd_assert(hat.prefix("a1", 2,true) == 0);
 	rt.tdd_assert(hat.prefix_right(idx, 2) == 1);
 
 	k = hat.key(idx + 1);
