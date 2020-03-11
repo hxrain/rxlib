@@ -92,13 +92,13 @@ namespace rx
 	template<class key_t, class val_t, class hat_op = hat_op_t>
 	class hat_raw_t
 	{
+	public:
+		//-------------------------------------------------
+		struct keyoff_t;
 	protected:
 		//-------------------------------------------------
 		//底层空间指针,唯一存放数据的地方
 		void*				m_buff;
-
-		//-------------------------------------------------
-		struct keyoff_t;
 
 		//二分搜索需要的,==和>比较器,需要对keyoff_t和指定的key进行比较
 		class bs_cmp_t
@@ -400,17 +400,27 @@ namespace rx
 		//-------------------------------------------------
 		//尝试找到pos节点后的下一个被使用的节点(跳过中间未被使用的部分)
 		//返回值:capacity()没找到;<capacity()为元素索引
-		uint32_t next(uint32_t pos) const
+		uint16_t next(uint16_t pos) const
 		{
 			rx_assert(is_valid());
 			rx_assert(pos < capacity());
 
-			uint32_t end = capacity();
-			for (uint32_t i = pos + 1;i < end;++i)
+			uint16_t end = capacity();
+			if (sorted())
 			{
-				keyoff_t &ko = offset(i);
-				if (ko.offset)
-					return i;
+				pos += 1;
+				if (pos < size())
+					return pos;
+
+			}
+			else
+			{
+				for (uint32_t i = pos + 1;i < end;++i)
+				{
+					keyoff_t &ko = offset(i);
+					if (ko.offset)
+						return i;
+				}
 			}
 			return end;
 		}
@@ -626,7 +636,6 @@ namespace rx
 			if (m_factor <= 1)
 				m_factor = (float)1.15;
 
-			init_caps = (uint16_t)(init_caps*m_factor);
 			uint32_t size = super_t::calc_space(init_caps, key_cnt, val_cnt);
 			size = size_align8(size);
 
