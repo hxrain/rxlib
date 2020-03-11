@@ -6,6 +6,8 @@
 #include "rx_hash_data.h"
 #include "rx_cc_base.h"
 #include "rx_dtl_alg.h"
+#include "rx_mem_alloc.h"
+#include "rx_mem_alloc_cntr.h"
 
 /*
 	hash array table(hat)
@@ -21,7 +23,7 @@ namespace rx
 {
 	//-----------------------------------------------------
 	//hat运算器
-	class hat_fun_t
+	class hat_baseop_t
 	{
 	public:
 		//-------------------------------------------------
@@ -67,18 +69,37 @@ namespace rx
 	};
 
 	//-----------------------------------------------------
+	//结合了基础功能,并扩展了生存期事件的hat操作函数
+	class hat_op_t:public hat_baseop_t
+	{
+	public:
+		//-------------------------------------------------
+		//子类实现,用于在清理容器之前进行k/v的析构动作
+		template<class KT,class VT>
+		static void on_key_clear(uint16_t idx, const KT* key, uint16_t key_cnt, VT *val, uint16_t val_cnt) {}
+		//子类实现,告知一个新key产生了,便于进行k/v的初始化构造
+		template<class KT, class VT>
+		static void on_key_make(uint16_t idx, const KT* key, uint16_t key_cnt, VT *val, uint16_t val_cnt) {}
+	};
+
+	//-----------------------------------------------------
 	//计算hat占用的空间:头部占用空间 + key偏移数组占用空间 + val占用总空间 + key占用总空间
 	#define calc_hat_space(head_t,keyoff_t,capacity,key_t,key_count,val_t,val_cnt) \
 		(sizeof(head_t)+ sizeof(keyoff_t)*capacity + sizeof(val_t)*val_cnt*capacity + sizeof(key_t)*(key_count+1)*capacity)
 
 	//-----------------------------------------------------
 	//轻量级紧凑查找表
-	template<class key_t, class val_t, class kcmp = hat_fun_t>
+	template<class key_t, class val_t, class hat_op = hat_op_t>
 	class hat_raw_t
 	{
 	protected:
-		struct keyoff_t;
 		//-------------------------------------------------
+		//底层空间指针,唯一存放数据的地方
+		void*				m_buff;
+
+		//-------------------------------------------------
+		struct keyoff_t;
+
 		//二分搜索需要的,==和>比较器,需要对keyoff_t和指定的key进行比较
 		class bs_cmp_t
 		{
@@ -96,9 +117,9 @@ namespace rx
 		//定义key偏移量所需类型
 		typedef struct keyoff_t
 		{
-			uint32_t	offset;								//key所在的偏移位置
-			uint16_t	val_idx;							//key对应的val索引
-			uint16_t	key_cnt;							//key的元素数量
+			uint32_t		offset;							//key所在的偏移位置
+			uint16_t		val_idx;						//key对应的val索引
+			uint16_t		key_cnt;						//key的元素数量
 			bool operator==(const bs_cmp_t& cmp) const { return cmp(*this)==0; }
 			bool operator>(const bs_cmp_t& cmp) const { return cmp(*this)>0; }
 			bool operator<(const bs_cmp_t& cmp) const { return cmp(*this)<0; }
@@ -108,12 +129,12 @@ namespace rx
 		//定义容器头部信息结构
 		typedef struct head_t
 		{
-			uint32_t    buff_size;                          //底层空间总容量
-			uint32_t    buff_last;                          //底层空间最后可以拼装key的位置
-			uint16_t	val_cnt;							//每个值占用的元素val_t的数量
-			uint16_t	sorted;								//当前容器是否已经排序
-			uint16_t	capacity;							//最大可放置的元素数量
-			uint16_t	size;								//已经存在的元素数量
+			uint32_t		buff_size;                      //底层空间总容量
+			uint32_t		buff_last;                      //底层空间最后可以拼装key的位置
+			uint16_t		val_cnt;						//每个值占用的元素val_t的数量
+			uint16_t		capacity;						//最大可放置的元素数量
+			uint16_t		sorted;							//当前容器是否已经排序
+			uint16_t		size;							//已经存在的元素数量
 		}head_t;
 
 		//-------------------------------------------------
@@ -137,40 +158,104 @@ namespace rx
 				//现在,a和b都有值,需要比较key了
 				key_t *k1 = parent.key(a);
 				key_t *k2 = parent.key(b);
-				return kcmp::cmp(k1, a.key_cnt, k2, b.key_cnt) < 0;
+				return hat_op::cmp(k1, a.key_cnt, k2, b.key_cnt) < 0;
 			}
 		};
 		//-------------------------------------------------
-
-		//底层空间指针
-		void*			m_buff;
-		//-------------------------------------------------
 		head_t& head() const { rx_assert(m_buff != NULL); return *(head_t*)m_buff; }
 		//-------------------------------------------------
-		//绑定所需空间
+		//绑定所需空间,并进行初始化
 		bool bind(void *buff, uint32_t buff_size, uint16_t cap, uint32_t val_cnt)
 		{
 			if (m_buff)
 				return false;
-			memset(buff, 0, buff_size);
+
 			m_buff = buff;
+
 			head().buff_size = buff_size;
 			head().capacity = cap;
 			head().val_cnt = val_cnt;
+			return reset();
+		}
+		//-------------------------------------------------
+		//状态复位
+		bool reset()
+		{
+			if (!m_buff || !head().buff_size || !head().capacity)
+				return false;
+			head().sorted = 0;
 			head().size = 0;
-			head().buff_last = sizeof(head_t) + sizeof(keyoff_t)*cap + sizeof(val_t)*val_cnt*cap;
+			head().buff_last = hov_space();
+			memset((uint8_t*)m_buff + sizeof(head_t), 0, head().buff_size - sizeof(head_t));
 			return true;
 		}
 		//-------------------------------------------------
+		//计算存放head/offset/values的空间尺寸,返回字节长度.
+		uint32_t hov_space() const
+		{
+			if (!m_buff || !head().buff_size || !head().capacity)
+				return 0;
+			return sizeof(head_t) + sizeof(keyoff_t)*head().capacity + sizeof(val_t)*head().val_cnt*head().capacity;
+		}
+		//-------------------------------------------------
+		//计算存放key的空间尺寸,返回字节长度.
+		uint32_t key_space() const
+		{
+			if (!m_buff || !head().buff_size || !head().capacity)
+				return 0;
+			uint32_t hov = hov_space();
+			if (hov == 0 || hov >= head().buff_size)
+				return 0;
+			return head().buff_size - hov;
+		}
+		//-------------------------------------------------
 		//子类实现,用于空间增长.返回值告知是否扩容成功
-		virtual bool make_grow() { return false; }
+		virtual bool on_make_grow() { return false; }
+		//-------------------------------------------------
+		//子类使用,便于计算所需空间
+		static uint32_t calc_space(const uint16_t caps,const uint16_t key_cnt,const uint16_t val_cnt)
+		{
+			return calc_hat_space(head_t, keyoff_t, caps, key_t, key_cnt, val_t, val_cnt);
+		}
 	public:
 		//-------------------------------------------------
 		hat_raw_t() :m_buff(NULL) {}
-		virtual ~hat_raw_t() {}
+		virtual ~hat_raw_t() { clear(); }
 		//-------------------------------------------------
 		//判断查找表是否有效
 		bool is_valid() const { return m_buff != NULL && head().capacity != 0; }
+		//-------------------------------------------------
+		void clear()
+		{
+			if (m_buff == NULL)
+				return;
+
+			if (size())
+			{//存在有效元素,进行遍历清理
+				uint16_t val_cnt = head().val_cnt;			//得到val值长度
+				if (sorted())
+				{
+					uint16_t s = size();					//排序过的容器,进行有效key范围遍历即可
+					for (uint16_t i = 0;i < s; ++i)
+					{
+						keyoff_t& ko = offset(i);			//得到key偏移,就可得到所需k/v信息
+						hat_op::on_key_clear(i, key(ko), ko.key_cnt, value(ko), val_cnt);
+					}
+				}
+				else
+				{
+					uint16_t s = capacity();				//未排序的容器,需要进行全范围遍历
+					for (uint16_t i = 0;i < s; ++i)
+					{
+						keyoff_t& ko = offset(i);
+						if (ko.key_cnt == 0)
+							continue;						//无效key跳过不处理
+						hat_op::on_key_clear(i, key(ko), ko.key_cnt, value(ko), val_cnt);
+					}
+				}
+			}
+			reset();										//状态与数据全部复位
+		}
 		//-------------------------------------------------
 		//获取最大容量
 		uint16_t capacity() const { rx_assert(is_valid()); return head().capacity; }
@@ -237,14 +322,14 @@ namespace rx
 			uint32_t caps = capacity();
 			if (head().size >= caps || remain() < sizeof(key_t)*(key_cnt + 1))
 			{//进行容量检查与尝试扩容处理
-				if (!make_grow())
+				if (!on_make_grow())
 					return caps;
 				caps = capacity();
 				if (head().size >= caps || remain() < sizeof(key_t)*(key_cnt + 1))
 					return caps;
 			}
 
-			uint32_t hash_code = kcmp::hash(key, key_cnt);	//计算hash码
+			uint32_t hash_code = hat_op::hash(key, key_cnt);	//计算hash码
 			for (uint32_t i = 0; i < caps; ++i)
 			{//对哈希槽位进行循环顺序查找
 				uint16_t idx = (hash_code + i) % caps;      //计算当前位置
@@ -262,13 +347,14 @@ namespace rx
 					hat.buff_last += sizeof(key_t);			//后移key空间指针
 
 					++hat.size;								//元素总数增加
+					hat_op::on_key_make(idx, key, key_cnt, value(ko), head().val_cnt);
 					return idx;
 				}
 				else
 				{//目标槽位被占用了,需判断是否为重复key
 					uint16_t kc;
 					key_t *k = this->key(idx, &kc);
-					if (kcmp::equ(key, key_cnt, k, kc))
+					if (hat_op::equ(key, key_cnt, k, kc))
 					{
 						if (exist)
 							*exist = true;
@@ -294,7 +380,7 @@ namespace rx
 			else
 			{//未排序,还是按照哈希表查找
 				uint32_t caps = capacity();
-				uint32_t hash_code = kcmp::hash(key, key_cnt);	//计算hash码
+				uint32_t hash_code = hat_op::hash(key, key_cnt);	//计算hash码
 				for (uint32_t i = 0; i < caps; ++i)
 				{
 					uint16_t idx = (hash_code + i) % caps;      //计算当前位置
@@ -305,7 +391,7 @@ namespace rx
 
 					uint16_t kc;
 					key_t *k = this->key(idx, &kc);
-					if (kcmp::equ(key, key_cnt, k, kc))
+					if (hat_op::equ(key, key_cnt, k, kc))
 						return idx;
 				}
 			}
@@ -353,7 +439,7 @@ namespace rx
 			}
 			//用二分法查找指定长度的key前缀,得到一个key偏移.
 			bs_cmp_t cmp(*this, prekey, key_cnt, 1);
-			
+
 			uint32_t idx;
 			if (is_left)
 				idx = bisect_first<keyoff_t, bs_cmp_t>(offset(), size(), cmp);
@@ -414,7 +500,7 @@ namespace rx
 				const key_t *k = key(i, &l);				//尝试得到当前索引对应的key指针
 				rx_assert(k != NULL);
 				rx_assert(l >= key_cnt);
-				if (!kcmp::equ(kp, key_cnt, k, key_cnt))
+				if (!hat_op::equ(kp, key_cnt, k, key_cnt))
 					break;									//向后找,发现前缀的都不同了,没找到
 				if (l <= key_cnt || k[key_cnt] != item)
 					continue;
@@ -423,24 +509,65 @@ namespace rx
 			}
 			return capacity();
 		}
+		//-------------------------------------------------
+		//容器内容整体赋值
+		hat_raw_t& operator=(const hat_raw_t& src)
+		{
+			assign(src);
+			return *this;
+		}
+		bool assign(const hat_raw_t& src)
+		{
+			if (!is_valid()) 
+				return false;
+			if (capacity() < src.capacity()) 
+				return false;
+			if (key_space() < src.key_space()) 
+				return false;
+			if (head().val_cnt < src.head().val_cnt) 
+				return false;
+
+			clear();										//先清理本地容器
+
+			uint16_t s = src.capacity();
+			uint16_t sval_cnt = src.head().val_cnt;
+			for (uint16_t i = 0;i < s;++i)					//对来源容器进行遍历
+			{
+				keyoff_t &sko = src.offset(i);
+				if (sko.offset == 0)
+					continue;
+
+				uint16_t idx = push(src.key(sko), sko.key_cnt);
+				rx_assert(idx != capacity());				//先复制key内容
+				if (sval_cnt)
+				{
+					keyoff_t &ko = offset(idx);
+					val_t *val = value(ko);
+					val_t *sval = src.value(sko);
+					for (uint16_t j = 0;j < sval_cnt;++j)	//再循环复制值内容
+						val[j] = sval[j];
+				}
+			}
+			return true;
+		}
 	};
 
 	//-----------------------------------------------------
 	//hat内部二分搜索需要的,>比较器,需要对keyoff_t和指定的key进行比较
-	template<class key_t, class val_t, class kcmp>
-	inline int hat_raw_t<key_t, val_t, kcmp>::bs_cmp_t::operator()(const keyoff_t& ko) const
+	template<class key_t, class val_t, class hat_op>
+	inline int hat_raw_t<key_t, val_t, hat_op>::bs_cmp_t::operator()(const keyoff_t& ko) const
 	{
 		rx_assert(ko.offset != 0);
 		key_t *k = parent.key(ko);
 		switch (is_pre)
 		{
 			case 0:											//全长度比较
-				return kcmp::cmp(k, ko.key_cnt, key, key_cnt);
+				return hat_op::cmp(k, ko.key_cnt, key, key_cnt);
 			case 1:
 			{
 				if (ko.key_cnt < key_cnt)					//前缀长度比较
 					return -2;
-				return kcmp::cmp(k, key_cnt, key, key_cnt);
+				return hat_op::cmp(k, key_cnt, key, key_cnt);
 			}
 		}
 		return false;
@@ -448,15 +575,78 @@ namespace rx
 
 	//-----------------------------------------------------
 	//固定空间的hat表:元素总数;key条目类型,key平均长度;val条目类型,val长度;比较器运算类
-	template<uint16_t caps, class key_t, uint32_t key_cnt, class val_t = void*, uint32_t val_cnt = 0, class kcmp = hat_fun_t>
-	class hat_ft :public hat_raw_t<key_t, val_t, kcmp>
+	template<uint16_t caps, class key_t, uint32_t key_cnt, class val_t = void*, uint32_t val_cnt = 0, class hat_op = hat_op_t>
+	class hat_ft :public hat_raw_t<key_t, val_t, hat_op>
 	{
-		typedef hat_raw_t<key_t, val_t, kcmp> super_t;
+		typedef hat_raw_t<key_t, val_t, hat_op> super_t;
 		uint8_t		buff[calc_hat_space(typename super_t::head_t, typename super_t::keyoff_t, caps, key_t, key_cnt, val_t, val_cnt)];
 	public:
 		hat_ft() { super_t::bind(buff, sizeof(buff), caps, val_cnt); }
 	};
 
+	//-----------------------------------------------------
+	//动态空间的hat表:key条目类型,key平均长度;val条目类型,val长度;比较器运算类
+	template<class key_t, class val_t = void*,  class hat_op = hat_op_t>
+	class hat_t :public hat_raw_t<key_t, val_t, hat_op>
+	{
+		typedef hat_raw_t<key_t, val_t, hat_op> super_t;
+		mem_allotter_i	&m_mem;								//内存分配器
+		float			m_factor;							//扩容系数
+		uint16_t		m_key_cnt;
+
+		//-------------------------------------------------
+		//子类实现,用于空间增长.返回值告知是否扩容成功
+		virtual bool on_make_grow()
+		{
+			hat_t new_hat(m_mem);							//新容器,使用本容器的内存分配器
+			uint16_t cap = super_t::capacity() + 8;			//控制新容量的最小值
+			if (!new_hat.init(cap, m_key_cnt, super_t::head().val_cnt, m_factor))
+				return false;								//给新容器分配新的空间
+			
+			new_hat.assign(*this);							//将当前内容复制到新容器
+
+			uninit();										//销毁当前容器
+			super_t::m_buff = new_hat.m_buff;				//当前容器的核心数据缓冲区指向新容器
+			new_hat.m_buff = NULL;							//新容器放弃对核心缓冲区的管理,即将析构.
+			return false;
+		}
+	public:
+		//-------------------------------------------------
+		hat_t() :m_mem(rx_mem()) {}
+		hat_t(mem_allotter_i &mem) :m_mem(mem) {}
+		~hat_t() { uninit(); }
+		//-------------------------------------------------
+		//进行容器初始化,告知初始容量/平均key长度/val长度/扩容系数
+		bool init(uint16_t init_caps, uint16_t key_cnt, uint16_t val_cnt = 0, const float factor=1.2)
+		{
+			uninit();
+			m_key_cnt = key_cnt;
+
+			m_factor = factor;
+			if (m_factor <= 1)
+				m_factor = (float)1.15;
+
+			init_caps = (uint16_t)(init_caps*m_factor);
+			uint32_t size = super_t::calc_space(init_caps, key_cnt, val_cnt);
+			size = size_align8(size);
+
+			void *buff = m_mem.alloc(size);
+			if (!buff)
+				return false;
+			return super_t::bind(buff, size, init_caps, val_cnt);
+		}
+		//-------------------------------------------------
+		//容器解除,释放全部资源
+		void uninit()
+		{
+			if (super_t::m_buff==NULL)
+				return;
+			super_t::clear();
+			m_mem.free(super_t::m_buff);
+			super_t::m_buff = NULL;
+		}
+		//-------------------------------------------------
+	};
 }
 
 

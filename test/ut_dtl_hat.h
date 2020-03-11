@@ -206,8 +206,24 @@ void ut_dtl_hat_base_3(rx_tdd_t &rt)
 	rt.tdd_assert(k[6] == 'c');
 }
 
+void ut_dtl_hat_base_4(rx_tdd_t &rt)
+{
+	typedef rx::hat_t<char> hat_t;
+	hat_t hat;
+	rt.tdd_assert(hat.init(2, 6));
+	rt.tdd_assert(hat.push("a1a2a3", 6) != hat.capacity());
+	rt.tdd_assert(hat.push("c1c2c3", 6) != hat.capacity());
+	rt.tdd_assert(hat.push("a1abc", 5) != hat.capacity());
+	rt.tdd_assert(hat.push("c12c3", 5) != hat.capacity());
+	rt.tdd_assert(hat.push("b123", 4) != hat.capacity());
+
+	rt.tdd_assert(hat.find("a1a2a3", 6) != hat.capacity());
+	rt.tdd_assert(hat.find("b123", 4) != hat.capacity());
+}
+
 rx_tdd(dtl_hat)
 {
+	ut_dtl_hat_base_4(*this);
 	ut_dtl_hat_base_3(*this);
 	ut_dtl_hat_base_2(*this);
 	ut_dtl_hat_base_1(*this);
