@@ -7,6 +7,43 @@
 
 /*
 	<变长动态哈希map容器,基于紧凑哈希表>
+
+	//hat紧凑map容器基类
+	template<class key_t, class val_t, class hat_op = hat_op_t>
+	class hatmap_base_t;
+
+	//使用固定内存的紧凑哈希map(int:int)
+	template<uint32_t max_slot_count, class key_t = uint32_t, class val_t = uint32_t, class cmp_t = hat_op_t>
+	class hatmap_nft;
+
+	//使用动态内存可扩容的紧凑哈希map(int:int)
+	template<class key_t = uint32_t, class val_t = uint32_t, class cmp_t = hat_op_t>
+	class hatmap_nt;
+
+	//使用固定内存的紧凑哈希map(char*:int)
+	template<uint32_t max_slot_count, class key_t = char, uint16_t mean_cnt = 12, class val_t = uint32_t, class cmp_t = hat_op_t>
+	class hatmap_sft;
+
+	//使用动态内存可扩容的紧凑哈希map(char*:int)
+	template<class key_t = char, class val_t = uint32_t, class cmp_t = hat_op_t>
+	class hatmap_st;
+
+	//使用固定内存的紧凑哈希set(int)
+	template<uint32_t max_slot_count, class key_t = uint32_t, class cmp_t = hat_op_t>
+	class hatset_nft;
+
+	//使用动态内存可扩容的紧凑哈希set(int)
+	template<class key_t = uint32_t, class cmp_t = hat_op_t>
+	class hatset_nt;
+
+	//使用固定内存的紧凑哈希set(char*)
+	template<uint32_t max_slot_count, class key_t = char, uint16_t mean_cnt = 12, class cmp_t = hat_op_t>
+	class hatset_sft;
+
+	//使用动态内存可扩容的紧凑哈希set(char*)
+	template<class key_t = char, class cmp_t = hat_op_t>
+	class hatset_st;
+
 */
 
 namespace rx
@@ -52,6 +89,12 @@ namespace rx
 				typename cntr_t::keyoff_t &ko = m_parent->offset(m_idx);
 				return m_parent->value(ko);
 			}
+			const val_t& value() const
+			{
+				rx_assert(m_parent != NULL&&m_idx != -1);
+				typename cntr_t::keyoff_t &ko = m_parent->offset(m_idx);
+				return *m_parent->value(ko);
+			}
 			//---------------------------------------------
 			//()运算符重载,用于获取当前节点的key值
 			const key_t* operator()() const
@@ -86,15 +129,19 @@ namespace rx
 		template<class KT>
 		iterator insert(const KT *key,uint16_t key_cnt, const val_t *val, bool *dup = NULL)
 		{
+			bool exist = false;
+			if (dup == NULL) 
+				dup = &exist;
+
 			uint16_t idx=m_cntr.push(key, key_cnt, dup);
 			if (idx == m_cntr.capacity())
 				return end();
-			if (dup&&*dup)
-				return iterator(*this, idx);
+			if (*dup)
+				return iterator(m_cntr, idx);
 
 			if (val)
 			{
-				uint16_t val_cnt = m_cntr.head().val_cnt;
+				uint16_t val_cnt = m_cntr.value_cnt();
 				rx_assert(val_cnt != 0);
 
 				val_t *vp = m_cntr.value(m_cntr.offset(idx));
@@ -103,7 +150,7 @@ namespace rx
 					vp[i] = val[i];
 			}
 
-			return iterator(*this, idx);
+			return iterator(m_cntr, idx);
 		}
 		template<class KT>
 		iterator insert(const KT *key, const val_t *val=NULL, bool *dup = NULL)
@@ -111,19 +158,26 @@ namespace rx
 			return insert(key,st::strlen(key),val,dup);
 		}
 		template<class KT>
+		iterator insert(const KT *key, const val_t &val, bool *dup = NULL)
+		{
+			rx_assert(m_cntr.value_cnt() == 1);
+			return insert(key, st::strlen(key), &val, dup);
+		}
+		template<class KT>
 		iterator insert(const KT &key, const val_t *val = NULL, bool *dup = NULL)
 		{
 			return insert(&key, 1, val, dup);
 		}
 		template<class KT>
-		hatmap_base_t& operator()(const KT *key, const val_t *val = NULL)
+		hatmap_base_t& operator()(const KT *key, const val_t &val)
 		{
+			rx_assert(m_cntr.value_cnt() == 1);
 			if (insert(key, val) == end())
 				rx_alert("hatmap space is not enough.");
 			return *this;
 		}
 		template<class KT>
-		hatmap_base_t& operator()(const KT &key, const val_t *val = NULL)
+		hatmap_base_t& operator()(const KT &key, const val_t *val=NULL)
 		{
 			if (insert(key, val) == end())
 				rx_alert("hatmap space is not enough.");
@@ -135,19 +189,19 @@ namespace rx
 		iterator find(const KT *key,uint16_t key_cnt) const
 		{
 			uint16_t idx = m_cntr.find(key, key_cnt);
-			return iterator(*this, idx);
+			return iterator(m_cntr, idx);
 		}
 		template<class KT>
 		iterator find(const KT *key) const
 		{
 			uint16_t idx = m_cntr.find(key, st::strlen(key));
-			return iterator(*this, idx);
+			return iterator(m_cntr, idx);
 		}
 		template<class KT>
 		iterator find(const KT &key) const
 		{
 			uint16_t idx = m_cntr.find(key, 1);
-			return iterator(*this, idx);
+			return iterator(m_cntr, idx);
 		}
 		template<class KT>
 		iterator operator[](const KT *key) const { return find(key); }
@@ -159,7 +213,7 @@ namespace rx
 		iterator prefix(const KT *key, uint16_t pre_cnt) const
 		{
 			uint16_t idx = m_cntr.prefix(key, pre_cnt);
-			return iterator(*this, idx);
+			return iterator(m_cntr, idx);
 		}
 		//-------------------------------------------------
 		//对容器进行排序
@@ -169,60 +223,126 @@ namespace rx
 		void clear() { m_cntr.clear(); }
 	};
 
+
+
 	//-----------------------------------------------------
-	//key为uint32_t类型的哈希映射(默认val也为uint32_t)
+	//使用固定内存的紧凑哈希map(int:int)
 	//-----------------------------------------------------
 	template<uint32_t max_slot_count, class key_t = uint32_t, class val_t = uint32_t, class cmp_t = hat_op_t>
-	class hatmap_t :public hatmap_base_t<key_t, val_t, cmp_t>
+	class hatmap_nft :public hatmap_base_t<key_t, val_t, cmp_t>
 	{
 		typedef hatmap_base_t<key_t, val_t, cmp_t> super_t;
 		typedef hat_ft<max_slot_count, key_t, 1, val_t, 1, cmp_t> cntr_t;
 		cntr_t	m_cnt;
 	public:
-		~hatmap_t() { super_t::clear(); }
-		hatmap_t() :super_t(m_cnt) {}
+		~hatmap_nft() { super_t::clear(); }
+		hatmap_nft() :super_t(m_cnt) {}
 	};
-
 	//-----------------------------------------------------
-	//key为char*类型的哈希映射(默认val为uint32_t)
+	//使用动态内存可扩容的紧凑哈希map(int:int)
+	//-----------------------------------------------------
+	template<class key_t = uint32_t, class val_t = uint32_t, class cmp_t = hat_op_t>
+	class hatmap_nt :public hatmap_base_t<key_t, val_t, cmp_t>
+	{
+		typedef hatmap_base_t<key_t, val_t, cmp_t> super_t;
+		typedef hat_t<key_t, val_t, cmp_t> cntr_t;
+		cntr_t	m_cnt;
+	public:
+		~hatmap_nt() { m_cnt.uninit(); }
+		hatmap_nt(mem_allotter_i &mem) :m_cnt(mem),super_t(m_cnt) {}
+		hatmap_nt() :super_t(m_cnt) {}
+		bool init(uint16_t caps) { return m_cnt.init(caps, 1, 1); }
+		void uninit() { m_cnt.uninit(); }
+	};
+	//-----------------------------------------------------
+	//使用固定内存的紧凑哈希map(char*:int)
 	//-----------------------------------------------------
 	template<uint32_t max_slot_count, class key_t = char, uint16_t mean_cnt = 12, class val_t = uint32_t, class cmp_t = hat_op_t>
-	class hatmap_st :public hatmap_base_t<key_t, val_t, cmp_t>
+	class hatmap_sft :public hatmap_base_t<key_t, val_t, cmp_t>
 	{
 		typedef hatmap_base_t<key_t, val_t, cmp_t> super_t;
 		typedef hat_ft<max_slot_count, key_t, mean_cnt, val_t, 1, cmp_t> cntr_t;
 		cntr_t	m_cnt;
 	public:
-		~hatmap_st() { super_t::clear(); }
+		~hatmap_sft() { super_t::clear(); }
+		hatmap_sft() :super_t(m_cnt) {}
+	};
+	//-----------------------------------------------------
+	//使用动态内存可扩容的紧凑哈希map(char*:int)
+	//-----------------------------------------------------
+	template<class key_t = char, class val_t = uint32_t, class cmp_t = hat_op_t>
+	class hatmap_st :public hatmap_base_t<key_t, val_t, cmp_t>
+	{
+		typedef hatmap_base_t<key_t, val_t, cmp_t> super_t;
+		typedef hat_t<key_t, val_t, cmp_t> cntr_t;
+		cntr_t	m_cnt;
+	public:
+		~hatmap_st() { m_cnt.uninit(); }
+		hatmap_st(mem_allotter_i &mem) :m_cnt(mem), super_t(m_cnt) {}
 		hatmap_st() :super_t(m_cnt) {}
+		bool init(uint16_t caps, uint16_t mean_cnt = 12) { return m_cnt.init(caps, mean_cnt, 1); }
+		void uninit() { m_cnt.uninit(); }
 	};
 
+
+
 	//-----------------------------------------------------
-	//key为uint32_t类型的哈希集
+	//使用固定内存的紧凑哈希set(int)
 	//-----------------------------------------------------
 	template<uint32_t max_slot_count, class key_t = uint32_t, class cmp_t = hat_op_t>
-	class hatset_t :public hatmap_base_t<key_t, void*, cmp_t>
+	class hatset_nft :public hatmap_base_t<key_t, void*, cmp_t>
 	{
 		typedef hatmap_base_t<key_t, void*, cmp_t> super_t;
 		typedef hat_ft<max_slot_count, key_t, 1, void*, 0, cmp_t> cntr_t;
 		cntr_t	m_cnt;
 	public:
-		~hatset_t() { super_t::clear(); }
-		hatset_t() :super_t(m_cnt) {}
+		~hatset_nft() { super_t::clear(); }
+		hatset_nft() :super_t(m_cnt) {}
 	};
-
 	//-----------------------------------------------------
-	//key为char*类型的哈希集
+	//使用动态内存可扩容的紧凑哈希set(int)
+	//-----------------------------------------------------
+	template<class key_t = uint32_t, class cmp_t = hat_op_t>
+	class hatset_nt :public hatmap_base_t<key_t, void*, cmp_t>
+	{
+		typedef hatmap_base_t<key_t, void*, cmp_t> super_t;
+		typedef hat_t<key_t, void*, cmp_t> cntr_t;
+		cntr_t	m_cnt;
+	public:
+		~hatset_nt() { m_cnt.uninit(); }
+		hatset_nt(mem_allotter_i &mem) :m_cnt(mem), super_t(m_cnt) {}
+		hatset_nt() :super_t(m_cnt) {}
+		bool init(uint16_t caps) { return m_cnt.init(caps, 1, 0); }
+		void uninit() { m_cnt.uninit(); }
+	};
+	//-----------------------------------------------------
+	//使用固定内存的紧凑哈希set(char*)
 	//-----------------------------------------------------
 	template<uint32_t max_slot_count, class key_t = char, uint16_t mean_cnt = 12, class cmp_t = hat_op_t>
-	class hatset_st :public hatmap_base_t<key_t, void*, cmp_t>
+	class hatset_sft :public hatmap_base_t<key_t, void*, cmp_t>
 	{
 		typedef hatmap_base_t<key_t, void*, cmp_t> super_t;
 		typedef hat_ft<max_slot_count, key_t, mean_cnt, void*, 0, cmp_t> cntr_t;
 		cntr_t	m_cnt;
 	public:
-		~hatset_st() { super_t::clear(); }
+		~hatset_sft() { super_t::clear(); }
+		hatset_sft() :super_t(m_cnt) {}
+	};
+	//-----------------------------------------------------
+	//使用动态内存可扩容的紧凑哈希set(char*)
+	//-----------------------------------------------------
+	template<class key_t = char, class cmp_t = hat_op_t>
+	class hatset_st :public hatmap_base_t<key_t, void*, cmp_t>
+	{
+		typedef hatmap_base_t<key_t, void*, cmp_t> super_t;
+		typedef hat_t<key_t, void*, cmp_t> cntr_t;
+		cntr_t	m_cnt;
+	public:
+		~hatset_st() { m_cnt.uninit(); }
+		hatset_st(mem_allotter_i &mem) :m_cnt(mem), super_t(m_cnt) {}
 		hatset_st() :super_t(m_cnt) {}
+		bool init(uint16_t caps, uint16_t mean_cnt = 12) { return m_cnt.init(caps, mean_cnt, 0); }
+		void uninit() { m_cnt.uninit(); }
 	};
 }
 

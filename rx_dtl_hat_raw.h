@@ -263,6 +263,9 @@ namespace rx
 		//获取已有元素数量
 		uint16_t size() const { rx_assert(is_valid()); return head().size; }
 		//-------------------------------------------------
+		//每个val的元素数量
+		uint16_t value_cnt() const { rx_assert(is_valid()); return head().val_cnt; }
+		//-------------------------------------------------
 		//剩余可用的key存储空间
 		uint32_t remain() const { rx_assert(is_valid()); return head().buff_size - head().buff_last; }
 		//-------------------------------------------------
@@ -329,7 +332,7 @@ namespace rx
 					return caps;
 			}
 
-			uint32_t hash_code = hat_op::hash(key, key_cnt);	//计算hash码
+			uint32_t hash_code = hat_op::hash(key, key_cnt);//计算hash码
 			for (uint32_t i = 0; i < caps; ++i)
 			{//对哈希槽位进行循环顺序查找
 				uint16_t idx = (hash_code + i) % caps;      //计算当前位置
@@ -346,7 +349,7 @@ namespace rx
 					memset((uint8_t*)m_buff + hat.buff_last, 0, sizeof(key_t));//在key内容的后面留下一个0元素
 					hat.buff_last += sizeof(key_t);			//后移key空间指针
 
-					++hat.size;								//元素总数增加
+					ko.val_idx=hat.size++;					//元素总数增加,并记录此时key对应的val位置
 					hat_op::on_key_make(idx, key, key_cnt, value(ko), head().val_cnt);
 					return idx;
 				}
@@ -613,12 +616,13 @@ namespace rx
 			if (!new_hat.init(cap, m_key_cnt, super_t::head().val_cnt, m_factor))
 				return false;								//给新容器分配新的空间
 			
-			new_hat.assign(*this);							//将当前内容复制到新容器
+			if (!new_hat.assign(*this))						//将当前内容复制到新容器
+				return false;
 
 			uninit();										//销毁当前容器
 			super_t::m_buff = new_hat.m_buff;				//当前容器的核心数据缓冲区指向新容器
 			new_hat.m_buff = NULL;							//新容器放弃对核心缓冲区的管理,即将析构.
-			return false;
+			return true;
 		}
 	public:
 		//-------------------------------------------------

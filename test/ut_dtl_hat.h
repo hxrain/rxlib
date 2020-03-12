@@ -4,10 +4,11 @@
 
 #include "../rx_dtl_hat_raw.h"
 #include "../rx_tdd.h"
-#include "../rx_hash_rand.h"
+#include "../rx_dtl_hat_map.h"
+
 
 //---------------------------------------------------------
-void ut_dtl_hat_base_1(rx_tdd_t &rt)
+static void ut_dtl_hat_base_1(rx_tdd_t &rt)
 {
 	typedef rx::hat_ft<8, char, 6> hat_t;
 	hat_t hat;
@@ -67,7 +68,7 @@ void ut_dtl_hat_base_1(rx_tdd_t &rt)
 	rt.tdd_assert(k[2] == 0);
 }
 
-void ut_dtl_hat_base_2(rx_tdd_t &rt)
+static void ut_dtl_hat_base_2(rx_tdd_t &rt)
 {
 	typedef rx::hat_ft<8, char, 6> hat_t;
 	hat_t hat;
@@ -164,7 +165,7 @@ void ut_dtl_hat_base_2(rx_tdd_t &rt)
 	rt.tdd_assert(ki == hat.capacity());
 
 }
-void ut_dtl_hat_base_3(rx_tdd_t &rt)
+static void ut_dtl_hat_base_3(rx_tdd_t &rt)
 {
 	typedef rx::hat_ft<8, char, 6> hat_t;
 	hat_t hat;
@@ -206,7 +207,7 @@ void ut_dtl_hat_base_3(rx_tdd_t &rt)
 	rt.tdd_assert(k[6] == 'c');
 }
 
-void ut_dtl_hat_base_4(rx_tdd_t &rt)
+static void ut_dtl_hat_base_4(rx_tdd_t &rt)
 {
 	typedef rx::hat_t<char> hat_t;
 	hat_t hat;
@@ -221,8 +222,29 @@ void ut_dtl_hat_base_4(rx_tdd_t &rt)
 	rt.tdd_assert(hat.find("b123", 4) != hat.capacity());
 }
 
+static void ut_dtl_hatmap_base1(rx_tdd_t &rt)
+{
+	typedef rx::hatmap_st<> hat_t;
+	hat_t hat;
+	rt.tdd_assert(hat.init(2, 6));
+	rt.tdd_assert(hat.insert("a1a2a3", 6) != hat.end());
+	rt.tdd_assert(hat.insert("c1c2c3", 6) != hat.end());
+	rt.tdd_assert(hat.insert("a1abc", 5) != hat.end());
+	rt.tdd_assert(hat.insert("c12c3", 5) != hat.end());
+	rt.tdd_assert(hat.insert("b123", 4) != hat.end());
+
+	rt.tdd_assert(hat.find("a1a2a3", 6) != hat.end());
+	rt.tdd_assert(hat.find("b123", 4) != hat.end());
+
+	rt.tdd_assert(hat.find("a1a2a3").value() == 6);
+	rt.tdd_assert(hat.find("b123").value() == 4);
+
+}
+
+
 rx_tdd(dtl_hat)
 {
+	ut_dtl_hatmap_base1(*this);
 	ut_dtl_hat_base_4(*this);
 	ut_dtl_hat_base_3(*this);
 	ut_dtl_hat_base_2(*this);
