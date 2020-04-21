@@ -198,12 +198,12 @@ inline void ut_str_util_faststrstr_2(rx_tdd_t &rt)
     us.fun=(ut_strstr::strstr_t)strstr;
     uint32_t bad=us.loop();
     rt.assert(bad==0);
-    tdd_tt_msg(t, "strstr", "libc");
+    tdd_tt_msg(t, "libc");
 
     us.fun=(ut_strstr::strstr_t)rx::st::strstrx<char>;
     bad=us.loop();
     rt.assert(bad==0);
-    tdd_tt_msg(t, "strstrx", "std");
+    tdd_tt_msg(t, "rx");
 }
 //---------------------------------------------------------
 inline void ut_str_util_faststrstr_1(rx_tdd_t &rt)
