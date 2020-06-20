@@ -1,12 +1,13 @@
 #define RX_USE_TDD_TICK 1
 
-#define UT_ALL 1
-#define UT_SEL 41
+#define UT_ALL 0
+#define UT_SEL 39
 
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==42
     //轻量级紧凑查找表
 	#include "../ut_dtl_hat.h"
+	#include "../../rx_dtl_hat_map.h"
     #include "../../rx_dtl_hat_raw.h"
 #endif
 //---------------------------------------------------------
