@@ -113,6 +113,7 @@ namespace rx
 			//判断ko与*this的关系:<0,0,>0
 			int operator()(const keyoff_t& ko) const;
 		};
+	public:
 		//-------------------------------------------------
 		//定义key偏移量所需类型
 		typedef struct keyoff_t
@@ -125,6 +126,7 @@ namespace rx
 			bool operator<(const bs_cmp_t& cmp) const { return cmp(*this)<0; }
 			bool operator<=(const bs_cmp_t& cmp) const { return cmp(*this)<=0; }
 		}keyoff_t;
+	protected:
 		//-------------------------------------------------
 		//定义容器头部信息结构
 		typedef struct head_t
