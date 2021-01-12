@@ -481,7 +481,7 @@ inline uint32_t rx_hash_zob32(const void* data, uint32_t bytes, uint32_t seed = 
 	uint32_t hash = seed;
 	for (uint32_t i = 0; i < bytes; i++)
 	{
-		int r = (i + 1) % 32;
+		uint32_t r = (i + 1) % 32;
 		uint32_t value = zob_map_table[((uint8_t*)data)[i]];
 		hash ^= (value << r) | (value >> (32 - r));
 	}
@@ -492,7 +492,7 @@ inline uint64_t rx_hash_zob64(const void* data, uint32_t bytes, uint64_t seed = 
 	uint64_t hash = seed;
 	for (uint32_t i = 0; i < bytes; i++)
 	{
-		int r = (i + 1) % 64;
+		uint32_t r = (i + 1) % 64;
 		uint32_t value = zob_map_table[((uint8_t*)data)[i]];
 		hash ^= (value << r) | (value >> (64 - r));
 	}
@@ -503,7 +503,7 @@ inline uint32_t rx_hash_zob(const char *buf, uint32_t seed = 0x7ED5052A)
 	uint32_t hash = seed;
 	for (uint32_t i = 0; buf[i]; i++)
 	{
-		int r = (i + 1) % 32;
+		uint32_t r = (i + 1) % 32;
 		uint32_t value = zob_map_table[(uint8_t)buf[i]];
 		hash ^= (value << r) | (value >> (32 - r));
 	}
@@ -514,7 +514,7 @@ inline uint32_t rx_hash_zob(const wchar_t *buf, uint32_t seed = 0x7ED5052A)
 	uint32_t hash = seed;
 	for (uint32_t i = 0; buf[i]; i++)
 	{
-		int r = (i + 1) % 32;
+		uint32_t r = (i + 1) % 32;
 		uint32_t value = zob_map_table[(uint8_t)buf[i]];
 		hash ^= (value << r) | (value >> (32 - r));
 		value = zob_map_table[(uint8_t)(buf[i] >> 8)];

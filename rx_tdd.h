@@ -88,7 +88,7 @@ class rx_tdd_t
 	int         m_line_no;                                  //TDD用例所在文件的行号
 	rx_tdd_t   *m_next;                                     //TDD用例对象的链表元素后趋
 	unsigned char m_wait_key;                               //是否需要等待按键输入
-	unsigned char m_level;                                  //TDD的级别,可筛选执行的用例
+	rx_tdd_level m_level;                                   //TDD的级别,可筛选执行的用例
 
 	//-----------------------------------------------------
 	//将当前TDD用例对象绑定在TDD用例对象链表的根部
@@ -102,11 +102,11 @@ class rx_tdd_t
 		else
 		{
 			//添加后续TDD用例对象的时候
-			root.tail->m_next = this;                         //用例链表尾节点的后趋指向当前节点
-			root.tail = this;                                 //用例链表的尾节点指向当前节点
+			root.tail->m_next = this;                       //用例链表尾节点的后趋指向当前节点
+			root.tail = this;                               //用例链表的尾节点指向当前节点
 		}
-		m_next = 0;                                           //当前节点的后趋置空,代表TDD用例链表结束
-		++root._total;                                      //用例总数增加
+		m_next = 0;                                         //当前节点的后趋置空,代表TDD用例链表结束
+		++root._total;										//用例总数增加
 	}
 
 public:
@@ -175,7 +175,7 @@ public:
 	}
 	//-----------------------------------------------------
 	//出现错误的时候,是否提升进行UI等待确认
-	void enable_error_wait(bool v = true) { m_wait_key = v; }
+	void enable_error_wait(bool v = true) { m_wait_key = !!v; }
 protected:
 	//-----------------------------------------------------
 	//子类用于执行具体的测试动作

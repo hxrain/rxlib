@@ -100,9 +100,9 @@
     #include <intrin.h>
     //-----------------------------------------------------
     //计算前导1(高位)的位置,返回值(0-没有置位;1~n为比特序号)
-    inline uint8_t rx_fls(uint32_t x) { DWORD index = 0; return _BitScanReverse(&index, x) ? (uint8_t)index + 1 : 0; }
+    inline uint8_t rx_fls(uint32_t x) { DWORD index = 0; return _BitScanReverse(&index, x) ? (uint8_t)(index + 1) : 0; }
     #if RX_CC_BIT==64
-    inline uint8_t rx_fls(uint64_t x) { DWORD index = 0; return _BitScanReverse64(&index, x) ? (uint8_t)index + 1 : 0; }
+    inline uint8_t rx_fls(uint64_t x) { DWORD index = 0; return _BitScanReverse64(&index, x) ? (uint8_t)(index + 1) : 0; }
     #else
     inline uint8_t rx_fls(uint64_t x)
     {

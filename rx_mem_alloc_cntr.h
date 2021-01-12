@@ -93,7 +93,7 @@ namespace rx
 //定义默认的全局使用的内存分配器
 inline rx::mem_allotter_i& rx_global_mem_allotter()
 {
-	#if RX_DEF_ALLOC_USE_STD
+	#if defined(RX_DEF_ALLOC_USE_STD) && RX_DEF_ALLOC_USE_STD
 	static rx::mem_allotter_std_t allotter;
 	#else
 	static rx::mem_allotter_tlmap_slt allotter;

@@ -234,8 +234,8 @@ namespace rx
 //-----------------------------------------------------
 inline const char* _src_filename_(const char* fn)
 {
-	size_t len = strlen(fn);
-	for (size_t i = len - 1;i >= 0;--i)
+	int len = (int)strlen(fn);
+	for (int i = len - 1;i >= 0;--i)
 	{
 		if (fn[i] == '\\' || fn[i] == '/')
 			return fn + i + 1;

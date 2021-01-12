@@ -284,6 +284,7 @@ inline const char* rx_int_hash32_name(rx_int_hash32_type Type)
 			return "IntHash::skeeto_3s";
 		case IHT_skeeto_3sr:
 			return "IntHash::skeeto_3sr";
+		case IHT_Count:
 		default:
 			return "Hash::Unknown";
 	}
