@@ -8,7 +8,7 @@ namespace rx
 {
 	//tcp服务端可同时监听端口数的最大值
 	#ifndef RX_SVRSOCK_MAX_LISTEN_PORTS
-		#define RX_SVRSOCK_MAX_LISTEN_PORTS     8
+	#define RX_SVRSOCK_MAX_LISTEN_PORTS     8
 	#endif
 
 	//-----------------------------------------------------
@@ -48,11 +48,11 @@ namespace rx
 			return false;
 		}
 		//-------------------------------------------------
-		//查找空的socket信息的索引.
+		//查找未使用的监听者.
 		//返回值:-1不存在;其他为数组索引
 		uint32_t m_find_by_empty()
 		{
-			for (uint32_t i = 0;i < m_listeners.capacity();++i)
+			for (uint32_t i = 0; i < m_listeners.capacity(); ++i)
 			{
 				if (m_listeners[i].sock == bad_socket)
 					return i;
@@ -60,11 +60,11 @@ namespace rx
 			return -1;
 		}
 		//-------------------------------------------------
-		//根据地址信息查找对应的socket信息的索引.
+		//按地址查找监听者.
 		//返回值:-1不存在;其他为数组索引
 		uint32_t m_find_by_addr(const sock_addr_t& addr)
 		{
-			for (uint32_t i = 0;i < m_listeners.capacity();++i)
+			for (uint32_t i = 0; i < m_listeners.capacity(); ++i)
 			{
 				if (m_listeners[i].addr == addr)
 					return i;
@@ -119,7 +119,7 @@ namespace rx
 		{
 			if (port == 0)
 			{//关闭全部的监听socket
-				for (uint32_t i = 0;i < m_listeners.capacity();++i)
+				for (uint32_t i = 0; i < m_listeners.capacity(); ++i)
 				{
 					listener_t &ss = m_listeners[i];
 					if (ss.sock != bad_socket)
@@ -157,7 +157,7 @@ namespace rx
 			if (m_working.size() == 0)
 			{//不存在待处理的监听者,需要重新监听一轮了
 				sock_sets sets;
-				for (uint32_t i = 0;i < m_listeners.capacity();++i)
+				for (uint32_t i = 0; i < m_listeners.capacity(); ++i)
 				{//将监听socket放入socket集合
 					listener_t &ss = m_listeners[i];
 					if (ss.sock != bad_socket)
@@ -174,7 +174,7 @@ namespace rx
 					if (r == 0)
 						return NULL;                        //等待超时,没有新连接
 
-					for (uint32_t i = 0;i < m_listeners.capacity();++i)
+					for (uint32_t i = 0; i < m_listeners.capacity(); ++i)
 					{//现在有新连接到达了,需要分辨是发生哪个监听者上.
 						listener_t &ss = m_listeners[i];
 						if (ss.sock != bad_socket&&sets.contain(ss.sock))
@@ -189,10 +189,10 @@ namespace rx
 				if (peer_addr == NULL)
 					peer_addr = &tmp_addr;
 
-				listener_t *ss = *m_working.rbegin();       //取出当前待处理的监听者
+				listener_t *ss = *m_working.rbegin();       //从尾部取出待处理的监听者
 				rx_assert(ss != NULL);
-				new_sock = sock::accept(ss->sock, *peer_addr); //在当前监听socket上进行新连接的接收
-				m_working.pop_back();                       //重要:不管成败,当前监听者都要放弃了
+				new_sock = sock::accept(ss->sock, *peer_addr); //在监听socket上接受新连接
+				m_working.pop_back();                       //用过的监听者指针需要丢弃
 
 				if (new_sock == bad_socket)
 					return NULL;
@@ -215,7 +215,7 @@ namespace rx
 		//查找遇到的第一个空槽位索引;-1未找到.
 		uint32_t m_find_first_empty()
 		{
-			for (uint32_t i = 0;i < m_sessions.capacity();++i)
+			for (uint32_t i = 0; i < m_sessions.capacity(); ++i)
 			{
 				if (!m_sessions[i].connected())
 					return i;
@@ -245,7 +245,7 @@ namespace rx
 		void uninit()
 		{
 			m_svr.close();
-			for (uint32_t i = 0;i < m_sessions.capacity();++i)
+			for (uint32_t i = 0; i < m_sessions.capacity(); ++i)
 			{
 				tcp_session_t &ss = m_sessions[i];
 				if (ss.connected())
@@ -279,7 +279,7 @@ namespace rx
 
 			uint8_t wr_buff[1024 * 64];						//收发临时使用的缓冲区
 
-			for (uint32_t i = 0;i < m_sessions.capacity();++i)
+			for (uint32_t i = 0; i < m_sessions.capacity(); ++i)
 			{//对已连接会话进行收发处理
 				tcp_session_t &ss = m_sessions[i];
 				if (!ss.connected())

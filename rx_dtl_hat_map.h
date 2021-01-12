@@ -127,13 +127,13 @@ namespace rx
 		//-------------------------------------------------
 		//插入元素与值,给定了dup判重字段且真的重复的时候,val不会被使用
 		template<class KT>
-		iterator insert(const KT *key,uint16_t key_cnt, const val_t *val, bool *dup = NULL)
+		iterator insert(const KT *key, uint16_t key_cnt, const val_t *val, bool *dup = NULL)
 		{
 			bool exist = false;
-			if (dup == NULL) 
+			if (dup == NULL)
 				dup = &exist;
 
-			uint16_t idx=m_cntr.push(key, key_cnt, dup);
+			uint16_t idx = m_cntr.push(key, key_cnt, dup);
 			if (idx == m_cntr.capacity())
 				return end();
 			if (*dup)
@@ -146,16 +146,16 @@ namespace rx
 
 				val_t *vp = m_cntr.value(m_cntr.offset(idx));
 				rx_assert(vp != NULL);
-				for (uint16_t i = 0;i < val_cnt;++i)
+				for (uint16_t i = 0; i < val_cnt; ++i)
 					vp[i] = val[i];
 			}
 
 			return iterator(m_cntr, idx);
 		}
 		template<class KT>
-		iterator insert(const KT *key, const val_t *val=NULL, bool *dup = NULL)
+		iterator insert(const KT *key, const val_t *val = NULL, bool *dup = NULL)
 		{
-			return insert(key,st::strlen(key),val,dup);
+			return insert(key, st::strlen(key), val, dup);
 		}
 		template<class KT>
 		iterator insert(const KT *key, const val_t &val, bool *dup = NULL)
@@ -177,7 +177,7 @@ namespace rx
 			return *this;
 		}
 		template<class KT>
-		hatmap_base_t& operator()(const KT &key, const val_t *val=NULL)
+		hatmap_base_t& operator()(const KT &key, const val_t *val = NULL)
 		{
 			if (insert(key, val) == end())
 				rx_alert("hatmap space is not enough.");
@@ -186,7 +186,7 @@ namespace rx
 		//-------------------------------------------------
 		//查找元素,通过返回迭代器是否与end()相同判断是否存在
 		template<class KT>
-		iterator find(const KT *key,uint16_t key_cnt) const
+		iterator find(const KT *key, uint16_t key_cnt) const
 		{
 			uint16_t idx = m_cntr.find(key, key_cnt);
 			return iterator(m_cntr, idx);
@@ -249,7 +249,7 @@ namespace rx
 		cntr_t	m_cnt;
 	public:
 		~hatmap_nt() { m_cnt.uninit(); }
-		hatmap_nt(mem_allotter_i &mem) :m_cnt(mem),super_t(m_cnt) {}
+		hatmap_nt(mem_allotter_i &mem) :m_cnt(mem), super_t(m_cnt) {}
 		hatmap_nt() :super_t(m_cnt) {}
 		bool init(uint16_t caps) { return m_cnt.init(caps, 1, 1); }
 		void uninit() { m_cnt.uninit(); }

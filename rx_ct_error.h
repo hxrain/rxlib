@@ -29,7 +29,7 @@ namespace rx
 		error_t(const error_t& ec) :value(ec.value) {}
 		error_t(const uint16_t code, const uint16_t reason = 0) :e_reason(reason), e_code(code) {}
 		//设置错误原因码并返回自身
-		error_t reason(const uint16_t reason) { e_reason = reason;return value; }
+		error_t reason(const uint16_t reason) { e_reason = reason; return value; }
 	}error_t;
 
 
