@@ -8,68 +8,68 @@
 #include <memory.h>
 
 #if RX_IS_OS_WIN
-	#define _WINSOCK_DEPRECATED_NO_WARNINGS
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-	#include <mstcpip.h>
-	typedef SOCKET socket_t;
-	const uint32_t bad_socket = bad_socket;
-	#define RX_CHECK_WINSOCK2() WSAHtonl(0,0,0)   //语句本身无意义,仅告知需要链接ws2_32.lib,使用winsock2的API.
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <mstcpip.h>
+typedef SOCKET socket_t;
+const uint32_t bad_socket = bad_socket;
+#define RX_CHECK_WINSOCK2() WSAHtonl(0,0,0)   //语句本身无意义,仅告知需要链接ws2_32.lib,使用winsock2的API.
 
-	namespace rx
+namespace rx
+{
+	//定义全局socket环境管理器.在win上使用时必须进行socket环境的初始化.
+	class socket_env_t
 	{
-		//定义全局socket环境管理器.在win上使用时必须进行socket环境的初始化.
-		class socket_env_t
+		bool m_Inited;
+	public:
+		socket_env_t(bool AutoInit = true) :m_Inited(false)
 		{
-			bool m_Inited;
-		public:
-			socket_env_t(bool AutoInit = true) :m_Inited(false)
-			{
-				RX_CHECK_WINSOCK2();
-				if (AutoInit && !init())
-					rx_alert(os_errmsg_t().msg("socket_t env init fail."));
-			}
-			bool init()
-			{
-				if (m_Inited) return true;
-				WORD Ver = MAKEWORD((2), (2));
-				WSADATA wsaData;
-				if (WSAStartup(Ver, &wsaData))
-					return false;
-				m_Inited = true;
-				return true;
-			}
-			void uninit()
-			{
-				if (!m_Inited) return;
-				m_Inited = false;
-				WSACleanup();
-			}
-			virtual~socket_env_t() { uninit(); }
-		};
-	}
+			RX_CHECK_WINSOCK2();
+			if (AutoInit && !init())
+				rx_alert(os_errmsg_t().msg("socket_t env init fail."));
+		}
+		bool init()
+		{
+			if (m_Inited) return true;
+			WORD Ver = MAKEWORD((2), (2));
+			WSADATA wsaData;
+			if (WSAStartup(Ver, &wsaData))
+				return false;
+			m_Inited = true;
+			return true;
+		}
+		void uninit()
+		{
+			if (!m_Inited) return;
+			m_Inited = false;
+			WSACleanup();
+		}
+		virtual~socket_env_t() { uninit(); }
+	};
+}
 #else
-	#include <sys/socket.h>
-	#include <sys/ioctl.h>
-	#include <arpa/inet.h>
-	#include <netinet/in.h>
-	#include <netinet/tcp.h>
-	#include <netdb.h>
-	typedef int socket_t;
-	const int32_t bad_socket = -1;
-	#define RX_CHECK_WINSOCK2()
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <netdb.h>
+typedef int socket_t;
+const int32_t bad_socket = -1;
+#define RX_CHECK_WINSOCK2()
 
-	namespace rx
+namespace rx
+{
+	class socket_env_t
 	{
-		class socket_env_t
-		{
-		public:
-			socket_env_t(bool AutoInit = true) {}
-			bool init() { return true; }
-			void uninit() {}
-			virtual~socket_env_t() { uninit(); }
-		};
-	}
+	public:
+		socket_env_t(bool AutoInit = true) {}
+		bool init() { return true; }
+		void uninit() {}
+		virtual~socket_env_t() { uninit(); }
+	};
+}
 
 #endif
 
@@ -119,14 +119,14 @@ namespace rx
 		bool operator==(const sock_addr_t& addr)
 		{
 			return m_sa.sin_port == addr.m_sa.sin_port &&
-				   m_sa.sin_addr.s_addr == addr.m_sa.sin_addr.s_addr;
+				m_sa.sin_addr.s_addr == addr.m_sa.sin_addr.s_addr;
 		}
 		//-------------------------------------------------
 		//判断当前内部地址是否有效
 		bool is_valid() { return m_sa.sin_addr.s_addr != INADDR_NONE&&m_sa.sin_port != 0; }
 		//-------------------------------------------------
 		//设置主机字节序的端口号
-		bool set_port(uint16_t P) { m_sa.sin_port = htons(P);return true; }
+		bool set_port(uint16_t P) { m_sa.sin_port = htons(P); return true; }
 		//-------------------------------------------------
 		//得到主机字节序的端口号
 		const uint16_t port() const { return ntohs(m_sa.sin_port); }
@@ -195,19 +195,31 @@ namespace rx
 		static uint32_t lookup(const char* host)
 		{
 			if (is_empty(host)) return INADDR_ANY;
-			uint32_t ret = inet_addr(host);                 //先尝试进行IP串地址的转换
-			if (INADDR_NONE != ret) return ret;             //转换成功就直接返回
+			struct addrinfo hints, *res = NULL;
+			fillzero(hints);
 
-			struct hostent *Host = gethostbyname(host);     //再尝试进行域名的查找
-			if (Host == NULL) return INADDR_NONE;           //查找失败直接返回
-			return ((struct in_addr *)Host->h_addr)->s_addr;
+			hints.ai_family = AF_INET;						// Allow IPv4
+			hints.ai_flags = AI_PASSIVE;					// For wildcard IP address
+			hints.ai_protocol = 0;							// Any protocol 
+			hints.ai_socktype = SOCK_STREAM;
+
+			if (getaddrinfo(host, NULL, &hints, &res) != 0)
+				return INADDR_NONE;
+
+			rx_assert(res != NULL && res->ai_addr != NULL);
+			uint32_t addr = *(uint32_t*)(res->ai_addr->sa_data+2);
+			freeaddrinfo(res);
+			return addr;
 		}
 		//-------------------------------------------------
 		//将IP串转换为IP值
 		//返回值:INADDR_NONE失败;其他成功
-		static uint32_t to_ip(const char* Str)
+		static uint32_t to_ip(const char* str)
 		{
-			return inet_addr(Str);
+			uint32_t addr;
+			if (inet_pton(AF_INET, str, &addr) > 0)
+				return addr;
+			return INADDR_NONE;
 		}
 	};
 
@@ -223,7 +235,7 @@ namespace rx
 		sock_sets() { reset(); }
 		//-------------------------------------------------
 		//复位,准备重新填充
-		void reset() { FD_ZERO(&m_sets);m_size = 0;m_nfds = 0; }
+		void reset() { FD_ZERO(&m_sets); m_size = 0; m_nfds = 0; }
 		//-------------------------------------------------
 		//获取集合的最大容量与当前元素数量
 		static uint32_t capacity() { return FD_SETSIZE; }
@@ -298,14 +310,14 @@ namespace rx
 		{
 			socklen_t OutLen = sizeof(sa.addr());
 			socket_t Ret = bad_socket;
-		#if RX_IS_OS_WIN
+			#if RX_IS_OS_WIN
 			try {
 				Ret = WSAAccept(listen_sock, (struct sockaddr *)&sa.addr(), &OutLen, NULL, 0);
 			}
 			catch (...) {}
-		#else
+			#else
 			Ret = accept(listen_sock, (struct sockaddr *)&sa.addr(), &OutLen);
-		#endif
+			#endif
 			if (OutLen != (int)sizeof(sa.addr()))
 				return bad_socket;
 			return Ret;
@@ -363,12 +375,12 @@ namespace rx
 		//对这个socket进行控制操作
 		inline bool ioctrl(socket_t sock, uint32_t cmd, uint32_t& args)
 		{
-		#if RX_IS_OS_WIN
+			#if RX_IS_OS_WIN
 			return 0 == ioctlsocket(sock, cmd, (u_long*)&args);
-		#else
+			#else
 			return 0 == ::ioctl(sock, cmd, &args);
-		#endif
-		}
+			#endif
+	}
 		//-------------------------------------------------
 		//在这个socket上设置选项:选项等级(SOL_SOCKET或IPPROTO_TCP);选项编码;选项值,值长度
 		inline bool opt_set(socket_t sock, int OptionLevel, int Option, const void* OptionValue, int OptionValueLen)
@@ -426,7 +438,7 @@ namespace rx
 			if (0 != ::connect(sock, (struct sockaddr *)&sa.addr(), sizeof(sa.addr())))
 				cr = wait(sock, timeout_us, false);             //进行非阻塞连接并等待可写(连接成功)
 
-		#if !RX_IS_OS_WIN
+			#if !RX_IS_OS_WIN
 			if (cr > 0)
 			{//在linux上,需要再次判断sock内部是否有错误
 				int err;
@@ -435,9 +447,9 @@ namespace rx
 				{//修正错误的原因
 					errno = err;
 					cr = -3;
-				}
-			}
-		#endif
+		}
+}
+			#endif
 
 			if (!block_mode(sock, true))                     //将socket恢复为阻塞模式
 				return -2;
@@ -459,34 +471,34 @@ namespace rx
 
 			if (no_wait)
 			{//不需要进行关闭等待,那么就直接关闭
-		#if 0
+				#if 0
 				int value = 0;
 				setsockopt(sock, SOL_SOCKET, SO_DONTLINGER, (const char*)&value, sizeof(value));
-		#else
+				#else
 				struct linger value;
 				value.l_onoff = 1;
 				value.l_linger = 0;
 				setsockopt(sock, SOL_SOCKET, SO_LINGER, (const char*)&value, sizeof(value));
-		#endif
-			}
+				#endif
+		}
 			else
 			{
-		#if RX_IS_OS_WIN
+				#if RX_IS_OS_WIN
 				shutdown(sock, SD_SEND);                     //关闭时等待发送完成
-		#else
+				#else
 				shutdown(sock, SHUT_WR);                     //关闭时等待发送完成
-		#endif
+				#endif
 			}
 
 			bool Ret;
-		#if RX_IS_OS_WIN
+			#if RX_IS_OS_WIN
 			Ret = (0 == closesocket(sock));
-		#else
+			#else
 			Ret = (0 == ::close(sock));
-		#endif
+			#endif
 			sock = bad_socket;
 			return Ret;
-		}
+			}
 		//-------------------------------------------------
 		//在socket上查看数据:缓冲区;缓冲区长度;
 		//返回值:<发生了错误;0说明连接断开;>0为数据长度
@@ -583,15 +595,15 @@ namespace rx
 		inline bool opt_timeout(socket_t sock, uint32_t timeout_us, bool is_read)
 		{
 			int opt = is_read ? SO_RCVTIMEO : SO_SNDTIMEO;
-		#if RX_IS_OS_WIN
+			#if RX_IS_OS_WIN
 			uint32_t ms = (timeout_us + 999) / 1000;
 			return opt_set(sock, SOL_SOCKET, opt, &ms, sizeof(ms));
-		#else
+			#else
 			struct timeval tm;
 			tm.tv_sec = timeout_us / sec2us(1);
 			tm.tv_usec = timeout_us%sec2us(1);
 			return opt_set(sock, SOL_SOCKET, opt, &tm, sizeof(tm));
-		#endif
+			#endif
 		}
 		//-------------------------------------------------
 		//获取当前socket的系统收发缓冲区大小
@@ -630,7 +642,7 @@ namespace rx
 		//开启链路维持的高级模式,可以指定空闲间隔时间和探测包发送间隔时间
 		inline bool opt_keepalive_ex(socket_t sock, bool Enable, uint32_t idle_ms, uint32_t reinterval_ms = 1000)
 		{
-		#if RX_IS_OS_WIN
+			#if RX_IS_OS_WIN
 			struct tcp_keepalive keepin;
 			struct tcp_keepalive keepout;
 
@@ -639,7 +651,7 @@ namespace rx
 			keepin.onoff = Enable ? 1 : 0;
 			uint32_t keepout_len;
 			return 0 == WSAIoctl(sock, SIO_KEEPALIVE_VALS, &keepin, sizeof(keepin), &keepout, sizeof(keepout), (DWORD*)&keepout_len, NULL, NULL);
-		#else
+			#else
 			uint32_t keepAlive = Enable ? 1 : 0;
 			if (!opt_set(sock, SOL_SOCKET, SO_KEEPALIVE, (void*)&keepAlive, sizeof(keepAlive)))
 				return false;
@@ -660,7 +672,7 @@ namespace rx
 			if (!opt_set(sock, IPPROTO_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount)))
 				return false;
 			return true;
-		#endif
+			#endif
 		}
 		//-------------------------------------------------
 		//开启socket的广播模式
@@ -888,7 +900,7 @@ namespace rx
 			}
 			return sended;
 		}
-	}
+		}
 
 	//-----------------------------------------------------
 	//定义一个socket的轻量级托管类,主要的目的是为了利用析构函数关闭socket
@@ -977,6 +989,6 @@ namespace rx
 			return NULL;
 		return sock::local_ip(s, lip);
 	}
-}
+		}
 
 #endif

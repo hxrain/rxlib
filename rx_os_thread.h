@@ -3,8 +3,8 @@
 
 #include "rx_cc_macro.h"
 #include "rx_ct_atomic.h"
-#include "rx_os_lock.h"
 #include "rx_os_cond.h"
+#include "rx_lock_os.h"
 
 /*任务与线程的使用样例
 

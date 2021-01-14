@@ -2,10 +2,6 @@
 #define _RX_DTL_RINGBUFF_H_
 
 #include "rx_cc_macro.h"
-#include "rx_cc_atomic.h"
-#include "rx_os_lock.h"
-#include "rx_os_spinlock.h"
-
 
 namespace rx
 {

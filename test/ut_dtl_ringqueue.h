@@ -4,6 +4,7 @@
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
 #include "../rx_dtl_ringqueue.h"
+#include "../rx_lock_spin.h"
 #include <time.h>
 #include <stdlib.h>
 

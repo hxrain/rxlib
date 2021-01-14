@@ -1,7 +1,7 @@
 #define RX_USE_TDD_TICK 1
 
 #define UT_ALL 1
-#define UT_SEL 39
+#define UT_SEL 42
 
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==42
@@ -27,6 +27,7 @@
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==40
     //标准的同步socket功能封装
+	#include "../ut_net_sock_std.h"
     #include "../../rx_net_sock_std.h"
 #endif
 //---------------------------------------------------------
@@ -215,8 +216,9 @@
 #if UT_ALL||UT_SEL==12
     //系统同步线程锁定功能
     #include "../ut_os_lock.h"
-    #include "../../rx_os_lock.h"
-    #include "../../rx_os_spinlock.h"
+	#include "../../rx_lock_base.h"
+	#include "../../rx_lock_os.h"
+    #include "../../rx_lock_spin.h"
 #endif
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==11

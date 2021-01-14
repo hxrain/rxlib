@@ -11,8 +11,8 @@
 
 #include "rx_assert.h"
 #include "rx_ct_util.h"
-#include "rx_os_lock.h"
-#include "rx_os_spinlock.h"
+#include "rx_lock_base.h"
+#include "rx_lock_spin.h"
 
 //描述一个通用的内存分配器类型拼装宏
 //tname为最终的类型名;cfg_t为内存池参数配置;locl_t为锁类型;cntr_t为内存池容器类型;pool_t为内存池类型

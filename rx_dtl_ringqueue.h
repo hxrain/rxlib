@@ -2,9 +2,9 @@
 #define _RX_DTL_RINGQUEUE_H_
 
 #include "rx_cc_macro.h"
-#include "rx_os_spinlock.h"
 #include "rx_ct_util.h"
 #include "rx_ct_bitop.h"
+#include "rx_lock_base.h"
 
 namespace rx
 {

@@ -28,17 +28,17 @@ namespace rx
 	typedef void* ptr_t;
 
 	//-----------------------------------------------------
-#if RX_CPU_ENDIAN==RX_CPU_ENDIAN_LITTLE
-	//2字节两部分的整数访问
+	#if RX_CPU_ENDIAN==RX_CPU_ENDIAN_LITTLE
+		//2字节两部分的整数访问
 	typedef union pair16_t
 	{
-		struct { uint8_t low;uint8_t high; };
+		struct { uint8_t low; uint8_t high; };
 		uint16_t value;
 	}pair16_t;
 	//4字节两部分的整数访问
 	typedef union pair32_t
 	{
-		struct { uint16_t low;uint16_t high; };
+		struct { uint16_t low; uint16_t high; };
 		uint32_t value;
 	}pair32_t;
 	//8字节两部分的整数访问
@@ -47,8 +47,8 @@ namespace rx
 		struct { uint32_t low; uint32_t high; };
 		uint64_t value;
 	}pair64_t;
-#else
-	//2字节两部分的整数访问
+	#else
+		//2字节两部分的整数访问
 	typedef union pair16_t
 	{
 		struct { uint8_t high; uint8_t low; };
@@ -66,7 +66,7 @@ namespace rx
 		struct { uint32_t high; uint32_t low; };
 		uint64_t value;
 	}pair64_t;
-#endif
+	#endif
 
 	//-----------------------------------------------------
 	//超简单的无符号数字转字符串函数.
@@ -89,7 +89,7 @@ namespace rx
 			num /= 10;
 		}
 		uint8_t ret = 0;
-		for (uint8_t i = 0;i < MAX_LEN;++i)          //进行正向扫描,跳过前导'0'并将有效数字输出
+		for (uint8_t i = 0; i < MAX_LEN; ++i)          //进行正向扫描,跳过前导'0'并将有效数字输出
 		{
 			if (ret == 0 && buff[i] == '0')
 				continue;
@@ -118,29 +118,29 @@ namespace rx
 			}
 			switch (*(fmt + 1))
 			{
-			case '%':
-			{//特殊字符的转义字符,直接复制过去
-				buff[ret++] = '%';
-				fmt += 2;
-				continue;
-			}
-			case 'u':
-			{//无符号数字参数
-				ret += u2s(va_arg(ap, uint32_t), buff + ret);
-				fmt += 2;
-				break;
-			}
-			case 's':
-			{//字符串参数
-				const char* str = va_arg(ap, char*);
-				while (*str)
-					buff[ret++] = *str++;
-				fmt += 2;
-				break;
-			}
-			default:
-				buff[ret++] = '%';
-				++fmt;
+				case '%':
+				{//特殊字符的转义字符,直接复制过去
+					buff[ret++] = '%';
+					fmt += 2;
+					continue;
+				}
+				case 'u':
+				{//无符号数字参数
+					ret += u2s(va_arg(ap, uint32_t), buff + ret);
+					fmt += 2;
+					break;
+				}
+				case 's':
+				{//字符串参数
+					const char* str = va_arg(ap, char*);
+					while (*str)
+						buff[ret++] = *str++;
+					fmt += 2;
+					break;
+				}
+				default:
+					buff[ret++] = '%';
+					++fmt;
 			}
 		}
 		buff[ret] = 0;
@@ -166,7 +166,7 @@ namespace rx
 		char str[maxsize];
 		uint32_t size;
 		sncat() :size(0) { str[0] = 0; }
-		sncat& operator () (const char* fmt, ...) { va_list ap;va_start(ap, fmt);size += vsfmt(str + size, fmt, ap);va_end(ap);return *this; }
+		sncat& operator () (const char* fmt, ...) { va_list ap; va_start(ap, fmt); size += vsfmt(str + size, fmt, ap); va_end(ap); return *this; }
 	};
 	template<>
 	class sncat<0>
@@ -175,7 +175,7 @@ namespace rx
 		char *str;
 		uint32_t size;
 		sncat(char* buff) :str(buff), size(0) { str[0] = 0; }
-		sncat& operator () (const char* fmt, ...) { va_list ap;va_start(ap, fmt);size += vsfmt(str + size, fmt, ap);va_end(ap);return *this; }
+		sncat& operator () (const char* fmt, ...) { va_list ap; va_start(ap, fmt); size += vsfmt(str + size, fmt, ap); va_end(ap); return *this; }
 	};
 
 	//-------------------------------------------------
@@ -191,17 +191,17 @@ namespace rx
 
 	//-----------------------------------------------------
 	//取双值中的最小值
-#if !defined(min)
+	#if !defined(min)
 	template<class DT>
 	inline const DT min(const DT& a, const DT& b) { return a < b ? a : b; }
-#endif
+	#endif
 	template<class DT>
 	inline const DT Min(const DT& a, const DT& b) { return a < b ? a : b; }
 	//取双值中的最大值
-#if !defined(max)
+	#if !defined(max)
 	template<class DT>
 	inline const DT max(const DT& a, const DT& b) { return a > b ? a : b; }
-#endif
+	#endif
 	template<class DT>
 	inline const DT Max(const DT& a, const DT& b) { return a > b ? a : b; }
 	//-----------------------------------------------------
@@ -235,7 +235,7 @@ namespace rx
 inline const char* _src_filename_(const char* fn)
 {
 	int len = (int)strlen(fn);
-	for (int i = len - 1;i >= 0;--i)
+	for (int i = len - 1; i >= 0; --i)
 	{
 		if (fn[i] == '\\' || fn[i] == '/')
 			return fn + i + 1;
@@ -244,6 +244,8 @@ inline const char* _src_filename_(const char* fn)
 }
 //获得引用者所在源文件的文件名部分
 #define rx_src_filename _src_filename_(__FILE__)
-
+//-----------------------------------------------------
+//数据结构填充为0
+template<class T> inline void fillzero(T &dat) { memset(&dat, 0, sizeof(dat)); }
 #endif
 

@@ -3,7 +3,7 @@
 
 #include "rx_cc_macro.h"
 #include "rx_cc_atomic.h"
-#include "rx_os_lock.h"
+#include "rx_lock_os.h"
 
 #if RX_CC==RX_CC_CLANG
 #pragma GCC diagnostic push
@@ -12,13 +12,12 @@
 
 namespace rx
 {
-	enum { CPU_CACHELINE_SIZE = 64 };                       // 进行CACH-LINE高速缓存的优化填充
 	//------------------------------------------------------
 	//参考:  https://github.com/shines77/RingQueue/blob/master/include/RingQueue/RingQueue.h
-	//基于原子变量实现的自旋锁,不可重入
+	//基于原子变量实现的自旋锁,不可递归
 	class spin_lock_t :public lock_i
 	{
-		uint8_t     padding1[CPU_CACHELINE_SIZE / 2];
+		uint8_t     padding1[CPU_CACHELINE_SIZE / 2 - sizeof(void*)];
 		int32_t     m_lock;
 		uint8_t     padding2[CPU_CACHELINE_SIZE / 2 - sizeof(long)];
 	public:
@@ -44,18 +43,18 @@ namespace rx
 						//先进行CPU级的短休眠尝试
 						for (int32_t i = pauses; i > 0; --i)
 							rx_mm_pause();                  // 这是为支持超线程的 CPU 准备的切换提示
-						pauses = pauses << 1;					// 短自旋次数指数翻倍
+						pauses = pauses << 1;				// 短自旋次数指数翻倍
 					}
 					else
 					{
 						//进行一定周期性的调度休眠与切换
 						uint32_t yield_cnt = rounds - YIELD_THRESHOLD;
 						if ((yield_cnt & 63) == 63)
-							rx_thread_yield_us(1);          // 真正的休眠, 转入内核态
+							rx_thread_yield_us(1);          // 真正的休眠,并让出线程
 						else if ((yield_cnt & 3) == 3)
-							rx_thread_yield_us(0);          // 切换到优先级跟自己一样或更高的线程, 可以换到别的CPU核心上
-						else if (!rx_thread_yield())        // 让步给该线程所在的CPU核心上的别的线程,
-							rx_thread_yield_us(0);          // 如果同核心上没有可切换的线程,
+							rx_thread_yield_us(0);          // 切换到其他线程(优先级跟自己一样或更高的线程, 可换到别的CPU核心)
+						else if (!rx_thread_yield())        // 尝试让步给该线程所在的CPU核心上的别的线程
+							rx_thread_yield_us(0);          // 切换到其他线程(优先级跟自己一样或更高的线程, 可换到别的CPU核心)
 					}
 					++rounds;
 				} while (!trylock());						//再次尝试原子锁定

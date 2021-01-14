@@ -83,39 +83,6 @@ namespace rx
 	};
 
 	//-----------------------------------------------------
-	//基于原子标记,封装一个简单的自旋锁
-	class spin_lock
-	{
-		atomic_flag     m_flag;
-	public:
-		//--------------------------------------------------
-		//锁定
-		bool lock()
-		{
-			//尝试设置标记为真,如果返回旧值为假,则意味着抢到了锁.否则死循环.
-			while (m_flag.test_and_set());
-			return true;
-		}
-		//--------------------------------------------------
-		//解锁
-		bool unlock()
-		{
-			//原子变量清零,可能瞬间后就被其他线程置位了,也要返回成功.
-			m_flag.clear();
-			return true;
-		}
-		//--------------------------------------------------
-		//尝试锁定
-		bool trylock(uint32_t max_retry = 4000)
-		{
-			uint32_t lc = 0;
-			while (lc < max_retry&&m_flag.test_and_set())
-				++lc;
-			return lc < max_retry;
-		}
-	};
-
-	//-----------------------------------------------------
 	//最终使用的原子变量
 	typedef atomic_t<int32_t>     atomic_int_t;
 	typedef atomic_t<uint32_t>    atomic_uint_t;

@@ -4,7 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
 #include "rx_datetime_ex.h"
-#include "rx_os_lock.h"
+#include "rx_lock_os.h"
 
 namespace rx
 {

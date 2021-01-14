@@ -4,8 +4,8 @@
 #include "../rx_cc_macro.h"
 #include "../rx_tdd.h"
 #include "../rx_os_thread.h"
-#include "../rx_os_lock.h"
 #include "../rx_os_misc.h"
+#include "../rx_lock_os.h"
 
 namespace rx_ut
 {

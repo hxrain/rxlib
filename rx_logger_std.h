@@ -7,7 +7,7 @@
 #include "rx_str_util_fmt.h"
 #include "rx_str_tiny.h"
 #include "rx_os_misc.h"
-#include "rx_os_lock.h"
+#include "rx_lock_os.h"
 /*
 	//日志记录器接口
 	class logger_i;

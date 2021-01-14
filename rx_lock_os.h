@@ -3,10 +3,20 @@
 
 #include "rx_cc_macro.h"
 #include "rx_assert.h"
+#include "rx_lock_base.h"
+
+
+//#define rx_mm_pause()										//cpu级休眠指令
+#define rx_sleep rx_thread_yield							//sleep(毫秒)
+inline void rx_thread_yield(uint32_t ms);					//让线程休眠指定的时间(毫秒)
+inline bool rx_thread_yield();								//让当前线程让步给本核上的其他线程,返回值告知是否切换成功
+inline void rx_thread_yield_us(uint32_t us);				//尝试进行微秒级休眠(win上不准确)
+
+class locker_t;												//进程内可递归锁
+class rw_locker_t;											//进程内不可递归读写锁
 
 #if RX_OS_POSIX
-     #include <pthread.h>
-    //-lpthread
+    #include <pthread.h>									//-lpthread 需要链接库
     #include <unistd.h>
 
     //让线程休眠指定的时间(毫秒)
@@ -50,82 +60,6 @@
     #endif
 #endif
 
-#define rx_sleep rx_thread_yield
-
-namespace rx
-{
-    //------------------------------------------------------
-    //同步锁功能对象的统一接口
-    class lock_i
-    {
-    protected:
-        virtual ~lock_i(){}
-    public:
-        //--------------------------------------------------
-        //锁定
-        virtual bool lock(bool is_wr_lock=true)=0;
-        //--------------------------------------------------
-        //解锁
-        virtual bool unlock()=0;
-        //--------------------------------------------------
-        //尝试锁定
-        virtual bool trylock(bool is_wr_lock=true){return false;}
-    };
-
-    //------------------------------------------------------
-    //占位用的空锁,啥都不干.
-    class null_lock_t:public lock_i
-    {
-    public:
-        //--------------------------------------------------
-        //锁定
-        virtual bool lock(bool is_wr_lock=true){return true;}
-        //--------------------------------------------------
-        //解锁
-        virtual bool unlock(){return true;}
-        //--------------------------------------------------
-        //尝试锁定
-        virtual bool trylock(bool is_wr_lock=true){return true;}
-    };
-
-
-    //------------------------------------------------------
-    //封装一个锁定对象的卫兵对象,利用卫兵对象的构造与析构自动进行作用域内的锁定/解锁
-    template<class lt,bool is_wr_lock=true>
-    class guarded_t
-    {
-        lt  &m_locker;
-        int m_flag;
-    public:
-        //构造的时候加锁
-        guarded_t(lt &locker):m_locker(locker),m_flag(0)
-        {
-            rx_check(m_locker.lock(is_wr_lock));
-        }
-        //用标记控制仅应该循环一次
-        bool pass_one(){return 0==m_flag++;}
-        //析构的时候解锁
-        ~guarded_t()
-        {
-            m_locker.unlock();
-        }
-    };
-
-    //------------------------------------------------------
-    //使用宏定义,便于使用锁定对象的卫兵模式,对于读写锁来说，为写锁
-    #define GUARD_T(Locker,LT) guarded_t<LT> RX_CT_SYM(_guard_)((Locker))
-    #define GUARD(Locker) GUARD_T(Locker,lock_i)
-    //使用for语句结构进行锁定范围限定的宏定义语法糖
-    #define guard_t(Locker,LT) for(guarded_t<LT> RX_CT_SYM(_guard_for_)(Locker);RX_CT_SYM(_guard_for_).pass_one();)
-    #define guard(Locker) guard_t(Locker,lock_i)
-    //------------------------------------------------------
-    //读写锁中，读锁的语法糖定义
-    #define RGUARD_T(Locker,LT) guarded_t<LT,false> RX_CT_SYM(_guard_)((Locker))
-    #define RGUARD(Locker) RGUARD_T(Locker,lock_i)
-    //使用for语句结构进行锁定范围限定的宏定义语法糖
-    #define rguard_t(Locker,LT) for(guarded_t<LT,false> RX_CT_SYM(_guard_)(Locker);RX_CT_SYM(_guard_).pass_one();)
-    #define rguard(Locker) rguard_t(Locker,lock_i)
-}
 
 #if RX_OS_POSIX
 namespace rx
