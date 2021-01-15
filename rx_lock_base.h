@@ -78,6 +78,7 @@ namespace rx
 			return lc < m_max_retry;
 		}
 	};
+	rx_static_assert(sizeof(spin_lock_i) == CPU_CACHELINE_SIZE);
 
 	//------------------------------------------------------
 	//封装一个锁定对象的卫兵对象,利用卫兵对象的构造与析构自动进行作用域内的锁定/解锁

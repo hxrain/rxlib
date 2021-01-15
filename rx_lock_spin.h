@@ -77,6 +77,7 @@ namespace rx
 			return rx_atomic_cas(m_lock, 0, 1);
 		}
 	};
+	rx_static_assert(sizeof(spin_lock_t) == CPU_CACHELINE_SIZE);
 }
 #if RX_CC==RX_CC_CLANG
 #pragma GCC diagnostic pop

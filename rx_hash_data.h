@@ -393,20 +393,19 @@ inline uint32_t rx_hash_mosquito(const CT *buf, uint32_t seed = 0)
 
 //-----------------------------------------------------
 //https://github.com/rurban/smhasher/blob/master/fasthash.cpp
+
+//对64位整数进行一下混淆
+static inline uint64_t int_hash_mix(uint64_t h)
+{
+	h ^= h >> 23;
+	h *= 0x2127599bf4325c37ULL;
+	h ^= h >> 47;
+	return h;
+}
+
 //fasthash
 inline uint64_t rx_hash_fast64(const void *buf, uint32_t bytes, uint64_t seed = 0)
 {
-	typedef struct util
-	{
-		static inline uint64_t mix(uint64_t h)
-		{
-			h ^= h >> 23;
-			h *= 0x2127599bf4325c37ULL;
-			h ^= h >> 47;
-			return h;
-		}
-	} util;
-
 	const uint64_t    m = 0x880355f21e6d1965ULL;
 	const uint64_t *pos = (const uint64_t *)buf;
 	const uint64_t *end = pos + (bytes / 8);
@@ -416,7 +415,7 @@ inline uint64_t rx_hash_fast64(const void *buf, uint32_t bytes, uint64_t seed = 
 	while (pos != end)
 	{
 		v = *pos++;
-		h ^= util::mix(v);
+		h ^= int_hash_mix(v);
 		h *= m;
 	}
 
@@ -439,11 +438,11 @@ inline uint64_t rx_hash_fast64(const void *buf, uint32_t bytes, uint64_t seed = 
 			v ^= (uint64_t)pos2[1] << 8;
 		case 1:
 			v ^= (uint64_t)pos2[0];
-			h ^= util::mix(v);
+			h ^= int_hash_mix(v);
 			h *= m;
 	}
 
-	return util::mix(h);
+	return int_hash_mix(h);
 }
 
 inline uint32_t rx_hash_fast32(const void *buf, uint32_t bytes, uint32_t seed = 0)
@@ -453,6 +452,55 @@ inline uint32_t rx_hash_fast32(const void *buf, uint32_t bytes, uint32_t seed = 
 	// and lower parts of hashcode.
 	uint64_t h = rx_hash_fast64(buf, bytes, seed);
 	return uint32_t(h - (h >> 32));
+}
+
+//-----------------------------------------------------
+//利用不同的整数哈希函数hf,进行数据数组哈希计算(逐4字节整数遍历累计)
+//-----------------------------------------------------
+template<rx_int_hash32_t hf>
+inline uint32_t rx_data_hash32(const void* data, uint32_t bytes, uint32_t seed = 1)
+{
+	uint32_t lc = bytes >> 2;
+	uint32_t hash = seed + bytes;
+	for (uint32_t i = 0; i < lc; i++)
+		hash ^= hf(((uint32_t*)data)[i]);
+
+	uint32_t v = 0;
+	uint8_t *pos2 = (uint8_t*)((uint32_t*)data + lc);
+	switch (bytes & 3)
+	{
+		case 3:
+			v ^= (uint32_t)pos2[2] << 16;
+		case 2:
+			v ^= (uint32_t)pos2[1] << 8;
+		case 1:
+			v ^= (uint32_t)pos2[0];
+			hash ^= hf(v);
+	}
+	return hf(hash);
+}
+
+template<rx_int_hash32_t hf>
+inline uint64_t rx_data_hash64(const void* data, uint32_t bytes, uint32_t seed = 1)
+{
+	uint32_t lc = bytes >> 2;
+	uint64_t hash = seed + bytes;
+	for (uint32_t i = 0; i < lc; i++)
+		hash ^= int_hash_mix(hf(((uint32_t*)data)[i]));
+
+	uint32_t v = 0;
+	uint8_t *pos2 = (uint8_t*)((uint32_t*)data + lc);
+	switch (bytes & 3)
+	{
+		case 3:
+			v ^= (uint32_t)pos2[2] << 16;
+		case 2:
+			v ^= (uint32_t)pos2[1] << 8;
+		case 1:
+			v ^= (uint32_t)pos2[0];
+			hash ^= int_hash_mix(hf(v));
+	}
+	return int_hash_mix(hf(hash));
 }
 
 //-----------------------------------------------------
@@ -522,6 +570,7 @@ inline uint32_t rx_hash_zob(const wchar_t *buf, uint32_t seed = 0x7ED5052A)
 	}
 	return hash;
 }
+
 //-----------------------------------------------------
 //可用的数据哈希函数类型
 typedef enum rx_data_hash32_type
@@ -580,6 +629,7 @@ inline const char* rx_data_hash32_name(rx_data_hash32_type Type)
 			return "DataHash::fasthash";
 		case DHT_ZOB:
 			return "DataHash::Zobrist";
+		case DHT_Count:
 		default:
 			return "Hash::Unknown";
 	}
@@ -608,7 +658,7 @@ static const rx_data_hash32_t rx_data_hash32_funcs[] =
 const uint32_t rx_data_hash32_funcs_count = sizeof(rx_data_hash32_funcs) / sizeof(rx_data_hash32_funcs[0]);
 
 //根据哈希函数类型获取对应的哈希函数
-inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type = rx_data_hash32_type(rx_data_hash32_funcs_count - 1))
+inline rx_data_hash32_t rx_data_hash32_func(const rx_data_hash32_type type = rx_data_hash32_type(rx_data_hash32_funcs_count - 1))
 {
 	rx_static_assert(DHT_Count == rx_data_hash32_funcs_count);
 	return rx_data_hash32_funcs[(uint32_t)type >= rx_data_hash32_funcs_count ? rx_data_hash32_funcs_count - 1 : type];
@@ -616,33 +666,7 @@ inline rx_data_hash32_t rx_data_hash32(const rx_data_hash32_type type = rx_data_
 //根据哈希函数类型计算给定数据的哈希码
 inline uint32_t rx_data_hash32(const void* data, uint32_t bytes, const rx_data_hash32_type Type = rx_data_hash32_type(rx_data_hash32_funcs_count - 1), uint32_t seed = 0)
 {
-	return rx_data_hash32(Type)(data, bytes, seed);
-}
-
-//-----------------------------------------------------
-//利用不同的整数哈希函数hf,进行数据数组哈希计算(逐4字节整数遍历累计)
-//-----------------------------------------------------
-template<rx_int_hash32_t hf>
-inline uint32_t rx_data_hash32(const void* data, uint32_t bytes, uint32_t seed = 1)
-{
-	uint32_t lc = bytes >> 2;
-	uint32_t hash = seed + bytes;
-	for (uint32_t i = 0; i < lc; i++)
-		hash ^= hf(((uint32_t*)data)[i]);
-
-	uint32_t v = 0;
-	uint8_t *pos2 = (uint8_t*)((uint32_t*)data + lc);
-	switch (bytes & 3)
-	{
-		case 3:
-			v ^= (uint32_t)pos2[2] << 16;
-		case 2:
-			v ^= (uint32_t)pos2[1] << 8;
-		case 1:
-			v ^= (uint32_t)pos2[0];
-			hash ^= hf(v);
-	}
-	return hf(hash);
+	return rx_data_hash32_func(Type)(data, bytes, seed);
 }
 
 //-----------------------------------------------------

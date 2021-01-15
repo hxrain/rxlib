@@ -30,6 +30,7 @@ namespace rx
 			volatile size_type tail;
 			char padding2[CPU_CACHELINE_SIZE - sizeof(size_type)];
 		} pointing_t;
+		rx_static_assert(sizeof(pointing_t) == CPU_CACHELINE_SIZE);
 		//-------------------------------------------------
 		pointing_t          m_pointing;                     //队列的头尾指示
 		locker_t            m_locker;                       //并发控制锁
@@ -131,11 +132,4 @@ namespace rx
 		ringqueue_ft() { rx_check(superclass::bind(m_items, ST(1 << CP))); }        //构造时进行父类的空间绑定
 	};
 }
-
-
-
-
-
-
-
 #endif
