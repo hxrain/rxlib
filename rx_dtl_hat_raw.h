@@ -6,8 +6,8 @@
 #include "rx_hash_data.h"
 #include "rx_cc_base.h"
 #include "rx_dtl_alg.h"
+#include "rx_mem_alloc_base.h"
 #include "rx_mem_alloc.h"
-#include "rx_mem_alloc_cntr.h"
 
 /*
 	hash array table(hat)

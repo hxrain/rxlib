@@ -2,8 +2,8 @@
 #define _RX_DTL_SKIPLIST_H_
 
 #include "rx_cc_macro.h"
+#include "rx_mem_alloc_base.h"
 #include "rx_mem_alloc.h"
-#include "rx_mem_alloc_cntr.h"
 #include "rx_hash_rand.h"
 #include "rx_dtl_skiplist_raw.h"
 #include <time.h>

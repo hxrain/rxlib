@@ -5,7 +5,7 @@
 #include "rx_cc_macro.h"
 #include "rx_ct_util.h"
 #include "rx_assert.h"
-#include "rx_mem_alloc_cntr.h"
+#include "rx_mem_alloc.h"
 
 namespace rx
 {

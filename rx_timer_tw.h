@@ -4,7 +4,7 @@
 #include "rx_cc_macro.h"
 #include "rx_dtl_list.h"
 #include "rx_dtl_queue.h"
-#include "rx_mem_alloc_cntr.h"
+#include "rx_mem_alloc.h"
 #include "rx_ct_util.h"
 #include "rx_ct_delegate.h"
 

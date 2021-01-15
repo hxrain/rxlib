@@ -2,7 +2,7 @@
 #define _RX_RAW_SKIPLIST_H__
 
 #include "rx_cc_macro.h"
-#include "rx_mem_alloc.h"
+#include "rx_mem_alloc_base.h"
 #include "rx_hash_rand.h"
 #include <time.h>
 

@@ -245,8 +245,8 @@
 #if UT_ALL||UT_SEL==8
     //内存分配器接口与内存分配容器
     #include "../ut_mem_alloc.h"
-    #include "../../rx_mem_alloc_cntr.h"
-    #include "../../rx_mem_alloc.h"
+    #include "../../rx_mem_alloc_base.h"
+	#include "../../rx_mem_alloc.h"
 #endif
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==7

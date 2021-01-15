@@ -2,7 +2,7 @@
 #define _RX_DTL_HASHTBL_EX_H_
 
 #include "rx_dtl_hashtbl.h"
-#include "rx_mem_alloc_cntr.h"
+#include "rx_mem_alloc.h"
 /*
 	定长动态分配的哈希表
 */

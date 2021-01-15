@@ -4,8 +4,8 @@
 #include "rx_cc_macro.h"
 #include "rx_dtl_list_raw.h"
 #include "rx_dtl_stack.h"
+#include "rx_mem_alloc_base.h"
 #include "rx_mem_alloc.h"
-#include "rx_mem_alloc_cntr.h"
 #include "rx_str_tiny.h"
 
 /*
