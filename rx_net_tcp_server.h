@@ -2,7 +2,7 @@
 #define RX_NET_TCP_SERVER_H
 
 #include "rx_net_tcp_client.h"
-#include "rx_net_tcp_svrsock.h"
+#include "rx_net_tcp_listener.h"
 
 namespace rx
 {

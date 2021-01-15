@@ -12,9 +12,8 @@ namespace rx
 	//-----------------------------------------------------
 	class tcp_session_t;
 	//tcp连接事件的委托类型:tcp会话对象;会话是否为tcp客户端;事件没有返回值
-	typedef delegate2_t<tcp_session_t&, bool, void> tcp_evt_conn_t;
 	//tcp断开事件的委托类型:tcp会话对象;是否由错误引发会话断开;事件没有返回值
-	typedef delegate2_t<tcp_session_t&, bool, void> tcp_evt_disconn_t;
+	typedef delegate2_t<tcp_session_t&, bool, void> tcp_event_cb;
 
 	//-----------------------------------------------------
 	//tcp会话使用的配置参量,抽取出公共对象,节省内存.
@@ -24,10 +23,10 @@ namespace rx
 		uint32_t                timeout_us_wr;              //发送超时us
 		uint32_t                timeout_us_conn;            //连接超时us
 		logger_i               &logger;                     //错误日志记录器
-		tcp_evt_conn_t          on_connect;                 //事件委托:tcp会话连接成功
-		tcp_evt_disconn_t       on_disconnect;              //事件委托:tcp会话连接断开
-		sock::event_rw_t        on_recv;                    //事件委托:tcp会话接收到数据
-		sock::event_rw_t        on_send;                    //事件委托:tcp会话发送了数据
+		tcp_event_cb			on_connect;                 //事件委托:tcp会话连接成功
+		tcp_event_cb			on_disconnect;              //事件委托:tcp会话连接断开
+		sock::event_rw_cb       on_recv;                    //事件委托:tcp会话接收到数据
+		sock::event_rw_cb       on_send;                    //事件委托:tcp会话发送了数据
 		tcp_sesncfg_t(logger_i &log) :timeout_us_rd(ms2us(500)), timeout_us_wr(ms2us(500)), timeout_us_conn(sec2us(3)), logger(log) {}
 	}
 	tcp_sesncfg_t;
@@ -106,7 +105,7 @@ namespace rx
 				timeout_us = sc.timeout_us_wr;
 
 			//尝试确定发送事件的委托
-			sock::event_rw_t *evt = sc.on_send.is_valid() ? &sc.on_send : NULL;
+			sock::event_rw_cb *evt = sc.on_send.is_valid() ? &sc.on_send : NULL;
 			//进行真正的循环发送
 			int32_t rc = sock::write_loop(m_sock, data, size, timeout_us, evt, this);
 			if (rc > 0)
@@ -134,7 +133,7 @@ namespace rx
 				timeout_us = sc.timeout_us_rd;
 
 			//尝试确定接收事件的委托
-			sock::event_rw_t *evt = sc.on_recv.is_valid() ? &sc.on_recv : NULL;
+			sock::event_rw_cb *evt = sc.on_recv.is_valid() ? &sc.on_recv : NULL;
 
 			//进行真正的循环接收
 			uint32_t recved = len;
@@ -176,7 +175,7 @@ namespace rx
 				timeout_us = sc.timeout_us_rd;
 
 			//尝试确定接收事件的委托
-			sock::event_rw_t *evt = sc.on_recv.is_valid() ? &sc.on_recv : NULL;
+			sock::event_rw_cb *evt = sc.on_recv.is_valid() ? &sc.on_recv : NULL;
 
 			//进行真正的循环接收
 			sock::recv_buff_i ri((uint8_t*)buff, len, false);
@@ -200,7 +199,7 @@ namespace rx
 				timeout_us = sc.timeout_us_rd;
 
 			//尝试确定接收事件的委托
-			sock::event_rw_t *evt = sc.on_recv.is_valid() ? &sc.on_recv : NULL;
+			sock::event_rw_cb *evt = sc.on_recv.is_valid() ? &sc.on_recv : NULL;
 
 			//进行真正的循环接收
 			sock::recv_tag_i ri((uint8_t*)buff, len, false);
