@@ -22,7 +22,7 @@ inline uint16_t rx_raw_uni2gbk(uint16_t uni);
 inline uint16_t rx_raw_gbk2uni(uint16_t gbk);
 
 //---------------------------------------------------------
-//http://icu-project.org/repos/icu/data/trunk/charset/source/gb18030/gbkuni30.txt
+//https://github.com/unicode-org/icu-data/tree/master/charset/source/gb18030/gbkuni30.txt
 //根据gbkuni30.txt(uni:gbk)生成的基础unicode2gbk的映射表
 typedef struct rx_uni_gbk_item
 {
