@@ -440,7 +440,7 @@
 
     //-----------------------------------------------------
     //静态断言的实现(基于位域尺寸不能为0的特性,再结合结构体类型定义.)
-    #define rx_static_assert(cond) struct RX_CT_SYM(rx_static_assert) {char static_assert_fail:(cond);}
+    #define rx_static_assert(cond) struct RX_CT_SYM(rx_static_assert) {int static_assert_fail:(cond);}
 
     //ms毫秒到us微秒
     #define ms2us(ms) (1000*ms)

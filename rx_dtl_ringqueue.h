@@ -28,9 +28,9 @@ namespace rx
 			char padding1[CPU_CACHELINE_SIZE - sizeof(size_type)];
 
 			volatile size_type tail;
-			char padding2[CPU_CACHELINE_SIZE - sizeof(size_type)];
+			char padding2[CPU_CACHELINE_SIZE - sizeof(size_type)]; //头尾占用两个缓存线,互不干扰
 		} pointing_t;
-		rx_static_assert(sizeof(pointing_t) == CPU_CACHELINE_SIZE);
+		
 		//-------------------------------------------------
 		pointing_t          m_pointing;                     //队列的头尾指示
 		locker_t            m_locker;                       //并发控制锁
@@ -61,7 +61,7 @@ namespace rx
 		virtual ~ringqueue_t() {}
 	public:
 		//-------------------------------------------------
-		ringqueue_t() :m_array(NULL), m_mask(0) {}
+		ringqueue_t() :m_array(NULL), m_mask(0) { rx_static_assert(sizeof(pointing_t) == CPU_CACHELINE_SIZE*2); }
 		//-------------------------------------------------
 		//获取队列长度,返回值与能力值相同则队列满了
 		size_type   size() const

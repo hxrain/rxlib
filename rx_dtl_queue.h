@@ -164,12 +164,7 @@ namespace rx
 				m_cache.pop_front();
 				return ret;
 			}
-			else
-			{
-				mem_allotter_i &ma = m_cache.mem();
-				return ma.make<obj_t>();
-			}
-
+			return m_cache.mem().make<obj_t>();
 		}
 		//-------------------------------------------------
 		//归还指定的对象,可以告知是放入缓存的尾部还是头部
@@ -182,10 +177,7 @@ namespace rx
 			else
 				rc = m_cache.push_front(obj) != m_cache.end();
 			if (!rc)
-			{
-				mem_allotter_i &ma = m_cache.mem();
-				ma.unmake(obj);
-			}
+				m_cache.mem().unmake(obj);
 			return rc;
 		}
 		//-------------------------------------------------
