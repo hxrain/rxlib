@@ -6,7 +6,7 @@
 #include "rx_lock_base.h"
 
 
-//#define rx_mm_pause()										//cpu级休眠指令
+
 #define rx_sleep rx_thread_yield							//sleep(毫秒)
 inline void rx_thread_yield(uint32_t ms);					//让线程休眠指定的时间(毫秒)
 inline bool rx_thread_yield();								//让当前线程让步给本核上的其他线程,返回值告知是否切换成功
@@ -38,8 +38,6 @@ class rw_locker_t;											//进程内不可递归读写锁
     //让当前线程让步给本核上的其他线程,返回值告知是否切换成功
     inline bool rx_thread_yield() { return !sched_yield(); }
 
-    #define rx_mm_pause() __asm__ __volatile__ ("pause\n")
-
 #elif RX_IS_OS_WIN
 
     #include <process.h>
@@ -53,11 +51,6 @@ class rw_locker_t;											//进程内不可递归读写锁
     //让当前线程让步给本核上的其他线程,返回值告知是否切换成功
     inline bool rx_thread_yield() {return !!SwitchToThread();}
 
-    #if (RX_CC==RX_CC_CLANG)||(RX_CC==RX_CC_GCC)
-        #define rx_mm_pause() __asm__ __volatile__ ("pause\n")
-    #else
-        #define rx_mm_pause() _mm_pause()
-    #endif
 #endif
 
 

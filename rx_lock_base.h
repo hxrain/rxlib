@@ -5,6 +5,14 @@
 #include "rx_assert.h"
 #include "rx_cc_atomic.h"
 
+
+//PAUSE指令提升了自旋等待循环的性能,处理器利用这个提示可以避免在大多数情况下的内存顺序违规
+#if (RX_CC==RX_CC_CLANG)||(RX_CC==RX_CC_GCC)
+	#define rx_mm_pause() __asm__ __volatile__ ("pause\n")
+#else
+	#define rx_mm_pause() _mm_pause()
+#endif
+
 namespace rx
 {
 	//------------------------------------------------------
@@ -57,7 +65,7 @@ namespace rx
 		{
 			//尝试设置标记为真,如果返回旧值为假,则意味着抢到了锁.否则死循环.
 			mem_barrier();
-			while (!rx_atomic_cas(m_lock, 0, 1));
+			while (!rx_atomic_cas(m_lock, 0, 1)) rx_mm_pause();
 			return true;
 		}
 		//--------------------------------------------------
@@ -73,8 +81,10 @@ namespace rx
 		bool trylock(bool is_wr_lock = true)
 		{
 			uint32_t lc = 0;
-			while (lc < m_max_retry && !rx_atomic_cas(m_lock, 0, 1))
+			while (lc < m_max_retry && !rx_atomic_cas(m_lock, 0, 1)) {
+				rx_mm_pause();
 				++lc;
+			}
 			return lc < m_max_retry;
 		}
 	};

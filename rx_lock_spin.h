@@ -11,18 +11,19 @@
 #endif
 
 #if !defined(RX_SPIN_ROUND_THRESHOLD)
-#define RX_SPIN_ROUND_THRESHOLD 8							// 自旋轮数阀值,进行休眠策略的调整
+#define RX_SPIN_ROUND_THRESHOLD 10							// 自旋轮数阀值,进行休眠策略的调整
 #endif
 
 //---------------------------------------------------------
 //自旋锁高级休眠策略:rounds记录第几轮休眠;pauses记录低轮数模式中的空转次数(建议使用2的n次方);THRESHOLD告知高低轮数切换临界点.
-inline void rx_spin_loop_pause(uint32_t &rounds, uint32_t &pauses, const uint32_t THRESHOLD = RX_SPIN_ROUND_THRESHOLD)
+inline void rx_spin(uint32_t &rounds, uint32_t &pauses, const uint32_t THRESHOLD = RX_SPIN_ROUND_THRESHOLD)
 {
+	rx_assert(THRESHOLD <= 32);
 	if (rounds < THRESHOLD)
 	{
 		//先进行CPU级的短休眠尝试
 		for (int32_t i = pauses; i > 0; --i)
-			rx_mm_pause();									// 这是为支持超线程的 CPU 准备的切换提示
+			rx_mm_pause();									// 自旋提示
 		pauses = pauses << 1;								// 短自旋次数指数翻倍
 	}
 	else
@@ -41,6 +42,20 @@ inline void rx_spin_loop_pause(uint32_t &rounds, uint32_t &pauses, const uint32_
 
 namespace rx
 {
+	//------------------------------------------------------
+	// 自旋锁多策略休眠功能
+	class spin_sleep_t
+	{
+		uint32_t m_rounds;									//记录休眠轮数
+		uint32_t m_pauses;									//记录快速休眠的空转次数
+	public:
+		spin_sleep_t() :m_rounds(0), m_pauses(1) {}
+		//进行休眠
+		void operator()(uint32_t threshold = RX_SPIN_ROUND_THRESHOLD) { rx_spin(m_rounds, m_pauses, threshold); }
+		//获取已休眠轮数
+		uint32_t rounds() { return m_rounds; }
+	};
+
 	//------------------------------------------------------
 	//参考:  https://github.com/shines77/RingQueue/blob/master/include/RingQueue/RingQueue.h
 	//基于原子变量实现的自旋锁,不可递归
@@ -61,10 +76,9 @@ namespace rx
 			if (rx_atomic_swap(m_lock, 1) != 0)				// 旧值为0时(空锁)则直接成功
 			{
 				// 原子锁定进行循环尝试,中间夹杂必要的调度休眠
-				uint32_t rounds = 0;
-				uint32_t pauses = 4;
+				spin_sleep_t spin;
 				do
-					rx_spin_loop_pause(rounds, pauses, RX_SPIN_ROUND_THRESHOLD);// 进行休眠
+					spin();									// 进行休眠
 				while (!trylock());							// 再次尝试原子锁定
 			}
 			return true;
@@ -103,13 +117,12 @@ namespace rx
 			mem_barrier();                                  // 编译器读写屏障
 			rx_atomic_add(m_lock, 1);						// 计数增加
 
-			uint32_t rounds = 0;
-			uint32_t pauses = 4;
-			do {
-				rx_spin_loop_pause(rounds, pauses, RX_SPIN_ROUND_THRESHOLD);// 进行休眠
-				if (timeout_rounds && rounds > timeout_rounds)
+			spin_sleep_t spin;
+			while (!rx_atomic_load(m_lock)) {				// 判断发令枪是否触发
+				spin();										// 进行休眠
+				if (timeout_rounds && spin.rounds() > timeout_rounds)
 					return false;							// 轮数超时
-			} while (!rx_atomic_load(m_lock));				// 判断发令枪是否触发
+			}
 
 			return true;
 		}
@@ -119,13 +132,12 @@ namespace rx
 		{
 			mem_barrier();                                  // 编译器读写屏障
 
-			uint32_t rounds = 0;
-			uint32_t pauses = 4;
-			do {
-				rx_spin_loop_pause(rounds, pauses, RX_SPIN_ROUND_THRESHOLD);// 进行休眠
-				if (timeout_rounds && rounds > timeout_rounds)
+			spin_sleep_t spin;
+			while (rx_atomic_load(m_lock) != expected) {	// 等待人员都到齐
+				spin();										// 进行休眠
+				if (timeout_rounds && spin.rounds() > timeout_rounds)
 					return false;							// 轮数超时
-			} while (rx_atomic_load(m_lock) != expected);	// 等待人员都到齐
+			}
 
 			rx_atomic_store(m_lock, 0);                     // 发令枪响了
 			return true;
