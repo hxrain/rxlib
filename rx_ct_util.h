@@ -18,18 +18,18 @@ namespace rx
 	{
 		//--------------------------------------------------
 		//根据类型信息,对一个数组中的所有元素逐一调用析构函数
-		template <class T>	static inline void do_array_destroy(T, const uint32_t, const rx_type_true_t&) {}
-		template <class T>	static inline void do_array_destroy(T* Array, const uint32_t Count, const rx_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OD(&Array[i]); }
+		template <class T>	static inline void do_array_destroy(T, const uint32_t, const ct_type_true_t&) {}
+		template <class T>	static inline void do_array_destroy(T* Array, const uint32_t Count, const ct_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OD(&Array[i]); }
 		//--------------------------------------------------
 		//根据类型偏特化判断的数组构造函数
-		template <class T>  static inline void do_array_construct(T* p, const uint32_t Count, const rx_type_true_t&) {}
-		template <class T>	static inline void do_array_construct(T* p, const uint32_t Count, const rx_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OC(p + i); }
+		template <class T>  static inline void do_array_construct(T* p, const uint32_t Count, const ct_type_true_t&) {}
+		template <class T>	static inline void do_array_construct(T* p, const uint32_t Count, const ct_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OC(p + i); }
 		template <class T, class PT1>
-		static inline void do_array_construct(T* p, const uint32_t Count, PT1& P1, const rx_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OC(p + i, P1); }
+		static inline void do_array_construct(T* p, const uint32_t Count, PT1& P1, const ct_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OC(p + i, P1); }
 		template <class T, class PT1, class PT2>
-		static inline void do_array_construct(T* p, const uint32_t Count, PT1& P1, PT2 &P2, const rx_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OC(p + i, P1, P2); }
+		static inline void do_array_construct(T* p, const uint32_t Count, PT1& P1, PT2 &P2, const ct_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OC(p + i, P1, P2); }
 		template <class T, class PT1, class PT2, class PT3>
-		static inline void do_array_construct(T* p, const uint32_t Count, PT1& P1, PT2 &P2, PT3& P3, const rx_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OC(p + i, P1, P2, P3); }
+		static inline void do_array_construct(T* p, const uint32_t Count, PT1& P1, PT2 &P2, PT3& P3, const ct_type_false_t&) { for (uint32_t i = 0; i < Count; i++) OC(p + i, P1, P2, P3); }
 	public:
 		//--------------------------------------------------
 		//进行对象构造
@@ -63,49 +63,49 @@ namespace rx
 		template <class T>
 		static inline T* AC(T* Array, const uint32_t Count)
 		{
-			typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+			typedef typename ct_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
 			do_array_construct(Array, Count, trivial_default_constructor());
 			return Array;
 		}
 		template <class T, class PT1>
 		static inline T* AC(T* Array, const uint32_t Count, PT1& P1)
 		{
-			typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+			typedef typename ct_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
 			do_array_construct(Array, Count, P1, trivial_default_constructor());
 			return Array;
 		}
 		template <class T, class PT1>
 		static inline T* AC(T* Array, const uint32_t Count, const PT1& P1)
 		{
-			typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+			typedef typename ct_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
 			do_array_construct(Array, Count, P1, trivial_default_constructor());
 			return Array;
 		}
 		template <class T, class PT1, class PT2>
 		static inline T* AC(T* Array, const uint32_t Count, PT1& P1, PT2& P2)
 		{
-			typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+			typedef typename ct_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
 			do_array_construct(Array, Count, P1, P2, trivial_default_constructor());
 			return Array;
 		}
 		template <class T, class PT1, class PT2>
 		static inline T* AC(T* Array, const uint32_t Count, const PT1& P1, const PT2& P2)
 		{
-			typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+			typedef typename ct_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
 			do_array_construct(Array, Count, P1, P2, trivial_default_constructor());
 			return Array;
 		}
 		template <class T, class PT1, class PT2, class PT3>
 		static inline T* AC(T* Array, const uint32_t Count, PT1& P1, PT2& P2, PT3& P3)
 		{
-			typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+			typedef typename ct_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
 			do_array_construct(Array, Count, P1, P2, P3, trivial_default_constructor());
 			return Array;
 		}
 		template <class T, class PT1, class PT2, class PT3>
 		static inline T* AC(T* Array, const uint32_t Count, const PT1& P1, const PT2& P2, PT3& P3)
 		{
-			typedef typename rx_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
+			typedef typename ct_type_check_t<T>::has_trivial_default_constructor trivial_default_constructor;
 			do_array_construct(Array, Count, P1, P2, P3, trivial_default_constructor());
 			return Array;
 		}
@@ -114,7 +114,7 @@ namespace rx
 		template <class T>
 		static inline void AD(T* Array, const uint32_t Count)
 		{
-			typedef typename rx_type_check_t<T>::has_trivial_destructor trivial_destructor;
+			typedef typename ct_type_check_t<T>::has_trivial_destructor trivial_destructor;
 			do_array_destroy(Array, Count, trivial_destructor());
 		}
 	};
@@ -252,124 +252,7 @@ namespace rx
 	//=====================================================
 	//计算指定指针偏移后的地址
 	#define byte_ptr(p,offset) (((uint8_t*)p)+offset)
-	/*
-	//=====================================================
-	//判断指针指向的联系n字节数据是否为0
-	#define equ_zero_1(p)  (*(uint8_t*)p==0)
-	#define equ_zero_2(p)  (*(uint16_t*)p==0)
-	#define equ_zero_3(p)  (equ_zero_2 (p)&&equ_zero_1(byte_ptr(p,2)))
-	#define equ_zero_4(p)  (*(uint32_t*)p==0)
-	#define equ_zero_5(p)  (equ_zero_4 (p)&&equ_zero_1(byte_ptr(p,4)))
-	#define equ_zero_6(p)  (equ_zero_4 (p)&&equ_zero_2(byte_ptr(p,4)))
-	#define equ_zero_7(p)  (equ_zero_4 (p)&&equ_zero_3(byte_ptr(p,4)))
-	#if RX_CC_BIT==64
-	#define equ_zero_8(p)  (*(uint64_t*)p==0)
-	#else
-	#define equ_zero_8(p)  (equ_zero_4(p)&&equ_zero_4(byte_ptr(p,4)))
-	#endif
-	#define equ_zero_9(p)  (equ_zero_8 (p)&&equ_zero_1(byte_ptr(p,8)))
-	#define equ_zero_10(p) (equ_zero_8 (p)&&equ_zero_2(byte_ptr(p,8)))
-	#define equ_zero_11(p) (equ_zero_8 (p)&&equ_zero_3(byte_ptr(p,8)))
-	#define equ_zero_12(p) (equ_zero_8 (p)&&equ_zero_4(byte_ptr(p,8)))
-	#define equ_zero_13(p) (equ_zero_8 (p)&&equ_zero_5(byte_ptr(p,8)))
-	#define equ_zero_14(p) (equ_zero_8 (p)&&equ_zero_6(byte_ptr(p,8)))
-	#define equ_zero_15(p) (equ_zero_8 (p)&&equ_zero_7(byte_ptr(p,8)))
-	#define equ_zero_16(p) (equ_zero_8 (p)&&equ_zero_8(byte_ptr(p,8)))
-	#define equ_zero_17(p) (equ_zero_16(p)&&equ_zero_1(byte_ptr(p,16)))
-	#define equ_zero_18(p) (equ_zero_16(p)&&equ_zero_2(byte_ptr(p,16)))
-	#define equ_zero_19(p) (equ_zero_16(p)&&equ_zero_3(byte_ptr(p,16)))
-	#define equ_zero_20(p) (equ_zero_16(p)&&equ_zero_4(byte_ptr(p,16)))
-	#define equ_zero_21(p) (equ_zero_16(p)&&equ_zero_5(byte_ptr(p,16)))
-	#define equ_zero_22(p) (equ_zero_16(p)&&equ_zero_6(byte_ptr(p,16)))
-	#define equ_zero_23(p) (equ_zero_16(p)&&equ_zero_7(byte_ptr(p,16)))
-	#define equ_zero_24(p) (equ_zero_16(p)&&equ_zero_8(byte_ptr(p,16)))
-	#define equ_zero_25(p) (equ_zero_24(p)&&equ_zero_1(byte_ptr(p,24)))
-	#define equ_zero_26(p) (equ_zero_24(p)&&equ_zero_2(byte_ptr(p,24)))
-	#define equ_zero_27(p) (equ_zero_24(p)&&equ_zero_3(byte_ptr(p,24)))
-	#define equ_zero_28(p) (equ_zero_24(p)&&equ_zero_4(byte_ptr(p,24)))
-	#define equ_zero_29(p) (equ_zero_24(p)&&equ_zero_5(byte_ptr(p,24)))
-	#define equ_zero_30(p) (equ_zero_24(p)&&equ_zero_6(byte_ptr(p,24)))
-	#define equ_zero_31(p) (equ_zero_24(p)&&equ_zero_7(byte_ptr(p,24)))
-	#define equ_zero_32(p) (equ_zero_24(p)&&equ_zero_8(byte_ptr(p,24)))
-	#define equ_zero_33(p) (equ_zero_32(p)&&equ_zero_1(byte_ptr(p,32)))
-	#define equ_zero_34(p) (equ_zero_32(p)&&equ_zero_2(byte_ptr(p,32)))
-	#define equ_zero_35(p) (equ_zero_32(p)&&equ_zero_3(byte_ptr(p,32)))
-	#define equ_zero_36(p) (equ_zero_32(p)&&equ_zero_4(byte_ptr(p,32)))
-	#define equ_zero_37(p) (equ_zero_32(p)&&equ_zero_5(byte_ptr(p,32)))
-	#define equ_zero_38(p) (equ_zero_32(p)&&equ_zero_6(byte_ptr(p,32)))
-	#define equ_zero_39(p) (equ_zero_32(p)&&equ_zero_7(byte_ptr(p,32)))
-	#define equ_zero_40(p) (equ_zero_32(p)&&equ_zero_8(byte_ptr(p,32)))
-	#define equ_zero_41(p) (equ_zero_40(p)&&equ_zero_1(byte_ptr(p,40)))
-	#define equ_zero_42(p) (equ_zero_40(p)&&equ_zero_2(byte_ptr(p,40)))
-	#define equ_zero_43(p) (equ_zero_40(p)&&equ_zero_3(byte_ptr(p,40)))
-	#define equ_zero_44(p) (equ_zero_40(p)&&equ_zero_4(byte_ptr(p,40)))
-	#define equ_zero_45(p) (equ_zero_40(p)&&equ_zero_5(byte_ptr(p,40)))
-	#define equ_zero_46(p) (equ_zero_40(p)&&equ_zero_6(byte_ptr(p,40)))
-	#define equ_zero_47(p) (equ_zero_40(p)&&equ_zero_7(byte_ptr(p,40)))
-	#define equ_zero_48(p) (equ_zero_40(p)&&equ_zero_8(byte_ptr(p,40)))
-	#define equ_zero_n(p,n) RX_CT_CONCAT(equ_zero_,n)(p)
-	inline bool equ_zero_x(const void *p, size_t x)
-	{
-		for (size_t i = 0; i < x; ++i)
-			if (*(uint8_t*)p)
-				return false;
-		return true;
-	}
-	inline bool equ_zero(const void *p, size_t x)
-	{
-		switch (x)
-		{
-			case 1: return equ_zero_1(p);
-			case 2: return equ_zero_2(p);
-			case 3: return equ_zero_3(p);
-			case 4: return equ_zero_4(p);
-			case 5: return equ_zero_5(p);
-			case 6: return equ_zero_6(p);
-			case 7: return equ_zero_7(p);
-			case 8: return equ_zero_8(p);
-			case 9: return equ_zero_9(p);
-			case 10:return equ_zero_10(p);
-			case 11:return equ_zero_11(p);
-			case 12:return equ_zero_12(p);
-			case 13:return equ_zero_13(p);
-			case 14:return equ_zero_14(p);
-			case 15:return equ_zero_15(p);
-			case 16:return equ_zero_16(p);
-			case 17:return equ_zero_17(p);
-			case 18:return equ_zero_18(p);
-			case 19:return equ_zero_19(p);
-			case 20:return equ_zero_20(p);
-			case 21:return equ_zero_21(p);
-			case 22:return equ_zero_22(p);
-			case 23:return equ_zero_23(p);
-			case 24:return equ_zero_24(p);
-			case 25:return equ_zero_25(p);
-			case 26:return equ_zero_26(p);
-			case 27:return equ_zero_27(p);
-			case 28:return equ_zero_28(p);
-			case 29:return equ_zero_29(p);
-			case 30:return equ_zero_30(p);
-			case 31:return equ_zero_31(p);
-			case 32:return equ_zero_32(p);
-			case 33:return equ_zero_33(p);
-			case 34:return equ_zero_34(p);
-			case 35:return equ_zero_35(p);
-			case 36:return equ_zero_36(p);
-			case 37:return equ_zero_37(p);
-			case 38:return equ_zero_38(p);
-			case 39:return equ_zero_39(p);
-			case 40:return equ_zero_40(p);
-			case 41:return equ_zero_41(p);
-			case 42:return equ_zero_42(p);
-			case 43:return equ_zero_43(p);
-			case 44:return equ_zero_44(p);
-			case 45:return equ_zero_45(p);
-			case 46:return equ_zero_46(p);
-			case 47:return equ_zero_47(p);
-			case 48:return equ_zero_48(p);
-			default:return equ_zero_x(p, x);
-		}
-	}*/
+
 }
 
 #endif

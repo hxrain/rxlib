@@ -19,7 +19,7 @@ namespace rx
 	class atomic_t
 	{
 		T        m_value;
-		typedef typename rx_type_check_t<T>::signed_t vt;
+		typedef typename ct_type_check_t<T>::signed_t vt;
 	public:
 		//构造与赋值函数
 		atomic_t(T v = 0) : m_value(v) {}
