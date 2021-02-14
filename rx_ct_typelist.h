@@ -3,9 +3,11 @@
 
 namespace rx
 {
+	//-----------------------------------------------------
 	//内部占位使用的空类型
 	struct ct_nulltype {};
 
+	//-----------------------------------------------------
 	// ct_typelist 型别列表基础描述
 	template< class Head, class Tail >
 	struct ct_typelist
@@ -14,8 +16,9 @@ namespace rx
 		typedef Tail tail;									//列表尾
 	};
 
+	//-----------------------------------------------------
 	//对型别列表按参数个数进行逐一嵌套描述
-	#define ct_typelist_make1( T1 ) ct_typelist< T1, ct_nulltype >						//一个型别参数的型别列表,列表尾使用占位的空类型
+	#define ct_typelist_make1( T1 ) ct_typelist< T1, ct_nulltype >							//一个型别参数的型别列表,列表尾使用占位的空类型
 	#define ct_typelist_make2( T1, T2) ct_typelist< T1, ct_typelist_make1( T2) >			//两个型别参数的型别列表,列表尾使用嵌套的单参数型别列表
 	#define ct_typelist_make3( T1, T2, T3) ct_typelist< T1, ct_typelist_make2( T2, T3) >	//三个型别参数的型别列表,列表尾使用嵌套的双参数型别列表
 	#define ct_typelist_make4( T1, T2, T3, T4) ct_typelist< T1, ct_typelist_make3( T2, T3, T4) >
@@ -32,7 +35,7 @@ namespace rx
 	#define ct_typelist_make15( T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) ct_typelist< T1, ct_typelist_make14( T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) >
 	#define ct_typelist_make16( T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) ct_typelist< T1, ct_typelist_make15( T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) >
 
-	//---------------------------------------------
+	//-----------------------------------------------------
 	//定义型别参数占位使用的默认参数类.
 	typedef struct {} ct_dummy_T1;
 	typedef struct {} ct_dummy_T2;
@@ -50,7 +53,7 @@ namespace rx
 	typedef struct {} ct_dummy_T14;
 	typedef struct {} ct_dummy_T15;
 
-	//---------------------------------------------
+	//-----------------------------------------------------
 	// 筛选型别列表中的最大型别尺寸值与对应类型
 	template< class List >
 	struct ct_typelist_max;
@@ -71,12 +74,12 @@ namespace rx
 		typedef typename ct_typelist_max<Tail>::type tail_type;				//嵌套引用尾节点型别,得到按尺寸大小筛选过的未节点型别输出
 
 	public:
-		enum V { value = (sizeof(Head) > tail_value) ? sizeof(Head) : size_t(tail_value) };		//进行头尾节点尺寸筛选,保留尺寸大的
+		enum V { value = (sizeof(Head) > tail_value) ? sizeof(Head) : size_t(tail_value) };			//进行头尾节点尺寸筛选,保留尺寸大的
 
-		typedef typename ct_cond_pick< (sizeof(Head) > tail_value), Head, tail_type>::type type;		//根据当前头尾节点尺寸大小,选取大尺寸对应型别为输出型别
+		typedef typename ct_cond_pick< (sizeof(Head) > tail_value), Head, tail_type>::type type;	//根据当前头尾节点尺寸大小,选取大尺寸对应型别为输出型别
 	};
 
-	//---------------------------------------------
+	//-----------------------------------------------------
 	// 筛选型别列表中指定型别的顺序索引(按型别查序号)
 	template< class List, class T >
 	struct ct_typelist_of;
@@ -103,8 +106,7 @@ namespace rx
 		enum V { value = nextVal == -1 ? -1 : 1 + nextVal };//根据嵌套深度得到最终结果:型别T在型别列表中的顺序位置
 	};
 
-
-	//---------------------------------------------
+	//-----------------------------------------------------
 	//提取型别列表中指定索引顺序的型别(按序号查型别)
 	template< class List, size_t i>
 	struct ct_typelist_at;

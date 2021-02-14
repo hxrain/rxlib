@@ -172,7 +172,7 @@ namespace rx
 		typedef ct_type_true_t    is_POD_type;
 	};
 
-	//----------------------------------------------------------
+	//-----------------------------------------------------
 	/*
 	类型提取工具模板ct_type_pick_t能够得到各种条件下的各种类型
 	base_代表基本类型  /  org_代表输入的原类型  /  const_代表const类型  /  not_const_t代表非const的原输入类型  /  const_t代表const后的原输入类型
@@ -285,6 +285,7 @@ namespace rx
 		typedef const T&                   const_t;
 	};
 
+	//-----------------------------------------------------
 	//对ct_type_pick_t类型萃取的简化定义
 	//型别操作:丢弃引用型别,保留原始型别
 	template< class T > struct ct_remove_reference { typedef T type; };
@@ -310,6 +311,7 @@ namespace rx
 		typedef typename ct_remove_volatile<typename ct_remove_const<T>::type>::type type;
 	};
 
+	//-----------------------------------------------------
 	//型别条件判断,根据Cond条件的真假,决定选取Then或Else型别输出
 	template< bool Cond, class Then, class Else >
 	struct ct_cond_pick;
