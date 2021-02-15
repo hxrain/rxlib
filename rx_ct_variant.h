@@ -126,7 +126,7 @@ namespace rx {
 		//将当前的可变量对象与其他的对象进行值交换
 		void swap(variant_lite_t & other)
 		{
-			if (!is_valid() && other.!is_valid())
+			if (!is_valid() && !other.is_valid())
 			{
 				// no effect
 			}
@@ -155,8 +155,7 @@ namespace rx {
 		T &
 			get()
 		{
-			const size_t i = index_of<T>();
-			rx_assert(i == index()); //进行目标类型的型别检查
+			rx_assert(index_of<T>() == index()); //进行目标类型的型别检查
 			return *as<T>(m_ptr()); //将内部缓冲区指针提领转换为指定的目标类型
 		}
 
@@ -164,8 +163,7 @@ namespace rx {
 		T const &
 			get() const
 		{
-			const size_t i = index_of<T>();
-			rx_assert(i == index());
+			rx_assert(index_of<T>() == index());
 			return *as<const T>(m_ptr());
 		}
 		//-----------------------------------------------------
@@ -266,11 +264,11 @@ namespace rx {
 		//用另外的varaint对象对本对象赋值
 		variant_lite_t & m_copy_assign(variant_lite_t const & other)
 		{
-			if (!is_valid() && other.!is_valid())
+			if (!is_valid() && !other.is_valid())
 			{
 				// no effect
 			}
-			else if (is_valid() && other.!is_valid())
+			else if (is_valid() && !other.is_valid())
 			{
 				m_destroy(m_type_index, m_ptr());
 			}
@@ -306,7 +304,6 @@ namespace rx {
 		//按指定型别索引,进行当前可变量对象与其他对象的值交换
 		void m_swap_value(size_t index, variant_lite_t & other)
 		{
-			using swap;
 			switch (index)
 			{
 			case 0: swap(this->get<0>(), other.get<0>()); break;
@@ -334,14 +331,16 @@ namespace rx {
 	template< class T, class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13, class T14, class T15 >
 	inline bool can(variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> const & v)
 	{
-		return v.index() == variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>::index_of<T>();
+	    typedef variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> vat_t;
+		return v.index() == vat_t::template index_of<T>();
 	}
 	//-----------------------------------------------------
 	//判断指定型别是否存在
 	template< class T, class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13, class T14, class T15 >
 	inline bool has(variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> const & v)
 	{
-		return bad_type_index != variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>::index_of<T>();
+	    typedef variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> vat_t;
+		return bad_type_index != vat_t::template index_of<T>();
 	}
 
 	//-----------------------------------------------------
@@ -349,13 +348,13 @@ namespace rx {
 	template< class R, class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13, class T14, class T15 >
 	inline R & get(variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> & v)
 	{
-		return v.get<R>();
+		return v.template get<R>();
 	}
 
 	template< class R, class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13, class T14, class T15 >
 	inline R const & get(variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> const & v)
 	{
-		return v.get<R>();
+		return v.template get<R>();
 	}
 
 	//-----------------------------------------------------
@@ -365,7 +364,7 @@ namespace rx {
 		get(variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> & v)
 	{
 		rx_assert(K == v.index());
-		return v.get<K>();
+		return v.template get<K>();
 	}
 
 	template< size_t K, class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13, class T14, class T15 >
@@ -373,7 +372,7 @@ namespace rx {
 		get(variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> const & v)
 	{
 		rx_assert(K == v.index());
-		return v.get<K>();
+		return v.template get<K>();
 	}
 
 	//-----------------------------------------------------
@@ -459,7 +458,7 @@ namespace rx {
 		variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> const & w)
 	{
 		if (v.index() != w.index()) return false;
-		else if (v.!is_valid()) return true;
+		else if (!v.is_valid()) return true;
 		else return detail::Comparator< variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> >::equal(v, w);
 	}
 	//-----------------------------------------------------
@@ -478,8 +477,8 @@ namespace rx {
 		variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> const & v,
 		variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> const & w)
 	{
-		if (w.!is_valid()) return false;
-		else if (v.!is_valid()) return true;
+		if (!w.is_valid()) return false;
+		else if (!v.is_valid()) return true;
 		else if (v.index() < w.index()) return true;
 		else if (v.index() > w.index()) return false;
 		else return detail::Comparator< variant_lite_t<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> >::less_than(v, w);

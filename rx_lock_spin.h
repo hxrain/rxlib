@@ -133,7 +133,7 @@ namespace rx
 			mem_barrier();                                  // 编译器读写屏障
 
 			spin_sleep_t spin;
-			while (rx_atomic_load(m_lock) != expected) {	// 等待人员都到齐
+			while ((uint32_t)rx_atomic_load(m_lock) != expected) {	// 等待人员都到齐
 				spin();										// 进行休眠
 				if (timeout_rounds && spin.rounds() > timeout_rounds)
 					return false;							// 轮数超时

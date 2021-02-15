@@ -21,6 +21,7 @@ namespace rx
 		var = 'v';
 		rt.assert(var.is_valid());
 		rt.assert(get<  0 >(var) == 'v');
+		rt.assert(var.get<char>() == 'v');
 		rt.assert(get<char>(var) == 'v');
 		rt.assert(can<char>(var));
 		rt.assert(!can<int>(var));

@@ -164,7 +164,7 @@ namespace rx
 				m_cache.pop_front();
 				return ret;
 			}
-			return m_cache.mem().make<obj_t>();
+			return m_cache.mem().template make<obj_t>();
 		}
 		//-------------------------------------------------
 		//归还指定的对象,可以告知是放入缓存的尾部还是头部
