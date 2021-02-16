@@ -1,8 +1,14 @@
 #define RX_USE_TDD_TICK 1
 
 #define UT_ALL 0
-#define UT_SEL 43
+#define UT_SEL 44
 
+//---------------------------------------------------------
+#if UT_ALL||UT_SEL==44
+//轻量级可变量
+#include "../ut_ct_tuple.h"
+#include "../../rx_ct_tuple.h"
+#endif
 //---------------------------------------------------------
 #if UT_ALL||UT_SEL==43
 	//轻量级可变量

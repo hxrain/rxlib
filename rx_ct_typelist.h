@@ -1,6 +1,9 @@
 #ifndef _RX_CT_TYPELIST_H_
 #define _RX_CT_TYPELIST_H_
 
+#include "rx_cc_macro.h"
+#include "rx_ct_traits.h"
+
 namespace rx
 {
 	//-----------------------------------------------------
@@ -121,6 +124,19 @@ namespace rx
 	struct ct_typelist_at< ct_typelist<Head, Tail>, i >
 	{
 		typedef typename ct_typelist_at<Tail, i - 1>::type type;	//嵌套引用尾节点型别和递减的顺序索引,翻底查询嵌套深度对应的头型别作为输出
+	};
+
+	//-----------------------------------------------------
+	template< class T >
+	struct ct_is_nulltype
+	{
+		enum V { value = 0 };								//型别T不为ct_nulltype,值为0
+	};
+
+	template<>
+	struct ct_is_nulltype< ct_nulltype>
+	{
+		enum V { value = 1 };								//型别T为ct_nulltype,值为1
 	};
 
 }
