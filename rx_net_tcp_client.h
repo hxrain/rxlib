@@ -2,7 +2,7 @@
 #define RX_NET_TCP_CLIENT_H
 
 #include "rx_net_sock_std.h"
-#include "rx_ct_error.h"
+#include "rx_cc_error.h"
 #include "rx_logger_std.h"
 #include "rx_ct_delegate.h"
 #include "rx_os_misc.h"

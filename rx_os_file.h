@@ -5,7 +5,7 @@
 #include "rx_cc_base.h"
 #include "rx_assert.h"
 #include "rx_str_util_std.h"
-#include "rx_ct_error.h"
+#include "rx_cc_error.h"
 #include <string>
 
 #if RX_IS_OS_WIN
