@@ -88,13 +88,34 @@ namespace rx
 		rt.assert(get<4>(var5) == -1);
 	}
 
+	//在遍历过程中,处理每个元组的元素
+	class tuple_looper_tst
+	{
+	public:
+		template<class T>
+		void operator()(int idx,int size,T& v) 
+		{ 
+			if (idx == 0)
+				printf("tuple loop: ");
+			printf("%d/%d=%d; ", idx + 1, size, v);;
+			if (idx == size - 1)
+				printf("\n");
+		}
+	};
+
 	void test_ct_tuple_auto(rx_tdd_t &rt)
 	{
-		auto_of(var4, make_tuple(1, 127, 32767, 127));
+		//使用语法糖快速定义元组
+		auto_of(var4, make_tuple(1, 127, 32767, 126));
 		rt.assert(get<0>(var4) == 1);
 		rt.assert(get<1>(var4) == 127);
 		rt.assert(get<2>(var4) == 32767);
-		rt.assert(get<3>(var4) == 127);
+		rt.assert(get<3>(var4) == 126);
+
+		//定义元组遍历处理器
+        tuple_looper_tst looper;
+		//定义元组遍历器,并调用处理器
+		tuple_loop<type_of(var4)>(var4).for_each(looper);
 	}
 }
 
