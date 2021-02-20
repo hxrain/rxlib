@@ -4,6 +4,9 @@
 #include "rx_ct_typelist.h"
 #include "rx_assert.h"
 
+//Reference https://github.com/jabernet/tuple99
+//参考实现超轻量级的元组功能.
+
 namespace rx
 {
 	//-----------------------------------------------------
