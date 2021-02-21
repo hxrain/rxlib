@@ -89,12 +89,12 @@ namespace rx
 	}
 
 	//在遍历过程中,处理每个元组的元素
-	class tuple_looper_tst
+	class looper
 	{
 	public:
 		template<class T>
-		void operator()(int idx,int size,T& v) 
-		{ 
+		void operator()(int idx, int size, T& v)
+		{
 			if (idx == 0)
 				printf("tuple loop: ");
 			printf("%d/%d=%d; ", idx + 1, size, v);;
@@ -112,10 +112,8 @@ namespace rx
 		rt.assert(get<2>(var4) == 32767);
 		rt.assert(get<3>(var4) == 126);
 
-		//定义元组遍历处理器
-        tuple_looper_tst looper;
 		//定义元组遍历器,并调用处理器
-		tuple_loop<type_of(var4)>(var4).for_each(looper);
+		tuple_foreach(var4, looper());
 	}
 }
 

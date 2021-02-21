@@ -11,6 +11,7 @@ namespace rx
 {
 	//-----------------------------------------------------
 	//轻量级元组类原型(最多5个值参数)
+	//-----------------------------------------------------
 	template<class T0, class T1 = ct_nulltype, class T2 = ct_nulltype, class T3 = ct_nulltype, class T4 = ct_nulltype>
 	class tuple_t;
 
@@ -33,11 +34,12 @@ namespace rx
 
 	//-----------------------------------------------------
 	//用于规避g++模板类的模板函数特化标准化,引入统一访问成员变量助理模板
+	//-----------------------------------------------------
 	template<int index, class H0, class H1, class H2, class H3, class H4>
 	struct tuple_helper;
 
 	template<class H0, class H1, class H2, class H3, class H4>
-	struct tuple_helper<0, H0, H1, H2, H3, H4>
+	struct tuple_helper<0, H0, H1, H2, H3, H4>				//助理型别进行索引值的静态特化处理,用于区分具体访问哪个元素
 	{
 		typedef tuple_t<H0, H1, H2, H3, H4> Tuple;
 		static typename tuple_alt< 0, Tuple >::type &get(Tuple *t) { return t->m_v0; }
@@ -75,15 +77,17 @@ namespace rx
 
 	//-----------------------------------------------------
 	//元组类偏特化实现,让每个有效型别仅含有对应的有效数据.
+	//-----------------------------------------------------
 	template<class T0>
 	class tuple_t<T0, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>
 	{
-		T0	m_v0;
+		T0	m_v0;											//定义真实有效的数据成员
 		template<int, typename, typename, typename, typename, typename>
-		friend struct tuple_helper;
+		friend struct tuple_helper;							//描述助理类型为友元
 	public:
-		tuple_t(const T0& v0) :m_v0(v0) {}
-		static const uint32_t size = 1;
+		tuple_t(const T0& v0) :m_v0(v0) {}					//构造的时候绑定具体型别的值
+		static const uint32_t size = 1;						//告知本元组的有效元素数量
+		//使用助理类型获取指定索引的元素
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type & get() { return tuple_helper<K, T0, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this); }
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const { return tuple_helper<K, T0, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this); }
 	};
@@ -141,7 +145,8 @@ namespace rx
 	};
 
 	//-----------------------------------------------------
-	//获取元组中指定索引对应的值
+	//语法糖,获取元组中指定索引对应的值
+	//-----------------------------------------------------
 	template< uint32_t K, class T0, class T1, class T2, class T3, class T4>
 	inline typename tuple_alt< K, tuple_t<T0, T1, T2, T3, T4> >::type &
 		get(tuple_t<T0, T1, T2, T3, T4> & v)
@@ -159,7 +164,8 @@ namespace rx
 	}
 
 	//-----------------------------------------------------
-	//生成元组对象
+	//语法糖,生成元组对象的便捷函数
+	//-----------------------------------------------------
 	template< class T0>
 	inline tuple_t<T0>	make_tuple(const T0 &v0) { return tuple_t<T0>(v0); }
 	template< class T0, class T1>
@@ -173,46 +179,40 @@ namespace rx
 
 	//-----------------------------------------------------
 	//元组遍历器
-	template<typename tuple_type>
-	class tuple_loop
+	//-----------------------------------------------------
+	class tuple_foreach
 	{
-		tuple_type	*m_tuple;
 	public:
-		//构造函数,绑定元组对象
-		tuple_loop(tuple_type* t) :m_tuple(t) {}
-		tuple_loop(tuple_type& t) :m_tuple(&t) {}
 		//使用给定的目标仿函数对象进行元组的遍历
-		template<typename Functor>
-		void for_each(Functor& fun) const
-        {
-            m_each(fun, Index<tuple_type::size>());
-        }
+		template<typename tuple_type, typename Functor>
+		tuple_foreach(const tuple_type& tuple, const Functor& fun)
+		{
+			m_each(*(typename ct_remove_const<Functor>::type *)(&fun), tuple, ct_index_t<tuple_type::size>());
+		}
 	private:
 		//用于包装元组遍历的循环变量
 		template<int pos>
-		struct Index { static const int value = pos; };
+		struct ct_index_t { static const int value = pos; };
 
 		//模板函数偏特化,用于处理具体的元组数据
-		template<typename Functor, typename Idx>
-		void m_each(Functor& fun, Idx) const;
+		template<typename Functor, typename tuple_type, typename index_type>
+		inline void m_each(Functor& fun, const tuple_type& tuple, index_type);
 
-		template<typename Functor>
-		void m_each(Functor, Index<0>) const;
+		template<typename Functor, typename tuple_type>
+		inline void m_each(Functor, const tuple_type& tuple, ct_index_t<0>);
 	};
 
 	//元组遍历处理时,循环变量有效时的特化函数
-	template<typename tuple_type>
-	template<typename Functor, typename Idx>
-	void tuple_loop<tuple_type>::m_each(Functor& fun, Idx) const
+	template<typename Functor, typename tuple_type, typename index_type>
+	inline void tuple_foreach::m_each(Functor& fun, const tuple_type& tuple, index_type)
 	{
-		//对目标仿函数发起当前元组元素的调用处理,同时传递循环变量和总数,便于处理进度
-		fun(tuple_type::size - Idx::value, tuple_type::size,m_tuple->template get<tuple_type::size - Idx::value>()); 
-		m_each(fun, Index<Idx::value - 1>());				//之后循环变量递减,递归调用下一轮处理函数
+		static const int cur = (tuple_type::size - index_type::value);	//当前待处理元素索引
+		fun(cur, tuple_type::size, tuple.template get<cur>());			//对目标仿函数发起当前元组元素的调用处理,同时传递循环变量和总数,便于处理进度
+		m_each(fun, tuple, ct_index_t<index_type::value - 1>());		//之后循环变量递减,递归调用下一轮处理函数
 	}
 
 	//元组遍历处理时,循环变量无效时的特化函数,啥也不干
-	template<typename tuple_type>
-	template<typename Functor>
-	void tuple_loop<tuple_type>::m_each(Functor, Index<0>) const {}
+	template<typename Functor, typename tuple_type>
+	inline void tuple_foreach::m_each(Functor, const tuple_type&, ct_index_t<0>) {}
 }
 #endif
