@@ -122,7 +122,7 @@ namespace rx
 	};
 
 	//-----------------------------------------------------
-	//静态空间的环形队列,数据类型DT;容量(CP为2的整数倍);数字类型NT;锁类型LT.
+	//静态空间的环形队列,数据类型DT;容量(为2的CP次方);数字类型NT;锁类型LT.
 	template<class DT, uint32_t CP = LOG2<128>::result, class LT = null_lock_t, class ST = uint32_t>
 	class ringqueue_ft :public ringqueue_t<DT, LT, ST>
 	{

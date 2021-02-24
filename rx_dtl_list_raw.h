@@ -229,7 +229,7 @@ namespace rx
 		void push_back(node_t &new_node) { push_back(&new_node); }
 		//-------------------------------------------------
 		//将新节点new_node挂接到指定节点prev的后面
-		void push_back(const node_t *prev, node_t *new_node)
+		void push_back(node_t *prev, node_t *new_node)
 		{
 			rx_assert(prev != NULL && new_node != NULL);
 			join(new_node, prev, prev->next);               //在给定节点后插入新节点
@@ -246,7 +246,7 @@ namespace rx
 		void push_front(node_t &new_node) { push_front(&new_node); }
 		//-------------------------------------------------
 		//将新节点new_node挂接到指定节点next的前面
-		void push_front(const node_t *next, node_t *new_node)
+		void push_front(node_t *next, node_t *new_node)
 		{
 			rx_assert(new_node != NULL&&next != NULL);
 			join(new_node, next->prev, next);               //在给定节点前插入新节点

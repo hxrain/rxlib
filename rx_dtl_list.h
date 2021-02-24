@@ -161,21 +161,17 @@ namespace rx
 		template<class dt>
 		iterator push_back(const dt &data)
 		{
-			uint32_t es = node_t::ext_size(data);
-			node_t *node = (node_t *)m_mem.alloc(es + sizeof(node_t));
-			if (!node) return end();
-			m_cntr.push_back(node);
-			node->OC(data, ((uint8_t*)node + sizeof(node_t)), es);
-			return iterator(node);
+			iterator it(rbegin());
+			return push_back(data, it);
 		}
 		//数据入链(在指定节点it的后面),返回最新节点.
 		template<class dt>
-		iterator push_back(const dt &data, iterator it)
+		iterator push_back(const dt &data, iterator &it)
 		{
 			uint32_t es = node_t::ext_size(data);
 			node_t *node = (node_t *)m_mem.alloc(es + sizeof(node_t));
 			if (!node) return end();
-			m_cntr.push_back(it.m_node, node);
+			m_cntr.push_back((node_t *)it.m_node, node);
 			node->OC(data, ((uint8_t*)node + sizeof(node_t)), es);
 			return iterator(node);
 		}
@@ -184,21 +180,17 @@ namespace rx
 		template<class dt>
 		iterator push_front(const dt &data)
 		{
-			uint32_t es = node_t::ext_size(data);
-			node_t *node = (node_t *)m_mem.alloc(es + sizeof(node_t));
-			if (!node) return end();
-			m_cntr.push_front(node);
-			node->OC(data, ((uint8_t*)node + sizeof(node_t)), es);
-			return iterator(node);
+			iterator it(begin());
+			return push_front(data, it);
 		}
 		//数据入链(在指定节点it的前面),返回最新节点.
 		template<class dt>
-		iterator push_front(const dt &data, iterator it)
+		iterator push_front(const dt &data, iterator &it)
 		{
 			uint32_t es = node_t::ext_size(data);
 			node_t *node = (node_t *)m_mem.alloc(es + sizeof(node_t));
 			if (!node) return end();
-			m_cntr.push_front(it.m_node, node);
+			m_cntr.push_front((node_t *)it.m_node, node);
 			node->OC(data, ((uint8_t*)node + sizeof(node_t)), es);
 			return iterator(node);
 		}

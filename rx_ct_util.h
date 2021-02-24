@@ -253,6 +253,19 @@ namespace rx
 	//计算指定指针偏移后的地址
 	#define byte_ptr(p,offset) (((uint8_t*)p)+offset)
 
+	//=====================================================
+	//对统一数据结构的容器进行元素节点遍历.返回值:遍历过的节点数量
+	template<class CNTR,class FUNC>
+	inline uint32_t rx_foreach(const CNTR& cntr, const FUNC& fun)
+	{
+		uint32_t rc = 0;
+		for (typename CNTR::iterator I = cntr.begin();I != cntr.end();++I)
+		{
+			if (!fun(rc++, cntr.size(), *I))
+				break;
+		}
+		return rc;
+	}
 }
 
 #endif
