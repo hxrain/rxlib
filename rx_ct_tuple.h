@@ -206,7 +206,7 @@ namespace rx
 	template<typename Functor, typename tuple_type, typename index_type>
 	inline void tuple_foreach::m_each(Functor& fun, const tuple_type& tuple, index_type)
 	{
-		static const int cur = (tuple_type::size - index_type::value);	//当前待处理元素索引
+		static const uint32_t cur = (tuple_type::size - index_type::value);	//当前待处理元素索引
 		fun(cur, tuple_type::size, tuple.template get<cur>());			//对目标仿函数发起当前元组元素的调用处理,同时传递循环变量和总数,便于处理进度
 		m_each(fun, tuple, ct_index_t<index_type::value - 1>());		//之后循环变量递减,递归调用下一轮处理函数
 	}

@@ -93,7 +93,7 @@ namespace rx
 	{
 	public:
 		template<class T>
-		void operator()(int idx, int size, T& v)
+		void operator()(uint32_t idx, uint32_t size, T& v)
 		{
 			if (idx == 0)
 				printf("tuple loop: ");
