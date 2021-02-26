@@ -37,15 +37,16 @@ namespace rx
 		const uint32_t wheel_slots = 256;                   //每个轮子上的槽位数量
 		const uint32_t slot_mask = wheel_slots - 1;         //槽位索引掩码,用于取模计算
 		static const uint32_t max_wheel_count = 4;          //最大允许的轮子级数
-		#if RX_CC_BIT==32
-		static const uint8_t item_ptr_mask = 0x03;          //定时条目信息指针的掩码,用于进行额外校验
-		#else
-		static const uint8_t item_ptr_mask = 0x07;          //定时条目信息指针的掩码,用于进行额外校验
-		#endif
+		
+		//定时条目信息指针的掩码,用于进行额外校验(32位和64位指针的低位对齐空间不同.)
+	#if RX_CC_BIT==32
+		static const uint8_t item_ptr_mask = 0x03;          
+	#else
+		static const uint8_t item_ptr_mask = 0x07;          
+	#endif
 
-
-			//-------------------------------------------------
-			//获取各层级轮子的满轮滴答数,也是其上层单槽位滴答数
+		//-------------------------------------------------
+		//获取各层级轮子的满轮滴答数,也是其上层单槽位滴答数
 		static rx_inline uint32_t ticks_level(uint32_t i)
 		{
 			rx_assert(i < max_wheel_count - 1);
@@ -309,7 +310,9 @@ namespace rx
 				return rc;
 			}
 		};
+
 		//-------------------------------------------------
+		//多级时间轮管理器
 		template<uint32_t wheel_count>
 		class wheel_group_t
 		{
@@ -319,6 +322,7 @@ namespace rx
 			static const uint32_t max_level_wheel = wheel_count - 1;//最顶层的轮子序号
 			tw::wheel_t         m_wheels[wheel_count];          //定义多级(wheel_count)轮子数组,min_level_wheel(0)为最低级;每级轮子间时间速率相差256倍(wheel_slots)
 		public:
+			virtual ~wheel_group_t() {}
 			//-------------------------------------------------
 			//获取指定轮子层级的槽位索引
 			uint8_t slot_idx(uint8_t wheel_lvl)
@@ -337,7 +341,7 @@ namespace rx
 					m_wheels[lvl].slot_idx() = uint8_t(dst_tick >> tw::ticks_shift(lvl - 1));
 			}
 			//-------------------------------------------------
-			//计算当前轮组的记时滴答数
+			//计算当前轮组的记时滴答数(可选是否精确到最低一级)
 			size_t calc_curr_tick(bool exact = false)
 			{
 				size_t rc = 0;
@@ -388,7 +392,7 @@ namespace rx
 	//时间轮定时器
 	//-----------------------------------------------------
 	template<uint32_t wheel_count = 4>
-	class tw_timer_mgr_t :protected tw::wheel_group_t<wheel_count>
+	class timer_mgr_t :protected tw::wheel_group_t<wheel_count>
 	{
 		typedef typename tw::wheel_group_t<wheel_count> super_t;
 		tw::entry_cache_t   m_items_cache;                  //定时器条目对象指针缓存
@@ -524,7 +528,7 @@ namespace rx
 
 	public:
 		//-------------------------------------------------
-		~tw_timer_mgr_t() { wheels_uninit(); }
+		~timer_mgr_t() { wheels_uninit(); }
 		//-------------------------------------------------
 		//时间轮初始化:给出初始时间点;内部时间槽的时间单位(默认1ms);时间轮使用的内存分配器.
 		bool wheels_init(mem_allotter_i& mem = rx_global_mem_allotter())
@@ -539,10 +543,10 @@ namespace rx
 					return false;
 
 				//给当前时间轮挂接轮子转动事件
-				w.cb_upon.bind(*this, cf_ptr(tw_timer_mgr_t, on_cb_round));
+				w.cb_upon.bind(*this, cf_ptr(timer_mgr_t, on_cb_round));
 
 				//给当前时间轮挂接条目处理事件
-				w.cb_item.bind(*this, cf_ptr(tw_timer_mgr_t, on_cb_item));
+				w.cb_item.bind(*this, cf_ptr(timer_mgr_t, on_cb_item));
 			}
 
 			m_curr_tick = 0;

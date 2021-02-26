@@ -178,7 +178,7 @@ inline void ut_timer_tw_base1(rx_tdd_t &rt,uint32_t cycle,uint32_t rep=1)
     //定义事件处理器对象
     ut_tw_handler_t tr;
     //定义tw定时器管理器
-    rx::tw_timer_mgr_t<wheels> w;
+    rx::timer_mgr_t<wheels> w;
 
     //初始化定时器管理器
     rt.tdd_assert(w.wheels_init());
@@ -209,7 +209,7 @@ inline void ut_timer_tw_base2(rx_tdd_t &rt, uint32_t cycle, uint32_t rep = 1)
     //定义事件处理器对象
     ut_tw_handler_t tr;
     //定义tw定时器管理器
-    rx::tw_timer_mgr_t<wheels> w;
+    rx::timer_mgr_t<wheels> w;
 
     //初始化定时器管理器
     rt.tdd_assert(w.wheels_init());
@@ -230,7 +230,7 @@ inline void ut_timer_tw_base4(rx_tdd_t &rt, uint32_t cycle_limit, uint32_t rep_l
 {
     tdd_tt(ut_timer_tw_base4, "timewheels", "base test4:wheels(%d),max_cycle(%d),max_reps(%d),timers(%d)", wheels, cycle_limit, rep_limit, timer_count+1);
     ut_tw_handler_t tr;
-    rx::tw_timer_mgr_t<wheels> w;
+    rx::timer_mgr_t<wheels> w;
     rx::rand_skeeto_bsa_t rnd;
 
     rt.tdd_assert(w.wheels_init());
