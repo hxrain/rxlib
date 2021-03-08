@@ -268,4 +268,66 @@ namespace rx
 	}
 }
 
+//==========================================================
+// 参考 https://github.com/swansontec/map-macro
+//核心原理: 利用宏的动态展开,以及交叉调用,再结合最外层足够次数的展开保护.
+//递归嵌套宏展开,多层嵌套调用确保展开次数足够(默认展开365次)
+#define MACRO_EVAL0(...) __VA_ARGS__
+#define MACRO_EVAL1(...) MACRO_EVAL0(MACRO_EVAL0(MACRO_EVAL0(__VA_ARGS__)))
+#define MACRO_EVAL2(...) MACRO_EVAL1(MACRO_EVAL1(MACRO_EVAL1(__VA_ARGS__)))
+#define MACRO_EVAL3(...) MACRO_EVAL2(MACRO_EVAL2(MACRO_EVAL2(__VA_ARGS__)))
+#define MACRO_EVAL4(...) MACRO_EVAL3(MACRO_EVAL3(MACRO_EVAL3(__VA_ARGS__)))
+#define MACRO_EVAL(...)  MACRO_EVAL4(MACRO_EVAL4(MACRO_EVAL4(__VA_ARGS__)))
+
+//宏哑元,只用来占位
+#define MACRO_DUMMY
+//逗号分隔符
+#define MAP_COMMA ,
+
+//宏嵌套递归,与EAT宏配合,用于结束参数列表的遍历
+#define _MACRO_MAP_END0(...)
+#define _MACRO_MAP_END1() 0, _MACRO_MAP_END0 //0作为需要被最后吃掉的占位符
+#define _MACRO_MAP_END2(...) _MACRO_MAP_END1
+#define _MACRO_MAP_END(...)  _MACRO_MAP_END2
+
+//宏嵌套递归,丢弃参数列表中的前一项,引用后一项
+#define _MACRO_MAP_EAT0(discard, next, ...) next MACRO_DUMMY
+#define _MACRO_MAP_EAT1(discard, next) _MACRO_MAP_EAT0(discard, next, 0)
+#define _MACRO_MAP_EAT(discard, next)  _MACRO_MAP_EAT1(_MACRO_MAP_END discard, next)
+
+//宏嵌套递归,前置使用入参f(x)后,利用动态宏展开,交叉引用逐一遍历参数列表,生成最终的展开结果
+#define _MACRO_MAP0(f, x, nextx, ...) f(x) _MACRO_MAP_EAT(nextx, _MACRO_MAP1)(f, nextx, __VA_ARGS__)
+#define _MACRO_MAP1(f, x, nextx, ...) f(x) _MACRO_MAP_EAT(nextx, _MACRO_MAP0)(f, nextx, __VA_ARGS__)
+
+//宏嵌套递归,在中间展开的时候插入分隔符,便于构造参数列表
+#define _MACRO_MAP_EATL1(test, next) _MACRO_MAP_EAT0(test, MAP_COMMA next, 0)
+#define _MACRO_MAP_EATL(test, next)  _MACRO_MAP_EATL1(_MACRO_MAP_END test, next)
+#define _MACRO_MAPL0(f, x, nextx, ...) f(x) _MACRO_MAP_EATL(nextx, _MACRO_MAPL1)(f, nextx, __VA_ARGS__)
+#define _MACRO_MAPL1(f, x, nextx, ...) f(x) _MACRO_MAP_EATL(nextx, _MACRO_MAPL0)(f, nextx, __VA_ARGS__)
+
+//参数列表功能,中间生成逗号分隔符
+#define MACRO_MAPL(f, ...) MACRO_EVAL(_MACRO_MAPL1(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0))
+//参数映射功能,原样输出f和参数列表
+#define MACRO_MAP(f, ...) MACRO_EVAL(_MACRO_MAP1(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0)) //()()()是与_MACRO_MAP_END层级配合,确保递归可结束
+
+/*
+例子1:
+#define STRING(x) char const *x##_string = #x;
+MACRO_MAP(STRING, foo, bar) 
+输出:
+char const *foo_string = "foo"; char const *bar_string = "bar";
+中间过程:
+					   _MACRO_MAP_EAT1(_MACRO_MAP_END ()()(), _MACRO_MAP1) -> _MACRO_MAP_EAT0(0, _MACRO_MAP_END0, _MACRO_MAP1, 0) -> _MACRO_MAP_END0 MACRO_DUMMY -> _MACRO_MAP_END0
+     	   STRING(bar) _MACRO_MAP_EAT(()()(), _MACRO_MAP1)(STRING, ()()(),  ()()(), ()()(), 0)
+					   _MACRO_MAP_EAT1(_MACRO_MAP_END bar, _MACRO_MAP0) -> _MACRO_MAP_EAT0(_MACRO_MAP_END bar, _MACRO_MAP0, 0) -> _MACRO_MAP0 MACRO_DUMMY -> _MACRO_MAP0
+     	   STRING(foo) _MACRO_MAP_EAT(bar, _MACRO_MAP0)(STRING, bar,  ()()(), ()()(), ()()(), 0)
+MACRO_EVAL(_MACRO_MAP1(STRING,  foo, bar, ()()(), ()()(), ()()(), 0))
+
+例子2:
+#define sp(x) int x
+void tst(MACRO_MAPL(sp,a,b,c));
+输出:
+void tst(int a , int b , int c);
+*/
+
 #endif
