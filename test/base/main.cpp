@@ -1,6 +1,6 @@
 #define RX_USE_TDD_TICK 1
 
-#define UT_ALL 1
+#define UT_ALL 0
 #define UT_SEL 27
 
 //---------------------------------------------------------

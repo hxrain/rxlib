@@ -489,6 +489,58 @@
 	}
 	enum { CPU_CACHELINE_SIZE = 64 };                       // CACHE-LINE高速缓存的尺寸
 
+	//==========================================================
+	// 参考 https://github.com/swansontec/map-macro
+	//核心原理: 利用宏的动态展开,以及交叉调用,再结合最外层足够次数的展开保护.
+	//递归嵌套宏展开,多层嵌套调用确保展开次数足够(默认展开365次)
+	#define RX_MACRO_EXPAND(...) __VA_ARGS__
+	#define RX_MACRO_EVAL1(...) RX_MACRO_EXPAND(RX_MACRO_EXPAND(RX_MACRO_EXPAND(__VA_ARGS__)))
+	#define RX_MACRO_EVAL2(...) RX_MACRO_EVAL1(RX_MACRO_EVAL1(RX_MACRO_EVAL1(__VA_ARGS__)))
+	#define RX_MACRO_EVAL3(...) RX_MACRO_EVAL2(RX_MACRO_EVAL2(RX_MACRO_EVAL2(__VA_ARGS__)))
+	#define RX_MACRO_EVAL4(...) RX_MACRO_EVAL3(RX_MACRO_EVAL3(RX_MACRO_EVAL3(__VA_ARGS__)))
+	#define RX_MACRO_EVAL(...)  RX_MACRO_EVAL4(RX_MACRO_EVAL4(RX_MACRO_EVAL4(__VA_ARGS__)))
+
+	//宏哑元,只用来占位
+	#define RX_MACRO_DUMMY
+	//逗号分隔符
+	#define RX_MACRO_COMMA ,
+
+	//宏嵌套递归,与EAT宏配合,用于结束参数列表的遍历
+	#define _MACRO_MAP_END0(...)
+	#define _MACRO_MAP_END1() 0, _MACRO_MAP_END0 //0作为需要被最后吃掉的占位符
+	#define _MACRO_MAP_END2(...) _MACRO_MAP_END1
+	#define _MACRO_MAP_END(...)  _MACRO_MAP_END2
+
+	//宏嵌套递归,丢弃参数列表中的前一项,引用后一项
+	#define _MACRO_MAP_EAT0(discard, next, ...) next RX_MACRO_DUMMY
+	#if RX_CC == RX_CC_VC
+	#define _MACRO_MAP_EAT1(discard, next)  RX_MACRO_EXPAND(_MACRO_MAP_EAT0(discard, next, 0)) //对于vc需要额外展开一次,否则不会正确遍历结束
+	#define _MACRO_MAP_EATL1(discard, next) RX_MACRO_EXPAND(_MACRO_MAP_EAT0(discard, RX_MACRO_COMMA next, 0))
+	#else
+	#define _MACRO_MAP_EAT1(discard, next)  _MACRO_MAP_EAT0(discard, next, 0)
+	#define _MACRO_MAP_EATL1(discard, next) _MACRO_MAP_EAT0(discard, RX_MACRO_COMMA next, 0)
+	#endif
+	#define _MACRO_MAP_EAT(discard, next)  _MACRO_MAP_EAT1(_MACRO_MAP_END discard, next)
+
+	//宏嵌套递归,前置使用入参f(x)后,利用动态宏展开,交叉引用逐一遍历参数列表,生成最终的展开结果
+	#define _MACRO_MAP0(f, x, nextx, ...) f(x) _MACRO_MAP_EAT(nextx, _MACRO_MAP1)(f, nextx, __VA_ARGS__)
+	#define _MACRO_MAP1(f, x, nextx, ...) f(x) _MACRO_MAP_EAT(nextx, _MACRO_MAP0)(f, nextx, __VA_ARGS__)
+
+	//宏嵌套递归,在中间展开的时候插入分隔符,便于构造参数列表
+	#define _MACRO_MAP_EATL(discard, next)  _MACRO_MAP_EATL1(_MACRO_MAP_END discard, next)
+	#define _MACRO_MAPL0(f, x, nextx, ...) f(x) _MACRO_MAP_EATL(nextx, _MACRO_MAPL1)(f, nextx, __VA_ARGS__)
+	#define _MACRO_MAPL1(f, x, nextx, ...) f(x) _MACRO_MAP_EATL(nextx, _MACRO_MAPL0)(f, nextx, __VA_ARGS__)
+
+	//-----------------------------------------------------
+	//参数列表功能,中间生成逗号分隔符
+	#define RX_MACRO_MAPL(f, ...) RX_MACRO_EVAL(_MACRO_MAPL1(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0))
+	//参数映射功能,原样输出f和参数列表
+	#define RX_MACRO_MAP(f, ...) RX_MACRO_EVAL(_MACRO_MAP1(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0)) //()()()是与_MACRO_MAP_END层级配合,确保递归可结束
+
+	//-----------------------------------------------------
+	//获取动态宏参数的个数
+	#define RX_MACRO_NARG(...) RX_MACRO_EXPAND(_MACRO_NARG_CALC(__VA_ARGS__,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1))
+	#define _MACRO_NARG_CALC(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,_21,_22,_23,_24,_25,_26,_27,_28,_29,_30,_31,_32,N,...)  N
 
 #endif
 
