@@ -272,17 +272,17 @@ namespace rx
 
 			tcp_sesncfg_t &sc = get_tcp_sesncfg(sesncfg);   //获取会话配置信息
 			//进行真正的连接动作
-			int r = sock::connect(super_t::m_sock, m_dst, timeout_us);
-			if (r == 1)
-			{//连接成功了,给出外部回调通知
-				if (sc.on_connect.is_valid())
-					sc.on_connect(*this, true);             //触发连接事件,发生在tcp客户端
-				return true;
+			switch (sock::connect(super_t::m_sock, m_dst, timeout_us))
+			{
+				case 1:		//连接成功
+					if (sc.on_connect.is_valid())
+						sc.on_connect(*this, true);         //触发连接事件,发生在tcp客户端
+					return true;
+				case 0:		//连接超时
+					return m_err_close("socket connect timeout.");
+				default:	//连接错误
+					return m_err_close("socket connect error.");
 			}
-			if (r == 0)
-				return m_err_close("socket connect timeout.");
-
-			return m_err_close("socket connect error.");
 		}
 	};
 }
