@@ -114,6 +114,176 @@ namespace rx
 
 		//¶¨ÒåÔª×é±éÀúÆ÷,²¢µ÷ÓÃ´¦ÀíÆ÷
 		tuple_foreach(var4, looper());
+
+		{auto_of(var, make_tuple(1));
+		rt.assert(get<0>(var) == 1);
+		}
+		{auto_of(var, make_tuple(1, 2));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		}
+		{auto_of(var, make_tuple(1, 2, 3));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8, 9));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		rt.assert(get<8>(var) == 9);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		rt.assert(get<8>(var) == 9);
+		rt.assert(get<9>(var) == 10);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		rt.assert(get<8>(var) == 9);
+		rt.assert(get<9>(var) == 10);
+		rt.assert(get<10>(var) == 11);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		rt.assert(get<8>(var) == 9);
+		rt.assert(get<9>(var) == 10);
+		rt.assert(get<10>(var) == 11);
+		rt.assert(get<11>(var) == 12);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		rt.assert(get<8>(var) == 9);
+		rt.assert(get<9>(var) == 10);
+		rt.assert(get<10>(var) == 11);
+		rt.assert(get<11>(var) == 12);
+		rt.assert(get<12>(var) == 13);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		rt.assert(get<8>(var) == 9);
+		rt.assert(get<9>(var) == 10);
+		rt.assert(get<10>(var) == 11);
+		rt.assert(get<11>(var) == 12);
+		rt.assert(get<12>(var) == 13);
+		rt.assert(get<13>(var) == 14);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		rt.assert(get<8>(var) == 9);
+		rt.assert(get<9>(var) == 10);
+		rt.assert(get<10>(var) == 11);
+		rt.assert(get<11>(var) == 12);
+		rt.assert(get<12>(var) == 13);
+		rt.assert(get<13>(var) == 14);
+		rt.assert(get<14>(var) == 15);
+		}
+		{auto_of(var, make_tuple(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+		rt.assert(get<0>(var) == 1);
+		rt.assert(get<1>(var) == 2);
+		rt.assert(get<2>(var) == 3);
+		rt.assert(get<3>(var) == 4);
+		rt.assert(get<4>(var) == 5);
+		rt.assert(get<5>(var) == 6);
+		rt.assert(get<6>(var) == 7);
+		rt.assert(get<7>(var) == 8);
+		rt.assert(get<8>(var) == 9);
+		rt.assert(get<9>(var) == 10);
+		rt.assert(get<10>(var) == 11);
+		rt.assert(get<11>(var) == 12);
+		rt.assert(get<12>(var) == 13);
+		rt.assert(get<13>(var) == 14);
+		rt.assert(get<14>(var) == 15);
+		rt.assert(get<15>(var) == 16);
+		tuple_foreach(var, looper());
+		}
 	}
 }
 
