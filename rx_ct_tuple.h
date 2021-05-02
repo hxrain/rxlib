@@ -195,6 +195,8 @@ namespace rx
 			return tuple_helper<K, T0, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) { return *(ret_type*)&m_v0; }
 	};
 
 	template<class T0, class T1>
@@ -214,6 +216,10 @@ namespace rx
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const {
 			return tuple_helper<K, T0, T1, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
+		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) { case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;default:return *(ret_type*)0; }
 		}
 	};
 
@@ -235,6 +241,10 @@ namespace rx
 			return tuple_helper<K, T0, T1, T2, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) { case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;default:return *(ret_type*)0; }
+		}
 	};
 
 	template<class T0, class T1, class T2, class T3>
@@ -254,6 +264,10 @@ namespace rx
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const {
 			return tuple_helper<K, T0, T1, T2, T3, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
+		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) { case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;default:return *(ret_type*)0; }
 		}
 	};
 
@@ -275,6 +289,10 @@ namespace rx
 			return tuple_helper<K, T0, T1, T2, T3, T4, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) { case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;default:return *(ret_type*)0; }
+		}
 	};
 
 	template<class T0, class T1, class T2, class T3, class T4, class T5>
@@ -294,6 +312,13 @@ namespace rx
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const {
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, ct_nulltype, ct_nulltype, ct_nulltype,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
+		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) { 
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;default:return *(ret_type*)0; 
+			}
 		}
 	};
 
@@ -315,6 +340,13 @@ namespace rx
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, ct_nulltype, ct_nulltype,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;default:return *(ret_type*)0;
+			}
+		}
 	};
 
 	template<class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7>
@@ -334,6 +366,13 @@ namespace rx
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const {
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, ct_nulltype,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
+		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;default:return *(ret_type*)0;
+			}
 		}
 	};
 
@@ -355,6 +394,13 @@ namespace rx
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, T8,
 				ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;case 8:return *(ret_type*)&m_v8;default:return *(ret_type*)0;
+			}
+		}
 	};
 
 	template<class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9>
@@ -374,6 +420,13 @@ namespace rx
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, T8,
 				T9, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;case 8:return *(ret_type*)&m_v8;case 9:return *(ret_type*)&m_v9;default:return *(ret_type*)0;
+			}
+		}
 	};
 
 	template<class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10>
@@ -392,6 +445,14 @@ namespace rx
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const {
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, T8,
 				T9, T10, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
+		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;case 8:return *(ret_type*)&m_v8;case 9:return *(ret_type*)&m_v9;
+				case 10:return *(ret_type*)&m_v10;default:return *(ret_type*)0;
+			}
 		}
 	};
 
@@ -413,6 +474,14 @@ namespace rx
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, T8,
 				T9, T10, T11, ct_nulltype, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;case 8:return *(ret_type*)&m_v8;case 9:return *(ret_type*)&m_v9;
+				case 10:return *(ret_type*)&m_v10;case 11:return *(ret_type*)&m_v11;default:return *(ret_type*)0;
+			}
+		}
 	};
 
 	template<class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12>
@@ -433,6 +502,14 @@ namespace rx
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, T8,
 				T9, T10, T11, T12, ct_nulltype, ct_nulltype, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;case 8:return *(ret_type*)&m_v8;case 9:return *(ret_type*)&m_v9;
+				case 10:return *(ret_type*)&m_v10;case 11:return *(ret_type*)&m_v11;case 12:return *(ret_type*)&m_v12;default:return *(ret_type*)0;
+			}
+		}
 	};
 
 	template<class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13>
@@ -450,6 +527,14 @@ namespace rx
 		}
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const {
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, ct_nulltype, ct_nulltype>::get(this);
+		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;case 8:return *(ret_type*)&m_v8;case 9:return *(ret_type*)&m_v9;
+				case 10:return *(ret_type*)&m_v10;case 11:return *(ret_type*)&m_v11;case 12:return *(ret_type*)&m_v12;case 13:return *(ret_type*)&m_v13;default:return *(ret_type*)0;
+			}
 		}
 	};
 
@@ -469,6 +554,15 @@ namespace rx
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const {
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, ct_nulltype>::get(this);
 		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;case 8:return *(ret_type*)&m_v8;case 9:return *(ret_type*)&m_v9;
+				case 10:return *(ret_type*)&m_v10;case 11:return *(ret_type*)&m_v11;case 12:return *(ret_type*)&m_v12;case 13:return *(ret_type*)&m_v13;
+				case 14:return *(ret_type*)&m_v14;default:return *(ret_type*)0;
+			}
+		}
 	};
 
 	template<class T0, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13, class T14, class T15>
@@ -485,6 +579,15 @@ namespace rx
 		}
 		template< uint32_t K > typename tuple_alt< K, tuple_t >::type const &get() const {
 			return tuple_helper<K, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>::get(this);
+		}
+		template<typename ret_type>
+		inline ret_type& take(uint32_t idx) {
+			switch (idx) {
+				case 0:return *(ret_type*)&m_v0;case 1:return *(ret_type*)&m_v1;case 2:return *(ret_type*)&m_v2;case 3:return *(ret_type*)&m_v3;case 4:return *(ret_type*)&m_v4;
+				case 5:return *(ret_type*)&m_v5;case 6:return *(ret_type*)&m_v6;case 7:return *(ret_type*)&m_v7;case 8:return *(ret_type*)&m_v8;case 9:return *(ret_type*)&m_v9;
+				case 10:return *(ret_type*)&m_v10;case 11:return *(ret_type*)&m_v11;case 12:return *(ret_type*)&m_v12;case 13:return *(ret_type*)&m_v13;
+				case 14:return *(ret_type*)&m_v14;case 15:return *(ret_type*)&m_v15;default:return *(ret_type*)0;
+			}
 		}
 	};
 	//-----------------------------------------------------
@@ -506,6 +609,12 @@ namespace rx
 		return v.template get<K>();
 	}
 
+	//动态获取指定元组的指定序号的元素值(需注意默认返回值型别).
+	template<class tuple_type, class ret_type = uint32_t>
+	inline ret_type& take(tuple_type& tuple, uint32_t idx)
+	{
+		return tuple.template take<ret_type>(idx);
+	}
 	//-----------------------------------------------------
 	//语法糖,生成元组对象的便捷函数
 	//-----------------------------------------------------
@@ -586,29 +695,19 @@ namespace rx
 			m_each(*(typename ct_remove_const<Functor>::type *)(&fun), tuple, ct_index_t<tuple_type::size>());
 		}
 	private:
-		//用于包装元组遍历的循环变量
-		template<int pos>
-		struct ct_index_t { static const int value = pos; };
-
 		//模板函数偏特化,用于处理具体的元组数据
 		template<typename Functor, typename tuple_type, typename index_type>
-		inline void m_each(Functor& fun, const tuple_type& tuple, index_type);
+		inline void m_each(Functor& fun, const tuple_type& tuple, index_type)
+		{
+			const uint32_t cur = (tuple_type::size - index_type::value);	//当前待处理元素索引
+			fun(cur, tuple_type::size, tuple.template get<cur>());			//对目标仿函数发起当前元组元素的调用处理,同时传递循环变量和总数,便于处理进度
+			m_each(fun, tuple, ct_index_t<index_type::value - 1>());		//之后循环变量递减,递归调用下一轮处理函数
+		}
 
+		//元组遍历处理时,循环变量无效时的特化函数,啥也不干
 		template<typename Functor, typename tuple_type>
-		inline void m_each(Functor, const tuple_type& tuple, ct_index_t<0>);
+		inline void m_each(Functor, const tuple_type& tuple, ct_index_t<0>) {}
 	};
 
-	//元组遍历处理时,循环变量有效时的特化函数
-	template<typename Functor, typename tuple_type, typename index_type>
-	inline void tuple_foreach::m_each(Functor& fun, const tuple_type& tuple, index_type)
-	{
-		static const uint32_t cur = (tuple_type::size - index_type::value);	//当前待处理元素索引
-		fun(cur, tuple_type::size, tuple.template get<cur>());			//对目标仿函数发起当前元组元素的调用处理,同时传递循环变量和总数,便于处理进度
-		m_each(fun, tuple, ct_index_t<index_type::value - 1>());		//之后循环变量递减,递归调用下一轮处理函数
-	}
-
-	//元组遍历处理时,循环变量无效时的特化函数,啥也不干
-	template<typename Functor, typename tuple_type>
-	inline void tuple_foreach::m_each(Functor, const tuple_type&, ct_index_t<0>) {}
 }
 #endif

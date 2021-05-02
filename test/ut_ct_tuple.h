@@ -108,9 +108,18 @@ namespace rx
 		//使用语法糖快速定义元组
 		auto_of(var4, make_tuple(1, 127, 32767, 126));
 		rt.assert(get<0>(var4) == 1);
+		rt.assert(take(var4, 0) == 1);
 		rt.assert(get<1>(var4) == 127);
+		rt.assert(take(var4, 1) == 127);
 		rt.assert(get<2>(var4) == 32767);
+		rt.assert(take(var4, 2) == 32767);
 		rt.assert(get<3>(var4) == 126);
+		rt.assert(take(var4, 3) == 126);
+
+		printf("tuple take: ");
+		for (uint32_t i = 0;i < var4.size;++i)
+			printf("%d/%d=%d; ", i + 1, var4.size, take(var4, i));
+		printf("\n");
 
 		//定义元组遍历器,并调用处理器
 		tuple_foreach(var4, looper());

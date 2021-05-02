@@ -139,6 +139,9 @@ namespace rx
 		enum V { value = 1 };								//型别T为ct_nulltype,值为1
 	};
 
+	//用于包装元组遍历的型别循环变量类型
+	template<int pos>
+	struct ct_index_t { static const int value = pos; };
 }
 
 #endif
