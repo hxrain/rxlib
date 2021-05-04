@@ -2,7 +2,7 @@
 #define _RX_UT_LOGGER_STD_H_
 
 #include "../rx_tdd.h"
-#include "../rx_logger_std.h"
+#include "../rx_logger.h"
 #include "../rx_cc_base.h"
 
 inline void rx_test_logger_stdout_1(rx_tdd_t &rt)

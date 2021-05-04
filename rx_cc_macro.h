@@ -409,8 +409,8 @@
 
     //-----------------------------------------------------
     //工具宏定义
-    #define _RX_CONCAT_(A,B)                A##B
-    #define RX_CT_CONCAT(A,B)               _RX_CONCAT_(A,B)                //宏拼接
+    #define RX_CT_CAT(A,B)					A##B							//宏字面拼接
+    #define RX_CT_CONCAT(A,B)               RX_CT_CAT(A,B)                  //宏展开拼接
 
     //拼装_LINE_xx的标识符
     #define RX_CT_LINE                      RX_CT_CONCAT(_LINE,__LINE__)    //行号拼接得行符号 LINE_xxx
