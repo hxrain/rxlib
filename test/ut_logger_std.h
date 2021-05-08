@@ -3,6 +3,7 @@
 
 #include "../rx_tdd.h"
 #include "../rx_logger.h"
+#include "../rx_logger_ex.h"
 #include "../rx_cc_base.h"
 
 inline void rx_test_logger_stdout_1(rx_tdd_t &rt)
@@ -10,10 +11,12 @@ inline void rx_test_logger_stdout_1(rx_tdd_t &rt)
     rx::logger_wrcon_t<> wrcon;
     rx::logger_wrfile_t<> wrfle;
     rt.tdd_assert(wrfle.open("./tmp.log"));
-    rx::logger_t<> logger;
+    rx::logger_master_t<> logger_master;
+	logger_master.bind(wrcon);
+	logger_master.bind(wrfle);
+
+	rx::logger_t logger;
     logger_modname(logger);
-    logger.bind(wrcon);
-    logger.bind(wrfle);
 
     logger.info("this's logger stdout unit test case. INFO!");
     logger.debug("this's logger stdout unit test case. DEBUG!");
@@ -24,19 +27,19 @@ inline void rx_test_logger_stdout_1(rx_tdd_t &rt)
     uint8_t tmp[129];
     for(uint32_t i=0;i<sizeof(tmp);++i)
         tmp[i]=i;
-    logger.writer.begin().fmt("recv stream hex:\n").hex(tmp,sizeof(tmp)).end();
-    logger.writer.begin().fmt("recv bin:").bin(tmp,8).end();
+    logger.recoder.begin().fmt("recv stream hex:\n").hex(tmp,sizeof(tmp)).end();
+    logger.recoder.begin().fmt("recv bin:").bin(tmp,8).end();
 }
 
-inline void rx_test_logger_stdout_2(rx_tdd_t &rt,rx::logger_i *out=NULL)
+inline void rx_test_logger_stdout_2(rx_tdd_t &rt,rx::logger_master_i *out=NULL)
 {
     //使用日志记录器接口进行日志输出功能的测试
-    rx::logger_i logger;
+    rx::logger_t logger;
     logger_modname(logger);
     if (out)
         logger.bind(*out);
-    logger.info("sizeof(rx::logger_i)=%u",sizeof(rx::logger_i));
-    logger.info("sizeof(rx::logger_t)=%u",sizeof(rx::logger_t<>));
+    logger.info("sizeof(rx::logger_t)=%u",sizeof(rx::logger_t));
+    logger.info("sizeof(rx::logger_master_t)=%u",sizeof(rx::logger_master_t<>));
     logger.info("this's logger stdout unit test case. INFO!");
     logger.debug("this's logger stdout unit test case. DEBUG!");
     logger.warn("this's logger stdout unit test case. WARNING!");
@@ -46,8 +49,8 @@ inline void rx_test_logger_stdout_2(rx_tdd_t &rt,rx::logger_i *out=NULL)
     uint8_t tmp[63];
     for(uint32_t i=0;i<sizeof(tmp);++i)
         tmp[i]=i;
-    logger.writer.begin().fmt("recv stream hex:\n").hex(tmp,sizeof(tmp)).end();
-    logger.writer.begin().fmt("recv bin:").bin(tmp,8).end();
+    logger.recoder.begin().fmt("recv stream hex:\n").hex(tmp,sizeof(tmp)).end();
+    logger.recoder.begin().fmt("recv bin:").bin(tmp,8).end();
 }
 
 inline void rx_test_logger_stdout_2A(rx_tdd_t &rt)
@@ -58,14 +61,15 @@ inline void rx_test_logger_stdout_2A(rx_tdd_t &rt)
     rt.tdd_assert(wrfle.open("./tmp.log"));
 
     //构造日志记录器实体,绑定输出器
-    rx::logger_t<> logger;
+    rx::logger_master_t<> logger_master;
+	rx::logger_t logger(logger_master);
     logger_modname(logger);
-    logger.bind(wrcon);
-    logger.bind(wrfle);
+	logger_master.bind(wrcon);
+	logger_master.bind(wrfle);
 
     //调用日志记录器接口测试函数
     rx_test_logger_stdout_2(rt);
-    rx_test_logger_stdout_2(rt,&logger);
+    rx_test_logger_stdout_2(rt,&logger_master);
 
     logger.info("end");
 }
@@ -74,30 +78,30 @@ inline void rx_test_logger_stdout_2A(rx_tdd_t &rt)
 inline void rx_test_logger_stdout_2B(rx_tdd_t &rt)
 {
     {
-        rx::logger_i &logger = rx::make_logger_con();
+        rx::logger_t &logger = rx::make_logger_con();
         logger_modname(logger);
-        rx_test_logger_stdout_2(rt,&logger);
+        rx_test_logger_stdout_2(rt,logger.master());
         logger.debug("logger_con end");
     }
 
     {
-        rx::logger_i &logger = rx::make_logger_file<0>("./log0.txt");
+        rx::logger_t &logger = rx::make_logger_file<0>("./log0.txt");
         logger_modname(logger);
-        rx_test_logger_stdout_2(rt,&logger);
+        rx_test_logger_stdout_2(rt,logger.master());
         logger.debug("logger_file0 end");
     }
 
     {
-        rx::logger_i &logger = rx::make_logger_file<1>("./log1.txt");
+        rx::logger_t &logger = rx::make_logger_file<1>("./log1.txt");
         logger_modname(logger);
-        rx_test_logger_stdout_2(rt,&logger);
+        rx_test_logger_stdout_2(rt,logger.master());
         logger.debug("logger_file1 end");
     }
 
     {
-        rx::logger_i &logger = rx::make_logger_confile();
+        rx::logger_t &logger = rx::make_logger_confile();
         logger_modname(logger);
-        rx_test_logger_stdout_2(rt,&logger);
+        rx_test_logger_stdout_2(rt,logger.master());
         logger.debug("logger_confile end");
     }
 }

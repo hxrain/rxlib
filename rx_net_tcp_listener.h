@@ -29,7 +29,7 @@ namespace rx
 		typedef array_stack_ft<listener_t*, max_listens> listener_ptr_stack_t;
 
 		listener_array_t        m_listeners;                //socket监听数组
-		logger_i                m_logger;                   //日志输出接口
+		logger_t                m_logger;                   //日志输出器
 		listener_ptr_stack_t    m_working;                  //存放工作中的监听者指针的栈,当作链表使用
 
 		//-------------------------------------------------
@@ -74,9 +74,9 @@ namespace rx
 	public:
 		//-------------------------------------------------
 		tcp_listener_t() {}
-		tcp_listener_t(logger_i& logger) { m_logger.bind(logger); }
+		tcp_listener_t(logger_t& logger) { m_logger.bind(logger); }
 		virtual ~tcp_listener_t() { close(); }
-		logger_i& logger() { return m_logger; }
+		logger_t& logger() { return m_logger; }
 		//-------------------------------------------------
 		//尝试监听本地端口,允许只监听指定的本机地址;设定socket上可建立链接的最大数量.
 		bool open(uint16_t port, const char* host = NULL, uint32_t backlogs = 1024)

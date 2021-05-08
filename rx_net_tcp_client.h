@@ -4,6 +4,7 @@
 #include "rx_net_sock_std.h"
 #include "rx_cc_error.h"
 #include "rx_logger.h"
+#include "rx_logger_ex.h"
 #include "rx_ct_delegate.h"
 #include "rx_os_misc.h"
 
@@ -12,30 +13,30 @@ namespace rx
 	//-----------------------------------------------------
 	class tcp_session_t;
 	//tcp连接事件的委托类型:tcp会话对象;会话是否为tcp客户端;事件没有返回值
-	//tcp断开事件的委托类型:tcp会话对象;是否由错误引发会话断开;事件没有返回值
+	//tcp断开事件的委托类型:tcp会话对象;是否错误引发会话断开;事件没有返回值
 	typedef delegate2_t<tcp_session_t&, bool, void> tcp_event_cb;
 
 	//-----------------------------------------------------
 	//tcp会话使用的配置参量,抽取出公共对象,节省内存.
-	typedef struct tcp_sesncfg_t
+	typedef struct tcp_session_config_t
 	{
 		uint32_t                timeout_us_rd;              //接收超时us
 		uint32_t                timeout_us_wr;              //发送超时us
 		uint32_t                timeout_us_conn;            //连接超时us
-		logger_i               &logger;                     //错误日志记录器
+		logger_t               &logger;                     //错误日志记录器
 		tcp_event_cb			on_connect;                 //事件委托:tcp会话连接成功
 		tcp_event_cb			on_disconnect;              //事件委托:tcp会话连接断开
 		sock::event_rw_cb       on_recv;                    //事件委托:tcp会话接收到数据
 		sock::event_rw_cb       on_send;                    //事件委托:tcp会话发送了数据
-		tcp_sesncfg_t(logger_i &log) :timeout_us_rd(ms2us(500)), timeout_us_wr(ms2us(500)), timeout_us_conn(sec2us(3)), logger(log) {}
+		tcp_session_config_t(logger_t &log) :timeout_us_rd(ms2us(500)), timeout_us_wr(ms2us(500)), timeout_us_conn(sec2us(3)),logger(log) { }
 	}
-	tcp_sesncfg_t;
+	tcp_session_config_t;
 
 	//-----------------------------------------------------
 	//访问tcp会话配置,可以给出全局默认值,便于使用
-	inline tcp_sesncfg_t& get_tcp_sesncfg(tcp_sesncfg_t* ptr = NULL)
+	inline tcp_session_config_t& get_config(tcp_session_config_t* ptr)
 	{
-		static tcp_sesncfg_t cfg(make_logger_con());
+		static tcp_session_config_t cfg(make_logger_con());
 		if (ptr == NULL)
 			return cfg;
 		return *ptr;
@@ -56,7 +57,7 @@ namespace rx
 			os_errmsg_t osmsg(tip);                         //得到格式化后的系统错误信息描述与tip
 			char addrstr[80];
 			sock::addr_infos(m_sock, addrstr);              //得到通信双方地址信息
-			tcp_sesncfg_t &sc = get_tcp_sesncfg(sesncfg);   //获取会话配置信息
+			tcp_session_config_t &sc = get_config(config);   //获取会话配置信息
 			//输出日志
 			if (is_error)
 				sc.logger.warn("%s :: %s", addrstr, (const char*)osmsg);
@@ -72,20 +73,20 @@ namespace rx
 		{
 			if (m_sock == bad_socket)
 				return;
-			tcp_sesncfg_t &sc = get_tcp_sesncfg(sesncfg);   //获取会话配置信息
+			tcp_session_config_t &sc = get_config(config);   //获取会话配置信息
 			if (sc.on_disconnect.is_valid())
 				sc.on_disconnect(*this, HaveErr);
 			sock::close(m_sock, NoWait);
 		}
 	public:
-		void*           usrdata;                            //session绑定的外部用户数据
-		tcp_sesncfg_t*  sesncfg;                            //session统一使用的配置参数
+		void*					usrdata;					//session绑定的外部用户数据
+		tcp_session_config_t*	config;                     //session并发共享使用的配置参数,如果外部没有给出则使用默认配置.
 		//-------------------------------------------------
-		tcp_session_t() :m_sock(bad_socket), usrdata(NULL), sesncfg(NULL) {}
+		tcp_session_t() :m_sock(bad_socket), usrdata(NULL), config(NULL) {}
 		//-------------------------------------------------
 		virtual ~tcp_session_t() { disconnect(); }
 		socket_t socket() const { return m_sock; }
-		logger_i& logger() { return get_tcp_sesncfg(sesncfg).logger; }
+		logger_t& logger() { return get_config(config).logger; }
 		//-------------------------------------------------
 		//判断当前是否处于连接中,socket是否有效.
 		bool connected() { return m_sock != bad_socket; }
@@ -100,7 +101,7 @@ namespace rx
 			if (m_sock == bad_socket)
 				return ec_uninit;
 
-			tcp_sesncfg_t &sc = get_tcp_sesncfg(sesncfg);   //获取会话配置信息
+			tcp_session_config_t &sc = get_config(config);   //获取会话配置信息
 			if (timeout_us == (uint32_t)-1)
 				timeout_us = sc.timeout_us_wr;
 
@@ -128,7 +129,7 @@ namespace rx
 			if (m_sock == bad_socket)
 				return ec_uninit;
 
-			tcp_sesncfg_t &sc = get_tcp_sesncfg(sesncfg);   //获取会话配置信息
+			tcp_session_config_t &sc = get_config(config);   //获取会话配置信息
 			if (timeout_us == (uint32_t)-1)
 				timeout_us = sc.timeout_us_rd;
 
@@ -170,7 +171,7 @@ namespace rx
 			if (m_sock == bad_socket)
 				return 0;
 
-			tcp_sesncfg_t &sc = get_tcp_sesncfg(sesncfg);   //获取会话配置信息
+			tcp_session_config_t &sc = get_config(config);   //获取会话配置信息
 			if (timeout_us == (uint32_t)-1)
 				timeout_us = sc.timeout_us_rd;
 
@@ -194,7 +195,7 @@ namespace rx
 			if (m_sock == bad_socket)
 				return 0;
 
-			tcp_sesncfg_t &sc = get_tcp_sesncfg(sesncfg);   //获取会话配置信息
+			tcp_session_config_t &sc = get_config(config);   //获取会话配置信息
 			if (!timeout_us)
 				timeout_us = sc.timeout_us_rd;
 
@@ -222,13 +223,13 @@ namespace rx
 		rx_assert(sesn.usrdata == NULL);
 		sesn.m_sock = sock;
 		sesn.usrdata = usrdata;
-		tcp_sesncfg_t &sc = get_tcp_sesncfg(sesn.sesncfg);  //获取会话配置信息
+		tcp_session_config_t &sc = get_config(sesn.config);  //获取会话配置信息
 		if (sc.on_connect.is_valid())
 			sc.on_connect(sesn, false);                     //连接事件,发生在server的会话上,不是client
 	}
 
 	//-----------------------------------------------------
-	//同步模式net功能的tcp客户端功能封装
+	//同步模式tcp客户端功能封装
 	class tcp_client_t :public tcp_session_t
 	{
 		typedef tcp_session_t super_t;
@@ -240,7 +241,7 @@ namespace rx
 			ip_str_t ip_r;
 			m_dst.ip_str(ip_r);
 			os_errmsg_t osmsg(tip);
-			get_tcp_sesncfg(super_t::sesncfg).logger.warn("socket(%u)dst<%s:%u> :: %s", super_t::m_sock, (const char*)ip_r, m_dst.port(), (const char*)osmsg);
+			get_config(super_t::config).logger.warn("socket(%u)dst<%s:%u> :: %s", super_t::m_sock, (const char*)ip_r, m_dst.port(), (const char*)osmsg);
 			sock::close(super_t::m_sock, true);
 			return false;
 		}
@@ -270,7 +271,7 @@ namespace rx
 					return m_err_close("socket bind local port error.");
 			}
 
-			tcp_sesncfg_t &sc = get_tcp_sesncfg(sesncfg);   //获取会话配置信息
+			tcp_session_config_t &sc = get_config(config);   //获取会话配置信息
 			//进行真正的连接动作
 			switch (sock::connect(super_t::m_sock, m_dst, timeout_us))
 			{

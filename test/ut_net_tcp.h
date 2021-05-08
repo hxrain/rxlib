@@ -32,7 +32,7 @@ namespace rx
 		//-------------------------------------------------
 		tcp_echo_svr_t() {}
 		~tcp_echo_svr_t() { uninit(); }
-		logger_i& logger() { return m_svr.logger(); }
+		logger_t& logger() { return m_svr.logger(); }
 		//-------------------------------------------------
 		//打开两个端口进行监听
 		bool init(uint16_t port1 = 45601, uint16_t port2 = 45602)
