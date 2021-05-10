@@ -7,7 +7,7 @@
 	日志记录器体系简述:
 		logger_master_i/logger_master_t		收集器:作为日志记录体系的中心,管理绑定多个输出器,并为记录器提供基础服务.
 		logger_filter_i						过滤器:作为收集器中的过滤层,可以在具体逻辑的外部灵活的筛选控制输出的具体内容.
-		logger_recoder_i						输出器:日志输出器可以将逻辑日志内容输出到控制台或文件.
+		logger_writer_i	    				输出器:日志输出器可以将逻辑日志内容输出到控制台或文件.
 		logger_t							记录器:在需要记录日志的模块中,使用日志记录器,记录待输出的逻辑内容.需要绑定到收集器才能工作.
 	为了简化定义与绑定过程,实现了make_logger_confile/make_logger_file/make_logger_con函数,可一次性构造全局使用的日志记录器并绑定输出器.
 
@@ -49,12 +49,11 @@ namespace rx
 	#define logger_modname(logger) logger.modname(rx_src_filename,__LINE__)
 
 	//-----------------------------------------------------
-	//日志收集器接口
+	//日志收集器接口,记录器logger_t需要绑定对应的收集器.
 	class logger_master_i
 	{
 		friend class logger_t;
 	protected:
-		//日志记录器接口的核心功能可由子类来实现;默认时日志记录器接口的功能由绑定的其他接口处理.
 		virtual bool on_can_write(logger_level_t type) = 0;
 		virtual void on_begin(logger_level_t type, uint32_t tag, uint64_t tex, const char* modname) = 0;
 		virtual void on_vfmt(const char* fmt, va_list ap, uint64_t tex) = 0;
@@ -64,7 +63,7 @@ namespace rx
 	};
 
 	//-----------------------------------------------------
-	//日志记录器
+	//日志记录器,在需要记录日志的地方进行内容的撰写,但不用关心内容输出到哪里.
 	class logger_t
 	{
 		//-------------------------------------------------

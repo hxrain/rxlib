@@ -74,9 +74,8 @@ namespace rx
 				++super_t::count;
 				if (super_t::idx >= super_t::maxlen)
 				{
-					//循环输出给所有绑定的输出器
-					for (uint32_t i = 0; i < parent->m_writer_count; ++i)
-						parent->m_writers[i]->on_write(m_last_tex, super_t::buffer, (uint32_t)super_t::maxlen);
+					//输出给所有绑定的输出器
+					parent->_writers_output(m_last_tex, super_t::buffer, (uint32_t)super_t::maxlen);
 					super_t::idx = 0;
 				}
 			}
@@ -85,13 +84,19 @@ namespace rx
 			{//还有剩余的格式化结果则全部输出给底层
 				if (super_t::idx)
 				{
-					//循环输出给所有绑定的输出器
-					for (uint32_t i = 0; i < parent->m_writer_count; ++i)
-						parent->m_writers[i]->on_write(m_last_tex, super_t::buffer, (uint32_t)super_t::idx);
+					//输出给所有绑定的输出器
+					parent->_writers_output(m_last_tex, super_t::buffer, (uint32_t)super_t::idx);
 					super_t::idx = 0;
 				}
 			}
 		};
+		//-----------------------------------------------------
+		//循环内部输出器,逐一进行指定数据的输出操作.
+		void _writers_output(uint64_t tex, const void* data, uint32_t size)
+		{
+			for (uint32_t i = 0; i < m_writer_count; ++i)
+				m_writers[i]->on_write(tex, data, size);
+		}
 		//-----------------------------------------------------
 		//判断是否可输出当前级别的日志内容
 		virtual bool on_can_write(logger_level_t type)
@@ -151,7 +156,7 @@ namespace rx
 				uint32_t blocks = min(line_bytes, remain);	//本行待处理的字节长度
 				uint32_t sl = 0;
 				for (; sl < pre_tab; ++sl)
-					line_buff[sl] = ' ';					//当前行填充前缀
+					line_buff[sl] = ' ';					//当前行填充前缀空白
 
 				for (uint32_t t = 0; t < blocks; ++t)
 				{//循环输出当前行数据为hex
@@ -166,9 +171,8 @@ namespace rx
 					line_buff[sl++] = '\n';
 					line_buff[sl] = '0';
 				}
-				//循环输出给所有绑定的输出器
-				for (uint32_t i = 0; i < m_writer_count; ++i)
-					m_writers[i]->on_write(tex, line_buff, sl);
+				//输出给所有绑定的输出器
+				_writers_output(tex, line_buff, sl);
 			}
 		}
 		//-----------------------------------------------------
@@ -179,8 +183,7 @@ namespace rx
 				return;
 
 			//循环输出给所有绑定的输出器
-			for (uint32_t i = 0; i < m_writer_count; ++i)
-				m_writers[i]->on_write(tex, data, size);
+			_writers_output(tex, data, size);
 		}
 		//-----------------------------------------------------
 		//结束一次日志事务
