@@ -25,6 +25,11 @@
 	class logger_master_t;
 */
 
+//日志收集器中可以绑定的输出器的最大数量
+#ifndef MAX_LOGGER_WRITER_COUNT
+	#define MAX_LOGGER_WRITER_COUNT 8
+#endif
+
 namespace rx
 {
 
@@ -34,19 +39,42 @@ namespace rx
 	class logger_writer_i
 	{
 	public:
-		virtual void on_begin(uint64_t tex, logger_level_t type, uint32_t tag, const char* msg, uint32_t msgsize) = 0;
-		virtual void on_write(uint64_t tex, const void* data, uint32_t size) = 0;
-		virtual void on_end(uint64_t tex) = 0;
+		virtual const char* type() { return ""; }
+		virtual void on_begin(uint64_t txn, logger_level_t type, uint32_t tag, const char* msg, uint32_t msgsize) = 0;
+		virtual void on_write(uint64_t txn, const void* data, uint32_t size) = 0;
+		virtual void on_end(uint64_t txn) = 0;
 		virtual ~logger_writer_i() {}
 	};
 
+	//-----------------------------------------------------
+	//日志过滤器接口,与日志输出器一一对应,可灵活的决定日志是否可以输出在对应的输出器中.
+	//-----------------------------------------------------
+	class logger_filter_i
+	{
+	protected:
+		bool	m_filter;
+	public:
+		logger_filter_i() :m_filter(true) {}
+		virtual ~logger_filter_i() {}
+		//告知本次日志事务是否可以输出
+		bool can_output() { return m_filter; }
+		//在输出事务开始的时候,进行过滤判断,决定是否可以输出.
+		virtual void on_filter(logger_writer_i &writer, uint64_t txn, logger_level_t type, uint32_t tag, const char* mod, uint32_t pid, uint32_t tid) {}
+	};
 	//-----------------------------------------------------
 	//日志收集器,可以绑定多个日志输出器,可跨线程被多个日志记录器引用
 	//-----------------------------------------------------
 	template<class LT = null_lock_t>
 	class logger_master_t :public logger_master_i
 	{
-		logger_writer_i     *m_writers[max_logger_writer_count];
+		typedef struct output_t
+		{//对日志输出器和过滤器进行捆绑管理.
+			logger_writer_i *writer;
+			logger_filter_i *filter;
+		}output_t;
+
+		logger_filter_i     m_def_filter;					//默认的输出过滤器
+		output_t			m_writers[MAX_LOGGER_WRITER_COUNT];
 		uint32_t            m_writer_count;                 //绑定过的输出器数量
 		logger_level_t      m_can_level;                    //允许输出的日志级别,>=m_can_level才可以输出,默认为输出全部
 		uint32_t            m_pid;
@@ -58,13 +86,13 @@ namespace rx
 			typedef fmt_imp::fmt_follower_null<char> super_t;
 			logger_master_t        *parent;
 			char            m_buff[512];                    //内部持有的临时缓冲区
-			uint64_t        m_last_tex;
+			uint64_t        m_txn;						//一次输出事务的唯一标识序号
 		public:
 			//-----------------------------------------
-			fmt_follower_logger(logger_master_t* o, uint64_t tex)
+			fmt_follower_logger(logger_master_t* o, uint64_t txn)
 			{
 				parent = o;
-				m_last_tex = tex;
+				m_txn = txn;
 				super_t::bind(m_buff, sizeof(m_buff));
 			}
 			//-----------------------------------------
@@ -75,7 +103,7 @@ namespace rx
 				if (super_t::idx >= super_t::maxlen)
 				{
 					//输出给所有绑定的输出器
-					parent->_writers_output(m_last_tex, super_t::buffer, (uint32_t)super_t::maxlen);
+					parent->_writers_output(m_txn, super_t::buffer, (uint32_t)super_t::maxlen);
 					super_t::idx = 0;
 				}
 			}
@@ -85,65 +113,76 @@ namespace rx
 				if (super_t::idx)
 				{
 					//输出给所有绑定的输出器
-					parent->_writers_output(m_last_tex, super_t::buffer, (uint32_t)super_t::idx);
+					parent->_writers_output(m_txn, super_t::buffer, (uint32_t)super_t::idx);
 					super_t::idx = 0;
 				}
 			}
 		};
 		//-----------------------------------------------------
 		//循环内部输出器,逐一进行指定数据的输出操作.
-		void _writers_output(uint64_t tex, const void* data, uint32_t size)
+		void _writers_output(uint64_t txn, const void* data, uint32_t size)
 		{
 			for (uint32_t i = 0; i < m_writer_count; ++i)
-				m_writers[i]->on_write(tex, data, size);
+			{
+				output_t &out = m_writers[i];
+				if (out.filter->can_output())
+					out.writer->on_write(txn, data, size);
+			}
 		}
 		//-----------------------------------------------------
 		//判断是否可输出当前级别的日志内容
-		virtual bool on_can_write(logger_level_t type)
+		virtual bool on_level(logger_level_t type)
 		{
 			return (type >= m_can_level) && m_writer_count;
 		}
 		//-----------------------------------------------------
 		//开始一次日志事务的处理
-		virtual void on_begin(logger_level_t type, uint32_t tag, uint64_t tex, const char* modname)
+		virtual void on_begin(logger_level_t type, uint32_t tag, uint64_t txn, const char* modname)
 		{
-			rx_assert(tex != 0);
+			rx_assert(txn != 0);
 
 			m_locker.lock();								//begin处进行整体加锁,要求必须调用end进行整体解锁.
 
 			tiny_string_t<char, 512> scat;
 
-			//拼装当前时间/日志级别/pid/tid
+			//获取当前时间,带有毫秒.
 			char dt[24];
 			rx_datetime2iso(dt, "%u-%02u-%02uT%02u:%02u:%02u.%03u", true);
-			scat("[%s|", dt) ("%s|", logger_level_name(type)) ("PID:%4u|", m_pid) ("TID:%4u]", get_tid());
+			//拼装: 当前时间/日志级别/pid/tid
+			uint32_t tid = (uint32_t)get_tid();
+			scat("[%s|", dt) ("%s|", logger_level_name(type)) ("PID:%4u|", m_pid) ("TID:%4u]", tid);
 
 			//尝试输出有效的mod名称和tag标记
 			if (!is_empty(modname))
 				scat("[%s]", modname);
 			if (tag != (uint32_t)-1)
 				scat("[TAG:%6u]", tag);
-			scat("[TEX:%016zx]", tex);
+			scat("[TXN:%016zx]", txn);
 			scat << ' ';
 
 			//循环输出给所有绑定的输出器
 			for (uint32_t i = 0; i < m_writer_count; ++i)
-				m_writers[i]->on_begin(tex, type, tag, scat.c_str(), scat.size());
+			{
+				output_t &out = m_writers[i];
+				out.filter->on_filter(*out.writer, txn, type, tag, modname, m_pid, tid); //进行过滤判断处理
+				if (out.filter->can_output())
+					out.writer->on_begin(txn, type, tag, scat.c_str(), scat.size());
+			}
 		}
 		//-----------------------------------------------------
 		//在当前日志事务中输出格式化拼装内容
-		virtual void on_vfmt(const char* fmt, va_list ap, uint64_t tex)
+		virtual void on_vfmt(const char* fmt, va_list ap, uint64_t txn)
 		{
-			if (tex == 0 || m_writer_count == 0)
+			if (txn == 0 || m_writer_count == 0)
 				return;
-			fmt_follower_logger fbuf(this, tex);
+			fmt_follower_logger fbuf(this, txn);
 			fmt_imp::fmt_core(fbuf, fmt, ap);
 		}
 		//-----------------------------------------------------
 		//在当前日志事务中输出HEX数据内容
-		virtual void on_hex(const void* data, uint32_t size, uint32_t pre_tab, uint32_t line_bytes, uint64_t tex)
+		virtual void on_hex(const void* data, uint32_t size, uint32_t pre_tab, uint32_t line_bytes, uint64_t txn)
 		{
-			if (tex == 0 || m_writer_count == 0)
+			if (txn == 0 || m_writer_count == 0)
 				return;
 
 			char line_buff[256 * 4];						//当前行输出缓冲区
@@ -172,46 +211,53 @@ namespace rx
 					line_buff[sl] = '0';
 				}
 				//输出给所有绑定的输出器
-				_writers_output(tex, line_buff, sl);
+				_writers_output(txn, line_buff, sl);
 			}
 		}
 		//-----------------------------------------------------
 		//在当前日志事务中输出原始二进制数据内容
-		virtual void on_bin(const void* data, uint32_t size, uint64_t tex)
+		virtual void on_bin(const void* data, uint32_t size, uint64_t txn)
 		{
-			if (tex == 0 || m_writer_count == 0)
+			if (txn == 0 || m_writer_count == 0)
 				return;
 
 			//循环输出给所有绑定的输出器
-			_writers_output(tex, data, size);
+			_writers_output(txn, data, size);
 		}
 		//-----------------------------------------------------
 		//结束一次日志事务
-		virtual void on_end(uint64_t tex)
+		virtual void on_end(uint64_t txn)
 		{
-			if (tex == 0 || m_writer_count == 0)
+			if (txn == 0 || m_writer_count == 0)
 				return;
 
 			//循环通知给所有绑定的输出器
 			for (uint32_t i = 0; i < m_writer_count; ++i)
-				m_writers[i]->on_end(tex);
+			{
+				output_t &out = m_writers[i];
+				if (out.filter->can_output())
+					out.writer->on_end(txn);
+			}
 
 			m_locker.unlock();								//整体解锁
 		}
 	public:
-		logger_master_t(logger_writer_i *wr1 = NULL, logger_writer_i* wr2 = NULL) :m_writer_count(0), m_can_level(LT_LEVEL_DEBUG)
+		logger_master_t(logger_writer_i *wr1 = NULL, logger_writer_i* wr2 = NULL) :m_writer_count(0), m_can_level(LL_DBG)
 		{
 			m_pid = (uint32_t)get_pid();
 			if (wr1) bind(*wr1);
 			if (wr2) bind(*wr2);
 		}
 		//-----------------------------------------------------
-		//绑定输出器接口
-		bool bind(logger_writer_i& w)
+		//绑定输出器接口以及对应的过滤器接口.
+		bool bind(logger_writer_i& w, logger_filter_i *f = NULL)
 		{
-			if (m_writer_count >= max_logger_writer_count)
+			if (m_writer_count >= MAX_LOGGER_WRITER_COUNT)
 				return false;
-			m_writers[m_writer_count++] = &w;
+			output_t &out = m_writers[m_writer_count++];
+			out.writer = &w;
+			if (f) out.filter = f;
+			else out.filter = &m_def_filter;
 			return true;
 		}
 		//-----------------------------------------------------
@@ -232,20 +278,20 @@ namespace rx
 		LT          m_locker;
 		FILE        *m_file;
 		//-----------------------------------------------------
-		void on_begin(uint64_t tex, logger_level_t type, uint32_t tag, const char* msg, uint32_t msgsize)
+		void on_begin(uint64_t txn, logger_level_t type, uint32_t tag, const char* msg, uint32_t msgsize)
 		{
 			if (!is_valid()) return;
 			m_locker.lock();
 			fwrite(msg, 1, msgsize, m_file);
 		}
 		//-----------------------------------------------------
-		void on_write(uint64_t tex, const void* data, uint32_t size)
+		void on_write(uint64_t txn, const void* data, uint32_t size)
 		{
 			if (!is_valid()) return;
 			fwrite(data, 1, size, m_file);
 		}
 		//-----------------------------------------------------
-		void on_end(uint64_t tex)
+		void on_end(uint64_t txn)
 		{
 			if (!is_valid()) return;
 			putc('\n', m_file);
@@ -255,6 +301,7 @@ namespace rx
 		//-----------------------------------------------------
 		virtual bool is_valid() { return true; }
 	public:
+		virtual const char* type() { return "wrcon"; }
 		logger_wrcon_t() :m_file(stdout) {}
 	};
 
@@ -268,6 +315,7 @@ namespace rx
 		//-----------------------------------------------------
 		logger_wrfile_t() { super_t::m_file = NULL; }
 		~logger_wrfile_t() { close(); }
+		virtual const char* type() { return "wrfile"; }
 		bool is_valid() { return super_t::m_file != NULL; }
 		//-----------------------------------------------------
 		bool open(const char* filepath, bool append = false)
