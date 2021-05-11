@@ -58,11 +58,14 @@ namespace rx
 		tiny_string_t() {}
 		//绑定缓冲区,并告知缓冲区内部已有内容偏移
 		tiny_string_t(uint32_t cap, CT* buff, uint32_t init_offset = 0) { m_head.bind(buff, cap); m_head.length = init_offset; }
-		//对于内置缓冲区模式,可以直接进行串赋值
-		tiny_string_t(const CT* str, uint32_t len = 0)
+		//对于内置缓冲区模式,可以直接进行串赋值或格式化生成
+		tiny_string_t(const CT* fmt, ...)
 		{
 			rx_static_assert(max_str_size != 0);            //要求必须是内置缓冲区模式,才可以直接赋值
-			assign(str, len);
+			va_list	ap;
+			va_start(ap, fmt);
+			vfmt(fmt, ap);
+			va_end(ap);
 		}
 		//-------------------------------------------------
 		//获知缓冲区容量
@@ -238,21 +241,29 @@ namespace rx
 	//绑定外部缓冲区的拼装器
 	typedef tiny_string_t<char>        cat_t;
 	typedef tiny_string_t<wchar_t>     wcat_t;
+	rx_static_assert(sizeof(cat_t) == 4 + sizeof(size_t));
 
-	//固定缓冲区的小串
+	//固定缓冲区的微型串
 	typedef tiny_string_t<char, 14>     str14_t;
 	typedef tiny_string_t<wchar_t, 12>  wstr14_t;
+	rx_static_assert(sizeof(str14_t) == 16);
 
 	typedef tiny_string_t<char, 30>     str30_t;
 	typedef tiny_string_t<wchar_t, 30>  wstr30_t;
+	rx_static_assert(sizeof(str30_t) == 32);
 
 	typedef tiny_string_t<char, 62>     str62_t;
 	typedef tiny_string_t<wchar_t, 62>  wstr62_t;
-
-	rx_static_assert(sizeof(cat_t) == 4 + sizeof(size_t));
-	rx_static_assert(sizeof(str14_t) == 16);
-	rx_static_assert(sizeof(str30_t) == 32);
 	rx_static_assert(sizeof(str62_t) == 64);
+
+	//固定缓冲区的小型串尺寸定义
+	#ifndef RX_XSTR_SIZE
+		#define RX_XSTR_SIZE 510
+	#endif
+	//固定缓冲区的小型串型别定义
+	typedef tiny_string_t<char, RX_XSTR_SIZE>    xstr;
+	typedef tiny_string_t<wchar_t, RX_XSTR_SIZE> xwstr;
+	rx_static_assert(sizeof(xstr) == RX_XSTR_SIZE+2);
 }
 
 

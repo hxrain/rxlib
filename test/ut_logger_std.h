@@ -47,8 +47,9 @@ inline void rx_test_logger_stdout_2(rx_tdd_t &rt,rx::logger_master_i *out=NULL)
     logger.error("this's logger stdout unit test case. ERROR!");
 
 	logger(rx::LL_ERR) << "logger stream output." << NULL;	//流式日志输出,最后给出空指针进行end()操作.
-	logger(rx::LL_WRN)("test p1=%d p2=%s", 2, "p2").end();	//记录器中的编写器调用示例
-	logger(rx::LL_WRN).fmt("test p1=%d p2=%s", 2, "p2").end();	//记录器中的编写器调用示例
+	logger(rx::LL_WRN)("test p1=%d p2=%s", 1, "p2").end();	//记录器中的编写器调用示例
+	logger(rx::LL_WRN).fmt("test p1=%d p2=%s", 1, "p2").end();	//记录器中的编写器调用示例
+	logger(rx::LL_ERR) << rx::xstr("test p2=%d p3=%s", 2, "3") << NULL;	//流式日志输出,使用小串进行格式化,最后给出空指针进行end()操作.
 
     uint8_t tmp[63];
     for(uint32_t i=0;i<sizeof(tmp);++i)
