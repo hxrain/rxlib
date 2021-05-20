@@ -5,6 +5,7 @@
 #include "rx_cc_base.h"
 #include "rx_assert.h"
 #include "rx_str_util_std.h"
+#include "rx_str_util_fmtx.h"
 #include "rx_cc_error.h"
 #include <string>
 
@@ -19,15 +20,14 @@ namespace rx
 	public:
 		//-------------------------------------------------
 		//文件时间与标准时间的相互转化
-		static void  ft2t(const FILETIME &ft, time_t &t)
+		static time_t ft2t(const FILETIME &ft)
 		{
-			rx_static_assert(0x019DB1DED53E8000 == 116444736000000000);
 			ULARGE_INTEGER I;
 			I.LowPart = ft.dwLowDateTime;
 			I.HighPart = ft.dwHighDateTime;
+			//FILETIME是自UTC（Coordinated Universal Time）时间1601年1月1日开始的,以100纳秒为单位的时间
 			//公元1601年到公元1970年相差369年，转化为秒数即为11644473600秒
-			//ft是自UTC（Coordinated Universal Time）时间1601年1月1日开始的100纳秒为单位的时间
-			t = (time_t)(LONGLONG(I.QuadPart - 116444736000000000) / 10000000);
+			return (LONGLONG(I.QuadPart - 116444736000000000) / 10000000);
 		}
 		static void  t2ft(time_t t, FILETIME &ft)
 		{
@@ -237,24 +237,23 @@ namespace rx
 			rx_assert(m_handle != INVALID_HANDLE_VALUE);
 			if (!GetFileTime(m_handle, &FTCreate, &FTAccess, &FTModify))
 				return false;
-			if (Create) ft2t(FTCreate, *Create);
-			if (Modify) ft2t(FTModify, *Modify);
-			if (Access) ft2t(FTAccess, *Access);
+			if (Create) *Create = ft2t(FTCreate);
+			if (Modify) *Modify = ft2t(FTModify);
+			if (Access) *Access = ft2t(FTAccess);
 			return true;
 		}
 		//-------------------------------------------------
 		//格式化打印输出到文件
-		template<uint32_t BuffSize>
 		bool print(const char* Fmt, ...)
 		{
 			va_list	ap;
 			va_start(ap, Fmt);
-			char Buff[BuffSize];
-			int R = st::vsnprintf(Buff, BuffSize, Fmt, ap);
+			typedef fmt_writer_cb<char>::delegate_t cb_t;	//引出委托型别
+			cb_t cb(*this, &os_file_t::write);				//定义委托对象并绑定功能方法
+			fmt_writer_cb<char> out(cb);					//定义fmt输出器并绑定委托对象
+			fmt_imp::fmt_core(out, Fmt, ap);				//调用fmt核心函数进行最终的格式化输出
 			va_end(ap);
-			if (R < 0)
-				return false;
-			return write(Buff, R);
+			return out.fails == 0;							//要求输出过程中文件写入不能出错
 		}
 	};
 }
@@ -351,23 +350,16 @@ namespace rx
 
 			uint32_t flag_write = 0;
 			uint32_t flag_read = 0;
-			bool op_plus = false;
-
-			if (st::strchr(Mode, '+'))
-				op_plus = true;
+			bool op_plus = op_plus = st::strchr(Mode, '+') != NULL;
 
 			if (st::strchr(Mode, 'r'))
-			{
 				flag_read = op_plus ? O_RDWR : O_RDONLY;
-			}
+
 			if (st::strchr(Mode, 'w'))
-			{
-				flag_write = op_plus ? O_RDWR | O_CREAT : O_WRONLY | O_CREAT;
-			}
+				flag_write = op_plus ? (O_RDWR | O_CREAT) : (O_WRONLY | O_CREAT);
+
 			if (st::strchr(Mode, 'a'))
-			{
-				flag_write = op_plus ? O_RDWR | O_APPEND | O_CREAT : O_APPEND | O_CREAT;
-			}
+				flag_write = op_plus ? (O_RDWR | O_CREAT | O_APPEND) : (O_APPEND | O_CREAT);
 
 			return open(filename, flag_read | flag_write);
 		}
@@ -502,17 +494,16 @@ namespace rx
 		}
 		//-------------------------------------------------
 		//格式化打印输出到文件
-		template<uint32_t BuffSize>
 		bool print(const char* Fmt, ...)
 		{
 			va_list	ap;
 			va_start(ap, Fmt);
-			char Buff[BuffSize];
-			int R = st::vsnprintf(Buff, BuffSize, Fmt, ap);
+			typedef fmt_writer_cb<char>::delegate_t cb_t;	//引出委托型别
+			cb_t cb(*this, &os_file_t::write);				//定义委托对象并绑定功能方法
+			fmt_writer_cb<char> out(cb);					//定义fmt输出器并绑定委托对象
+			fmt_imp::fmt_core(out, Fmt, ap);				//调用fmt核心函数进行最终的格式化输出
 			va_end(ap);
-			if (R < 0)
-				return false;
-			return write(Buff, R);
+			return out.fails == 0;							//要求输出过程中文件写入不能出错
 		}
 	};
 }

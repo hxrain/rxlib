@@ -7,10 +7,6 @@
 
 #include "rx_str_util_std.h"
 
-#if (RX_OS==RX_IS_OS_WIN||RX_OS_POSIX)&&!defined(RX_STR_USE_FILE)
-#define RX_STR_USE_FILE 1
-#endif
-
 namespace rx
 {
 	namespace fmt_imp
@@ -82,40 +78,38 @@ namespace rx
 
 		//---------------------------------------------------------------------
 		// 内部使用的工作标记
-		const uint32_t FLAGS_ZEROPAD = (1U << 0U);        //是否进行0填充
-		const uint32_t FLAGS_LEFT = (1U << 1U);        //是否进行数字输出的左对齐
-		const uint32_t FLAGS_PLUS = (1U << 2U);        //是否强制输出数字前的加号
-		const uint32_t FLAGS_SPACE = (1U << 3U);        //是否强制输出数字前的空格
-		const uint32_t FLAGS_CROWN = (1U << 4U);        //是否输出数字前的冠字符,OX,0x,0b等
+		const uint32_t FLAGS_ZEROPAD = (1U << 0U);			//是否进行0填充
+		const uint32_t FLAGS_LEFT = (1U << 1U);				//是否进行数字输出的左对齐
+		const uint32_t FLAGS_PLUS = (1U << 2U);				//是否强制输出数字前的加号
+		const uint32_t FLAGS_SPACE = (1U << 3U);			//是否强制输出数字前的空格
+		const uint32_t FLAGS_CROWN = (1U << 4U);			//是否输出数字前的冠字符,OX,0x,0b等
 		const uint32_t FLAGS_UPPERCASE = (1U << 5U);        //输出串是否使用大写字母
-		const uint32_t FLAGS_CHAR = (1U << 6U);        //输出字符
-		const uint32_t FLAGS_SHORT = (1U << 7U);        //输出short数字
-		const uint32_t FLAGS_LONG = (1U << 8U);        //输出long数字
+		const uint32_t FLAGS_CHAR = (1U << 6U);				//输出字符
+		const uint32_t FLAGS_SHORT = (1U << 7U);			//输出short数字
+		const uint32_t FLAGS_LONG = (1U << 8U);				//输出long数字
 		const uint32_t FLAGS_LONG_LONG = (1U << 9U);        //输出long long数字
-		const uint32_t FLAGS_PRECISION = (1U << 10U);        //是否带有额外的精度指示
-		const uint32_t FLAGS_ADAPT_EXP = (1U << 11U);        //是否自适应科学计数法或浮点格式
+		const uint32_t FLAGS_PRECISION = (1U << 10U);       //是否带有额外的精度指示
+		const uint32_t FLAGS_ADAPT_EXP = (1U << 11U);       //是否自适应科学计数法或浮点格式
 
 		//---------------------------------------------------------------------
-		//底层字符输出器,null,啥也不输出
+		//底层字符输出器,只计数不输出
 		template<class CT>
-		class fmt_follower_null
+		class fmt_writer_base
 		{
 		public:
 			typedef CT char_t;
-			CT* buffer;
-			size_t idx;
-			size_t count;
-			size_t maxlen;
-			void bind(CT* buff, size_t maxl = (size_t)-1) { buffer = buff; idx = 0; count = 0; maxlen = maxl; }
+			size_t idx;										//缓冲区中待输出位置
+			size_t count;									//缓冲区中已有字符数
+			fmt_writer_base() :idx(0), count(0) {}
 			void operator ()(CT character) { ++count; }
 			void end() {}
 		};
 
-		//底层字符输出器,char,单字符输出到stdout
+		//底层字符输出器,单字符输出到stdout
 		template<class CT>
-		class fmt_follower_char :public fmt_follower_null<CT>
+		class fmt_writer_con :public fmt_writer_base<CT>
 		{
-			typedef fmt_follower_null<CT> super_t;
+			typedef fmt_writer_base<CT> super_t;
 		public:
 			void operator ()(CT character)
 			{
@@ -125,48 +119,32 @@ namespace rx
 			void end() {}
 		};
 
-		//底层字符输出器,buff,记录字符到缓冲区
+		//底层字符输出器,记录字符到缓冲区
 		template<class CT>
-		class fmt_follower_buff :public fmt_follower_null<CT>
+		class fmt_writer_buff :public fmt_writer_base<CT>
 		{
-			typedef fmt_follower_null<CT> super_t;
+			typedef fmt_writer_base<CT> super_t;
+		protected:
+			CT		   *m_buffer;
+			size_t		m_maxsize;
 		public:
+			fmt_writer_buff(CT *buf, size_t maxsize) :m_buffer(buf), m_maxsize(maxsize) {}
 			void operator ()(CT character)
 			{
-				if (super_t::idx < super_t::maxlen)
-					super_t::buffer[super_t::idx++] = character;
+				if (super_t::idx < m_maxsize)
+					m_buffer[super_t::idx++] = character;
 				++super_t::count;
 			}
 			void end()
 			{
-				size_t last = super_t::maxlen - 1;
+				size_t last = m_maxsize - 1;
 				if (super_t::idx < last)
-					super_t::buffer[super_t::idx++] = 0;
+					m_buffer[super_t::idx++] = 0;
 				else
-					super_t::buffer[last] = 0;
+					m_buffer[last] = 0;
 			}
 		};
 
-		#if RX_STR_USE_FILE
-		//底层字符输出器,buff,记录字符到缓冲区
-		template<class CT>
-		class fmt_follower_file :public fmt_follower_null<CT>
-		{
-			FILE *m_fp;
-			typedef fmt_follower_null<CT> super_t;
-		public:
-			fmt_follower_file(FILE *fp) :m_fp(fp) {}
-			void operator ()(CT character)
-			{
-				if (sizeof(CT) == sizeof(char))
-					fputc(character, m_fp);
-				else
-					fputwc(character, m_fp);
-				++super_t::count;
-			}
-			void end() {}
-		};
-		#endif
 		//---------------------------------------------------------------------
 		//计算字符串长度,带有最大长度限定保护.
 		template<class CT>
@@ -178,20 +156,12 @@ namespace rx
 		}
 
 
-		//判断字符是否为数字(0-9)
-		template<class CT>
-		static inline bool _is_digit(CT ch)
-		{
-			return sc<CT>::is_0to9(ch);
-		}
-
-
 		//仅转换字符串中的0~9字符组成的数值,用于处理宽度指示与精度指示
 		template<class CT>
 		inline unsigned int _atou(const CT** str)
 		{
 			unsigned int i = 0U;
-			while (_is_digit(**str))
+			while (sc<CT>::is_0to9(**str))
 			{
 				i = i * 10U + (unsigned int)(*((*str)++) - sc<CT>::zero);
 			}
@@ -626,7 +596,7 @@ namespace rx
 
 				//尝试提取当前格式串的填充宽度指示
 				width = 0U;
-				if (_is_digit(*format))
+				if (sc<char_t>::is_0to9(*format))
 					width = _atou(&format);
 				else if (*format == sc<char_t>::star)
 				{//宽度指示需要从参数中获取
@@ -645,7 +615,7 @@ namespace rx
 				{
 					flags |= FLAGS_PRECISION;
 					format++;
-					if (_is_digit(*format))
+					if (sc<char_t>::is_0to9(*format))
 						precision = _atou(&format);
 					else if (*format == sc<char_t>::star)
 					{//从数据参数中获取精度,要求精度必须大于0,否则精度为0
@@ -872,26 +842,24 @@ namespace rx
 	namespace st
 	{
 		//---------------------------------------------------------------------
-		//封装数字转换为字符串的函数
+		//封装数字转换为字符串的函数(假定buff足够长)
 		template<class CT, class VT>
-		inline char *ftoa(VT value, CT *string, int prec = 8, bool exp = false)
+		inline char *ftoa(VT value, CT *buff, int prec = 8, bool exp = false)
 		{
-			fmt_imp::fmt_follower_buff<CT> out;
-			out.bind(string);
+			fmt_imp::fmt_writer_buff<CT> out(buff, PRINTF_FTOA_BUFFER_SIZE);
 			if (exp)
 				fmt_imp::_etoa(out, value, prec, 0, fmt_imp::FLAGS_PRECISION);
 			else
 				fmt_imp::_ftoa(out, value, prec, 0, fmt_imp::FLAGS_PRECISION);
 			out(0);
-			return string;
+			return buff;
 		}
 		//---------------------------------------------------------------------
-		//封装数字转换为字符串的函数
+		//封装数字转换为字符串的函数(假定buff足够长)
 		template<class CT, class VT>
-		inline char *ntoa(VT value, CT *string, int radix = 10, bool crown = false)
+		inline char *ntoa(VT value, CT *buff, int radix = 10, bool crown = false)
 		{
-			fmt_imp::fmt_follower_buff<CT> out;
-			out.bind(string);
+			fmt_imp::fmt_writer_buff<CT> out(buff, PRINTF_NTOA_BUFFER_SIZE);
 			if (radix == 10)
 			{
 				bool negative = value < 0;
@@ -912,7 +880,7 @@ namespace rx
 				}
 			}
 			out(0);
-			return string;
+			return buff;
 		}
 		//---------------------------------------------------------------------
 		//语法糖,自然数转换为指定基的数字串
@@ -944,14 +912,12 @@ namespace rx
 		{
 			if (buffer == NULL || count == 0)
 			{
-				fmt_imp::fmt_follower_null<CT> out;
-				out.bind(NULL);
+				fmt_imp::fmt_writer_base<CT> out;
 				return fmt_imp::fmt_core(out, format, va);
 			}
 			else
 			{
-				fmt_imp::fmt_follower_buff<CT> out;
-				out.bind(buffer, count);
+				fmt_imp::fmt_writer_buff<CT> out(buffer, count);
 				return fmt_imp::fmt_core(out, format, va);
 			}
 		}
@@ -986,7 +952,7 @@ namespace rx
 		template<class CT>
 		inline int vprintf(const CT* format, va_list va)
 		{
-			fmt_imp::fmt_follower_char<CT> out;
+			fmt_imp::fmt_writer_con<CT> out;
 			return fmt_imp::fmt_core(out, format, va);
 		}
 
@@ -1004,7 +970,7 @@ namespace rx
 		template<class CT>
 		inline int vfprintf(FILE *stream, const CT *format, va_list ap)
 		{
-			fmt_imp::fmt_follower_file<CT> out(stream);
+			fmt_imp::fmt_writer_file<CT> out(stream);
 			return fmt_imp::fmt_core(out, format, ap);
 		}
 

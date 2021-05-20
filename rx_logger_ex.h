@@ -8,6 +8,7 @@
 #include "rx_datetime.h"
 #include "rx_str_util_bin.h"
 #include "rx_str_util_fmt.h"
+#include "rx_str_util_fmtx.h"
 #include "rx_str_tiny.h"
 
 /*
@@ -27,7 +28,7 @@
 
 //日志收集器中可以绑定的输出器的最大数量
 #ifndef MAX_LOGGER_WRITER_COUNT
-	#define MAX_LOGGER_WRITER_COUNT 8
+#define MAX_LOGGER_WRITER_COUNT 8
 #endif
 
 namespace rx
@@ -52,12 +53,12 @@ namespace rx
 	class logger_filter_i
 	{
 	protected:
-		bool	m_filter;
+		bool	m_can_out;
 	public:
-		logger_filter_i() :m_filter(true) {}
+		logger_filter_i() :m_can_out(true) {}
 		virtual ~logger_filter_i() {}
 		//告知本次日志事务是否可以输出
-		bool can_output() { return m_filter; }
+		bool can_output() { return m_can_out; }
 		//在输出事务开始的时候,进行过滤判断,决定是否可以输出.
 		virtual void on_filter(logger_writer_i &writer, uint64_t txn, logger_level_t type, uint32_t tag, const char* mod, uint32_t pid, uint32_t tid) {}
 	};
@@ -79,45 +80,22 @@ namespace rx
 		logger_level_t      m_can_level;                    //允许输出的日志级别,>=m_can_level才可以输出,默认为输出全部
 		uint32_t            m_pid;
 		LT                  m_locker;
+
 		//-------------------------------------------------
 		//fmt格式化需要的底层输出器
-		class fmt_follower_logger :public fmt_imp::fmt_follower_null<char>
+		class fmt_writer :public fmt_writer_buffx<char, 512>
 		{
-			typedef fmt_imp::fmt_follower_null<char> super_t;
-			logger_master_t        *parent;
-			char            m_buff[512];                    //内部持有的临时缓冲区
-			uint64_t        m_txn;						//一次输出事务的唯一标识序号
+			logger_master_t *parent;
+			uint64_t        m_txn;							//一次输出事务的唯一标识序号
 		public:
 			//-----------------------------------------
-			fmt_follower_logger(logger_master_t* o, uint64_t txn)
+			fmt_writer(logger_master_t* o, uint64_t txn) : parent(o), m_txn(txn) {}
+			void on_write(const char* buf, uint32_t datalen)
 			{
-				parent = o;
-				m_txn = txn;
-				super_t::bind(m_buff, sizeof(m_buff));
-			}
-			//-----------------------------------------
-			void operator ()(char character)
-			{//格式化后的内容先暂存一下,避免逐字符输出给底层
-				super_t::buffer[super_t::idx++] = character;
-				++super_t::count;
-				if (super_t::idx >= super_t::maxlen)
-				{
-					//输出给所有绑定的输出器
-					parent->_writers_output(m_txn, super_t::buffer, (uint32_t)super_t::maxlen);
-					super_t::idx = 0;
-				}
-			}
-			//-----------------------------------------
-			void end()
-			{//还有剩余的格式化结果则全部输出给底层
-				if (super_t::idx)
-				{
-					//输出给所有绑定的输出器
-					parent->_writers_output(m_txn, super_t::buffer, (uint32_t)super_t::idx);
-					super_t::idx = 0;
-				}
+				parent->_writers_output(m_txn, buf, datalen);
 			}
 		};
+
 		//-----------------------------------------------------
 		//循环内部输出器,逐一进行指定数据的输出操作.
 		void _writers_output(uint64_t txn, const void* data, uint32_t size)
@@ -175,7 +153,7 @@ namespace rx
 		{
 			if (txn == 0 || m_writer_count == 0)
 				return;
-			fmt_follower_logger fbuf(this, txn);
+			fmt_writer fbuf(this, txn);
 			fmt_imp::fmt_core(fbuf, fmt, ap);
 		}
 		//-----------------------------------------------------

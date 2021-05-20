@@ -7,7 +7,7 @@
 	日志记录器体系简述:
 		logger_master_i/logger_master_t		收集器:作为日志记录体系的中心,管理绑定多个输出器,并为记录器提供基础服务.
 		logger_filter_i						过滤器:作为收集器中的过滤层,可以在具体逻辑的外部灵活的筛选控制输出的具体内容.
-		logger_writer_i	    				输出器:日志输出器可以将逻辑日志内容输出到控制台或文件.
+		logger_writer_i/logger_wrcon_t		输出器:日志输出器可以将逻辑日志内容输出到控制台或文件.
 		logger_t							记录器:在需要记录日志的模块中,使用日志记录器,记录待输出的逻辑内容.需要绑定到收集器才能工作.
 	为了简化定义与绑定过程,实现了make_logger_confile/make_logger_file/make_logger_con函数,可一次性构造全局使用的日志记录器并绑定输出器.
 
